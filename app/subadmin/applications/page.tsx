@@ -1,0 +1,676 @@
+// ...existing code...
+// Content from src/pages/subadmin/Applications.tsx
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import AdminSidebar from "@/components/AdminSidebar";
+import {
+    Search,
+    Download,
+    Eye,
+    CheckCircle,
+    XCircle,
+    FileText,
+    MapPin,
+    User,
+    Package,
+    Phone,
+    Users,
+    Leaf,
+    Award,
+    Upload,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+interface Application {
+    id: string;
+    applicantName: string;
+    fatherName: string;
+    mobile: string;
+    district: string;
+    taluka: string;
+    village: string;
+    component: string;
+    status: "pending" | "approved" | "rejected";
+    submittedDate: string;
+    animalCount?: number;
+    approver?: string;
+    gender: string;
+    caste: string;
+    aadharNumber: string;
+    rationCardMembers: number;
+    familyAadharNumbers: string[];
+    animalTagNumber?: string;
+    landHolding: number;
+    khasraNumber: string;
+    milkPouringPoint: string;
+    farmerPourerCode: string;
+    componentDetails: {
+        benefits: string[];
+        customQuestions: { label: string; answer: string }[];
+    };
+    documents: {
+        name: string;
+        uploaded: boolean;
+        url?: string;
+    }[];
+}
+
+export default function SubAdminApplications() {
+    const { toast } = useToast();
+    const [searchQuery, setSearchQuery] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+    const [showReviewDialog, setShowReviewDialog] = useState(false);
+    const [reviewAction, setReviewAction] = useState<"approve" | "reject" | null>(null);
+    const [remarks, setRemarks] = useState("");
+
+    // Mock zone - in real app, this would come from auth context
+    const assignedZone = {
+        district: "Nagpur",
+        taluka: "Nagpur Rural",
+    };
+
+    // Zone-filtered applications - using useState for stateful updates
+    const [applications, setApplications] = useState<Application[]>([
+        {
+            id: "APP-2025-001247",
+            applicantName: "Ramesh Kumar Patil",
+            fatherName: "Vishwanath Patil",
+            mobile: "9876543210",
+            district: "Nagpur",
+            taluka: "Nagpur Rural",
+            village: "Khapa",
+            component: "Animal Induction (Calved Cow)",
+            status: "pending",
+            submittedDate: "2025-01-06",
+            animalCount: 2,
+            gender: "Male",
+            caste: "OBC",
+            aadharNumber: "1234-5678-9012",
+            rationCardMembers: 4,
+            familyAadharNumbers: ["2345-6789-0123", "3456-7890-1234", "4567-8901-2345"],
+            animalTagNumber: "MH31A2345",
+            landHolding: 2.5,
+            khasraNumber: "123/4",
+            milkPouringPoint: "Khapa Dairy Center",
+            farmerPourerCode: "KDC-2345",
+            componentDetails: {
+                benefits: ["50% subsidy up to ₹30,000", "Quality breeding stock", "Veterinary support for 6 months"],
+                customQuestions: [
+                    { label: "Select Breed Type", answer: "Cross Breed Cow" },
+                    { label: "Animal Tag Number", answer: "MH31A2345" }
+                ]
+            },
+            documents: [
+                { name: "Aadhar Card", uploaded: true, url: "https://example.com/documents/aadhar-1234.pdf" },
+                { name: "Ration Card", uploaded: true, url: "https://example.com/documents/ration-1234.pdf" },
+                { name: "Milk Procurement Certificate", uploaded: true, url: "https://example.com/documents/milk-cert-1234.pdf" }
+            ]
+        },
+        {
+            id: "APP-2025-001240",
+            applicantName: "Sunita Devi",
+            fatherName: "Raghunath Sharma",
+            mobile: "9876543220",
+            district: "Nagpur",
+            taluka: "Nagpur Rural",
+            village: "Mouda",
+            component: "HGM Purchase",
+            status: "pending",
+            submittedDate: "2025-01-05",
+            animalCount: 3,
+            gender: "Female",
+            caste: "SC",
+            aadharNumber: "2345-6789-0124",
+            rationCardMembers: 5,
+            familyAadharNumbers: ["3456-7890-1235", "4567-8901-2346"],
+            landHolding: 1.5,
+            khasraNumber: "234/5",
+            milkPouringPoint: "Mouda Dairy",
+            farmerPourerCode: "MD-3456",
+            componentDetails: {
+                benefits: ["Subsidy of ₹25,000 for HGM purchase", "Training on HGM usage"],
+                customQuestions: [
+                    { label: "Type of Green Fodder", answer: "Maize" },
+                    { label: "Area for Cultivation (acres)", answer: "2" }
+                ]
+            },
+            documents: [
+                { name: "Aadhar Card", uploaded: true, url: "https://example.com/documents/aadhar-2345.pdf" },
+                { name: "Ration Card", uploaded: true, url: "https://example.com/documents/ration-2345.pdf" },
+                { name: "Milk Procurement Certificate", uploaded: true, url: "https://example.com/documents/milk-cert-2345.pdf" }
+            ]
+        },
+        {
+            id: "APP-2025-001235",
+            applicantName: "Prakash Deshmukh",
+            fatherName: "Shankar Deshmukh",
+            mobile: "9876543230",
+            district: "Nagpur",
+            taluka: "Nagpur Rural",
+            village: "Kamptee",
+            component: "Fertility Feed",
+            status: "approved",
+            submittedDate: "2025-01-04",
+            animalCount: 1,
+            approver: "DPO Nagpur Rural",
+            gender: "Male",
+            caste: "General",
+            aadharNumber: "3456-7890-1235",
+            rationCardMembers: 3,
+            familyAadharNumbers: ["4567-8901-2346", "5678-9012-3457"],
+            animalTagNumber: "MH31C5678",
+            landHolding: 3.0,
+            khasraNumber: "345/6",
+            milkPouringPoint: "Kamptee Dairy",
+            farmerPourerCode: "KD-5678",
+            componentDetails: {
+                benefits: ["Free fertility feed for 3 months", "Veterinary consultation"],
+                customQuestions: [
+                    { label: "Animal Type", answer: "Buffalo" },
+                    { label: "Current Milk Yield (liters/day)", answer: "8" }
+                ]
+            },
+            documents: [
+                { name: "Aadhar Card", uploaded: true, url: "https://example.com/documents/aadhar-3456.pdf" },
+                { name: "Ration Card", uploaded: true, url: "https://example.com/documents/ration-3456.pdf" },
+                { name: "Milk Procurement Certificate", uploaded: true, url: "https://example.com/documents/milk-cert-3456.pdf" }
+            ]
+        },
+    ]);
+
+    const filteredApplications = applications.filter((app) => {
+        const matchesSearch =
+            app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            app.applicantName.toLowerCase().includes(searchQuery.toLowerCase());
+
+        const matchesStatus = statusFilter === "all" || app.status === statusFilter;
+
+        return matchesSearch && matchesStatus;
+    });
+
+    const getStatusBadge = (status: string) => {
+        const variants: Record<string, { variant: string; className: string }> = {
+            pending: { variant: "outline", className: "bg-chart-4/10 text-chart-4 border-chart-4/20" },
+            approved: { variant: "outline", className: "bg-chart-3/10 text-chart-3 border-chart-3/20" },
+            rejected: { variant: "outline", className: "bg-chart-5/10 text-chart-5 border-chart-5/20" },
+        };
+
+        return (
+            <Badge variant={variants[status]?.variant as any} className={variants[status]?.className}>
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+            </Badge>
+        );
+    };
+
+    const handleViewDetails = (app: Application) => {
+        setSelectedApp(app);
+    };
+
+    const handleReview = (action: "approve" | "reject") => {
+        setReviewAction(action);
+        setShowReviewDialog(true);
+    };
+
+    const handleSubmitReview = () => {
+        if (!selectedApp || !reviewAction) return;
+
+        // Update the application status in state
+        setApplications(prev =>
+            prev.map(app =>
+                app.id === selectedApp.id
+                    ? {
+                        ...app,
+                        status: reviewAction === "approve" ? "approved" : "rejected",
+                        approver: `DPO ${assignedZone.taluka}`
+                    }
+                    : app
+            )
+        );
+
+        toast({
+            title: reviewAction === "approve" ? "Application Approved" : "Application Rejected",
+            description: `Application ${selectedApp.id} has been ${reviewAction}ed successfully.`,
+        });
+
+        setShowReviewDialog(false);
+        setSelectedApp(null);
+        setRemarks("");
+        setReviewAction(null);
+    };
+
+    return (
+        <div className="flex h-screen w-full overflow-hidden bg-background">
+            <AdminSidebar userRole="subadmin" />
+            <div className="flex flex-col flex-1 overflow-hidden">
+                <header className="flex items-center justify-between p-6 border-b bg-card">
+                    <div>
+                        <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-applications-title">
+                            <FileText className="w-6 h-6" />
+                            Applications
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            Review and manage applications from {assignedZone.district} - {assignedZone.taluka}
+                        </p>
+                    </div>
+                    <Button variant="outline" className="gap-2" data-testid="button-export">
+                        <Download className="w-4 h-4" />
+                        Export
+                    </Button>
+                </header>
+
+                <main className="flex-1 overflow-auto p-6 bg-muted/30">
+                    <div className="space-y-6 max-w-7xl">
+                        <Card>
+                            <CardHeader>
+                                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                                    <div>
+                                        <CardTitle>All Applications</CardTitle>
+                                        <CardDescription>
+                                            {filteredApplications.length} applications found in your zone
+                                        </CardDescription>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Search by ID or name..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="pl-10"
+                                            data-testid="input-search"
+                                        />
+                                    </div>
+
+                                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                        <SelectTrigger data-testid="select-status-filter">
+                                            <SelectValue placeholder="Filter by status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Status</SelectItem>
+                                            <SelectItem value="pending">Pending</SelectItem>
+                                            <SelectItem value="approved">Approved</SelectItem>
+                                            <SelectItem value="rejected">Rejected</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="border rounded-lg overflow-hidden">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full">
+                                            <thead className="bg-muted/50 border-b">
+                                                <tr>
+                                                    <th className="text-left p-4 font-semibold text-sm">Application ID</th>
+                                                    <th className="text-left p-4 font-semibold text-sm">Applicant</th>
+                                                    <th className="text-left p-4 font-semibold text-sm">Village</th>
+                                                    <th className="text-left p-4 font-semibold text-sm">Component</th>
+                                                    <th className="text-left p-4 font-semibold text-sm">Status</th>
+                                                    <th className="text-left p-4 font-semibold text-sm">Date</th>
+                                                    <th className="text-left p-4 font-semibold text-sm">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {filteredApplications.map((app, index) => (
+                                                    <tr
+                                                        key={app.id}
+                                                        className="border-b hover:bg-muted/30 transition-colors"
+                                                        data-testid={`application-row-${index}`}
+                                                    >
+                                                        <td className="p-4">
+                                                            <span className="font-mono text-sm font-semibold">{app.id}</span>
+                                                        </td>
+                                                        <td className="p-4">
+                                                            <div>
+                                                                <p className="font-medium text-sm">{app.applicantName}</p>
+                                                                <p className="text-xs text-muted-foreground">{app.mobile}</p>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-4">
+                                                            <p className="text-sm">{app.village}</p>
+                                                        </td>
+                                                        <td className="p-4">
+                                                            <p className="text-sm">{app.component}</p>
+                                                        </td>
+                                                        <td className="p-4">{getStatusBadge(app.status)}</td>
+                                                        <td className="p-4">
+                                                            <p className="text-sm">{app.submittedDate}</p>
+                                                        </td>
+                                                        <td className="p-4">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => handleViewDetails(app)}
+                                                                data-testid={`button-view-${index}`}
+                                                            >
+                                                                <Eye className="w-4 h-4 mr-1" />
+                                                                View
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </main>
+            </div>
+
+            {selectedApp && (
+                <Dialog open={!!selectedApp} onOpenChange={() => setSelectedApp(null)}>
+                    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-3">
+                                <FileText className="w-5 h-5" />
+                                Application Details
+                            </DialogTitle>
+                            <DialogDescription>
+                                Review complete application information
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+                                <div>
+                                    <p className="font-mono font-semibold text-lg">{selectedApp.id}</p>
+                                    <p className="text-sm text-muted-foreground">Submitted on {selectedApp.submittedDate}</p>
+                                </div>
+                                {getStatusBadge(selectedApp.status)}
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <h3 className="font-semibold flex items-center gap-2">
+                                        <User className="w-4 h-4" />
+                                        Personal Information
+                                    </h3>
+                                    <div className="space-y-3 text-sm">
+                                        <div>
+                                            <Label className="text-muted-foreground">Applicant Name</Label>
+                                            <p className="font-medium">{selectedApp.applicantName}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-muted-foreground">Father's Name</Label>
+                                            <p className="font-medium">{selectedApp.fatherName}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-muted-foreground">Gender</Label>
+                                            <p className="font-medium">{selectedApp.gender}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-muted-foreground">Caste/Category</Label>
+                                            <p className="font-medium">{selectedApp.caste}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-muted-foreground">Mobile Number</Label>
+                                            <p className="font-medium flex items-center gap-2">
+                                                <Phone className="w-3 h-3" />
+                                                {selectedApp.mobile}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-muted-foreground">Aadhar Number</Label>
+                                            <p className="font-medium">{selectedApp.aadharNumber}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h3 className="font-semibold flex items-center gap-2">
+                                        <Users className="w-4 h-4" />
+                                        Family Details
+                                    </h3>
+                                    <div className="space-y-3 text-sm">
+                                        <div>
+                                            <Label className="text-muted-foreground">Ration Card Members</Label>
+                                            <p className="font-medium">{selectedApp.rationCardMembers}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-muted-foreground">Family Aadhar Numbers</Label>
+                                            <div className="space-y-1 mt-1">
+                                                {selectedApp.familyAadharNumbers.map((aadhar, idx) => (
+                                                    <p key={idx} className="font-medium text-xs font-mono">{aadhar}</p>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <h3 className="font-semibold flex items-center gap-2">
+                                        <MapPin className="w-4 h-4" />
+                                        Location Details
+                                    </h3>
+                                    <div className="space-y-3 text-sm">
+                                        <div>
+                                            <Label className="text-muted-foreground">District</Label>
+                                            <p className="font-medium">{selectedApp.district}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-muted-foreground">Taluka</Label>
+                                            <p className="font-medium">{selectedApp.taluka}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-muted-foreground">Village</Label>
+                                            <p className="font-medium">{selectedApp.village}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h3 className="font-semibold flex items-center gap-2">
+                                        <Leaf className="w-4 h-4" />
+                                        Eligibility & Livestock
+                                    </h3>
+                                    <div className="space-y-3 text-sm">
+                                        <div>
+                                            <Label className="text-muted-foreground">Animal Count</Label>
+                                            <p className="font-medium">{selectedApp.animalCount ?? "N/A"}</p>
+                                        </div>
+                                        {selectedApp.animalTagNumber && (
+                                            <div>
+                                                <Label className="text-muted-foreground">Animal Tag Number</Label>
+                                                <p className="font-medium font-mono">{selectedApp.animalTagNumber}</p>
+                                            </div>
+                                        )}
+                                        <div>
+                                            <Label className="text-muted-foreground">Land Holding (acres)</Label>
+                                            <p className="font-medium">{selectedApp.landHolding}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-muted-foreground">Khasra Number</Label>
+                                            <p className="font-medium">{selectedApp.khasraNumber}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-muted-foreground">Milk Pouring Point</Label>
+                                            <p className="font-medium">{selectedApp.milkPouringPoint}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-muted-foreground">Farmer Pourer Code</Label>
+                                            <p className="font-medium font-mono">{selectedApp.farmerPourerCode}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <h3 className="font-semibold flex items-center gap-2">
+                                    <Award className="w-4 h-4" />
+                                    Component Details
+                                </h3>
+                                <div className="p-4 bg-primary/5 rounded-lg space-y-4">
+                                    <div>
+                                        <Label className="text-muted-foreground">Selected Component</Label>
+                                        <p className="font-medium text-base mt-1">{selectedApp.component}</p>
+                                    </div>
+
+                                    <div>
+                                        <Label className="text-muted-foreground">Benefits</Label>
+                                        <ul className="list-disc list-inside mt-2 space-y-1">
+                                            {selectedApp.componentDetails.benefits.map((benefit, idx) => (
+                                                <li key={idx} className="text-sm">{benefit}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+
+                                    {selectedApp.componentDetails.customQuestions.length > 0 && (
+                                        <div>
+                                            <Label className="text-muted-foreground">Component-Specific Information</Label>
+                                            <div className="mt-2 space-y-2">
+                                                {selectedApp.componentDetails.customQuestions.map((q, idx) => (
+                                                    <div key={idx} className="flex justify-between items-start">
+                                                        <span className="text-sm text-muted-foreground">{q.label}:</span>
+                                                        <span className="text-sm font-medium">{q.answer}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <h3 className="font-semibold flex items-center gap-2">
+                                    <Upload className="w-4 h-4" />
+                                    Documents Uploaded
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {selectedApp.documents.map((doc, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="flex items-center justify-between p-3 border rounded-lg"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <FileText className="w-4 h-4 text-muted-foreground" />
+                                                <span className="text-sm font-medium">{doc.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                {doc.uploaded ? (
+                                                    <>
+                                                        <Badge variant="outline" className="bg-chart-3/10 text-chart-3 border-chart-3/20">
+                                                            Uploaded
+                                                        </Badge>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => {
+                                                                if (doc.url) {
+                                                                    window.open(doc.url, '_blank');
+                                                                }
+                                                            }}
+                                                            data-testid={`button-view-document-${doc.name.toLowerCase().replace(/\s+/g, '-')}`}
+                                                        >
+                                                            <Eye className="w-3 h-3 mr-1" />
+                                                            View
+                                                        </Button>
+                                                    </>
+                                                ) : (
+                                                    <Badge variant="outline" className="bg-chart-1/10 text-chart-1 border-chart-1/20">
+                                                        Missing
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {selectedApp.status === "pending" && (
+                                <div className="flex gap-3 pt-4 border-t">
+                                    <Button
+                                        className="flex-1 bg-chart-3 hover:bg-chart-3/90"
+                                        onClick={() => handleReview("approve")}
+                                        data-testid="button-approve"
+                                    >
+                                        <CheckCircle className="w-4 h-4 mr-2" />
+                                        Approve Application
+                                    </Button>
+                                    <Button
+                                        variant="destructive"
+                                        className="flex-1"
+                                        onClick={() => handleReview("reject")}
+                                        data-testid="button-reject"
+                                    >
+                                        <XCircle className="w-4 h-4 mr-2" />
+                                        Reject Application
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
+
+            {showReviewDialog && (
+                <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>
+                                {reviewAction === "approve" ? "Approve Application" : "Reject Application"}
+                            </DialogTitle>
+                            <DialogDescription>
+                                Please provide remarks for this decision
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="remarks">Remarks</Label>
+                                <Textarea
+                                    id="remarks"
+                                    placeholder="Enter your remarks..."
+                                    value={remarks}
+                                    onChange={(e) => setRemarks(e.target.value)}
+                                    rows={4}
+                                    data-testid="textarea-remarks"
+                                />
+                            </div>
+                            <div className="flex gap-3">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => setShowReviewDialog(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    className="flex-1"
+                                    onClick={handleSubmitReview}
+                                    disabled={!remarks.trim()}
+                                    data-testid="button-submit-review"
+                                >
+                                    Confirm {reviewAction === "approve" ? "Approval" : "Rejection"}
+                                </Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
+        </div>
+    );
+}

@@ -5,14 +5,13 @@ import SchemeComponents from "@/components/SchemeComponents";
 import AuthoritiesSection from "@/components/AuthoritiesSection";
 
 export default function Home() {
-  return (
-    <div>
-      <HeroSection />
-      <StatsCounter />
-      <AboutSection />
-      <SchemeComponents />
-      <AuthoritiesSection />
-    </div>
-  );
+    return (
+        <div>
+            <HeroSection />
+            <StatsCounter />
+            <AboutSection />
+            <SchemeComponents />
+            <AuthoritiesSection />
+        </div>
+    );
 }
-
