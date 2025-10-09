@@ -1,6 +1,5 @@
 "use client"
 import { UserRole } from "@/enums/roles";
-import { redirect } from "next/navigation";
 import { createContext, ReactNode, useState, useEffect } from "react";
 import { useContext } from "react";
 import { useRouter } from "next/navigation";
@@ -66,19 +65,20 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
             localStorage.setItem("frappe_access_token", data.access_token);
             localStorage.setItem("frappe_refresh_token", data.refresh_token);
-
+            let validated;
             // Immediately validate
             const validateRes = await fetch("/api/auth/validate", {
                 headers: { Authorization: `Bearer ${data.access_token}` },
             });
 
             if (validateRes.ok) {
-                const validated = await validateRes.json();
+                validated = await validateRes.json();
                 if (validated?.user) {
                     setUser(validated as User);
                 }
             }
-            const validated = await validateRes.json();
+
+
             if (validated?.roles.includes(UserRole.VMDDP_ADMIN)) {
                 router.push('/admin/dashboard');
             } else if (validated?.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {
@@ -91,12 +91,11 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         }
 
     };
-    const logout = () => {
+    const logout = async () => {
         localStorage.removeItem("frappe_access_token");
         localStorage.removeItem("frappe_refresh_token");
         // Remove cookies by setting expiry to past date
-        document.cookie = "frappe_access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        document.cookie = "frappe_refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        await fetch("/api/auth/logout");
         setUser(null);
         router.push("/login");
     };

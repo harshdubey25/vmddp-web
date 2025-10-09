@@ -4,7 +4,7 @@ import { UserRole } from "@/enums/roles";
 export async function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
   const token = req.cookies.get("frappe_access_token")?.value;
-  console.log("Middleware token:", token);
+
   async function validateUser() {
     try {
       const resp = await fetch(
@@ -18,6 +18,51 @@ export async function middleware(req: NextRequest) {
       return null;
     }
   }
+
+  // 🔹 Protect /admin and /subadmin routes and block cross-access
+  if (url.pathname.startsWith("/admin")) {
+    if (!token) {
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+    const data = await validateUser();
+    if (!data || !data.roles) {
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+    // Block subadmin from accessing admin routes
+    if (data.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {
+      url.pathname = "/subadmin/dashboard";
+      return NextResponse.redirect(url);
+    }
+    // Only allow admin
+    if (!data.roles.includes(UserRole.VMDDP_ADMIN)) {
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+  }
+  if (url.pathname.startsWith("/subadmin")) {
+    if (!token) {
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+    const data = await validateUser();
+    if (!data || !data.roles) {
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+    // Block admin from accessing subadmin routes
+    if (data.roles.includes(UserRole.VMDDP_ADMIN)) {
+      url.pathname = "/admin/dashboard";
+      return NextResponse.redirect(url);
+    }
+    // Only allow subadmin
+    if (!data.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+  }
+
   // 🔹 Redirect logged-in users away from /login
   if (url.pathname === "/login" && token) {
     const data = await validateUser();
@@ -25,25 +70,6 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/admin/dashboard", req.url));
     } else if (data?.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {
       return NextResponse.redirect(new URL("/subadmin/dashboard", req.url));
-    }
-  }
-
-  // 🔹 Protect /dashboard for Website Users
-  if (url.pathname.startsWith("/admin")) {
-    if (!token) {
-      url.pathname = "/login";
-      return NextResponse.redirect(url);
-    }
-    if (url.pathname.startsWith("/subadmin")) {
-      if (!token) {
-        url.pathname = "/login";
-        return NextResponse.redirect(url);
-      }
-    }
-    const data = await validateUser();
-    if (!data || data.user_type !== "Website User") {
-      url.pathname = "/login";
-      return NextResponse.redirect(url);
     }
   }
 
