@@ -6,19 +6,22 @@ compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
 
 [vars]
-NEXT_PUBLIC_API_BASE_URL = "https://gov-vmddp.klaimify.in"
+NEXT_PUBLIC_FRAPPE_BASE_URL = "https://gov-vmddp.klaimify.in"
 NEXT_PUBLIC_BASE_URL = "https://vmddp-web.pages.dev"
 
 [env.production]
 compatibility_flags = ["nodejs_compat"]
 
 [env.production.vars]
-NEXT_PUBLIC_API_BASE_URL = "https://gov-vmddp.klaimify.in"
+NEXT_PUBLIC_FRAPPE_BASE_URL = "https://gov-vmddp.klaimify.in"
 NEXT_PUBLIC_BASE_URL = "https://vmddp-web.pages.dev"
 
 [env.preview]
 compatibility_flags = ["nodejs_compat"]
 
 [env.preview.vars]
-NEXT_PUBLIC_API_BASE_URL = "https://gov-vmddp.klaimify.in"
+NEXT_PUBLIC_FRAPPE_BASE_URL = "https://gov-vmddp.klaimify.in"
 NEXT_PUBLIC_BASE_URL = "https://vmddp-web.pages.dev"
+
+
+

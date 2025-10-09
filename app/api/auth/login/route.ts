@@ -10,7 +10,7 @@ export async function POST(req: Request): Promise<Response> {
     const { email, password } = await req.json();
 
     const resp = await fetch(
-      `${process.env.NEXT_PUBLIC_FRAPPE_BASE}/api/method/frappe.integrations.oauth2.get_token`,
+      `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/frappe.integrations.oauth2.get_token`,
       {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
