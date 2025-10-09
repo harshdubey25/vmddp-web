@@ -8,9 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Shield, Lock, User, ArrowLeft } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+
 import Link from "next/link";
 export default function Login() {
     const router = useRouter();
+    const { login } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         username: "",
@@ -24,14 +27,7 @@ export default function Login() {
         setIsLoading(true);
 
         // Simulate login process
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        // Navigate to appropriate dashboard based on role
-        if (formData.role === "admin") {
-            router.push("/admin/dashboard");
-        } else if (formData.role === "subadmin") {
-            router.push("/subadmin/dashboard");
-        }
+        await login(formData.username, formData.password);
 
         setIsLoading(false);
     };

@@ -14,6 +14,7 @@ import {
   LogOut,
   Shield,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 interface AdminSidebarProps {
   userRole: "admin" | "subadmin";
@@ -35,6 +36,7 @@ const subAdminMenuItems = [
   { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },
 ];
 export default function AdminSidebar({ userRole }: AdminSidebarProps) {
+  const { logout } = useAuth()
   const menuItems = userRole === "admin" ? adminMenuItems : subAdminMenuItems;
   const location = usePathname();
   return (
@@ -76,7 +78,7 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
       <Separator />
 
       <div className="p-3">
-        <Link href="/">
+        <Link href="/" onClick={logout}>
           <Button variant="ghost" className="w-full justify-start gap-3" data-testid="button-logout">
             <LogOut className="w-4 h-4" />
             <span>Logout</span>

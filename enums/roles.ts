@@ -1,0 +1,4 @@
+export enum UserRole {
+  VMDDP_ADMIN = "VMDDP ADMIN",
+  VMDDP_SUB_ADMIN = "VMDDP SUB ADMIN",
+}
