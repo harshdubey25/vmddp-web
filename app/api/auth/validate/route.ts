@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 
-// export const runtime = "edge";
-// export const dynamic = "force-dynamic";
+export const runtime = "edge";
+export const dynamic = "force-dynamic";
 
 export interface Role {
   role: string;
