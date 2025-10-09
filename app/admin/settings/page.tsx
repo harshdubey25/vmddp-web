@@ -1,3 +1,4 @@
+"use client"
 // ...existing code...
 // Content from src/pages/admin/Settings.tsx
 import { useState } from "react";

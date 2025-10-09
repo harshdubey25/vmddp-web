@@ -1,3 +1,4 @@
+"use client"
 // ...existing code...
 // Content from src/pages/admin/Reports.tsx
 import { useState, useEffect } from "react";

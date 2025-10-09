@@ -44,6 +44,7 @@
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.22",
+    "frappe-react-sdk": "^1.13.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.545.0",
     "next": "15.5.4",
@@ -68,14 +69,14 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.20",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5",
-    "autoprefixer": "^10.4.20"
+    "typescript": "^5"
   },
-   "optionalDependencies": {
+  "optionalDependencies": {
     "bufferutil": "^4.0.8"
   }
 }
