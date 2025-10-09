@@ -66,6 +66,7 @@ export async function middleware(req: NextRequest) {
   // 🔹 Redirect logged-in users away from /login
   if (url.pathname === "/login" && token) {
     const data = await validateUser();
+    console.log("Middleware validate data:", data);
     if (data?.roles.includes(UserRole.VMDDP_ADMIN)) {
       return NextResponse.redirect(new URL("/admin/dashboard", req.url));
     } else if (data?.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {

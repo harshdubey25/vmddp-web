@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const resp = await fetch(
-      `${process.env.NEXT_PUBLIC_FRAPPE_BASE}/api/method/frappe.auth.get_logged_user`,
+      `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/frappe.auth.get_logged_user`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
     const userId = userResp.message;
 
     const userDoc = await fetch(
-      `${process.env.NEXT_PUBLIC_FRAPPE_BASE}/api/resource/User/${userId}?fields=["name","user_type","full_name","role_profile_name"]`,
+      `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/resource/User/${userId}?fields=["name","user_type","full_name","role_profile_name"]`,
       { method: "GET", headers: { Authorization: `Bearer ${token}` } }
     );
 
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
     let userDetailsData;
     try {
       const userDetails = await fetch(
-        `${process.env.NEXT_PUBLIC_FRAPPE_BASE}/api/method/vmddp_app.api.user.get_user_details?user_id=${userId}`,
+        `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/vmddp_app.api.user.get_user_details?user_id=${userId}`,
         { method: "GET", headers: { Authorization: `Bearer ${token}` } }
       );
       console.log("User Details Response:", userDetails);
