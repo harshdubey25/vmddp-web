@@ -583,7 +583,7 @@ export default function AdminComponents() {
                                             />
                                             <Select
                                                 value={newQuestion.type}
-                                                onValueChange={(value: any) => setNewQuestion({ ...newQuestion, type: value })}
+                                                onValueChange={(value: CustomQuestion["type"]) => setNewQuestion({ ...newQuestion, type: value })}
                                             >
                                                 <SelectTrigger data-testid="select-question-type">
                                                     <SelectValue />

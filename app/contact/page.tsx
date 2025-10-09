@@ -27,7 +27,7 @@ export default function Contact() {
                         Contact Us
                     </h1>
                     <p className="text-muted-foreground max-w-2xl mx-auto">
-                        Have questions? We're here to help and answer any questions you may have
+                        Have questions? We&apos;re here to help and answer any questions you may have
                     </p>
                 </div>
 

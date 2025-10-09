@@ -6,7 +6,10 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "pages:build": "npx @cloudflare/next-on-pages@1",
+    "pages:deploy": "npm run pages:build && npx wrangler pages deploy .vercel/output/static",
+    "pages:dev": "npx @cloudflare/next-on-pages@1 --experimental-minify"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

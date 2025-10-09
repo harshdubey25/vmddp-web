@@ -159,7 +159,7 @@ export default function Register() {
 
                                 {familyMemberCount > 1 && (
                                     <div className="space-y-4">
-                                        <h3 className="font-medium text-sm">Family Members' Aadhar Numbers ({familyMemberCount - 1} members)</h3>
+                                        <h3 className="font-medium text-sm">Family Members&apos; Aadhar Numbers ({familyMemberCount - 1} members)</h3>
                                         {Array.from({ length: familyMemberCount - 1 }).map((_, index) => (
                                             <div key={index} className="space-y-2">
                                                 <Label htmlFor={`familyAadhaar${index + 1}`}>Family Member {index + 1} Aadhar Number *</Label>
@@ -358,7 +358,7 @@ export default function Register() {
                                             </div>
                                             {familyMemberCount > 1 && (
                                                 <div>
-                                                    <Label className="text-muted-foreground">Family Members' Aadhar Numbers</Label>
+                                                    <Label className="text-muted-foreground">Family Members&apos; Aadhar Numbers</Label>
                                                     <div className="space-y-1 mt-1">
                                                         {Array.from({ length: familyMemberCount - 1 }).map((_, index) => (
                                                             <p key={index} className="font-medium text-xs font-mono">—</p>

@@ -277,7 +277,7 @@ export default function AdminApplicationsClient({ applications }: AdminApplicati
                                             <p className="font-medium">{selectedApp.applicantName}</p>
                                         </div>
                                         <div>
-                                            <Label className="text-muted-foreground">Father's Name</Label>
+                                            <Label className="text-muted-foreground">Father&apos;s Name</Label>
                                             <p className="font-medium">{selectedApp.fatherName}</p>
                                         </div>
                                         <div>
