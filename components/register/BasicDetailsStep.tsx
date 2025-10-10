@@ -102,7 +102,7 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
     </div>
     {familyMemberCount > 1 && (
       <div className="space-y-4">
-        <h3 className="font-medium text-sm">Family Members' Aadhar Numbers ({familyMemberCount - 1} members)</h3>
+  <h3 className="font-medium text-sm">Family Members&apos; Aadhar Numbers ({familyMemberCount - 1} members)</h3>
         {Array.from({ length: familyMemberCount - 1 }).map((_, index) => (
           <div key={index} className="space-y-2">
             <Label htmlFor={`familyAadhaar${index + 1}`}>Family Member {index + 1} Aadhar Number *</Label>
