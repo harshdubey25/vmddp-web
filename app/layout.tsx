@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import ClientLayoutShell from "@/components/ClientLayoutShell";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { FrappeClientProvider } from "@/providers/FrappeClientProvider";
 import AuthProvider from "@/context/AuthContext";
@@ -35,9 +34,7 @@ export default function RootLayout({
         <FrappeClientProvider>
           <AuthProvider>
             <ThemeProvider>
-              <Header />
-              {children}
-              <Footer />
+              <ClientLayoutShell>{children}</ClientLayoutShell>
             </ThemeProvider>
           </AuthProvider>
         </FrappeClientProvider>
