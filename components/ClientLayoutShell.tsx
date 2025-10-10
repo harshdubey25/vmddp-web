@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 
 export default function ClientLayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const showHeaderFooter = pathname !== "/login";
+  const showHeaderFooter = pathname.startsWith('/login') || pathname.startsWith('/admin') || pathname.startsWith('/subadmin') ? false : true;
   return (
     <>
       {showHeaderFooter && <Header />}
