@@ -1,0 +1,182 @@
+
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { User, Users, MapPin, Leaf, Award, Printer } from "lucide-react";
+
+interface ReviewStepProps {
+  values: any;
+  familyMemberCount: number;
+  agreed: boolean;
+  onAgreedChange: (checked: boolean) => void;
+  onPrint?: () => void;
+}
+
+const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint }: ReviewStepProps) => (
+  <div className="space-y-6">
+    <div className="flex items-center justify-between">
+      <div>
+        <h2 className="font-display font-semibold text-xl mb-2">Review & Submit</h2>
+        <p className="text-sm text-muted-foreground">Please review all the information before submitting your application</p>
+      </div>
+      {onPrint && (
+        <button
+          type="button"
+          onClick={onPrint}
+          className="gap-2 print:hidden border rounded px-3 py-2 flex items-center"
+          data-testid="button-print"
+        >
+          <Printer className="w-4 h-4" />
+          Print
+        </button>
+      )}
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-4">
+        <h3 className="font-semibold flex items-center gap-2">
+          <User className="w-4 h-4" />
+          Personal Information
+        </h3>
+        <div className="space-y-3 text-sm">
+          <div>
+            <Label className="text-muted-foreground">Full Name</Label>
+            <p className="font-medium">{values.firstName} {values.middleName} {values.lastName}</p>
+          </div>
+          <div>
+            <Label className="text-muted-foreground">Gender</Label>
+            <p className="font-medium">{values.gender}</p>
+          </div>
+          <div>
+            <Label className="text-muted-foreground">Caste/Category</Label>
+            <p className="font-medium">{values.caste}</p>
+          </div>
+          <div>
+            <Label className="text-muted-foreground">Mobile Number</Label>
+            <p className="font-medium">{values.mobile}</p>
+          </div>
+          <div>
+            <Label className="text-muted-foreground">Aadhar Number</Label>
+            <p className="font-medium">{values.aadhaar}</p>
+          </div>
+        </div>
+      </div>
+      <div className="space-y-4">
+        <h3 className="font-semibold flex items-center gap-2">
+          <Users className="w-4 h-4" />
+          Family Details
+        </h3>
+        <div className="space-y-3 text-sm">
+          <div>
+            <Label className="text-muted-foreground">Ration Card Members</Label>
+            <p className="font-medium">{values.rationCardMembers}</p>
+          </div>
+          {familyMemberCount > 1 && (
+            <div>
+              <Label className="text-muted-foreground">Family Members' Aadhar Numbers</Label>
+              <div className="space-y-1 mt-1">
+                {Array.from({ length: familyMemberCount - 1 }).map((_, index) => (
+                  <p key={index} className="font-medium text-xs font-mono">{values[`familyAadhaar${index + 1}`]}</p>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-4">
+        <h3 className="font-semibold flex items-center gap-2">
+          <MapPin className="w-4 h-4" />
+          Location Details
+        </h3>
+        <div className="space-y-3 text-sm">
+          <div>
+            <Label className="text-muted-foreground">District</Label>
+            <p className="font-medium">{values.district}</p>
+          </div>
+          <div>
+            <Label className="text-muted-foreground">Taluka</Label>
+            <p className="font-medium">{values.taluka}</p>
+          </div>
+          <div>
+            <Label className="text-muted-foreground">Village</Label>
+            <p className="font-medium">{values.village}</p>
+          </div>
+        </div>
+      </div>
+      <div className="space-y-4">
+        <h3 className="font-semibold flex items-center gap-2">
+          <Leaf className="w-4 h-4" />
+          Eligibility & Livestock
+        </h3>
+        <div className="space-y-3 text-sm">
+          <div>
+            <Label className="text-muted-foreground">Dairy Animal Count</Label>
+            <p className="font-medium">{values.dairyAnimalCount}</p>
+          </div>
+          <div>
+            <Label className="text-muted-foreground">Animal Tag Numbers</Label>
+            <div className="space-y-1">
+              {Array.isArray(values.animalTagNumbers) ? values.animalTagNumbers.map((tag: string, idx: number) => (
+                <p key={idx} className="font-medium font-mono">{tag}</p>
+              )) : <p className="font-medium font-mono">{values.animalTagNumber}</p>}
+            </div>
+          </div>
+          <div>
+            <Label className="text-muted-foreground">Land Holding (acres)</Label>
+            <p className="font-medium">{values.landHolding}</p>
+          </div>
+          <div>
+            <Label className="text-muted-foreground">Khasra Number</Label>
+            <p className="font-medium">{values.khasraNumber}</p>
+          </div>
+          <div>
+            <Label className="text-muted-foreground">Milk Pouring Point</Label>
+            <p className="font-medium">{values.milkPouringPoint}</p>
+          </div>
+          <div>
+            <Label className="text-muted-foreground">Farmer Pourer Code</Label>
+            <p className="font-medium font-mono">{values.farmerPourerCode}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div className="space-y-4">
+      <h3 className="font-semibold flex items-center gap-2">
+        <Award className="w-4 h-4" />
+        Component Details
+      </h3>
+      <div className="p-4 bg-primary/5 rounded-lg space-y-4">
+        <div>
+          <Label className="text-muted-foreground">Selected Component(s)</Label>
+          <div className="mt-1">
+            {Array.isArray(values.components) ? values.components.map((comp: string, idx: number) => (
+              <p key={idx} className="font-medium text-base">{comp}</p>
+            )) : <p className="font-medium text-base">{values.component}</p>}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-5 print:break-inside-avoid">
+      <div className="flex items-start gap-4">
+        <Checkbox
+          id="declaration"
+          checked={agreed}
+          onCheckedChange={onAgreedChange}
+          data-testid="checkbox-declaration"
+          className="mt-1"
+        />
+        <div className="flex-1">
+          <Label htmlFor="declaration" className="text-sm font-medium cursor-pointer block mb-1">
+            Declaration
+          </Label>
+          <p className="text-sm text-muted-foreground cursor-pointer" onClick={() => onAgreedChange(!agreed)}>
+            I hereby declare that all the information provided by me is true and correct to the best of my knowledge. I understand that any false information may lead to rejection of my application and penal action as per law.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+export default ReviewStep;
