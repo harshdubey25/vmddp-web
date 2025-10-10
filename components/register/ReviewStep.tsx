@@ -3,6 +3,18 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { User, Users, MapPin, Leaf, Award, Printer } from "lucide-react";
 
+const COMPONENT_OPTIONS = [
+  { value: "1", label: "Animal Induction", description: "Induction of new animals into the dairy system." },
+  { value: "2", label: "HGM", description: "High Genetic Merit animal support." },
+  { value: "3", label: "Fertility Feed", description: "Special feed to improve animal fertility." },
+  { value: "4", label: "Fodder Seed", description: "Distribution of quality fodder seeds." },
+  { value: "5", label: "SNF Enhancer", description: "Enhancer for Solids-Not-Fat in milk." },
+  { value: "6", label: "Supply Chaff Cutter", description: "Provision of chaff cutters for fodder processing." },
+  { value: "7", label: "Supply Of Silage", description: "Supply of silage for animal nutrition." },
+  { value: "8", label: "Treatment of Infertile Animal", description: "Veterinary support for infertile animals." },
+  { value: "9", label: "Farmer Training", description: "Training programs for dairy farmers." },
+];
+
 interface ReviewStepProps {
   values: any;
   familyMemberCount: number;
@@ -150,9 +162,25 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
         <div>
           <Label className="text-muted-foreground">Selected Component(s)</Label>
           <div className="mt-1">
-            {Array.isArray(values.components) ? values.components.map((comp: string, idx: number) => (
-              <p key={idx} className="font-medium text-base">{comp}</p>
-            )) : <p className="font-medium text-base">{values.component}</p>}
+            {Array.isArray(values.components)
+              ? values.components.map((comp: string, idx: number) => {
+                  const option = COMPONENT_OPTIONS.find(o => o.value === comp);
+                  return (
+                    <div key={idx} className="mb-2">
+                      <p className="font-medium text-base">{option ? option.label : comp}</p>
+                      {option && <p className="text-sm text-muted-foreground">{option.description}</p>}
+                    </div>
+                  );
+                })
+              : (() => {
+                  const option = COMPONENT_OPTIONS.find(o => o.value === values.component);
+                  return (
+                    <div>
+                      <p className="font-medium text-base">{option ? option.label : values.component}</p>
+                      {option && <p className="text-sm text-muted-foreground">{option.description}</p>}
+                    </div>
+                  );
+                })()}
           </div>
         </div>
       </div>
