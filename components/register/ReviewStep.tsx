@@ -72,7 +72,7 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
           </div>
           {familyMemberCount > 1 && (
             <div>
-              <Label className="text-muted-foreground">Family Members' Aadhar Numbers</Label>
+              <Label className="text-muted-foreground">Family Members&apos; Aadhar Numbers</Label>
               <div className="space-y-1 mt-1">
                 {Array.from({ length: familyMemberCount - 1 }).map((_, index) => (
                   <p key={index} className="font-medium text-xs font-mono">{values[`familyAadhaar${index + 1}`]}</p>
