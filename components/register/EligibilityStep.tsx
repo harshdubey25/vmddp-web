@@ -10,19 +10,28 @@ interface Props {
 }
 
 const EligibilityStep = ({ control, errors, criteriaFields }: Props) => {
+  // Collect all mainFieldNames for useWatch
+  const mainFieldNames = criteriaFields?.map((field, idx) => {
+    const fieldKey = field.fieldname || field.name || `criteria_${idx}`;
+    return `eligibility[${idx}].${fieldKey}`;
+  }) || [];
+
+  // Watch all mainFieldNames at once
+  const mainFieldValues = useWatch({ control, name: mainFieldNames });
+
   return (
     <div className="space-y-6">
       <h2 className="font-display font-semibold text-xl mb-4">Eligibility Details</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {criteriaFields?.map((field, idx) => {
-          // Use the actual field name as the key
+          // ...existing code...
           const fieldKey = field.fieldname || field.name || `criteria_${idx}`;
           const mainFieldName = `eligibility[${idx}].${fieldKey}`;
           const label = field.label || fieldKey;
           const type = field.type || "text";
           const required = field.required || false;
 
-          // Render main field input
+          // ...existing code for mainInput...
           let mainInput = null;
           if (type === "checkbox") {
             mainInput = (
@@ -88,10 +97,9 @@ const EligibilityStep = ({ control, errors, criteriaFields }: Props) => {
 
           // Render child table inputs if present
           const childInputs: JSX.Element[] = [];
-          let mainFieldValue: any = undefined;
+          // Get watched value for this field from mainFieldValues
+          const mainFieldValue = mainFieldValues?.[idx];
           if (Array.isArray(field.criteria_fields)) {
-            // Only call useWatch at the top level of the render loop
-            mainFieldValue = useWatch({ control, name: mainFieldName });
             field.criteria_fields.forEach((child: any, cidx: number) => {
               if (child.condition === "=") {
                 const count = Number(mainFieldValue) || 0;
