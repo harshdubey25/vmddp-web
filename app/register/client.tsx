@@ -70,6 +70,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
     const [agreed, setAgreed] = useState(false);
     const [familyMemberCount, setFamilyMemberCount] = useState<number>(0);
     const [components, setComponents] = useState<any[]>([]);
+    const [submitLoading, setSubmitLoading] = useState(false)
     const { toast } = useToast();
     const {
         control,
@@ -158,7 +159,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
             });
             return;
         }
-
+        setSubmitLoading(true)
         frappePublic.call().post('vmddp_app.api.app_form.create_app_form', {
             data: {
                 ...formData,
@@ -179,7 +180,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                     variant: "destructive"
                 });
                 console.error("Application submission error", err);
-            });
+            }).finally(() => setSubmitLoading(false));
     }
 
     const handlePrint = () => {
@@ -251,7 +252,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                                         Next
                                     </Button>
                                 ) : (
-                                    <Button type="submit" data-testid="button-submit">
+                                    <Button type="submit" data-testid="button-submit" disabled={submitLoading} >
                                         Submit Application
                                     </Button>
                                 )}

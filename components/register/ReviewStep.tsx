@@ -72,6 +72,10 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
             <Label className="text-muted-foreground">Aadhar Number</Label>
             <p className="font-medium">{values.aadhaar}</p>
           </div>
+          <div>
+            <Label className="text-muted-foreground">Aadhar Image</Label>
+            <p className="font-medium">{values.aadhaarImage ? "Uploaded" : "Not uploaded"}</p>
+          </div>
         </div>
       </div>
       <div className="space-y-4">
@@ -83,6 +87,14 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
           <div>
             <Label className="text-muted-foreground">Ration Card Members</Label>
             <p className="font-medium">{values.rationCardMembers}</p>
+          </div>
+          <div>
+            <Label className="text-muted-foreground">Self Ration Card Image</Label>
+            <p className="font-medium">{values.rationCardImage ? "Uploaded" : "Not uploaded"}</p>
+          </div>
+          <div>
+            <Label className="text-muted-foreground">Family Ration Card Image</Label>
+            <p className="font-medium">{values.familyRationCardImage ? "Uploaded" : "Not uploaded"}</p>
           </div>
           {familyMemberCount > 1 && (
             <div>

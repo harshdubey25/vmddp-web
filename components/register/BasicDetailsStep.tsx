@@ -15,6 +15,15 @@ interface Props {
 const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberCount }: Props) => {
   const [categorySearchValue, setCategorySearchValue] = useState('');
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
   return (
     <div className="space-y-6">
       <h2 className="font-display font-semibold text-xl mb-4">Basic Details</h2>
@@ -63,7 +72,13 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
         </div>
         <div className="space-y-2">
           <Label htmlFor="aadhaarImage">Aadhar Image *</Label>
-          <Controller name="aadhaarImage" control={control} rules={{ required: "Aadhar image is required" }} render={({ field }) => <Input {...field} id="aadhaarImage" type="file" accept="image/*" data-testid="input-aadhaar-image" />} />
+          <Controller name="aadhaarImage" control={control} rules={{ required: "Aadhar image is required" }} render={({ field }) => <Input id="aadhaarImage" type="file" accept="image/*" onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              const base64 = await fileToBase64(file);
+              field.onChange(base64);
+            }
+          }} data-testid="input-aadhaar-image" />} />
           {errors.aadhaarImage && <span className="text-red-500 text-xs">{errors.aadhaarImage.message}</span>}
         </div>
       </div>
@@ -77,12 +92,24 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
         </div>
         <div className="space-y-2">
           <Label htmlFor="rationCardImage">Self Ration Card Image *</Label>
-          <Controller name="rationCardImage" control={control} rules={{ required: "Ration card image is required" }} render={({ field }) => <Input {...field} id="rationCardImage" type="file" accept="image/*" data-testid="input-ration-card-image" />} />
+          <Controller name="rationCardImage" control={control} rules={{ required: "Ration card image is required" }} render={({ field }) => <Input id="rationCardImage" type="file" accept="image/*" onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              const base64 = await fileToBase64(file);
+              field.onChange(base64);
+            }
+          }} data-testid="input-ration-card-image" />} />
           {errors.rationCardImage && <span className="text-red-500 text-xs">{errors.rationCardImage.message}</span>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="familyRationCardImage">Family Ration Card Image</Label>
-          <Controller name="familyRationCardImage" control={control} render={({ field }) => <Input {...field} id="familyRationCardImage" type="file" accept="image/*" data-testid="input-family-ration-card-image" />} />
+          <Controller name="familyRationCardImage" control={control} render={({ field }) => <Input id="familyRationCardImage" type="file" accept="image/*" onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              const base64 = await fileToBase64(file);
+              field.onChange(base64);
+            }
+          }} data-testid="input-family-ration-card-image" />} />
           {errors.familyRationCardImage && <span className="text-red-500 text-xs">{errors.familyRationCardImage.message}</span>}
         </div>
       </div>

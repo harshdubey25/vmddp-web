@@ -22,6 +22,15 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
   // Watch all mainFieldNames at once
   const mainFieldValues = useWatch({ control, name: mainFieldNames });
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
   return (
     <div className="space-y-6">
       <h2 className="font-display font-semibold text-xl mb-4">Eligibility Details</h2>
@@ -94,7 +103,13 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                   control={control}
                   rules={required ? { required: `${label} is required` } : {}}
                   render={({ field }) => (
-                    <Input id={mainValueName} type="file" onChange={e => field.onChange(e.target.files)} />
+                    <Input id={mainValueName} type="file" accept="image/*" onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const base64 = await fileToBase64(file);
+                        field.onChange(base64);
+                      }
+                    }} />
                   )}
                 />
                 {errors?.eligibility?.[idx]?.value && <span className="text-red-500 text-xs">{errors.eligibility[idx].value.message}</span>}
