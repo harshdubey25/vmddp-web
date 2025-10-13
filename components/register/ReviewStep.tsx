@@ -126,13 +126,13 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
         <div className="space-y-3 text-sm">
           {Array.isArray(values.eligibility) && values.eligibility.map((item: any, idx: number) => (
             <div key={idx}>
-              <Label className="text-muted-foreground">{item.criteria}</Label>
+              <Label className="text-muted-foreground">{item.name}</Label>
               <p className="font-medium">{item.value}</p>
               {Array.isArray(item.child) && item.child.length > 0 && (
                 <div className="ml-4 space-y-1">
                   {item.child.map((child: any, cidx: number) => (
                     <div key={cidx}>
-                      <Label className="text-xs text-muted-foreground">{child.childfieldname}</Label>
+                      <Label className="text-xs text-muted-foreground">{child.name}</Label>
                       <p className="text-xs font-mono">{child.value}</p>
                     </div>
                   ))}
