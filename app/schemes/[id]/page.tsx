@@ -1,3 +1,4 @@
+export const runtime = 'edge'
 import { notFound } from "next/navigation";
 import { Milk, HeartPulse, Pill, Sprout, Sparkles, Scissors, Package, Stethoscope, GraduationCap } from "lucide-react";
 
