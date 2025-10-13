@@ -5,7 +5,7 @@ import { FrappeProvider } from "frappe-react-sdk";
 export function FrappeClientProvider({ children }: { children: React.ReactNode }) {
     return (
         <FrappeProvider
-            url={process.env.NEXT_PUBLIC_FRAPPE_BASE!}
+            url={process.env.NEXT_PUBLIC_FRAPPE_BASE_URL!}
             tokenParams={{
                 useToken: true,
                 token: () =>
