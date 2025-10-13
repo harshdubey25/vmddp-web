@@ -38,7 +38,7 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
         <div className="space-y-2">
           <Label htmlFor="gender">Gender *</Label>
           <Controller name="gender" control={control} rules={{ required: "Gender is required" }} render={({ field }) => (
-            <AutoComplete {...field} doctype="Gender" onSelectedValueChange={field.onChange} selectedValue={field.value} />
+            <AutoComplete {...field} doctype="Gender Master" onSelectedValueChange={field.onChange} selectedValue={field.value} />
           )} />
           {errors.gender && <span className="text-red-500 text-xs">{errors.gender.message}</span>}
         </div>
