@@ -5,10 +5,13 @@ import { Moon, Sun, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "./ThemeProvider";
 import { useState } from "react";
+import { useTranslation } from 'next-i18next';
+import { i18n } from 'next-i18next';
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { t } = useTranslation('common');
 
   const navItems = [
     { label: "Home", path: "/" },
@@ -29,7 +32,7 @@ export default function Header() {
             </div>
             <div className="hidden sm:block">
               <h1 className="font-display font-semibold text-lg">VMDDP</h1>
-              <p className="text-xs text-muted-foreground">Dairy Development Programme</p>
+              <p className="text-xs text-muted-foreground">{t('dairy_development_programme')}</p>
             </div>
           </Link>
 
@@ -56,6 +59,22 @@ export default function Header() {
                 Register Now
               </Button>
             </Link>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden sm:inline-flex"
+              onClick={() => {
+                const current = i18n?.language ?? "en";
+                const next = current === "en" ? "mr" : "en";
+                i18n?.changeLanguage?.(next);
+                console.log('buttonPrress', current)
+              }}
+
+              data-testid="button-language-toggle"
+            >
+              {(i18n?.language ?? "en") === "en" ? "मराठी" : "English"}
+            </Button>
 
             <Button
               variant="ghost"

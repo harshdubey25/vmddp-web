@@ -14,8 +14,32 @@ import {
     Package,
     ArrowUpRight,
 } from "lucide-react";
+import { frappeServer } from "@/app/lib/frappe";
 
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
+        const response = await frappeServer.call().get('vmddp_app.api.api.get_all_docs_with_children', { doctype: 'App Form' });
+        type FrappeApp = {
+            name: string;
+            first_name?: string;
+            mid_name?: string;
+            last_name?: string;
+            component_name?: string;
+            components?: { component_name?: string; name: string }[];
+            district?: string;
+            status?: string;
+            creation?: string;
+        };
+
+        const recentApplications = (response.message || []).map((app: FrappeApp) => ({
+            id: app.name,
+            applicant: `${app.first_name ?? ''} ${app.mid_name ?? ''} ${app.last_name ?? ''}`.trim(),
+                    component: Array.isArray(app.components)
+                        ? app.components.map(c => c.component_name || c.name).join(', ')
+                        : '',
+            district: app.district ?? '',
+            status: app.status ?? '',
+            date: app.creation ? app.creation.split(' ')[0] : '',
+        })).slice(0, 4);
     const stats = [
         {
             title: "Total Applications",
@@ -51,40 +75,7 @@ export default function AdminDashboard() {
         },
     ];
 
-    const recentApplications = [
-        {
-            id: "APP-2025-001247",
-            applicant: "Ramesh Kumar Patil",
-            component: "Animal Induction",
-            district: "Nagpur",
-            status: "pending",
-            date: "2025-01-06",
-        },
-        {
-            id: "APP-2025-001246",
-            applicant: "Sushila Devi Sharma",
-            component: "HGM Purchase",
-            district: "Amravati",
-            status: "approved",
-            date: "2025-01-06",
-        },
-        {
-            id: "APP-2025-001245",
-            applicant: "Ganesh Rao Deshmukh",
-            component: "Fertility Feed",
-            district: "Akola",
-            status: "pending",
-            date: "2025-01-05",
-        },
-        {
-            id: "APP-2025-001244",
-            applicant: "Vandana Kale",
-            component: "Supply Chaff Cutter",
-            district: "Yavatmal",
-            status: "approved",
-            date: "2025-01-05",
-        },
-    ];
+    // ...existing code for stats and topComponents...
 
     const topComponents = [
         { name: "Animal Induction", count: 342, percentage: 27 },
@@ -152,7 +143,14 @@ export default function AdminDashboard() {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-3">
-                                        {recentApplications.map((app, index) => (
+                                        {recentApplications.map((app: {
+                                            id: string;
+                                            applicant: string;
+                                            component: string;
+                                            district: string;
+                                            status: string;
+                                            date: string;
+                                        }, index: number) => (
                                             <div
                                                 key={index}
                                                 className="flex items-center justify-between p-4 rounded-lg border hover-elevate"
