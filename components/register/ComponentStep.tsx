@@ -5,21 +5,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 interface Props {
   control: any;
   errors: any;
+  components?: any[];
 }
 
-const COMPONENT_OPTIONS = [
-  { value: "1", label: "Animal Induction" },
-  { value: "2", label: "HGM" },
-  { value: "3", label: "Fertility Feed" },
-  { value: "4", label: "Fodder Seed" },
-  { value: "5", label: "SNF Enhancer" },
-  { value: "6", label: "Supply Chaff Cutter" },
-  { value: "7", label: "Supply Of Silage" },
-  { value: "8", label: "Treatment of Infertile Animal" },
-  { value: "9", label: "Farmer Training" },
-];
 
-const ComponentStep = ({ control, errors }: Props) => (
+
+const ComponentStep = ({ control, errors, components = [] }: Props) => (
   <div className="space-y-6">
     <h2 className="font-display font-semibold text-xl mb-4">Component Selection</h2>
     <div className="space-y-2">
@@ -30,21 +21,21 @@ const ComponentStep = ({ control, errors }: Props) => (
         rules={{ validate: v => (v && v.length > 0) || "At least one component must be selected" }}
         render={({ field }) => (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {COMPONENT_OPTIONS.map(option => (
-              <label key={option.value} className="flex items-center gap-2">
+            {components.map((comp, idx) => (
+              <label key={comp.component_name || idx} className="flex items-center gap-2">
                 <Checkbox
-                  checked={field.value?.includes(option.value) || false}
+                  checked={field.value?.includes(comp.component_name) || false}
                   onCheckedChange={checked => {
                     if (checked) {
-                      field.onChange([...(field.value || []), option.value]);
+                      field.onChange([...(field.value || []), comp.component_name]);
                     } else {
-                      field.onChange((field.value || []).filter((v: string) => v !== option.value));
+                      field.onChange((field.value || []).filter((v: string) => v !== comp.component_name));
                     }
                   }}
-                  id={`component-checkbox-${option.value}`}
-                  data-testid={`component-checkbox-${option.value}`}
+                  id={`component-checkbox-${comp.component_name}`}
+                  data-testid={`component-checkbox-${comp.component_name}`}
                 />
-                <span>{option.label}</span>
+                <span>{comp.component_name}</span>
               </label>
             ))}
           </div>

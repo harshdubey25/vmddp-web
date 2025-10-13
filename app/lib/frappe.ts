@@ -1,6 +1,6 @@
 import { FrappeApp } from "frappe-js-sdk";
 
-const FRAPPE_BASE = process.env.NEXT_PUBLIC_FRAPPE_BASE!;
+const FRAPPE_BASE = process.env.NEXT_PUBLIC_FRAPPE_BASE_URL!;
 
 /**
  * Client-side frappe instance (uses browser token)
@@ -32,3 +32,8 @@ export const frappeServer = new FrappeApp(FRAPPE_BASE, {
   },
   type: "token", // ✅ use "token" for API key/secret auth
 });
+
+/**
+ * Public frappe instance (no credentials, for public API access)
+ */
+export const frappePublic = new FrappeApp(FRAPPE_BASE);

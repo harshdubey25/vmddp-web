@@ -47,11 +47,11 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
         {errors.gender && <span className="text-red-500 text-xs">{errors.gender.message}</span>}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="caste">Caste *</Label>
-        <Controller name="caste" control={control} rules={{ required: "Caste is required" }} render={({ field }) => (
+        <Label htmlFor="category">Category *</Label>
+        <Controller name="category" control={control} rules={{ required: "Category is required" }} render={({ field }) => (
           <Select {...field} onValueChange={field.onChange} value={field.value}>
-            <SelectTrigger id="caste" data-testid="select-caste">
-              <SelectValue placeholder="Select Caste" />
+            <SelectTrigger id="category" data-testid="select-category">
+              <SelectValue placeholder="Select Category" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="general">General</SelectItem>
@@ -90,7 +90,7 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
         {errors.rationCardMembers && <span className="text-red-500 text-xs">{errors.rationCardMembers.message}</span>}
       </div>
       <div className="space-y-2">
-  <Label htmlFor="rationCardImage">Self Ration Card Image *</Label>
+        <Label htmlFor="rationCardImage">Self Ration Card Image *</Label>
         <Controller name="rationCardImage" control={control} rules={{ required: "Ration card image is required" }} render={({ field }) => <Input {...field} id="rationCardImage" type="file" accept="image/*" data-testid="input-ration-card-image" />} />
         {errors.rationCardImage && <span className="text-red-500 text-xs">{errors.rationCardImage.message}</span>}
       </div>
@@ -102,7 +102,7 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
     </div>
     {familyMemberCount > 1 && (
       <div className="space-y-4">
-  <h3 className="font-medium text-sm">Family Members&apos; Aadhar Numbers ({familyMemberCount - 1} members)</h3>
+        <h3 className="font-medium text-sm">Family Members&apos; Aadhar Numbers ({familyMemberCount - 1} members)</h3>
         {Array.from({ length: familyMemberCount - 1 }).map((_, index) => (
           <div key={index} className="space-y-2">
             <Label htmlFor={`familyAadhaar${index + 1}`}>Family Member {index + 1} Aadhar Number *</Label>

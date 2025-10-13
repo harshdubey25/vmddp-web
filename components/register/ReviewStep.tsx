@@ -20,10 +20,12 @@ interface ReviewStepProps {
   familyMemberCount: number;
   agreed: boolean;
   onAgreedChange: (checked: boolean) => void;
+  criteriaFields?: any[];
   onPrint?: () => void;
 }
 
-const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint }: ReviewStepProps) => (
+const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint, criteriaFields }: ReviewStepProps) => (
+  console.log("review step values", values),
   <div className="space-y-6">
     <div className="flex items-center justify-between">
       <div>
@@ -119,37 +121,19 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
       <div className="space-y-4">
         <h3 className="font-semibold flex items-center gap-2">
           <Leaf className="w-4 h-4" />
-          Eligibility & Livestock
+          Eligibility & Criteria
         </h3>
         <div className="space-y-3 text-sm">
-          <div>
-            <Label className="text-muted-foreground">Dairy Animal Count</Label>
-            <p className="font-medium">{values.dairyAnimalCount}</p>
-          </div>
-          <div>
-            <Label className="text-muted-foreground">Animal Tag Numbers</Label>
-            <div className="space-y-1">
-              {Array.isArray(values.animalTagNumbers) ? values.animalTagNumbers.map((tag: string, idx: number) => (
-                <p key={idx} className="font-medium font-mono">{tag}</p>
-              )) : <p className="font-medium font-mono">{values.animalTagNumber}</p>}
-            </div>
-          </div>
-          <div>
-            <Label className="text-muted-foreground">Land Holding (acres)</Label>
-            <p className="font-medium">{values.landHolding}</p>
-          </div>
-          <div>
-            <Label className="text-muted-foreground">Khasra Number</Label>
-            <p className="font-medium">{values.khasraNumber}</p>
-          </div>
-          <div>
-            <Label className="text-muted-foreground">Milk Pouring Point</Label>
-            <p className="font-medium">{values.milkPouringPoint}</p>
-          </div>
-          <div>
-            <Label className="text-muted-foreground">Farmer Pourer Code</Label>
-            <p className="font-medium font-mono">{values.farmerPourerCode}</p>
-          </div>
+          {criteriaFields?.map((field, idx) => {
+            const label = field.label || field.name1 || field.fieldname || field.name;
+            const value = values[field.fieldname || field.name1 || field.name];
+            return (
+              <div key={idx}>
+                <Label className="text-muted-foreground">{label}</Label>
+                <p className="font-medium">{value}</p>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -164,23 +148,23 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
           <div className="mt-1">
             {Array.isArray(values.components)
               ? values.components.map((comp: string, idx: number) => {
-                  const option = COMPONENT_OPTIONS.find(o => o.value === comp);
-                  return (
-                    <div key={idx} className="mb-2">
-                      <p className="font-medium text-base">{option ? option.label : comp}</p>
-                      {option && <p className="text-sm text-muted-foreground">{option.description}</p>}
-                    </div>
-                  );
-                })
+                const option = COMPONENT_OPTIONS.find(o => o.value === comp);
+                return (
+                  <div key={idx} className="mb-2">
+                    <p className="font-medium text-base">{option ? option.label : comp}</p>
+                    {option && <p className="text-sm text-muted-foreground">{option.description}</p>}
+                  </div>
+                );
+              })
               : (() => {
-                  const option = COMPONENT_OPTIONS.find(o => o.value === values.component);
-                  return (
-                    <div>
-                      <p className="font-medium text-base">{option ? option.label : values.component}</p>
-                      {option && <p className="text-sm text-muted-foreground">{option.description}</p>}
-                    </div>
-                  );
-                })()}
+                const option = COMPONENT_OPTIONS.find(o => o.value === values.component);
+                return (
+                  <div>
+                    <p className="font-medium text-base">{option ? option.label : values.component}</p>
+                    {option && <p className="text-sm text-muted-foreground">{option.description}</p>}
+                  </div>
+                );
+              })()}
           </div>
         </div>
       </div>
