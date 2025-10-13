@@ -15,112 +15,115 @@ const EligibilityStep = ({ control, errors, criteriaFields }: Props) => {
       <h2 className="font-display font-semibold text-xl mb-4">Eligibility Details</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {criteriaFields?.map((field, idx) => {
-          const name = field.fieldname || field.name || `criteria_${idx}`;
-          const label = field.label || name;
+          // Use the actual field name as the key
+          const fieldKey = field.fieldname || field.name || `criteria_${idx}`;
+          const mainFieldName = `eligibility[${idx}].${fieldKey}`;
+          const label = field.label || fieldKey;
           const type = field.type || "text";
           const required = field.required || false;
+
           // Render main field input
           let mainInput = null;
           if (type === "checkbox") {
             mainInput = (
-              <div className="space-y-2" key={name}>
-                <Label htmlFor={name}>{label}{required ? " *" : ""}</Label>
+              <div className="space-y-2" key={mainFieldName}>
+                <Label htmlFor={mainFieldName}>{label}{required ? " *" : ""}</Label>
                 <Controller
-                  name={name}
+                  name={mainFieldName}
                   control={control}
                   rules={required ? { required: `${label} is required` } : {}}
                   render={({ field }) => (
-                    <Checkbox id={name} checked={!!field.value} onCheckedChange={field.onChange} />
+                    <Checkbox id={mainFieldName} checked={!!field.value} onCheckedChange={field.onChange} />
                   )}
                 />
-                {errors[name] && <span className="text-red-500 text-xs">{errors[name].message}</span>}
+                {errors?.eligibility?.[idx]?.[fieldKey] && <span className="text-red-500 text-xs">{errors.eligibility[idx][fieldKey].message}</span>}
               </div>
             );
           } else if (type === "number") {
             mainInput = (
-              <div className="space-y-2" key={name}>
-                <Label htmlFor={name}>{label}{required ? " *" : ""}</Label>
+              <div className="space-y-2" key={mainFieldName}>
+                <Label htmlFor={mainFieldName}>{label}{required ? " *" : ""}</Label>
                 <Controller
-                  name={name}
+                  name={mainFieldName}
                   control={control}
                   rules={required ? { required: `${label} is required` } : {}}
                   render={({ field }) => (
-                    <Input {...field} id={name} type="number" value={field.value ?? ""} />
+                    <Input {...field} id={mainFieldName} type="number" value={field.value ?? ""} />
                   )}
                 />
-                {errors[name] && <span className="text-red-500 text-xs">{errors[name].message}</span>}
+                {errors?.eligibility?.[idx]?.[fieldKey] && <span className="text-red-500 text-xs">{errors.eligibility[idx][fieldKey].message}</span>}
               </div>
             );
           } else if (type === "file") {
             mainInput = (
-              <div className="space-y-2" key={name}>
-                <Label htmlFor={name}>{label}{required ? " *" : ""}</Label>
+              <div className="space-y-2" key={mainFieldName}>
+                <Label htmlFor={mainFieldName}>{label}{required ? " *" : ""}</Label>
                 <Controller
-                  name={name}
+                  name={mainFieldName}
                   control={control}
                   rules={required ? { required: `${label} is required` } : {}}
                   render={({ field }) => (
-                    <Input id={name} type="file" onChange={e => field.onChange(e.target.files)} />
+                    <Input id={mainFieldName} type="file" onChange={e => field.onChange(e.target.files)} />
                   )}
                 />
-                {errors[name] && <span className="text-red-500 text-xs">{errors[name].message}</span>}
+                {errors?.eligibility?.[idx]?.[fieldKey] && <span className="text-red-500 text-xs">{errors.eligibility[idx][fieldKey].message}</span>}
               </div>
             );
           } else {
             mainInput = (
-              <div className="space-y-2" key={name}>
-                <Label htmlFor={name}>{label}{required ? " *" : ""}</Label>
+              <div className="space-y-2" key={mainFieldName}>
+                <Label htmlFor={mainFieldName}>{label}{required ? " *" : ""}</Label>
                 <Controller
-                  name={name}
+                  name={mainFieldName}
                   control={control}
                   rules={required ? { required: `${label} is required` } : {}}
                   render={({ field }) => (
-                    <Input {...field} id={name} type="text" value={field.value ?? ""} />
+                    <Input {...field} id={mainFieldName} type="text" value={field.value ?? ""} />
                   )}
                 />
-                {errors[name] && <span className="text-red-500 text-xs">{errors[name].message}</span>}
+                {errors?.eligibility?.[idx]?.[fieldKey] && <span className="text-red-500 text-xs">{errors.eligibility[idx][fieldKey].message}</span>}
               </div>
             );
           }
 
           // Render child table inputs if present
-          let childInputs: JSX.Element[] = [];
+          const childInputs: JSX.Element[] = [];
+          let mainFieldValue: any = undefined;
           if (Array.isArray(field.criteria_fields)) {
-            // Get main field value from form
-            // Use useWatch to get the value for this field
-            const mainFieldValue = useWatch({ control, name });
+            // Only call useWatch at the top level of the render loop
+            mainFieldValue = useWatch({ control, name: mainFieldName });
             field.criteria_fields.forEach((child: any, cidx: number) => {
               if (child.condition === "=") {
-                // Render N inputs where N = mainFieldValue (if number)
                 const count = Number(mainFieldValue) || 0;
                 for (let i = 0; i < count; i++) {
+                  const repeatedChildFieldName = `eligibility[${idx}].child[${cidx}].${child.field}_${i}`;
                   childInputs.push(
-                    <div className="space-y-2" key={`${name}_child_${cidx}_${i}`}>
-                      <Label htmlFor={`${name}_child_${cidx}_${i}`}>{child.field} (#{i + 1})</Label>
+                    <div className="space-y-2" key={repeatedChildFieldName}>
+                      <Label htmlFor={repeatedChildFieldName}>{child.field} (#{i + 1})</Label>
                       <Controller
-                        name={`${name}_child_${cidx}_${i}`}
+                        name={repeatedChildFieldName}
                         control={control}
                         render={({ field }) => (
-                          <Input {...field} id={`${name}_child_${cidx}_${i}`} type="text" value={field.value ?? ""} />
+                          <Input {...field} id={repeatedChildFieldName} type="text" value={field.value ?? ""} />
                         )}
                       />
-                      {errors[`${name}_child_${cidx}_${i}`] && <span className="text-red-500 text-xs">{errors[`${name}_child_${cidx}_${i}`].message}</span>}
+                      {errors?.eligibility?.[idx]?.child?.[cidx]?.[`${child.field}_${i}`] && <span className="text-red-500 text-xs">{errors.eligibility[idx].child[cidx][`${child.field}_${i}`].message}</span>}
                     </div>
                   );
                 }
               } else {
-                // Render single input for other conditions
+                const childFieldName = `eligibility[${idx}].child[${cidx}].${child.field}`;
                 childInputs.push(
-                  <div className="space-y-2" key={`${name}_child_${cidx}`}>
-                    <Label htmlFor={`${name}_child_${cidx}`}>{child.field} ({child.condition})</Label>
+                  <div className="space-y-2" key={childFieldName}>
+                    <Label htmlFor={childFieldName}>{child.field} ({child.condition})</Label>
                     <Controller
-                      name={`${name}_child_${cidx}`}
+                      name={childFieldName}
                       control={control}
                       render={({ field }) => (
-                        <Input {...field} id={`${name}_child_${cidx}`} type="text" value={field.value ?? ""} />
+                        <Input {...field} id={childFieldName} type="text" value={field.value ?? ""} />
                       )}
                     />
-                    {errors[`${name}_child_${cidx}`] && <span className="text-red-500 text-xs">{errors[`${name}_child_${cidx}`].message}</span>}
+                    {errors?.eligibility?.[idx]?.child?.[cidx]?.[child.field] && <span className="text-red-500 text-xs">{errors.eligibility[idx].child[cidx][child.field].message}</span>}
                   </div>
                 );
               }

@@ -124,16 +124,22 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
           Eligibility & Criteria
         </h3>
         <div className="space-y-3 text-sm">
-          {criteriaFields?.map((field, idx) => {
-            const label = field.label || field.name1 || field.fieldname || field.name;
-            const value = values[field.fieldname || field.name1 || field.name];
-            return (
-              <div key={idx}>
-                <Label className="text-muted-foreground">{label}</Label>
-                <p className="font-medium">{value}</p>
-              </div>
-            );
-          })}
+          {Array.isArray(values.eligibility) && values.eligibility.map((item: any, idx: number) => (
+            <div key={idx}>
+              <Label className="text-muted-foreground">{item.criteria}</Label>
+              <p className="font-medium">{item.value}</p>
+              {Array.isArray(item.child) && item.child.length > 0 && (
+                <div className="ml-4 space-y-1">
+                  {item.child.map((child: any, cidx: number) => (
+                    <div key={cidx}>
+                      <Label className="text-xs text-muted-foreground">{child.childfieldname}</Label>
+                      <p className="text-xs font-mono">{child.value}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>

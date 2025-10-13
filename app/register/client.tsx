@@ -45,6 +45,13 @@ type RegisterFormValues = {
     accountNumber: string;
     bankName: string;
     ifscCode: string;
+    eligibility?: Array<{
+        mainField: any;
+        children?: Array<{
+            [key: string]: any;
+            values?: any[];
+        }>;
+    }>;
     [key: `familyAadhaar${number}`]: string;
 };
 
@@ -103,11 +110,18 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
     // Helper to build criteria payload from form values and criteriaFields
     const buildCriteriaPayload = () => {
         const values = getValues();
-        return criteriaFields.map((field: any) => ({
-            criteria: field.name1 || field.fieldname || field.name,
-            value: values[field.fieldname || field.name1 || field.name]
-        }));
+        const eligibilityArr = values.eligibility || [];
+        return eligibilityArr.map((item: any, idx: number) => {
+            const field = criteriaFields[idx];
+            // Find the actual field key used in EligibilityStep
+            const fieldKey = field?.fieldname || field?.name || `criteria_${idx}`;
+            return {
+                criteria: field?.name1 || fieldKey,
+                value: item?.[fieldKey]
+            };
+        });
     };
+
 
     const handleNext = async () => {
         if (currentStep === 2) {
@@ -252,4 +266,4 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
             </div>
         </div>
     );
-}
+};
