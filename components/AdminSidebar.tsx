@@ -33,6 +33,7 @@ const adminMenuItems = [
 const subAdminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/subadmin/dashboard" },
   { icon: FileText, label: "Applications", path: "/subadmin/applications" },
+  { icon: FileText, label: "Selection", path: "/subadmin/selection" },
   { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },
 ];
 export default function AdminSidebar({ userRole }: AdminSidebarProps) {

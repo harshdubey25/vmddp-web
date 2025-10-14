@@ -17,33 +17,39 @@ import {
 import { frappeServer } from "@/app/lib/frappe";
 
 export default async function AdminDashboard() {
-        const response = await frappeServer.call().get('vmddp_app.api.api.get_all_docs_with_children', { doctype: 'App Form' });
-        type FrappeApp = {
-            name: string;
-            first_name?: string;
-            mid_name?: string;
-            last_name?: string;
-            component_name?: string;
-            components?: { component_name?: string; name: string }[];
-            district?: string;
-            status?: string;
-            creation?: string;
-        };
+    const response = await frappeServer.call().get('vmddp_app.api.api.get_all_docs_with_children', { doctype: 'App Form' });
+    type FrappeApp = {
+        name: string;
+        first_name?: string;
+        mid_name?: string;
+        last_name?: string;
+        component_name?: string;
+        components?: { component_name?: string; name: string }[];
+        district?: string;
+        status?: string;
+        creation?: string;
+    };
 
-        const recentApplications = (response.message || []).map((app: FrappeApp) => ({
-            id: app.name,
-            applicant: `${app.first_name ?? ''} ${app.mid_name ?? ''} ${app.last_name ?? ''}`.trim(),
-                    component: Array.isArray(app.components)
-                        ? app.components.map(c => c.component_name || c.name).join(', ')
-                        : '',
-            district: app.district ?? '',
-            status: app.status ?? '',
-            date: app.creation ? app.creation.split(' ')[0] : '',
-        })).slice(0, 4);
+
+    const recentApplications = (response.message || []).map((app: FrappeApp) => ({
+        id: app.name,
+        applicant: `${app.first_name ?? ''} ${app.mid_name ?? ''} ${app.last_name ?? ''}`.trim(),
+        component: Array.isArray(app.components)
+            ? app.components.map(c => c.component_name || c.name).join(', ')
+            : '',
+        district: app.district ?? '',
+        status: app.status ?? '',
+        date: app.creation ? app.creation.split(' ')[0] : '',
+    })).slice(0, 4);
+    const totalApplications = recentApplications.length;
+    const approvedCount = recentApplications.filter((app: FrappeApp) => app.status === "approved").length;
+    const pendingCount = recentApplications.filter((app: FrappeApp) => app.status === "pending").length;
+    const rejectedCount = recentApplications.filter((app: FrappeApp) => app.status === "rejected").length;
+
     const stats = [
         {
             title: "Total Applications",
-            value: "1,247",
+            value: totalApplications.toLocaleString(),
             change: "+12.5%",
             icon: FileText,
             color: "text-chart-2",
@@ -51,7 +57,7 @@ export default async function AdminDashboard() {
         },
         {
             title: "Approved",
-            value: "856",
+            value: approvedCount.toLocaleString(),
             change: "+8.2%",
             icon: CheckCircle,
             color: "text-chart-3",
@@ -59,7 +65,7 @@ export default async function AdminDashboard() {
         },
         {
             title: "Pending Review",
-            value: "312",
+            value: pendingCount.toLocaleString(),
             change: "+4.1%",
             icon: Clock,
             color: "text-chart-4",
@@ -67,15 +73,13 @@ export default async function AdminDashboard() {
         },
         {
             title: "Rejected",
-            value: "79",
+            value: rejectedCount.toLocaleString(),
             change: "-2.3%",
             icon: XCircle,
             color: "text-chart-5",
             bgColor: "bg-chart-5/10",
         },
     ];
-
-    // ...existing code for stats and topComponents...
 
     const topComponents = [
         { name: "Animal Induction", count: 342, percentage: 27 },
