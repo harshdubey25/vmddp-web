@@ -25,6 +25,7 @@ type Props<T extends string> = {
     emptyMessage?: string;
     placeholder?: string;
     doctype: string;
+    filters?: [string, string, any][];
 };
 
 export function AutoComplete<T extends string>({
@@ -36,7 +37,8 @@ export function AutoComplete<T extends string>({
     isLoading,
     emptyMessage = "No items.",
     placeholder = "Search...",
-    doctype
+    doctype,
+    filters
 }: Props<T>) {
     const [open, setOpen] = useState(false);
     const [searchValue, setSearchValue] = useState('')
@@ -44,7 +46,7 @@ export function AutoComplete<T extends string>({
     const debouncedSearchTerm = useDebounce(searchValue, 500);
     const { data: docList, isLoading: doclistLoading } = useFrappeGetDocList(doctype, {
         fields: ["name"],
-        filters: [['name', 'like', `%${debouncedSearchTerm}%`]],
+        filters: [['name', 'like', `%${debouncedSearchTerm}%`], ...(filters || [])] as any,
         limit: 5,
         limit_start: 0,
 

@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react";
-import { Controller } from "react-hook-form";
+import { Controller, useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,8 +13,11 @@ interface Props {
 }
 
 const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberCount }: Props) => {
-  const [categorySearchValue, setCategorySearchValue] = useState('');
+
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
+
+  const watchedDistrict = useWatch({ control, name: 'district' });
+  const watchedTaluka = useWatch({ control, name: 'taluka' });
 
   const uploadFile = async (file: File, fieldName: string): Promise<string | null> => {
     setUploading(prev => ({ ...prev, [fieldName]: true }));
@@ -181,14 +184,14 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
         <div className="space-y-2">
           <Label htmlFor="taluka">Taluka *</Label>
           <Controller name="taluka" control={control} rules={{ required: "Taluka is required" }} render={({ field }) => (
-            <AutoComplete doctype="Taluka Master" onSelectedValueChange={field.onChange} selectedValue={field.value} />
+            <AutoComplete doctype="Taluka Master" onSelectedValueChange={field.onChange} selectedValue={field.value} filters={watchedDistrict ? [['district', '=', watchedDistrict]] : undefined} />
           )} />
           {errors.taluka && <span className="text-red-500 text-xs">{errors.taluka.message}</span>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="village">Village *</Label>
           <Controller name="village" control={control} rules={{ required: "Village is required" }} render={({ field }) => (
-            <AutoComplete doctype="Village Master" onSelectedValueChange={field.onChange} selectedValue={field.value} />
+            <AutoComplete doctype="Village Master" onSelectedValueChange={field.onChange} selectedValue={field.value} filters={watchedDistrict && watchedTaluka ? [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]] : undefined} />
           )} />
           {errors.village && <span className="text-red-500 text-xs">{errors.village.message}</span>}
         </div>
