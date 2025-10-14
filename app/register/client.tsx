@@ -185,11 +185,11 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
 
     const onSubmit = (formData: RegisterFormValues) => {
         if (!agreed) {
-            toast({
-                title: "Declaration Required",
-                description: "Please agree to the declaration to submit your application",
-                variant: "destructive"
-            });
+            // toast({
+            //     title: "Declaration Required",
+            //     description: "Please agree to the declaration to submit your application",
+            //     variant: "destructive"
+            // });
             return;
         }
         setSubmitLoading(true)
