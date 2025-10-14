@@ -5,6 +5,7 @@ import ClientLayoutShell from "@/components/ClientLayoutShell";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { FrappeClientProvider } from "@/providers/FrappeClientProvider";
 import AuthProvider from "@/context/AuthContext";
+import { Toaster } from "@/components/ui/toaster";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -35,6 +36,7 @@ export default function RootLayout({
           <AuthProvider>
             <ThemeProvider>
               <ClientLayoutShell>{children}</ClientLayoutShell>
+              <Toaster />
             </ThemeProvider>
           </AuthProvider>
         </FrappeClientProvider>

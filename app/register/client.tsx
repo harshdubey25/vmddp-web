@@ -77,6 +77,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
         handleSubmit,
         formState: { errors },
         getValues,
+        trigger,
     } = useForm<RegisterFormValues>({
         mode: "onTouched",
         defaultValues: {
@@ -121,6 +122,37 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
 
 
     const handleNext = async () => {
+        // Validate current step before proceeding
+        let fieldsToValidate: (keyof RegisterFormValues)[] = [];
+        if (currentStep === 1) {
+            fieldsToValidate = ['firstName', 'lastName', 'gender', 'category', 'mobile', 'aadhaar', 'aadhaarImage', 'rationCardMembers', 'rationCardImage', 'district', 'taluka', 'village'];
+            // Add family aadhaar fields if applicable
+            const rationCardMembers = getValues('rationCardMembers');
+            if (rationCardMembers > 1) {
+                for (let i = 1; i < rationCardMembers; i++) {
+                    fieldsToValidate.push(`familyAadhaar${i}` as keyof RegisterFormValues);
+                }
+            }
+        } else if (currentStep === 2) {
+            // Eligibility fields - assuming eligibility is an array, but need to check specific criteria
+            // For now, assume all eligibility fields are required if present
+            fieldsToValidate = ['eligibility'];
+        } else if (currentStep === 3) {
+            fieldsToValidate = ['component'];
+        } else if (currentStep === 4) {
+            fieldsToValidate = ['accountHolderName', 'accountNumber', 'bankName', 'ifscCode'];
+        }
+
+        const isValid = await trigger(fieldsToValidate);
+        if (!isValid) {
+            toast({
+                title: "Validation Error",
+                description: "Please fill in all required fields before proceeding.",
+                variant: "destructive"
+            });
+            return;
+        }
+
         if (currentStep === 2) {
             // Moving from Eligibility to Component step, fetch components
             const payload = buildCriteriaPayload();
@@ -135,6 +167,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                     description: "Could not fetch components for selected criteria.",
                     variant: "destructive"
                 });
+                return; // Don't proceed if fetch fails
             }
         }
         if (currentStep < steps.length) {
