@@ -18,7 +18,6 @@ export default function Login() {
     const [formData, setFormData] = useState({
         username: "",
         password: "",
-        role: "",
         rememberMe: false,
     });
 
@@ -35,12 +34,7 @@ export default function Login() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
-                <Link href="/">
-                    <Button className="mb-4" data-testid="button-back-home">
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back to Home
-                    </Button>
-                </Link>
+
 
                 <Card className="shadow-lg" data-testid="card-login">
                     <CardHeader className="space-y-4">
@@ -61,26 +55,7 @@ export default function Login() {
 
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="role">Login As</Label>
-                                <Select
-                                    value={formData.role}
-                                    onValueChange={(value: any) => setFormData({ ...formData, role: value })}
-                                    required
-                                >
-                                    <SelectTrigger id="role" data-testid="select-role">
-                                        <SelectValue placeholder="Select your role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="admin" data-testid="option-admin">
-                                            Administrator
-                                        </SelectItem>
-                                        <SelectItem value="subadmin" data-testid="option-subadmin">
-                                            Sub-Administrator (DPO)
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+
 
                             <div className="space-y-2">
                                 <Label htmlFor="username">Username</Label>
@@ -133,19 +108,13 @@ export default function Login() {
                                         Remember me
                                     </label>
                                 </div>
-                                <Button
-                                    type="button"
-                                    className="px-0 text-sm h-auto"
-                                    data-testid="button-forgot-password"
-                                >
-                                    Forgot password?
-                                </Button>
+
                             </div>
 
                             <Button
                                 type="submit"
                                 className="w-full"
-                                disabled={isLoading || !formData.role}
+                                disabled={isLoading || formData.username.trim() === "" || formData.password.trim() === ""}
                                 data-testid="button-login"
                             >
                                 {isLoading ? "Signing in..." : "Sign In"}
