@@ -1,3 +1,4 @@
+export const runtime = 'edge'; // Ensure the page uses the Edge runtime
 export const dynamic = 'force-dynamic';
 import RegisterClient from "./client";
 import { frappeServer } from "@/app/lib/frappe";
