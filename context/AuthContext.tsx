@@ -3,6 +3,7 @@ import { UserRole } from "@/enums/roles";
 import { createContext, ReactNode, useState, useEffect } from "react";
 import { useContext } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "@/hooks/use-toast";
 interface User {
     user: string; // frappe user_id (email or "Administrator")
     user_type: "System User" | "Website User";
@@ -84,9 +85,11 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
             } else if (validated?.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {
                 router.push('/subadmin/dashboard');
             }
+
             return true;
         } catch (err) {
             console.error("Login error:", err);
+            toast
             return false;
         }
 
@@ -103,7 +106,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("frappe_access_token");
         localStorage.removeItem("frappe_refresh_token");
         setUser(null);
-        router.push("/admin/login");
+        router.push("/login");
     };
     return <AuthContext.Provider value={{ user, loading, login: login, logout: logout, adminLogout: () => { } }} >
         {children}

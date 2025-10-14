@@ -3,6 +3,11 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { User, Users, MapPin, Leaf, Award, Printer } from "lucide-react";
 
+type ComponentSelection = {
+  component_name: string;
+  questions: { question: string; value: string }[];
+};
+
 const COMPONENT_OPTIONS = [
   { value: "1", label: "Animal Induction", description: "Induction of new animals into the dairy system." },
   { value: "2", label: "HGM", description: "High Genetic Merit animal support." },
@@ -16,7 +21,9 @@ const COMPONENT_OPTIONS = [
 ];
 
 interface ReviewStepProps {
-  values: any;
+  values: any & {
+    components?: ComponentSelection[];
+  };
   familyMemberCount: number;
   agreed: boolean;
   onAgreedChange: (checked: boolean) => void;
@@ -176,12 +183,23 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
             <Label className="text-muted-foreground">Selected Component(s)</Label>
             <div className="mt-1">
               {Array.isArray(values.components)
-                ? values.components.map((comp: string, idx: number) => {
-                  const option = COMPONENT_OPTIONS.find(o => o.value === comp);
+                ? values.components.map((comp: ComponentSelection, idx: number) => {
+                  const option = COMPONENT_OPTIONS.find(o => o.label === comp.component_name);
                   return (
-                    <div key={idx} className="mb-2">
-                      <p className="font-medium text-base">{option ? option.label : comp}</p>
-                      {option && <p className="text-sm text-muted-foreground">{option.description}</p>}
+                    <div key={idx} className="mb-4 p-3 bg-white rounded border">
+                      <p className="font-medium text-base">{comp.component_name}</p>
+                      {option && <p className="text-sm text-muted-foreground mb-2">{option.description}</p>}
+                      {comp.questions && comp.questions.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          <Label className="text-sm font-medium">Questions:</Label>
+                          {comp.questions.map((q, qIdx) => (
+                            <div key={qIdx} className="text-sm">
+                              <span className="font-medium">{q.question}:</span>
+                              <span className="ml-2 text-muted-foreground">{q.value || "Not answered"}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })

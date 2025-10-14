@@ -53,6 +53,7 @@ type RegisterFormValues = {
             value: any;
         }>;
     }>;
+    components: { component_name: string; questions: { question: string; value: string }[] }[];
     [key: `familyAadhaar${number}`]: string;
 };
 
@@ -103,6 +104,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
             farmerPourerCode: "",
             schemeVerification: false,
             component: "",
+            components: [],
             accountHolderName: "",
             accountNumber: "",
             bankName: "",
@@ -138,7 +140,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
             // For now, assume all eligibility fields are required if present
             fieldsToValidate = ['eligibility'];
         } else if (currentStep === 3) {
-            fieldsToValidate = ['component'];
+            fieldsToValidate = ['components'];
         } else if (currentStep === 4) {
             fieldsToValidate = ['accountHolderName', 'accountNumber', 'bankName', 'ifscCode'];
         }
@@ -196,7 +198,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
         frappePublic.call().post('vmddp_app.api.app_form.create_app_form', {
             data: {
                 ...formData,
-                components: components.map((c) => c.component || c)
+                components: formData.components
             }
         })
             .then((res: any) => {
