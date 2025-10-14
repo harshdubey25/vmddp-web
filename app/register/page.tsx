@@ -1,4 +1,4 @@
-
+export const dynamic = 'force-dynamic';
 import RegisterClient from "./client";
 import { frappeServer } from "@/app/lib/frappe";
 export default async function RegisterPage() {
