@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { JSX } from "react";
+import { useState } from "react";
 interface Props {
   control: any;
   errors: any;
@@ -22,13 +23,37 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
   // Watch all mainFieldNames at once
   const mainFieldValues = useWatch({ control, name: mainFieldNames });
 
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
+  const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
+
+  const uploadFile = async (file: File, fieldName: string): Promise<string | null> => {
+    setUploading(prev => ({ ...prev, [fieldName]: true }));
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('is_private', '0');
+      formData.append('folder', 'Home');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/vmddp_app.api.api.file_upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+      const fileUrl = result.message?.data?.file_url;
+      if (fileUrl) {
+        return `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${fileUrl}`;
+      }
+      return null;
+    } catch (error) {
+      console.error('File upload error:', error);
+      return null;
+    } finally {
+      setUploading(prev => ({ ...prev, [fieldName]: false }));
+    }
   };
 
   return (
@@ -103,13 +128,18 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                   control={control}
                   rules={required ? { required: `${label} is required` } : {}}
                   render={({ field }) => (
-                    <Input id={mainValueName} type="file" accept="image/*" onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const base64 = await fileToBase64(file);
-                        field.onChange(base64);
-                      }
-                    }} />
+                    <>
+                      <Input id={mainValueName} type="file" accept="image/*" onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const url = await uploadFile(file, mainValueName);
+                          if (url) {
+                            field.onChange(url);
+                          }
+                        }
+                      }} disabled={uploading[mainValueName]} />
+                      {uploading[mainValueName] && <span className="text-blue-500 text-xs">Uploading...</span>}
+                    </>
                   )}
                 />
                 {errors?.eligibility?.[idx]?.value && <span className="text-red-500 text-xs">{errors.eligibility[idx].value.message}</span>}

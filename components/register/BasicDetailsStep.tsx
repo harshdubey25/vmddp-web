@@ -14,14 +14,37 @@ interface Props {
 
 const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberCount }: Props) => {
   const [categorySearchValue, setCategorySearchValue] = useState('');
+  const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
 
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
+  const uploadFile = async (file: File, fieldName: string): Promise<string | null> => {
+    setUploading(prev => ({ ...prev, [fieldName]: true }));
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('is_private', '0');
+      formData.append('folder', 'Home'); // or appropriate folder
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/vmddp_app.api.api.file_upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+      const fileUrl = result.message?.data?.file_url;
+      if (fileUrl) {
+        return `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${fileUrl}`;
+      }
+      return null;
+    } catch (error) {
+      console.error('File upload error:', error);
+      return null;
+    } finally {
+      setUploading(prev => ({ ...prev, [fieldName]: false }));
+    }
   };
 
   return (
@@ -72,13 +95,20 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
         </div>
         <div className="space-y-2">
           <Label htmlFor="aadhaarImage">Aadhar Image *</Label>
-          <Controller name="aadhaarImage" control={control} rules={{ required: "Aadhar image is required" }} render={({ field }) => <Input id="aadhaarImage" type="file" accept="image/*" onChange={async (e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              const base64 = await fileToBase64(file);
-              field.onChange(base64);
-            }
-          }} data-testid="input-aadhaar-image" />} />
+          <Controller name="aadhaarImage" control={control} rules={{ required: "Aadhar image is required" }} render={({ field }) => (
+            <>
+              <Input id="aadhaarImage" type="file" accept="image/*" onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const url = await uploadFile(file, 'aadhaarImage');
+                  if (url) {
+                    field.onChange(url);
+                  }
+                }
+              }} data-testid="input-aadhaar-image" disabled={uploading.aadhaarImage} />
+              {uploading.aadhaarImage && <span className="text-blue-500 text-xs">Uploading...</span>}
+            </>
+          )} />
           {errors.aadhaarImage && <span className="text-red-500 text-xs">{errors.aadhaarImage.message}</span>}
         </div>
       </div>
@@ -92,24 +122,38 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
         </div>
         <div className="space-y-2">
           <Label htmlFor="rationCardImage">Self Ration Card Image *</Label>
-          <Controller name="rationCardImage" control={control} rules={{ required: "Ration card image is required" }} render={({ field }) => <Input id="rationCardImage" type="file" accept="image/*" onChange={async (e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              const base64 = await fileToBase64(file);
-              field.onChange(base64);
-            }
-          }} data-testid="input-ration-card-image" />} />
+          <Controller name="rationCardImage" control={control} rules={{ required: "Ration card image is required" }} render={({ field }) => (
+            <>
+              <Input id="rationCardImage" type="file" accept="image/*" onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const url = await uploadFile(file, 'rationCardImage');
+                  if (url) {
+                    field.onChange(url);
+                  }
+                }
+              }} data-testid="input-ration-card-image" disabled={uploading.rationCardImage} />
+              {uploading.rationCardImage && <span className="text-blue-500 text-xs">Uploading...</span>}
+            </>
+          )} />
           {errors.rationCardImage && <span className="text-red-500 text-xs">{errors.rationCardImage.message}</span>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="familyRationCardImage">Family Ration Card Image</Label>
-          <Controller name="familyRationCardImage" control={control} render={({ field }) => <Input id="familyRationCardImage" type="file" accept="image/*" onChange={async (e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              const base64 = await fileToBase64(file);
-              field.onChange(base64);
-            }
-          }} data-testid="input-family-ration-card-image" />} />
+          <Controller name="familyRationCardImage" control={control} render={({ field }) => (
+            <>
+              <Input id="familyRationCardImage" type="file" accept="image/*" onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const url = await uploadFile(file, 'familyRationCardImage');
+                  if (url) {
+                    field.onChange(url);
+                  }
+                }
+              }} data-testid="input-family-ration-card-image" disabled={uploading.familyRationCardImage} />
+              {uploading.familyRationCardImage && <span className="text-blue-500 text-xs">Uploading...</span>}
+            </>
+          )} />
           {errors.familyRationCardImage && <span className="text-red-500 text-xs">{errors.familyRationCardImage.message}</span>}
         </div>
       </div>
