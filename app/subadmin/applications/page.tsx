@@ -2,6 +2,8 @@ import { frappeServer } from "@/app/lib/frappe";
 import SubAdminApplicationsClient from "./client";
 import { cookies } from 'next/headers';
 
+export const runtime = 'edge';
+
 interface Application {
     id: string;
     applicantName: string;

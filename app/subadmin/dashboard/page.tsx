@@ -15,6 +15,8 @@ import { Header } from "./header";
 import { frappeServer } from "@/app/lib/frappe";
 import { cookies } from 'next/headers';
 
+export const runtime = 'edge';
+
 interface Application {
     id: string;
     applicant: string;
