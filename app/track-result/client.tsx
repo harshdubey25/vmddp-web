@@ -1,0 +1,421 @@
+"use client";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import {
+  ArrowLeft,
+  CheckCircle,
+  XCircle,
+  Clock,
+  FileText,
+  User,
+  Phone,
+  MapPin,
+  Package,
+  Calendar,
+  AlertCircle,
+} from "lucide-react";
+
+interface Application {
+  id: string;
+  applicantName: string;
+  fatherName: string;
+  mobile: string;
+  district: string;
+  taluka: string;
+  village: string;
+  component: string;
+  status: "pending" | "approved" | "selected" | "rejected";
+  submittedDate: string;
+  rejectionReason?: string;
+}
+
+export default function TrackResultPage() {
+  const searchParams = useSearchParams();
+  const mobile = searchParams.get("mobile");
+  const appId = searchParams.get("appId");
+
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const allApplications: Application[] = [
+    {
+      id: "APP-2025-001247",
+      applicantName: "Ramesh Kumar Patil",
+      fatherName: "Vishwanath Patil",
+      mobile: "9876543210",
+      district: "Nagpur",
+      taluka: "Nagpur Rural",
+      village: "Khapa",
+      component: "Animal Induction (Calved Cow)",
+      status: "selected",
+      submittedDate: "2025-01-06",
+    },
+    {
+      id: "APP-2025-001248",
+      applicantName: "Suresh Deshmukh",
+      fatherName: "Ganesh Deshmukh",
+      mobile: "9876543211",
+      district: "Nagpur",
+      taluka: "Nagpur Rural",
+      village: "Mouda",
+      component: "Chaff Cutter",
+      status: "approved",
+      submittedDate: "2025-01-07",
+    },
+    {
+      id: "APP-2025-001249",
+      applicantName: "Lakshmi Bai Kale",
+      fatherName: "Ramdas Kale",
+      mobile: "9876543210",
+      district: "Nagpur",
+      taluka: "Nagpur Rural",
+      village: "Khapa",
+      component: "Chaff Cutter",
+      status: "approved",
+      submittedDate: "2025-01-05",
+    },
+    {
+      id: "APP-2025-001250",
+      applicantName: "Ganesh Wankhede",
+      fatherName: "Vitthal Wankhede",
+      mobile: "9876543213",
+      district: "Nagpur",
+      taluka: "Nagpur Rural",
+      village: "Parseoni",
+      component: "Animal Induction (Calved Cow)",
+      status: "pending",
+      submittedDate: "2025-01-08",
+    },
+    {
+      id: "APP-2025-001251",
+      applicantName: "Anita Thakre",
+      fatherName: "Ramesh Thakre",
+      mobile: "9876543214",
+      district: "Nagpur",
+      taluka: "Kamptee",
+      village: "Kamptee",
+      component: "Animal Induction (Calved Cow)",
+      status: "rejected",
+      submittedDate: "2025-01-04",
+      rejectionReason: "Incomplete documentation - Missing animal tag verification certificate",
+    },
+  ];
+
+  useEffect(() => {
+    // Simulate API call
+    setTimeout(() => {
+      let found: Application[] = [];
+
+      if (mobile) {
+        found = allApplications.filter((app) => app.mobile === mobile);
+      } else if (appId) {
+        const app = allApplications.find((app) => app.id === appId);
+        if (app) found = [app];
+      }
+
+      setApplications(found);
+      if (found.length === 1) {
+        setSelectedApp(found[0]);
+      }
+      setLoading(false);
+    }, 800);
+  }, [mobile, appId]);
+
+  const getStatusBadge = (status: Application["status"]) => {
+    const statusConfig = {
+      pending: { label: "Pending Review", variant: "secondary" as const, icon: Clock },
+      approved: { label: "Approved", variant: "default" as const, icon: CheckCircle },
+      selected: { label: "Selected", variant: "default" as const, icon: CheckCircle },
+      rejected: { label: "Rejected", variant: "destructive" as const, icon: XCircle },
+    };
+
+    const config = statusConfig[status];
+    const Icon = config.icon;
+
+    return (
+      <Badge variant={config.variant} className="gap-1.5">
+        <Icon className="w-3.5 h-3.5" />
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const StatusTimeline = ({ status }: { status: Application["status"] }) => {
+    const steps = [
+      { key: "pending", label: "Submitted", icon: FileText },
+      { key: "approved", label: "Approved by DPO", icon: CheckCircle },
+      { key: "selected", label: "Final Selection", icon: CheckCircle },
+    ];
+
+    const statusOrder = ["pending", "approved", "selected"];
+    const currentIndex = statusOrder.indexOf(status);
+    const isRejected = status === "rejected";
+
+    if (isRejected) {
+      return (
+        <div className="flex items-center gap-3 p-4 border border-destructive/50 rounded-lg bg-destructive/5">
+          <XCircle className="w-6 h-6 text-destructive flex-shrink-0" />
+          <div>
+            <p className="font-semibold text-destructive">Application Rejected</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Your application did not meet the eligibility criteria
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative">
+        <div className="flex items-center justify-between">
+          {steps.map((step, index) => {
+            const isCompleted = index <= currentIndex;
+            const isCurrent = index === currentIndex;
+            const StepIcon = step.icon;
+
+            return (
+              <div key={step.key} className="flex flex-col items-center flex-1">
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
+                    isCompleted
+                      ? "bg-chart-3 border-chart-3 text-white"
+                      : "bg-background border-muted-foreground/30 text-muted-foreground"
+                  }`}
+                >
+                  <StepIcon className="w-5 h-5" />
+                </div>
+                <p
+                  className={`text-xs sm:text-sm mt-2 text-center ${
+                    isCurrent ? "font-semibold" : "text-muted-foreground"
+                  }`}
+                >
+                  {step.label}
+                </p>
+                {index < steps.length - 1 && (
+                  <div
+                    className={`absolute top-5 h-0.5 transition-colors ${
+                      index < currentIndex ? "bg-chart-3" : "bg-muted-foreground/30"
+                    }`}
+                    style={{
+                      left: `${(index / (steps.length - 1)) * 100 + 10}%`,
+                      right: `${100 - ((index + 1) / (steps.length - 1)) * 100 + 10}%`,
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const ApplicationCard = ({ app }: { app: Application }) => (
+    <Card>
+      <CardHeader>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <CardTitle className="font-display text-xl mb-2">{app.applicantName.replace(/'/g, "&apos")}</CardTitle>
+            <CardDescription className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Application ID: <span className="font-mono font-semibold">{app.id.replace(/'/g, "&apos")}</span>
+            </CardDescription>
+          </div>
+          {getStatusBadge(app.status)}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Status Timeline */}
+        <div>
+          <h3 className="font-semibold mb-4">Application Progress</h3>
+          <StatusTimeline status={app.status} />
+        </div>
+
+        <Separator />
+
+        {/* Rejection Reason */}
+        {app.status === "rejected" && app.rejectionReason && (
+          <>
+            <div className="flex items-start gap-3 p-4 border border-destructive/30 rounded-lg bg-destructive/5">
+              <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-sm">Reason for Rejection</p>
+                <p className="text-sm text-muted-foreground mt-1">{app.rejectionReason}</p>
+              </div>
+            </div>
+            <Separator />
+          </>
+        )}
+
+        {/* Application Details */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex items-start gap-3">
+            <User className="w-5 h-5 text-muted-foreground mt-0.5" />
+            <div>
+              <p className="text-sm text-muted-foreground">Father&apos;s Name</p>
+              <p className="font-medium">{app.fatherName.replace(/'/g, "&apos")}</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <Phone className="w-5 h-5 text-muted-foreground mt-0.5" />
+            <div>
+              <p className="text-sm text-muted-foreground">Mobile Number</p>
+              <p className="font-medium font-mono">{app.mobile.replace(/'/g, "&apos")}</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
+            <div>
+              <p className="text-sm text-muted-foreground">Location</p>
+              <p className="font-medium">
+                {app.village.replace(/'/g, "&apos")}, {app.taluka.replace(/'/g, "&apos")}, {app.district.replace(/'/g, "&apos")}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <Package className="w-5 h-5 text-muted-foreground mt-0.5" />
+            <div>
+              <p className="text-sm text-muted-foreground">Component</p>
+              <p className="font-medium">{app.component.replace(/'/g, "&apos")}</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <Calendar className="w-5 h-5 text-muted-foreground mt-0.5" />
+            <div>
+              <p className="text-sm text-muted-foreground">Submitted On</p>
+              <p className="font-medium">{new Date(app.submittedDate.replace(/'/g, "&apos")).toLocaleDateString()}</p>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  if (loading) {
+    return (
+      <div className="min-h-[calc(100vh-16rem)] py-12 sm:py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-muted rounded w-1/3"></div>
+            <div className="h-64 bg-muted rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-[calc(100vh-16rem)] py-12 sm:py-16">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <Link href="/track">
+          <Button variant="ghost" className="mb-6 gap-2" data-testid="button-back-to-search">
+            <ArrowLeft className="w-4 h-4" />
+            Search Again
+          </Button>
+        </Link>
+
+        {/* No Results */}
+        {applications.length === 0 && (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-display font-semibold text-xl mb-2">No Application Found</h3>
+              <p className="text-muted-foreground mb-6">
+                {!mobile && !appId
+                  ? "Please provide a mobile number or application ID to search"
+                  : mobile
+                  ? `No applications found for mobile number ${mobile}`
+                  : `No application found with ID ${appId}`}
+              </p>
+              <Link href="/track">
+                <Button data-testid="button-try-again">
+                  {!mobile && !appId ? "Go to Search" : "Try Another Search"}
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Single Application */}
+        {applications.length === 1 && selectedApp && (
+          <div className="space-y-4">
+            <h1 className="font-display font-semibold text-2xl sm:text-3xl">
+              Application Status
+            </h1>
+            <ApplicationCard app={selectedApp} />
+          </div>
+        )}
+
+        {/* Multiple Applications */}
+        {applications.length > 1 && !selectedApp && (
+          <div className="space-y-6">
+            <div>
+              <h1 className="font-display font-semibold text-2xl sm:text-3xl mb-2">
+                Multiple Applications Found
+              </h1>
+              <p className="text-muted-foreground">
+                Select an application to view its status
+              </p>
+            </div>
+
+            <div className="grid gap-4">
+              {applications.map((app) => (
+                <Card
+                  key={app.id}
+                  className="cursor-pointer hover-elevate active-elevate-2 transition-colors"
+                  onClick={() => setSelectedApp(app)}
+                  data-testid={`card-application-${app.id}`}
+                >
+                  <CardContent className="py-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <p className="font-semibold">{app.applicantName}</p>
+                          {getStatusBadge(app.status)}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                          <span className="font-mono">{app.id}</span>
+                          <span>•</span>
+                          <span>{app.component}</span>
+                          <span>•</span>
+                          <span>{new Date(app.submittedDate).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Selected Application from Multiple */}
+        {applications.length > 1 && selectedApp && (
+          <div className="space-y-4">
+            <Button
+              variant="ghost"
+              onClick={() => setSelectedApp(null)}
+              className="gap-2"
+              data-testid="button-back-to-list"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to List
+            </Button>
+            <ApplicationCard app={selectedApp} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
