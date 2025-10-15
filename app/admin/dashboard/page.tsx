@@ -17,6 +17,7 @@ import {
     ArrowUpRight,
 } from "lucide-react";
 import { frappeServer } from "@/app/lib/frappe";
+import Link from "next/link";
 
 export default async function AdminDashboard() {
     const response = await frappeServer.call().get('vmddp_app.api.api.get_all_docs_with_children', { doctype: 'App Form' });
@@ -142,10 +143,12 @@ export default async function AdminDashboard() {
                                         <CardTitle data-testid="text-recent-applications">Recent Applications</CardTitle>
                                         <CardDescription>Latest submissions from farmers</CardDescription>
                                     </div>
-                                    <Button variant="outline" size="sm" data-testid="button-view-all">
-                                        View All
-                                        <ArrowUpRight className="ml-2 w-4 h-4" />
-                                    </Button>
+                                    <Link href={'/admin/applications'}>
+                                        <Button variant="outline" size="sm" data-testid="button-view-all">
+                                            View All
+                                            <ArrowUpRight className="ml-2 w-4 h-4" />
+                                        </Button>
+                                    </Link>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-3">
