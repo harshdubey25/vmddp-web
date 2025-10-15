@@ -9,8 +9,7 @@ interface User {
     user_type: "System User" | "Website User";
     roles: string[];
     full_name: string;
-    verification_status?: "Pending" | "Rejected" | "Verified";
-    business_name?: string;
+    dpo: any;
 }
 
 type AuthContextType = {
