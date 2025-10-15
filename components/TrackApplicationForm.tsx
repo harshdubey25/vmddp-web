@@ -1,5 +1,6 @@
 "use client"
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,13 +8,19 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Search } from "lucide-react";
 
-export default function TrackApplicationForm() {
+const TrackApplicationForm = () => {
+  const router = useRouter();
   const [trackBy, setTrackBy] = useState<"mobile" | "applicationId">("mobile");
   const [value, setValue] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Track application:", { trackBy, value });
+    if (!value.trim()) return;
+
+    const params = trackBy === "mobile"
+      ? `mobile=${encodeURIComponent(value)}`
+      : `appId=${encodeURIComponent(value)}`;
+    router.push(`/track-result?${params}`);
   };
 
   return (
@@ -73,4 +80,7 @@ export default function TrackApplicationForm() {
       </CardContent>
     </Card>
   );
-}
+};
+
+export default TrackApplicationForm;
+

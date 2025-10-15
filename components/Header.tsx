@@ -6,12 +6,11 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "./ThemeProvider";
 import { useState } from "react";
 import { useTranslation } from 'next-i18next';
-import { i18n } from 'next-i18next';
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
 
   const navItems = [
     { label: "Home", path: "/" },
@@ -23,13 +22,12 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <header className="sticky top-0 z-50">
+      {/* Bottom strip: logo, nav, register, mobile menu */}
+      <div className="w-full bg-background border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">V</span>
-            </div>
+            <img src="/logo_vmddp.jpg" alt="VMDDP Logo" className="w-12 h-12 rounded-full" />
             <div className="hidden sm:block">
               <h1 className="font-display font-semibold text-lg">VMDDP</h1>
               <p className="text-xs text-muted-foreground">{t('dairy_development_programme')}</p>
@@ -40,11 +38,12 @@ export default function Header() {
             {navItems.map((item) => {
               const isActive = pathname === item.path;
               return (
-                <Link key={item.path} href={item.path} passHref >
+                <Link key={item.path} href={item.path} passHref>
                   <Button
                     variant={isActive ? "secondary" : "ghost"}
                     size="sm"
                     data-testid={`link-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                    className={isActive ? "font-bold" : ""}
                   >
                     {item.label}
                   </Button>
@@ -54,41 +53,28 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <Link href="/register" passHref >
+            <Link href="/register" passHref>
               <Button data-testid="button-register" className="hidden sm:inline-flex">
                 Register Now
               </Button>
             </Link>
-
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden sm:inline-flex"
-              onClick={() => {
-                const current = i18n?.language ?? "en";
-                const next = current === "en" ? "mr" : "en";
-                i18n?.changeLanguage?.(next);
-                console.log('buttonPrress', current)
-              }}
-
-              data-testid="button-language-toggle"
-            >
-              {(i18n?.language ?? "en") === "en" ? "मराठी" : "English"}
-            </Button>
-
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === "light" ? "dark" : "light")}
               data-testid="button-theme-toggle"
             >
-              {theme === "light" ? (
-                <Moon className="w-5 h-5" />
-              ) : (
-                <Sun className="w-5 h-5" />
-              )}
+              {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
             </Button>
-
+            <select
+              className="border rounded px-2 py-1 text-sm focus:outline-none focus:ring"
+              value={i18n.language ?? "en"}
+              onChange={e => i18n.changeLanguage(e.target.value)}
+              data-testid="select-language-toggle"
+            >
+              <option value="en">English</option>
+              <option value="mr">मराठी</option>
+            </select>
             <Button
               variant="ghost"
               size="icon"

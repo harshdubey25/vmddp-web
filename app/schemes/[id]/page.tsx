@@ -1,5 +1,85 @@
-export const runtime = 'edge'
+import { getComponentById } from "@/componentData/componentData";
 import { notFound } from "next/navigation";
+import Image from "next/image";
+
+export default function SchemeComponentPage({ params }: { params: { id: string } }) {
+  const componentId = Number(params.id);
+  const component = getComponentById(componentId);
+
+  if (!component) {
+    return notFound();
+  }
+
+  return (
+    <main className="max-w-4xl mx-auto py-10 px-4">
+      <h1 className="font-display text-3xl font-bold mb-4 text-primary">{component.title}</h1>
+      <div className="mb-6">
+        <Image src={component.image} alt={component.title} width={600} height={300} className="rounded-lg object-cover w-full h-64" />
+      </div>
+      <div className="mb-4">
+        <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">{component.category}</span>
+      </div>
+      <p className="text-lg text-muted-foreground mb-6">{component.fullDescription}</p>
+      <section className="mb-8">
+        <h2 className="font-semibold text-xl mb-2">Benefits</h2>
+        <ul className="list-disc pl-6 space-y-1">
+          {component.benefits.map((benefit, i) => (
+            <li key={i}>{benefit}</li>
+          ))}
+        </ul>
+      </section>
+      <section className="mb-8">
+        <h2 className="font-semibold text-xl mb-2">Eligibility Criteria</h2>
+        <ul className="list-disc pl-6 space-y-1">
+          {component.eligibilityCriteria.map((criteria, i) => (
+            <li key={i}>{criteria}</li>
+          ))}
+        </ul>
+      </section>
+      <section className="mb-8">
+        <h2 className="font-semibold text-xl mb-2">Subsidy Information</h2>
+        <div className="bg-muted/10 p-4 rounded-lg">
+          <p><strong>Amount:</strong> {component.subsidyInfo.amount}</p>
+          {component.subsidyInfo.percentage && <p><strong>Percentage:</strong> {component.subsidyInfo.percentage}</p>}
+          <p><strong>Details:</strong> {component.subsidyInfo.details}</p>
+        </div>
+      </section>
+      {component.termsAndConditions && (
+        <section className="mb-8">
+          <h2 className="font-semibold text-xl mb-2">Terms & Conditions</h2>
+          <ul className="list-disc pl-6 space-y-1">
+            {component.termsAndConditions.map((term, i) => (
+              <li key={i}>{term}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <section className="mb-8">
+        <h2 className="font-semibold text-xl mb-2">Required Documents</h2>
+        <ul className="list-disc pl-6 space-y-1">
+          {component.requiredDocuments.map((doc, i) => (
+            <li key={i}>{doc}</li>
+          ))}
+        </ul>
+      </section>
+      <section className="mb-8">
+        <h2 className="font-semibold text-xl mb-2">Application Guidelines</h2>
+        <ul className="list-disc pl-6 space-y-1">
+          {component.applicationGuidelines.map((guide, i) => (
+            <li key={i}>{guide}</li>
+          ))}
+        </ul>
+      </section>
+      {component.targetBeneficiaries && (
+        <p className="mb-2"><strong>Target Beneficiaries:</strong> {component.targetBeneficiaries}</p>
+      )}
+      {component.coverage && (
+        <p className="mb-2"><strong>Coverage:</strong> {component.coverage}</p>
+      )}
+    </main>
+  );
+}export const runtime = 'edge'
+// import { notFound } from "next/navigation";
 import { Milk, HeartPulse, Pill, Sprout, Sparkles, Scissors, Package, Stethoscope, GraduationCap } from "lucide-react";
 
 const schemeDetails = [
@@ -155,7 +235,7 @@ const schemeDetails = [
   }
 ];
 
-export default function SchemeDetailPage({ params }: { params: { id: string } }) {
+export  function SchemeDetailPage({ params }: { params: { id: string } }) {
   const scheme = schemeDetails.find(s => s.id === Number(params.id));
   if (!scheme) return notFound();
 

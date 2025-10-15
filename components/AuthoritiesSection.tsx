@@ -8,7 +8,6 @@ import member2 from "@assets/member2_1759739467949.png";
 import member3 from "@assets/member3_1759739467949.png";
 import member4 from "@assets/member4_1759739467948.png";
 import member5 from "@assets/member5_1759739467948.png";
-import member6 from "@assets/member6_1759739467947.png";
 import member7 from "@assets/member7_1759739467947.png";
 
 const authorities = [
@@ -43,10 +42,15 @@ const authorities = [
     image: "member6_1759739467947.png",
   },
   {
-    name: "डॉ. प्रशांत भट्ट",
-    designation: "Hon. Deputy Commissioner, Animal Husbandry & Dairy and Member Secretary, Maharashtra Bovine Breeding Regulatory Authority, Maharashtra Government",
-    image: "member7_1759739467947.png",
+    name: "डॉ. नाना अर्जुन सोनवणे",
+  designation: "Hon. Additional Project Director\n Vidarbha And Marathwada Dairy development Project",
+    image: "member_7.jpg",
   },
+  {
+    name: "डॉ. नरेंद्र पाटील",
+    designation: "Hon. Officer On Special Duty\nVidarbha And Marathwada Dairy development Project",
+    image: "membe_8.jpg",
+  }
 ];
 
 export default function AuthoritiesSection() {
@@ -84,7 +88,7 @@ export default function AuthoritiesSection() {
             >
               <AuthorityMember
                 name={authority.name}
-                designation={authority.designation}
+                designation={authority.designation.replace(/\n/g, '<br />')}
                 image={authority.image}
               />
             </motion.div>

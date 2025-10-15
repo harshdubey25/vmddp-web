@@ -23,7 +23,7 @@ export default function AuthorityMember({ name, designation, image, initials }: 
           <h3 className="font-display font-semibold text-base mb-2" data-testid={`text-authority-name-${name.toLowerCase().replace(/\s+/g, '-')}`}>
             {name}
           </h3>
-          <p className="text-sm text-muted-foreground leading-relaxed">{designation}</p>
+          <p className="text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: designation }} />
         </div>
       </CardContent>
     </Card>

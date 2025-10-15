@@ -30,16 +30,15 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-
       >
-        <FrappeClientProvider>
-          <AuthProvider>
-            <ThemeProvider>
-              <ClientLayoutShell>{children}</ClientLayoutShell>
-              <Toaster />
-            </ThemeProvider>
-          </AuthProvider>
-        </FrappeClientProvider>
+          <FrappeClientProvider>
+            <AuthProvider>
+              <ThemeProvider>
+                <ClientLayoutShell>{children}</ClientLayoutShell>
+                <Toaster />
+              </ThemeProvider>
+            </AuthProvider>
+          </FrappeClientProvider>
       </body>
     </html>
   );
