@@ -181,9 +181,9 @@ export default async function AdminDashboard() {
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="text-xs text-muted-foreground">{app.date}</p>
-                                                    <Button variant="ghost" size="sm" className="mt-2">
+                                                    {/* <Button variant="ghost" size="sm" className="mt-2">
                                                         Review
-                                                    </Button>
+                                                    </Button> */}
                                                 </div>
                                             </div>
                                         ))}
