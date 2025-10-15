@@ -45,7 +45,7 @@ export default function Login() {
                         </div>
                         <div className="text-center">
                             <CardTitle className="font-display text-2xl" data-testid="text-login-title">
-                                Admin Portal Login
+                                Portal Login
                             </CardTitle>
                             <CardDescription className="mt-2">
                                 Vidarbha Marathwada Dairy Development Programme

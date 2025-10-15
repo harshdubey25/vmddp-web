@@ -79,6 +79,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
         formState: { errors },
         getValues,
         trigger,
+        reset,
     } = useForm<RegisterFormValues>({
         mode: "onTouched",
         defaultValues: {
@@ -200,22 +201,26 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                 ...formData,
                 components: formData.components
             }
-        })
-            .then((res: any) => {
-                toast({
-                    title: "Application Submitted",
-                    description: "Your application has been successfully submitted. You will receive an SMS with your application ID.",
-                });
-                console.log("Application submitted", res);
-            })
-            .catch((err: any) => {
-                toast({
-                    title: "Submission Error",
-                    description: "There was an error submitting your application. Please try again.",
-                    variant: "destructive"
-                });
-                console.error("Application submission error", err);
-            }).finally(() => setSubmitLoading(false));
+        }).then((res: any) => {
+            toast({
+                title: "Application Submitted",
+                description: "Your application has been successfully submitted. You will receive an SMS with your application ID.",
+            });
+            console.log("Application submitted", res);
+            // Reset form and go back to first step
+            reset();
+            setCurrentStep(1);
+            setAgreed(false);
+            setFamilyMemberCount(0);
+            setComponents([]);
+        }).catch((err: any) => {
+            toast({
+                title: "Submission Error",
+                description: "There was an error submitting your application. Please try again.",
+                variant: "destructive"
+            });
+            console.error("Application submission error", err);
+        }).finally(() => setSubmitLoading(false));
     }
 
     const handlePrint = () => {
