@@ -13,7 +13,7 @@ interface RegistrationStepperProps {
 export default function RegistrationStepper({ currentStep, steps }: RegistrationStepperProps) {
   return (
     <div className="w-full py-6">
-      <div className="flex items-center justify-between">
+  <div className="flex items-center justify-start gap-8 ml-20">
         {steps.map((step, index) => (
           <div key={step.number} className="flex items-center flex-1">
             <div className="flex flex-col items-center relative">

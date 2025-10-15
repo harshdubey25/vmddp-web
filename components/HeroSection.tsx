@@ -18,7 +18,7 @@ export default function HeroSection() {
             className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mb-4 sm:mb-6"
             data-testid="text-hero-title"
           >
-            Vidarbha Marathwada Dairy Development Programme
+            Vidarbha and Marathwada Dairy Development Project
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
