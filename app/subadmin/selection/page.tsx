@@ -65,7 +65,7 @@ export default function SubAdminSelection() {
     const fetchApprovedApplications = async () => {
       try {
         // Build filters based on user district
-        const filters: any = { doctype: 'App Form', filters: { status: 'Approved' } };
+        const filters: any = { doctype: 'App Form', filters: { status: ['in', ['Approved', 'Selected']] } };
         if (user?.dpo?.district) {
           filters.filters.district = user.dpo.district;
         }
