@@ -90,10 +90,7 @@ async function getApplications(): Promise<Application[]> {
         component: Array.isArray(app.components)
             ? app.components.map(c => c.component || c.name).join(', ')
             : app.component ?? '',
-        status: app.status === 'pending' ? 'Pending' :
-            app.status === 'approved' ? 'Approved' :
-                app.status === 'rejected' ? 'Rejected' :
-                    app.status === 'selected' ? 'Selected' : 'Pending',
+        status: app.status,
         submittedDate: app.creation ? app.creation.split(' ')[0] : '',
         animalCount: undefined,
         approver: app.approver ?? '',
