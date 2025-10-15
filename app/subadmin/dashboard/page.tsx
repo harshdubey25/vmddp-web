@@ -95,7 +95,7 @@ export default async function SubAdminDashboard() {
             applicant,
             component,
             village: app.village || 'N/A',
-            status,
+            status: app.status,
             date,
         };
     });
