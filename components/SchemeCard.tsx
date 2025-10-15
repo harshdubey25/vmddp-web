@@ -54,7 +54,7 @@ export default function SchemeCard({ icon: Icon, title, description, benefits, c
           <div className="flex justify-center">
             <Link href={`/schemes/${componentId}`}>
               <Button variant="outline" className="w-40 group" data-testid={`button-learn-more-${componentId}`}>
-                Learn More
+                Read More
                 <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
