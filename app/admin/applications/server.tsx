@@ -1,6 +1,7 @@
 // Server component for admin applications page
+export const dynamic = 'force-dynamic';
+export const runtime = 'edge'; // Ensure the page uses the Edge runtime
 import AdminApplicationsClient from "./AdminApplicationsClient";
-
 export interface Application {
     id: string;
     applicantName: string;

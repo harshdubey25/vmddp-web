@@ -1,5 +1,7 @@
 // ...existing code...
 // Content from src/pages/admin/Dashboard.tsx
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
