@@ -6,12 +6,11 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "./ThemeProvider";
 import { useState } from "react";
 import { useTranslation } from 'next-i18next';
-import { i18n } from 'next-i18next';
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
 
   const navItems = [
     { label: "Home", path: "/" },
@@ -65,15 +64,13 @@ export default function Header() {
               size="sm"
               className="hidden sm:inline-flex"
               onClick={() => {
-                const current = i18n?.language ?? "en";
+                const current = i18n.language ?? "en";
                 const next = current === "en" ? "mr" : "en";
-                i18n?.changeLanguage?.(next);
-                console.log('buttonPrress', current)
+                i18n.changeLanguage(next);
               }}
-
               data-testid="button-language-toggle"
             >
-              {(i18n?.language ?? "en") === "en" ? "मराठी" : "English"}
+              {(i18n.language ?? "en") === "en" ? "मराठी" : "English"}
             </Button>
 
             <Button

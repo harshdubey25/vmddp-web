@@ -30,7 +30,16 @@ export default function Beneficiaries() {
         { district: "Buldhana", component: "Supply Of Silage", selected: 33, rejected: 8, inProgress: 15 },
     ];
 
-    const filteredData = mockData.filter(item => {
+    const mappedData = mockData.map(item => ({
+        district: item.district,
+        component: item.component,
+        pending: item.inProgress ?? 0,
+        approved: Math.max(0, item.selected - item.rejected), 
+        selected: item.selected,
+        rejected: item.rejected,
+    }));
+
+    const filteredData = mappedData.filter(item => {
         const districtMatch = selectedDistrict === "all" || item.district === selectedDistrict;
         const componentMatch = selectedComponent === "all" || item.component === selectedComponent;
         return districtMatch && componentMatch;
