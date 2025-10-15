@@ -2,14 +2,18 @@ import { Milk, HeartPulse, Pill, Sparkles, Sprout, Scissors, Package, Stethoscop
 import type { LucideIcon } from "lucide-react";
 
 export const image ={
+  fertility_feed_bf4e2f3c: "/stock_images/fertility_feed.jpg",
   dairy_cow_grazing_in_bb297871: "/stock_images/dairy_cow_grazing_in_bb297871.jpg",
   pregnant_heifer_cow__33614af7: "/stock_images/pregnant_heifer_cow__33614af7.jpg",
   animal_feed_suppleme_bd677c66: "/stock_images/animal_feed_suppleme_bd677c66.jpg",
   fodder_crops_green_c_2328b89f: "/stock_images/fodder_crops_green_c_2328b89f.jpg",
   chaff_cutter_machine_b258d8e0: "/stock_images/chaff_cutter_machine_b258d8e0.jpg",
-  silage_storage_farm__cdce1e08: "/stock_images/silage_storage_farm__cdce1e08.jpg",
-  veterinary_treatment_358caf0f: "/stock_images/veterinary_treatment_358caf0f.jpg",
-  farmer_training_agri_442883c8: "/stock_images/farmer_training_agri_442883c8.jpg"
+  silage_storage_farm__cdce1e08: "/stock_images/supply_silage.png",
+  veterinary_treatment_358caf0f: "/stock_images/imfertile_animal.webp",
+  farmer_training_agri_442883c8: "/stock_images/farmer_training.jpg",
+  fodder_seed_field_3_8c6f2f4b: "/stock_images/fodder_seed.jpg",
+  snf_enhancer_feed_5_2f3e4c6d: "/stock_images/snf_enhancer.jpg", 
+  supply_chaff_cutter:"/stock_images/suuply_chaff_cutter.jpg",
 }
 
 export type ComponentCategory = "Animal Purchase" | "Nutrition & Feed" | "Equipment & Infrastructure" | "Services & Training";
@@ -142,7 +146,7 @@ export const componentData: ComponentDetail[] = [
     title: "Fertility Feed",
     shortDescription: "Specialized NDDB fertility feed to improve reproductive health and reduce repeat breeding",
     fullDescription: "NDDB-developed Fertility Feed improves reproductive efficiency and reduces repeat breeding in cows and buffaloes. Feeding 5 kg daily from 60th to 120th day post-calving enhances fertility, milk yield, and milk quality.",
-    image: image.animal_feed_suppleme_bd677c66,
+    image: image.fertility_feed_bf4e2f3c,
     category: "Nutrition & Feed",
     benefits: [
       "25% subsidy on fertility feed",
@@ -178,51 +182,11 @@ export const componentData: ComponentDetail[] = [
   },
   {
     id: 4,
-    icon: Sparkles,
-    title: "SNF Enhancer",
-    shortDescription: "NDDB supplements to improve Fat and SNF levels in milk for better pricing",
-    fullDescription: "Specially developed supplements to improve Fat and SNF (Solids-Not-Fat) levels in milk, which determine acceptance and pricing at milk collection centres. Feed 250 grams per day per animal for 90 days after calving.",
-    image: image.animal_feed_suppleme_bd677c66,
-    category: "Nutrition & Feed",
-    benefits: [
-      "25% subsidy on SNF enhancer feed",
-      "Improves milk Fat and SNF content",
-      "Better price realization at collection centres",
-      "Enhanced milk quality and acceptance",
-      "90-day supplementation program"
-    ],
-    eligibilityCriteria: [
-      "Must own milch animals",
-      "Animals in post-calving period",
-      "Regular milk supplier to collection centres"
-    ],
-    subsidyInfo: {
-      amount: "25% subsidy",
-      percentage: "25%",
-      details: "Cost: ₹4,500 per animal (₹200/kg × 22.5 kg for 90 days). 25% subsidy via DBT after purchase proof."
-    },
-    requiredDocuments: [
-      "Aadhar Card",
-      "Milk collection centre registration",
-      "Purchase invoice",
-      "Bank account details"
-    ],
-    applicationGuidelines: [
-      "Feed 250 grams per day for 90 days after calving",
-      "Purchase from authorized NDDB suppliers",
-      "Submit purchase proof for subsidy",
-      "Monitor milk quality improvements"
-    ],
-    targetBeneficiaries: "33,000 animals",
-    coverage: "All project areas"
-  },
-  {
-    id: 5,
     icon: Sprout,
     title: "Fodder Seed",
     shortDescription: "Quality fodder seed distribution for year-round feed availability and drought mitigation",
     fullDescription: "To mitigate fodder scarcity during drought, quality fodder seeds and cuttings provided for cultivation on 22,000 acres across 19 districts. 100% subsidy support for multi-purpose fodder crop cultivation.",
-    image: image.fodder_crops_green_c_2328b89f,
+    image: image.fodder_seed_field_3_8c6f2f4b,
     category: "Nutrition & Feed",
     benefits: [
       "100% subsidy up to ₹6,000 per beneficiary",
@@ -257,12 +221,52 @@ export const componentData: ComponentDetail[] = [
     coverage: "22,000 acres across 19 districts"
   },
   {
+    id: 5,
+    icon: Sparkles,
+    title: "SNF Enhancer",
+    shortDescription: "NDDB supplements to improve Fat and SNF levels in milk for better pricing",
+    fullDescription: "Specially developed supplements to improve Fat and SNF (Solids-Not-Fat) levels in milk, which determine acceptance and pricing at milk collection centres. Feed 250 grams per day per animal for 90 days after calving.",
+    image: image.snf_enhancer_feed_5_2f3e4c6d,
+    category: "Nutrition & Feed",
+    benefits: [
+      "25% subsidy on SNF enhancer feed",
+      "Improves milk Fat and SNF content",
+      "Better price realization at collection centres",
+      "Enhanced milk quality and acceptance",
+      "90-day supplementation program"
+    ],
+    eligibilityCriteria: [
+      "Must own milch animals",
+      "Animals in post-calving period",
+      "Regular milk supplier to collection centres"
+    ],
+    subsidyInfo: {
+      amount: "25% subsidy",
+      percentage: "25%",
+      details: "Cost: ₹4,500 per animal (₹200/kg × 22.5 kg for 90 days). 25% subsidy via DBT after purchase proof."
+    },
+    requiredDocuments: [
+      "Aadhar Card",
+      "Milk collection centre registration",
+      "Purchase invoice",
+      "Bank account details"
+    ],
+    applicationGuidelines: [
+      "Feed 250 grams per day for 90 days after calving",
+      "Purchase from authorized NDDB suppliers",
+      "Submit purchase proof for subsidy",
+      "Monitor milk quality improvements"
+    ],
+    targetBeneficiaries: "33,000 animals",
+    coverage: "All project areas"
+  },
+  {
     id: 6,
     icon: Scissors,
     title: "Supply Chaff Cutter",
     shortDescription: "Electrically operated chaff cutting machines to reduce fodder wastage and improve digestibility",
     fullDescription: "Distribution of 10,000 electric chaff cutters to reduce wastage of green fodder and improve digestibility. Mechanized equipment makes fodder processing efficient and reduces labor requirements.",
-    image: image.chaff_cutter_machine_b258d8e0,
+    image: image.supply_chaff_cutter,
     category: "Equipment & Infrastructure",
     benefits: [
       "50% subsidy up to ₹15,000 per unit",
