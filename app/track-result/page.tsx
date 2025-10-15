@@ -221,10 +221,10 @@ export default function TrackResult() {
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle className="font-display text-xl mb-2">{app.applicantName}</CardTitle>
+            <CardTitle className="font-display text-xl mb-2">{app.applicantName.replace(/'/g, "&apos")}</CardTitle>
             <CardDescription className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
-              Application ID: <span className="font-mono font-semibold">{app.id}</span>
+              Application ID: <span className="font-mono font-semibold">{app.id.replace(/'/g, "&apos")}</span>
             </CardDescription>
           </div>
           {getStatusBadge(app.status)}
@@ -258,8 +258,8 @@ export default function TrackResult() {
           <div className="flex items-start gap-3">
             <User className="w-5 h-5 text-muted-foreground mt-0.5" />
             <div>
-              <p className="text-sm text-muted-foreground">Father's Name</p>
-              <p className="font-medium">{app.fatherName}</p>
+              <p className="text-sm text-muted-foreground">Father&apos;s Name</p>
+              <p className="font-medium">{app.fatherName.replace(/'/g, "&apos")}</p>
             </div>
           </div>
 
@@ -267,7 +267,7 @@ export default function TrackResult() {
             <Phone className="w-5 h-5 text-muted-foreground mt-0.5" />
             <div>
               <p className="text-sm text-muted-foreground">Mobile Number</p>
-              <p className="font-medium font-mono">{app.mobile}</p>
+              <p className="font-medium font-mono">{app.mobile.replace(/'/g, "&apos")}</p>
             </div>
           </div>
 
@@ -276,7 +276,7 @@ export default function TrackResult() {
             <div>
               <p className="text-sm text-muted-foreground">Location</p>
               <p className="font-medium">
-                {app.village}, {app.taluka}, {app.district}
+                {app.village.replace(/'/g, "&apos")}, {app.taluka.replace(/'/g, "&apos")}, {app.district.replace(/'/g, "&apos")}
               </p>
             </div>
           </div>
@@ -285,7 +285,7 @@ export default function TrackResult() {
             <Package className="w-5 h-5 text-muted-foreground mt-0.5" />
             <div>
               <p className="text-sm text-muted-foreground">Component</p>
-              <p className="font-medium">{app.component}</p>
+              <p className="font-medium">{app.component.replace(/'/g, "&apos")}</p>
             </div>
           </div>
 
@@ -293,7 +293,7 @@ export default function TrackResult() {
             <Calendar className="w-5 h-5 text-muted-foreground mt-0.5" />
             <div>
               <p className="text-sm text-muted-foreground">Submitted On</p>
-              <p className="font-medium">{new Date(app.submittedDate).toLocaleDateString()}</p>
+              <p className="font-medium">{new Date(app.submittedDate.replace(/'/g, "&apos")).toLocaleDateString()}</p>
             </div>
           </div>
         </div>
