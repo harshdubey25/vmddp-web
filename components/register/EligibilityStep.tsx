@@ -73,23 +73,40 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
           let mainInput = null;
           if (type === "checkbox") {
             mainInput = (
-              <div className="space-y-2" key={mainValueName}>
+              <div className="space-y-3 p-4 border rounded-lg bg-muted/20" key={mainValueName}>
                 <Controller
                   name={mainNameName}
                   control={control}
                   defaultValue={fieldKey}
                   render={({ field }) => <input type="hidden" {...field} />}
                 />
-                <Label htmlFor={mainValueName}>{label}{required ? " *" : ""}</Label>
-                <Controller
-                  name={mainValueName}
-                  control={control}
-                  rules={required ? { required: `${label} is required` } : {}}
-                  render={({ field }) => (
-                    <Checkbox id={mainValueName} checked={!!field.value} onCheckedChange={field.onChange} />
-                  )}
-                />
-                {errors?.eligibility?.[idx]?.value && <span className="text-red-500 text-xs">{errors.eligibility[idx].value.message}</span>}
+                <div className="flex items-center justify-between">
+                  <Label htmlFor={mainValueName} className="text-sm font-medium">
+                    {label}{required ? " *" : ""}
+                  </Label>
+                  <Controller
+                    name={mainValueName}
+                    control={control}
+                    rules={required ? { required: `${label} is required` } : {}}
+                    render={({ field }) => (
+                      <Checkbox
+                        id={mainValueName}
+                        checked={!!field.value}
+                        onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                      />
+                    )}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Check the box if you meet this eligibility requirement
+                </p>
+                {errors?.eligibility?.[idx]?.value && (
+                  <span className="text-red-500 text-xs flex items-center gap-1">
+                    <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                    {errors.eligibility[idx].value.message}
+                  </span>
+                )}
               </div>
             );
           } else if (type === "number") {
