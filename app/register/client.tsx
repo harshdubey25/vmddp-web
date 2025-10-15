@@ -80,6 +80,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
         getValues,
         trigger,
         reset,
+        setValue,
     } = useForm<RegisterFormValues>({
         mode: "onTouched",
         defaultValues: {
@@ -264,7 +265,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                             )}
 
                             {currentStep === 4 && (
-                                <BankDetailsStep control={control} errors={errors} />
+                                <BankDetailsStep control={control} errors={errors} setValue={setValue} />
 
                             )}
                             {currentStep === 5 && (
