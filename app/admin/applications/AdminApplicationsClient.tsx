@@ -84,16 +84,18 @@ export default function AdminApplicationsClient({ applications }: AdminApplicati
     };
 
     const getStatusBadge = (status: string) => {
-        switch (status) {
-            case "approved":
-                return <Badge className="bg-chart-3">Approved</Badge>;
-            case "rejected":
-                return <Badge variant="destructive">Rejected</Badge>;
-            case "pending":
-                return <Badge variant="secondary">Pending</Badge>;
-            default:
-                return <Badge>{status}</Badge>;
-        }
+        const variants: Record<string, { variant: string; className: string }> = {
+            Pending: { variant: "outline", className: "bg-chart-4/10 text-chart-4 border-chart-4/20" },
+            Approved: { variant: "outline", className: "bg-chart-3/10 text-chart-3 border-chart-3/20" },
+            Rejected: { variant: "outline", className: "bg-chart-5/10 text-chart-5 border-chart-5/20" },
+            Selected: { variant: "outline", className: "bg-chart-1/10 text-chart-1 border-chart-1/20" },
+        };
+
+        return (
+            <Badge variant={variants[status]?.variant as any} className={variants[status]?.className}>
+                {status}
+            </Badge>
+        );
     };
 
     return (
@@ -145,9 +147,9 @@ export default function AdminApplicationsClient({ applications }: AdminApplicati
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">All Status</SelectItem>
-                                            <SelectItem value="pending">Pending</SelectItem>
-                                            <SelectItem value="approved">Approved</SelectItem>
-                                            <SelectItem value="rejected">Rejected</SelectItem>
+                                            <SelectItem value="Pending">Pending</SelectItem>
+                                            <SelectItem value="Approved">Approved</SelectItem>
+                                            <SelectItem value="Rejected">Rejected</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <Select value={districtFilter} onValueChange={setDistrictFilter}>
@@ -456,7 +458,7 @@ export default function AdminApplicationsClient({ applications }: AdminApplicati
                                     ))}
                                 </div>
                             </div>
-                            {selectedApp.status === "pending" && (
+                            {selectedApp.status === "Pending" && (
                                 <div className="flex gap-3 pt-4 border-t">
                                     <Button
                                         className="flex-1 bg-chart-3 hover:bg-chart-3/90"

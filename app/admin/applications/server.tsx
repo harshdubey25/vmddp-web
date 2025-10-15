@@ -10,7 +10,7 @@ export interface Application {
     taluka: string;
     village: string;
     component: string;
-    status: "pending" | "approved" | "rejected";
+    status: "Pending" | "Approved" | "Rejected" | "Selected";
     submittedDate: string;
     animalCount?: number;
     approver?: string;
@@ -40,6 +40,7 @@ import { frappeServer } from "@/app/lib/frappe";
 
 async function getApplications(): Promise<Application[]> {
     const response = await frappeServer.call().get('vmddp_app.api.api.get_all_docs_with_children', { doctype: 'App Form' });
+    console.log(response)
     type FrappeApp = {
         name: string;
         first_name?: string;
@@ -50,8 +51,9 @@ async function getApplications(): Promise<Application[]> {
         district?: string;
         taluka?: string;
         village?: string;
+        component?: string;
         component_name?: string;
-        components?: { component_name?: string; name: string }[];
+        components?: { component?: string; component_name?: string; name: string }[];
         status?: string;
         creation?: string;
         approver?: string;
@@ -85,9 +87,12 @@ async function getApplications(): Promise<Application[]> {
         taluka: app.taluka ?? '',
         village: app.village ?? '',
         component: Array.isArray(app.components)
-            ? app.components.map(c => c.component_name || c.name).join(', ')
-            : app.component_name ?? '',
-        status: (app.status as "pending" | "approved" | "rejected") ?? "pending",
+            ? app.components.map(c => c.component || c.name).join(', ')
+            : app.component ?? '',
+        status: app.status === 'pending' ? 'Pending' :
+            app.status === 'approved' ? 'Approved' :
+                app.status === 'rejected' ? 'Rejected' :
+                    app.status === 'selected' ? 'Selected' : 'Pending',
         submittedDate: app.creation ? app.creation.split(' ')[0] : '',
         animalCount: undefined,
         approver: app.approver ?? '',

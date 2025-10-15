@@ -24,7 +24,7 @@ export default async function AdminDashboard() {
         mid_name?: string;
         last_name?: string;
         component_name?: string;
-        components?: { component_name?: string; name: string }[];
+        components?: { component_name?: string; name: string; component?: string }[];
         district?: string;
         status?: string;
         creation?: string;
@@ -35,7 +35,7 @@ export default async function AdminDashboard() {
         id: app.name,
         applicant: `${app.first_name ?? ''} ${app.mid_name ?? ''} ${app.last_name ?? ''}`.trim(),
         component: Array.isArray(app.components)
-            ? app.components.map(c => c.component_name || c.name).join(', ')
+            ? app.components.map(c => c.component_name || c.component).join(', ')
             : '',
         district: app.district ?? '',
         status: app.status ?? '',
