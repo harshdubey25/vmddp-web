@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AutoComplete } from "../ui/searchable-input";
+import { useTranslation } from 'react-i18next';
 interface Props {
   control: any;
   errors: any;
@@ -15,6 +16,7 @@ interface Props {
 const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberCount }: Props) => {
 
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
+  const { t } = useTranslation('common');
 
   const watchedDistrict = useWatch({ control, name: 'district' });
   const watchedTaluka = useWatch({ control, name: 'taluka' });
@@ -52,53 +54,53 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
 
   return (
     <div className="space-y-6">
-      <h2 className="font-display font-semibold text-xl mb-4">Basic Details</h2>
+      <h2 className="font-display font-semibold text-xl mb-4">{t('basic_details_title')}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="firstName">First Name *</Label>
-          <Controller name="firstName" control={control} rules={{ required: "First Name is required" }} render={({ field }) => <Input {...field} id="firstName" data-testid="input-first-name" />} />
+          <Label htmlFor="firstName">{t('first_name')} *</Label>
+          <Controller name="firstName" control={control} rules={{ required: t('first_name_required') }} render={({ field }) => <Input {...field} id="firstName" data-testid="input-first-name" />} />
           {errors.firstName && <span className="text-red-500 text-xs">{errors.firstName.message}</span>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="middleName">Mid Name</Label>
+          <Label htmlFor="middleName">{t('middle_name')}</Label>
           <Controller name="middleName" control={control} render={({ field }) => <Input {...field} id="middleName" data-testid="input-middle-name" />} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="lastName">Last Name *</Label>
-          <Controller name="lastName" control={control} rules={{ required: "Last Name is required" }} render={({ field }) => <Input {...field} id="lastName" data-testid="input-last-name" />} />
+          <Label htmlFor="lastName">{t('last_name')} *</Label>
+          <Controller name="lastName" control={control} rules={{ required: t('last_name_required') }} render={({ field }) => <Input {...field} id="lastName" data-testid="input-last-name" />} />
           {errors.lastName && <span className="text-red-500 text-xs">{errors.lastName.message}</span>}
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="gender">Gender *</Label>
-          <Controller name="gender" control={control} rules={{ required: "Gender is required" }} render={({ field }) => (
+          <Label htmlFor="gender">{t('gender')} *</Label>
+          <Controller name="gender" control={control} rules={{ required: t('gender_required') }} render={({ field }) => (
             <AutoComplete {...field} doctype="Gender Master" onSelectedValueChange={field.onChange} selectedValue={field.value} />
           )} />
           {errors.gender && <span className="text-red-500 text-xs">{errors.gender.message}</span>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="category">Category *</Label>
-          <Controller name="category" control={control} rules={{ required: "Category is required" }} render={({ field }) => (
+          <Label htmlFor="category">{t('category')} *</Label>
+          <Controller name="category" control={control} rules={{ required: t('category_required') }} render={({ field }) => (
             <AutoComplete {...field} doctype="Category Master" onSelectedValueChange={field.onChange} selectedValue={field.value} />
           )} />
           {errors.caste && <span className="text-red-500 text-xs">{errors.caste.message}</span>}
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="mobile">Mobile No. *</Label>
-        <Controller name="mobile" control={control} rules={{ required: "Mobile number is required" }} render={({ field }) => <Input {...field} id="mobile" type="tel" data-testid="input-mobile" />} />
+        <Label htmlFor="mobile">{t('mobile_no')} *</Label>
+        <Controller name="mobile" control={control} rules={{ required: t('mobile_required') }} render={({ field }) => <Input {...field} id="mobile" type="tel" data-testid="input-mobile" />} />
         {errors.mobile && <span className="text-red-500 text-xs">{errors.mobile.message}</span>}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="aadhaar">Aadhar Number *</Label>
-          <Controller name="aadhaar" control={control} rules={{ required: "Aadhar number is required" }} render={({ field }) => <Input {...field} id="aadhaar" data-testid="input-aadhaar" />} />
+          <Label htmlFor="aadhaar">{t('aadhar_number')} *</Label>
+          <Controller name="aadhaar" control={control} rules={{ required: t('aadhar_required') }} render={({ field }) => <Input {...field} id="aadhaar" data-testid="input-aadhaar" />} />
           {errors.aadhaar && <span className="text-red-500 text-xs">{errors.aadhaar.message}</span>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="aadhaarImage">Aadhar Image *</Label>
-          <Controller name="aadhaarImage" control={control} rules={{ required: "Aadhar image is required" }} render={({ field }) => (
+          <Label htmlFor="aadhaarImage">{t('aadhar_image')} *</Label>
+          <Controller name="aadhaarImage" control={control} rules={{ required: t('aadhar_image_required') }} render={({ field }) => (
             <>
               <Input id="aadhaarImage" type="file" accept="image/*" onChange={async (e) => {
                 const file = e.target.files?.[0];
@@ -109,7 +111,7 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
                   }
                 }
               }} data-testid="input-aadhaar-image" disabled={uploading.aadhaarImage} />
-              {uploading.aadhaarImage && <span className="text-blue-500 text-xs">Uploading...</span>}
+              {uploading.aadhaarImage && <span className="text-blue-500 text-xs">{t('uploading')}</span>}
             </>
           )} />
           {errors.aadhaarImage && <span className="text-red-500 text-xs">{errors.aadhaarImage.message}</span>}
@@ -117,15 +119,15 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="rationCardMembers">Number of members in Ration Card *</Label>
-          <Controller name="rationCardMembers" control={control} rules={{ required: "Number of members is required", min: { value: 1, message: "At least 1 member required" } }} render={({ field }) => (
+          <Label htmlFor="rationCardMembers">{t('ration_card_members')} *</Label>
+          <Controller name="rationCardMembers" control={control} rules={{ required: t('ration_card_members_required'), min: { value: 1, message: t('min_members_required') } }} render={({ field }) => (
             <Input {...field} id="rationCardMembers" type="number" min="1" value={field.value || ''} onChange={e => { field.onChange(e); setFamilyMemberCount(parseInt(e.target.value) || 0); }} data-testid="input-ration-card-members" />
           )} />
           {errors.rationCardMembers && <span className="text-red-500 text-xs">{errors.rationCardMembers.message}</span>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="rationCardImage">Self Ration Card Image *</Label>
-          <Controller name="rationCardImage" control={control} rules={{ required: "Ration card image is required" }} render={({ field }) => (
+          <Label htmlFor="rationCardImage">{t('self_ration_card_image')} *</Label>
+          <Controller name="rationCardImage" control={control} rules={{ required: t('ration_card_image_required') }} render={({ field }) => (
             <>
               <Input id="rationCardImage" type="file" accept="image/*" onChange={async (e) => {
                 const file = e.target.files?.[0];
@@ -136,13 +138,13 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
                   }
                 }
               }} data-testid="input-ration-card-image" disabled={uploading.rationCardImage} />
-              {uploading.rationCardImage && <span className="text-blue-500 text-xs">Uploading...</span>}
+              {uploading.rationCardImage && <span className="text-blue-500 text-xs">{t('uploading')}</span>}
             </>
           )} />
           {errors.rationCardImage && <span className="text-red-500 text-xs">{errors.rationCardImage.message}</span>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="familyRationCardImage">Family Ration Card Image</Label>
+          <Label htmlFor="familyRationCardImage">{t('family_ration_card_image')}</Label>
           <Controller name="familyRationCardImage" control={control} render={({ field }) => (
             <>
               <Input id="familyRationCardImage" type="file" accept="image/*" onChange={async (e) => {
@@ -154,7 +156,7 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
                   }
                 }
               }} data-testid="input-family-ration-card-image" disabled={uploading.familyRationCardImage} />
-              {uploading.familyRationCardImage && <span className="text-blue-500 text-xs">Uploading...</span>}
+              {uploading.familyRationCardImage && <span className="text-blue-500 text-xs">{t('uploading')}</span>}
             </>
           )} />
           {errors.familyRationCardImage && <span className="text-red-500 text-xs">{errors.familyRationCardImage.message}</span>}
@@ -162,11 +164,11 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
       </div>
       {familyMemberCount > 1 && (
         <div className="space-y-4">
-          <h3 className="font-medium text-sm">Family Members&apos; Aadhar Numbers ({familyMemberCount - 1} members)</h3>
+          <h3 className="font-medium text-sm">{t('family_members_aadhar')} ({familyMemberCount - 1} members)</h3>
           {Array.from({ length: familyMemberCount - 1 }).map((_, index) => (
             <div key={index} className="space-y-2">
-              <Label htmlFor={`familyAadhaar${index + 1}`}>Family Member {index + 1} Aadhar Number *</Label>
-              <Controller name={`familyAadhaar${index + 1}`} control={control} rules={{ required: "Aadhar number is required" }} render={({ field }) => <Input {...field} id={`familyAadhaar${index + 1}`} data-testid={`input-family-aadhaar-${index + 1}`} placeholder="Enter 12-digit Aadhar number" />} />
+              <Label htmlFor={`familyAadhaar${index + 1}`}>{t('family_member_aadhar', { index: index + 1 })} *</Label>
+              <Controller name={`familyAadhaar${index + 1}`} control={control} rules={{ required: t('aadhar_required') }} render={({ field }) => <Input {...field} id={`familyAadhaar${index + 1}`} data-testid={`input-family-aadhaar-${index + 1}`} placeholder={t('aadhar_placeholder')} />} />
               {errors[`familyAadhaar${index + 1}`] && <span className="text-red-500 text-xs">{errors[`familyAadhaar${index + 1}`].message}</span>}
 
             </div>
@@ -175,22 +177,22 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
       )}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="district">District *</Label>
-          <Controller name="district" control={control} rules={{ required: "District is required" }} render={({ field }) => (
+          <Label htmlFor="district">{t('district')} *</Label>
+          <Controller name="district" control={control} rules={{ required: t('district_required') }} render={({ field }) => (
             <AutoComplete doctype="District Master" onSelectedValueChange={field.onChange} selectedValue={field.value} />
           )} />
           {errors.district && <span className="text-red-500 text-xs">{errors.district.message}</span>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="taluka">Taluka *</Label>
-          <Controller name="taluka" control={control} rules={{ required: "Taluka is required" }} render={({ field }) => (
+          <Label htmlFor="taluka">{t('taluka')} *</Label>
+          <Controller name="taluka" control={control} rules={{ required: t('taluka_required') }} render={({ field }) => (
             <AutoComplete doctype="Taluka Master" onSelectedValueChange={field.onChange} selectedValue={field.value} filters={watchedDistrict ? [['district', '=', watchedDistrict]] : undefined} />
           )} />
           {errors.taluka && <span className="text-red-500 text-xs">{errors.taluka.message}</span>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="village">Village *</Label>
-          <Controller name="village" control={control} rules={{ required: "Village is required" }} render={({ field }) => (
+          <Label htmlFor="village">{t('village')} *</Label>
+          <Controller name="village" control={control} rules={{ required: t('village_required') }} render={({ field }) => (
             <AutoComplete doctype="Village Master" onSelectedValueChange={field.onChange} selectedValue={field.value} filters={watchedDistrict && watchedTaluka ? [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]] : undefined} />
           )} />
           {errors.village && <span className="text-red-500 text-xs">{errors.village.message}</span>}

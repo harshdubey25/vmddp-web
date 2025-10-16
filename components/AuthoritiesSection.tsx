@@ -2,6 +2,7 @@
 import AuthorityMember from "./AuthorityMember";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
+import { useTranslation } from 'react-i18next';
 
 import member1 from "@assets/member1_1759739467950.png";
 import member2 from "@assets/member2_1759739467949.png";
@@ -43,7 +44,7 @@ const authorities = [
   },
   {
     name: "डॉ. नाना अर्जुन सोनवणे",
-  designation: "Hon. Additional Project Director\n Vidarbha And Marathwada Dairy development Project",
+    designation: "Hon. Additional Project Director\n Vidarbha And Marathwada Dairy development Project",
     image: "member_7.jpg",
   },
   {
@@ -54,6 +55,7 @@ const authorities = [
 ];
 
 export default function AuthoritiesSection() {
+  const { t } = useTranslation('common');
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -70,11 +72,10 @@ export default function AuthoritiesSection() {
             className="font-display font-semibold text-2xl sm:text-3xl mb-3"
             data-testid="text-authorities-title"
           >
-            Programme Authorities
+            {t('authorities_title')}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Meet the leadership team dedicated to implementing and managing the
-            VMDDP scheme
+            {t('authorities_subtitle')}
           </p>
         </motion.div>
 

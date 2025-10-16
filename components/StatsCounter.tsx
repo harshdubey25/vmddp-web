@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Users, CheckCircle, Clock, XCircle } from "lucide-react";
 import { motion, useInView } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 interface StatCardProps {
   icon: React.ReactNode;
@@ -71,6 +72,7 @@ function StatCard({ icon, value, label, color, testId, index }: StatCardProps) {
 }
 
 export default function StatsCounter() {
+  const { t } = useTranslation('common');
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -84,10 +86,10 @@ export default function StatsCounter() {
           className="text-center mb-10"
         >
           <h2 className="font-display font-semibold text-2xl sm:text-3xl mb-3" data-testid="text-stats-title">
-            Real-Time Programme Statistics
+            {t('stats_title')}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Track the progress of VMDDP scheme applications across Vidarbha and Marathwada regions
+            {t('stats_subtitle')}
           </p>
         </motion.div>
 
@@ -95,7 +97,7 @@ export default function StatsCounter() {
           <StatCard
             icon={<Users className="w-6 h-6 text-chart-2" />}
             value={1247}
-            label="Total Applications"
+            label={t('total_applications')}
             color="hsl(var(--chart-2))"
             testId="stat-card-total"
             index={0}
@@ -103,7 +105,7 @@ export default function StatsCounter() {
           <StatCard
             icon={<CheckCircle className="w-6 h-6 text-chart-3" />}
             value={856}
-            label="Approved"
+            label={t('approved')}
             color="hsl(var(--chart-3))"
             testId="stat-card-approved"
             index={1}
@@ -111,7 +113,7 @@ export default function StatsCounter() {
           <StatCard
             icon={<Clock className="w-6 h-6 text-chart-4" />}
             value={312}
-            label="Pending Review"
+            label={t('pending_review')}
             color="hsl(var(--chart-4))"
             testId="stat-card-pending"
             index={2}
@@ -119,7 +121,7 @@ export default function StatsCounter() {
           <StatCard
             icon={<XCircle className="w-6 h-6 text-chart-5" />}
             value={79}
-            label="Rejected"
+            label={t('rejected')}
             color="hsl(var(--chart-5))"
             testId="stat-card-rejected"
             index={3}
