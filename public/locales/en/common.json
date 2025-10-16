@@ -1,3 +1,16 @@
 {
-  "dairy_development_programme": "Dairy Development Programme"
+  "dairy_development_programme": "Dairy Development Programme",
+  "home": "Home",
+  "about_us": "About Us",
+  "track_application": "Track Application",
+  "beneficiaries": "Beneficiaries",
+  "gallery": "Gallery",
+  "contact_us": "Contact Us",
+  "register_now": "Register Now",
+  "hero_title": "Vidarbha and Marathwada Dairy Development Project",
+  "hero_subtitle": "Empowering dairy farmers across 19 districts, 192 talukas, and 24,657 villages. Apply for scheme benefits and track your application status online.",
+  "districts": "Districts",
+  "talukas": "Talukas",
+  "villages": "Villages",
+  "components": "Components"
 }

@@ -5,7 +5,7 @@ import { User, Users, MapPin, Leaf, Award, Printer } from "lucide-react";
 
 type ComponentSelection = {
   component_name: string;
-  questions: { question: string; value: string }[];
+  questions: { question: string; type: string; options: string[] | null; value: string }[];
 };
 
 const COMPONENT_OPTIONS = [
@@ -34,8 +34,8 @@ interface ReviewStepProps {
 const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint, criteriaFields }: ReviewStepProps) => {
   console.log("review step values", values);
 
-  const getFileName = (url: string) => {
-    if (!url) return "Not uploaded";
+  const getFileName = (url: any) => {
+    if (!url || typeof url !== 'string') return "Not uploaded";
     try {
       return url.split('/').pop() || "Unknown file";
     } catch {
@@ -80,7 +80,7 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
             </div>
             <div>
               <Label className="text-muted-foreground">Caste/Category</Label>
-              <p className="font-medium">{values.caste}</p>
+              <p className="font-medium">{values.category}</p>
             </div>
             <div>
               <Label className="text-muted-foreground">Mobile Number</Label>
@@ -157,13 +157,13 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
             {Array.isArray(values.eligibility) && values.eligibility.map((item: any, idx: number) => (
               <div key={idx}>
                 <Label className="text-muted-foreground">{item.name}</Label>
-                <p className="font-medium">{item.value && (item.value.startsWith('http') || item.value.includes('/files/')) ? getFileName(item.value) : item.value}</p>
+                <p className="font-medium">{item.value && typeof item.value === 'string' && (item.value.startsWith('http') || item.value.includes('/files/')) ? getFileName(item.value) : item.value}</p>
                 {Array.isArray(item.child) && item.child.length > 0 && (
                   <div className="ml-4 space-y-1">
                     {item.child.map((child: any, cidx: number) => (
                       <div key={cidx}>
                         <Label className="text-xs text-muted-foreground">{child.name}</Label>
-                        <p className="text-xs font-mono">{child.value && (child.value.startsWith('http') || child.value.includes('/files/')) ? getFileName(child.value) : child.value}</p>
+                        <p className="text-xs font-mono">{child.value && typeof child.value === 'string' && (child.value.startsWith('http') || child.value.includes('/files/')) ? getFileName(child.value) : child.value}</p>
                       </div>
                     ))}
                   </div>

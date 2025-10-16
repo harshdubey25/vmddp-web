@@ -194,7 +194,7 @@ export default async function AdminDashboard() {
                                 </CardContent>
                             </Card>
 
-                            <div className="space-y-6">
+                            {/* <div className="space-y-6">
                                 <Card>
                                     <CardHeader>
                                         <CardTitle data-testid="text-top-components">Top Components</CardTitle>
@@ -237,7 +237,7 @@ export default async function AdminDashboard() {
                                         </Button>
                                     </CardContent>
                                 </Card>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </main>

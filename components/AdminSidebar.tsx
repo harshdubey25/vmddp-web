@@ -20,22 +20,21 @@ interface AdminSidebarProps {
   userRole: "admin" | "subadmin";
 }
 
-
 const adminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
   { icon: FileText, label: "Applications", path: "/admin/applications" },
-  { icon: Users, label: "Sub-Admins", path: "/admin/subadmins" },
-  { icon: Package, label: "Components", path: "/admin/components" },
-  { icon: BarChart3, label: "Reports", path: "/admin/reports" },
-  { icon: Settings, label: "Settings", path: "/admin/settings" },
-];
 
+];
+// { icon: Users, label: "Sub-Admins", path: "/admin/subadmins" },
+// { icon: Package, label: "Components", path: "/admin/components" },
+// { icon: BarChart3, label: "Reports", path: "/admin/reports" },
+// { icon: Settings, label: "Settings", path: "/admin/settings" },
 const subAdminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/subadmin/dashboard" },
   { icon: FileText, label: "Applications", path: "/subadmin/applications" },
   { icon: FileText, label: "Selection", path: "/subadmin/selection" },
-  { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },
-];
+]
+// { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },;
 export default function AdminSidebar({ userRole }: AdminSidebarProps) {
   const { logout } = useAuth()
   const menuItems = userRole === "admin" ? adminMenuItems : subAdminMenuItems;
