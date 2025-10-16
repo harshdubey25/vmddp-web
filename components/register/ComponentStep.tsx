@@ -2,6 +2,7 @@ import { Controller } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 
 interface Props {
@@ -10,9 +11,16 @@ interface Props {
   components?: any[];
 }
 
+type Question = {
+  question: string;
+  type: string;
+  options: string[] | null;
+  value: string;
+};
+
 type ComponentSelection = {
   component_name: string;
-  questions: { question: string; value: string }[];
+  questions: Question[];
 };
 
 
@@ -65,7 +73,12 @@ const ComponentStep = ({ control, errors, components = [] }: Props) => {
                             }
                             newValue.push({
                               component_name: comp.component_name,
-                              questions: (comp.questions || []).map((q: string) => ({ question: q, value: "" }))
+                              questions: (comp.questions || []).map((q: any) => ({
+                                question: q.question,
+                                type: q.type,
+                                options: q.options,
+                                value: ""
+                              }))
                             });
                             if (orComponent) {
                               newValue = newValue.filter((c: ComponentSelection) => c.component_name !== orComponent);
@@ -87,24 +100,52 @@ const ComponentStep = ({ control, errors, components = [] }: Props) => {
                     {!isValid && reason && <p className="text-red-500 text-xs ml-6">{reason}</p>}
                     {isSelected && comp.questions && comp.questions.length > 0 && (
                       <div className="ml-6 mt-2 space-y-2">
-                        {field.value.find((c: ComponentSelection) => c.component_name === comp.component_name)?.questions.map((q: { question: string; value: string }, qIdx: number) => (
+                        {field.value.find((c: ComponentSelection) => c.component_name === comp.component_name)?.questions.map((q: Question, qIdx: number) => (
                           <div key={qIdx}>
                             <Label className="text-sm">{q.question}</Label>
-                            <Input
-                              value={q.value}
-                              onChange={e => {
-                                const newValue = field.value.map((c: ComponentSelection) => {
-                                  if (c.component_name === comp.component_name) {
-                                    const newQuestions = [...c.questions];
-                                    newQuestions[qIdx].value = e.target.value;
-                                    return { ...c, questions: newQuestions };
-                                  }
-                                  return c;
-                                });
-                                field.onChange(newValue);
-                              }}
-                              placeholder={`Enter ${q.question.toLowerCase()}`}
-                            />
+                            {q.type === "Select" && q.options ? (
+                              <Select
+                                value={q.value || ""}
+                                onValueChange={value => {
+                                  const newValue = field.value.map((c: ComponentSelection) => {
+                                    if (c.component_name === comp.component_name) {
+                                      const newQuestions = [...c.questions];
+                                      newQuestions[qIdx].value = value;
+                                      return { ...c, questions: newQuestions };
+                                    }
+                                    return c;
+                                  });
+                                  field.onChange(newValue);
+                                }}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder={`Select ${q.question.toLowerCase()}`} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {q.options.map((option, optIdx) => (
+                                    <SelectItem key={optIdx} value={option}>
+                                      {option}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Input
+                                value={q.value || ""}
+                                onChange={e => {
+                                  const newValue = field.value.map((c: ComponentSelection) => {
+                                    if (c.component_name === comp.component_name) {
+                                      const newQuestions = [...c.questions];
+                                      newQuestions[qIdx].value = e.target.value;
+                                      return { ...c, questions: newQuestions };
+                                    }
+                                    return c;
+                                  });
+                                  field.onChange(newValue);
+                                }}
+                                placeholder={`Enter ${q.question.toLowerCase()}`}
+                              />
+                            )}
                           </div>
                         ))}
                       </div>

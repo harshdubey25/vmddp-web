@@ -257,7 +257,7 @@ export default async function SubAdminDashboard() {
                             </CardContent>
                         </Card>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Quick Actions</CardTitle>
@@ -295,7 +295,7 @@ export default async function SubAdminDashboard() {
                                     </div>
                                 </CardContent>
                             </Card>
-                        </div>
+                        </div> */}
                     </div>
                 </main>
             </div>

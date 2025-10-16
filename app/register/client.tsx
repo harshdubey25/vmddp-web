@@ -17,6 +17,7 @@ import ComponentStep from "@/components/register/ComponentStep";
 import BankDetailsStep from "@/components/register/BankDetailsStep";
 import ReviewStep from "@/components/register/ReviewStep";
 import { frappePublic, frappeServer } from "../lib/frappe";
+import { useRouter } from "next/navigation";
 
 type RegisterFormValues = {
     firstName: string;
@@ -53,7 +54,7 @@ type RegisterFormValues = {
             value: any;
         }>;
     }>;
-    components: { component_name: string; questions: { question: string; value: string }[] }[];
+    components: { component_name: string; questions: { question: string; type: string; options: string[] | null; value: string }[] }[];
     [key: `familyAadhaar${number}`]: string;
 };
 
@@ -73,6 +74,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
     const [components, setComponents] = useState<any[]>([]);
     const [submitLoading, setSubmitLoading] = useState(false)
     const { toast } = useToast();
+    const router = useRouter();
     const {
         control,
         handleSubmit,
@@ -120,7 +122,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
         const eligibilityArr = values.eligibility || [];
         return eligibilityArr.map((item: any) => ({
             criteria: item.name,
-            value: item.value
+            value: item.value || null
         }));
     };
 
@@ -208,12 +210,19 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                 description: "Your application has been successfully submitted. You will receive an SMS with your application ID.",
             });
             console.log("Application submitted", res);
-            // Reset form and go back to first step
-            reset();
-            setCurrentStep(1);
-            setAgreed(false);
-            setFamilyMemberCount(0);
-            setComponents([]);
+
+            // Extract application ID from response
+            const applicationId = res?.message?.name || res?.data?.name || '';
+
+            // Store form data in localStorage for success page
+            localStorage.setItem('submittedApplicationData', JSON.stringify({
+                ...formData,
+                applicationId,
+                submittedAt: new Date().toISOString()
+            }));
+
+            // Redirect to success page with application ID
+            router.push(`/success?applicationId=${applicationId}`);
         }).catch((err: any) => {
             toast({
                 title: "Submission Error",
