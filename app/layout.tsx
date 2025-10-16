@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { FrappeClientProvider } from "@/providers/FrappeClientProvider";
 import AuthProvider from "@/context/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
+import I18nProvider from "@/components/I18nProvider";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -31,6 +32,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <I18nProvider>
           <FrappeClientProvider>
             <AuthProvider>
               <ThemeProvider>
@@ -39,6 +41,7 @@ export default function RootLayout({
               </ThemeProvider>
             </AuthProvider>
           </FrappeClientProvider>
+        </I18nProvider>
       </body>
     </html>
   );

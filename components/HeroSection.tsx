@@ -4,32 +4,34 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, FileText, MapPin, Building, Home, Package } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 
 export default function HeroSection() {
+  const { t } = useTranslation('common');
   const stats = [
-    { value: "19", label: "Districts", icon: MapPin },
-    { value: "192", label: "Talukas", icon: Building },
-    { value: "24,657", label: "Villages", icon: Home },
-    { value: "9", label: "Components", icon: Package },
+    { value: "19", label: t("districts"), icon: MapPin },
+    { value: "192", label: t("talukas"), icon: Building },
+    { value: "24,657", label: t("villages"), icon: Home },
+    { value: "9", label: t("components"), icon: Package },
   ];
 
-  const heroBackground = "/cow-shed-1_1760444698185.webp"; 
+  const heroBackground = "/cow-shed-1_1760444698185.webp";
 
   return (
     <section className="relative bg-gradient-to-br from-primary/95 to-primary text-primary-foreground overflow-hidden">
       {/* Background Image with Dark Overlay */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${heroBackground})` }}
       />
-  <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-primary/95" />
-        {/* <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1zbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE2YzAgNC40MTgtMy41ODIgOC04IDhzLTgtMy41ODItOC04IDMuNTgyLTggOC04IDggMy41ODIgOCA4em0wIDI0YzAgNC40MTgtMy41ODIgOC04IDhzLTgtMy41ODItOC04IDMuNTgyLTggOC04IDggMy41ODIgOCA4eiIvPjwvZz48L2c+PC9zdmc+')] opacity-20"></div> */}
-      
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-primary/95" />
+      {/* <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1zbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE2YzAgNC40MTgtMy41ODIgOC04IDhzLTgtMy41ODItOC04IDMuNTgyLTggOC04IDggMy41ODIgOCA4em0wIDI0YzAgNC40MTgtMy41ODIgOC04IDhzLTgtMy41ODItOC04IDMuNTgyLTggOC04IDggMy41ODIgOCA4eiIvPjwvZz48L2c+PC9zdmc+')] opacity-20"></div> */}
+
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
         {/* Side by Side Layout: Content on Left, Stats on Right */}
         <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-12">
-          
+
           {/* Left Side: Content */}
           <div className="flex-1 text-center lg:text-left max-w-2xl">
             <motion.h1
@@ -39,7 +41,7 @@ export default function HeroSection() {
               className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mb-6"
               data-testid="text-hero-title"
             >
-              Vidarbha and Marathwada Dairy Development Project
+              {t("hero_title")}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -48,9 +50,9 @@ export default function HeroSection() {
               className="text-lg sm:text-xl mb-8 text-primary-foreground/80"
               data-testid="text-hero-subtitle"
             >
-              Empowering dairy farmers across 19 districts, 192 talukas, and 24,657 villages. Apply for scheme benefits and track your application status online.
+              {t("hero_subtitle")}
             </motion.p>
-            
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -58,26 +60,26 @@ export default function HeroSection() {
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
               <Link href="/register">
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   variant="secondary"
                   className="w-full sm:w-auto"
                   data-testid="button-hero-register"
                 >
-                  Register Now
+                  {t("register_now")}
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
-              
+
               <Link href="/track">
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   variant="outline"
                   className="w-full sm:w-auto bg-primary-foreground/10 hover:bg-primary-foreground/20 border-primary-foreground/30 backdrop-blur-sm"
                   data-testid="button-hero-track"
                 >
                   <FileText className="mr-2 w-5 h-5" />
-                  Track Application
+                  {t("track_application")}
                 </Button>
               </Link>
             </motion.div>

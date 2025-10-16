@@ -5,7 +5,9 @@ import { Moon, Sun, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "./ThemeProvider";
 import { useState } from "react";
-import { useTranslation } from 'next-i18next';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from "./LanguageSwitcher";
+
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -13,12 +15,12 @@ export default function Header() {
   const { t, i18n } = useTranslation('common');
 
   const navItems = [
-    { label: "Home", path: "/" },
-    { label: "About Us", path: "/about" },
-    { label: "Track Application", path: "/track" },
-    { label: "Beneficiaries", path: "/beneficiaries" },
-    { label: "Gallery", path: "/gallery" },
-    { label: "Contact Us", path: "/contact" },
+    { label: t("home"), path: "/" },
+    { label: t("about_us"), path: "/about" },
+    { label: t("track_application"), path: "/track" },
+    { label: t("beneficiaries"), path: "/beneficiaries" },
+    { label: t("gallery"), path: "/gallery" },
+    { label: t("contact_us"), path: "/contact" },
   ];
 
   return (
@@ -55,7 +57,7 @@ export default function Header() {
           <div className="flex items-center gap-2">
             <Link href="/register" passHref>
               <Button data-testid="button-register" className="hidden sm:inline-flex">
-                Register Now
+                {t("register_now")}
               </Button>
             </Link>
             <Button
@@ -66,15 +68,7 @@ export default function Header() {
             >
               {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
             </Button>
-            <select
-              className="border rounded px-2 py-1 text-sm focus:outline-none focus:ring"
-              value={i18n.language ?? "en"}
-              onChange={e => i18n.changeLanguage(e.target.value)}
-              data-testid="select-language-toggle"
-            >
-              <option value="en">English</option>
-              <option value="mr">मराठी</option>
-            </select>
+            <LanguageSwitcher />
             <Button
               variant="ghost"
               size="icon"
@@ -110,7 +104,7 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(false)}
                 data-testid="button-mobile-register"
               >
-                Register Now
+                {t("register_now")}
               </Button>
             </Link>
           </div>
