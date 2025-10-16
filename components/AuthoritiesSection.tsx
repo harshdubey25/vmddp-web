@@ -50,7 +50,12 @@ const authorities = [
     name: "डॉ. नरेंद्र पाटील",
     designation: "Hon. Officer On Special Duty\nVidarbha And Marathwada Dairy development Project",
     image: "membe_8.jpg",
-  }
+  },
+  {
+    name: "डॉ. संजय गोराणी",
+    designation: "Hon. Project Director\nVidarbha And Marathwada Dairy development Project",
+    image: "member_9.jpg",
+  },
 ];
 
 export default function AuthoritiesSection() {

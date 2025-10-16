@@ -6,9 +6,25 @@ import AuthoritiesSection from "@/components/AuthoritiesSection";
 
 export default function Home() {
   return (
+
+    //remove these props from each component then u will be able to see data on website i did this for errors
     <div>
-      <HeroSection />
-      <StatsCounter />
+      <HeroSection dict={{
+        hero: {
+          title: "",
+          subtitle: ""
+        }
+      }} />
+      <StatsCounter dict={{
+        stats: {
+          title: "",
+          subtitle: "",
+          total: "",
+          approved: "",
+          pending: "",
+          rejected: ""
+        }
+      }} />
       <AboutSection />
       <SchemeComponents />
       <AuthoritiesSection />

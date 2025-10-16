@@ -1,0 +1,15 @@
+{
+  "hero": {
+    "title": "Vidarbha and Marathwada Dairy Development Project",
+    "subtitle": "Empowering dairy farmers across 19 districts, 192 talukas, and 24,657 villages. Apply for scheme benefits and track your application status online."
+}
+  ,
+  "stats": {
+    "title": "Real-Time Programme Statistics",
+    "subtitle": "Track the progress of VMDDP scheme applications across Vidarbha and Marathwada regions",
+    "total": "Total Applications",
+    "approved": "Approved",
+    "pending": "Pending Review",
+    "rejected": "Rejected"
+  }
+}

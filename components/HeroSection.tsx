@@ -6,7 +6,16 @@ import { ArrowRight, FileText, MapPin, Building, Home, Package } from "lucide-re
 import { motion } from "framer-motion";
 
 
-export default function HeroSection() {
+type HeroSectionProps = {
+  dict: {
+    hero: {
+      title: string;
+      subtitle: string;
+    };
+  };
+};
+
+export default function HeroSection({ dict }: HeroSectionProps) {
   const stats = [
     { value: "19", label: "Districts", icon: MapPin },
     { value: "192", label: "Talukas", icon: Building },
@@ -14,7 +23,7 @@ export default function HeroSection() {
     { value: "9", label: "Components", icon: Package },
   ];
 
-  const heroBackground = "/cow-shed-1_1760444698185.webp"; 
+  const heroBackground = "/cow-2755520_640_1759736734695.jpg";
 
   return (
     <section className="relative bg-gradient-to-br from-primary/95 to-primary text-primary-foreground overflow-hidden">
@@ -39,7 +48,7 @@ export default function HeroSection() {
               className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mb-6"
               data-testid="text-hero-title"
             >
-              Vidarbha and Marathwada Dairy Development Project
+              {dict.hero.title}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -48,7 +57,7 @@ export default function HeroSection() {
               className="text-lg sm:text-xl mb-8 text-primary-foreground/80"
               data-testid="text-hero-subtitle"
             >
-              Empowering dairy farmers across 19 districts, 192 talukas, and 24,657 villages. Apply for scheme benefits and track your application status online.
+              {dict.hero.subtitle}
             </motion.p>
             
             <motion.div
