@@ -24,10 +24,10 @@ export default function Contact() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-10">
                     <h1 className="font-display font-semibold text-2xl sm:text-3xl mb-3" data-testid="text-contact-title">
-                        Contact Us
+                        Contact District Programme Officer
                     </h1>
                     <p className="text-muted-foreground max-w-2xl mx-auto">
-                        Have questions? We&apos;re here to help and answer any questions you may have
+                        Select your district and send a message to your local DPO for assistance with dairy schemes
                     </p>
                 </div>
 
@@ -35,15 +35,16 @@ export default function Contact() {
                     <div className="lg:col-span-1 space-y-6">
                         <Card data-testid="card-contact-info">
                             <CardContent className="p-6">
-                                <h3 className="font-display font-semibold text-lg mb-4">Get in Touch</h3>
+                                <h3 className="font-display font-semibold text-lg mb-4">Programme Office</h3>
                                 <div className="space-y-4">
                                     <div className="flex items-start gap-3">
                                         <MapPin className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                                         <div>
                                             <p className="font-semibold text-sm mb-1">Main Office</p>
                                             <p className="text-sm text-muted-foreground">
-                                                410, Orange Hive, LIC Colony<br />
-                                                Mowa, Raipur, Chhattisgarh 492001
+                                                Animal Husbandry Department<br />
+                                                Maharashtra Government<br />
+                                                Nagpur, Maharashtra
                                             </p>
                                         </div>
                                     </div>
@@ -51,14 +52,14 @@ export default function Contact() {
                                         <Phone className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                                         <div>
                                             <p className="font-semibold text-sm mb-1">Phone</p>
-                                            <p className="text-sm text-muted-foreground">+91 97659 38837</p>
+                                            <p className="text-sm text-muted-foreground">1800-XXX-XXXX</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3">
                                         <Mail className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                                         <div>
                                             <p className="font-semibold text-sm mb-1">Email</p>
-                                            <p className="text-sm text-muted-foreground">support@klaimify.in</p>
+                                            <p className="text-sm text-muted-foreground">vmddp@maharashtra.gov.in</p>
                                         </div>
                                     </div>
                                 </div>
