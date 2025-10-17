@@ -2,18 +2,18 @@ import { Milk, HeartPulse, Pill, Sparkles, Sprout, Scissors, Package, Stethoscop
 import type { LucideIcon } from "lucide-react";
 
 export const image ={
-  fertility_feed_bf4e2f3c: "/stock_images/fertility_feed.jpg",
-  dairy_cow_grazing_in_bb297871: "/stock_images/dairy_cow_grazing_in_bb297871.jpg",
-  pregnant_heifer_cow__33614af7: "/stock_images/pregnant_heifer_cow__33614af7.jpg",
+  fertility_feed_bf4e2f3c: "/stock_images/fertility_feed.png",
+  dairy_cow_grazing_in_bb297871: "/stock_images/animal_induction.png",
+  pregnant_heifer_cow__33614af7: "/stock_images/pregnanat_cow.png",
   animal_feed_suppleme_bd677c66: "/stock_images/animal_feed_suppleme_bd677c66.jpg",
   fodder_crops_green_c_2328b89f: "/stock_images/fodder_crops_green_c_2328b89f.jpg",
   chaff_cutter_machine_b258d8e0: "/stock_images/chaff_cutter_machine_b258d8e0.jpg",
-  silage_storage_farm__cdce1e08: "/stock_images/supply_silage.png",
-  veterinary_treatment_358caf0f: "/stock_images/imfertile_animal.webp",
-  farmer_training_agri_442883c8: "/stock_images/farmer_training.jpg",
-  fodder_seed_field_3_8c6f2f4b: "/stock_images/fodder_seed.jpg",
-  snf_enhancer_feed_5_2f3e4c6d: "/stock_images/snf_enhancer.jpg", 
-  supply_chaff_cutter:"/stock_images/suuply_chaff_cutter.jpg",
+  silage_storage_farm__cdce1e08: "/stock_images/silage.png",
+  veterinary_treatment_358caf0f: "/stock_images/treatment.png",
+  farmer_training_agri_442883c8: "/stock_images/farmer.png",
+  fodder_seed_field_3_8c6f2f4b: "/stock_images/fodder_seed.png",
+  snf_enhancer_feed_5_2f3e4c6d: "/stock_images/enhancer.png", 
+  supply_chaff_cutter:"/stock_images/cutter.png",
 }
 
 export type ComponentCategory = "Animal Purchase" | "Nutrition & Feed" | "Equipment & Infrastructure" | "Services & Training";
