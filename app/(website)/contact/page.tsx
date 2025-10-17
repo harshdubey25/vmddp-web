@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
@@ -15,7 +15,7 @@ import { z } from "zod";
 
 const contactFormSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
-    email: z.string().email("Please enter a valid email address"),
+    // email: z.string().email("Please enter a valid email address"),
     mobile: z.string()
         .regex(/^[0-9]{10}$/, "Mobile number must be exactly 10 digits")
         .refine(val => /^[6-9]/.test(val), { message: "Mobile number must start with 6, 7, 8, or 9" }),
@@ -31,7 +31,7 @@ export default function Contact() {
         resolver: zodResolver(contactFormSchema),
         defaultValues: {
             name: "",
-            email: "",
+            // email: "",
             mobile: "",
             districtId: "",
             message: "",
@@ -44,16 +44,29 @@ export default function Contact() {
     });
     const districts = frappeDistricts ? frappeDistricts.map((d: any) => d.name1) : [];
 
+    const { createDoc, loading: creatingDoc } = useFrappeCreateDoc();
+
     const onSubmit = async (data: any) => {
-        toast({
-            title: "Message Sent",
-            description: "Thank you for contacting us. We will get back to you soon.",
-        });
-        // TODO: Replace with actual send logic (API call to send message to DPO)
-        setSent(false);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setSent(true);
-        reset();
+        try {
+            await createDoc("Contact Us", {
+                district: data.districtId,
+                full_name: data.name,
+                mobile_number: data.mobile,
+                message: data.message,
+            });
+            toast({
+                title: "Message Sent",
+                description: "Thank you for contacting us. We will get back to you soon.",
+            });
+            setSent(true);
+            reset();
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to send message. Please try again.",
+                variant: "destructive",
+            });
+        }
     };
 
     return (
@@ -126,7 +139,7 @@ export default function Contact() {
                                             <Input id="contact-name" data-testid="input-contact-name" required {...register("name")} />
                                             {errors.name && <div className="text-red-600 text-sm mt-1">{errors.name.message as string}</div>}
                                         </div>
-                                      
+
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
@@ -174,8 +187,8 @@ export default function Contact() {
                                         />
                                         {errors.message && <div className="text-red-600 text-sm mt-1">{errors.message.message as string}</div>}
                                     </div>
-                                    <Button type="submit" className="w-full sm:w-auto" data-testid="button-contact-submit" disabled={isSubmitting}>
-                                        {isSubmitting ? "Sending..." : "Send Message To DPO"}
+                                    <Button type="submit" className="w-full sm:w-auto" data-testid="button-contact-submit" disabled={creatingDoc}>
+                                        {creatingDoc ? "Sending..." : "Send Message To DPO"}
                                     </Button>
                                     {sent && <div className="text-green-600 text-center mt-2">Message sent successfully!</div>}
                                 </form>

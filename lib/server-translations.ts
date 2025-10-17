@@ -32,7 +32,7 @@ export async function getServerTranslations(locale?: string) {
       if (acceptLanguage?.includes("mr")) {
         currentLocale = "mr";
       }
-    } catch (error) {
+    } catch {
       // If headers are not available (e.g., in static generation), default to 'en'
       console.warn("Headers not available, defaulting to English");
     }
