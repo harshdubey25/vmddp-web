@@ -33,8 +33,8 @@ const subAdminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/subadmin/dashboard" },
   { icon: FileText, label: "Applications", path: "/subadmin/applications" },
   { icon: FileText, label: "Messages", path: "/subadmin/messages" },
-  {icon:FileText,label:"Reports",path:"/subadmin/reports" }
 ]
+// {icon:FileText,label:"Reports",path:"/subadmin/reports" }
 // { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },;
 export default function AdminSidebar({ userRole }: AdminSidebarProps) {
   const { logout } = useAuth()
