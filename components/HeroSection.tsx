@@ -16,16 +16,17 @@ export default function HeroSection() {
     { value: "9", label: t("components"), icon: Package },
   ];
 
-  const heroBackground = "/cow-2755520_640_1759736734695.jpg";
+  const heroBackground = "/hero.jpg";
 
   return (
     <section className="relative bg-gradient-to-br from-primary/95 to-primary text-primary-foreground overflow-hidden">
       {/* Background Image with Dark Overlay */}
+      <div className="absolute inset-0 bg-black bg-opacity-40" />
       <div
-        className="absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-center blur-sm"
         style={{ backgroundImage: `url(${heroBackground})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-primary/95" />
+  // ...existing code...
       {/* <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1zbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE2YzAgNC40MTgtMy41ODIgOC04IDhzLTgtMy41ODItOC04IDMuNTgyLTggOC04IDggMy41ODIgOCA4em0wIDI0YzAgNC40MTgtMy41ODIgOC04IDhzLTgtMy41ODItOC04IDMuNTgyLTggOC04IDggMy41ODIgOCA4eiIvPjwvZz48L2c+PC9zdmc+')] opacity-20"></div> */}
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
