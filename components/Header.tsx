@@ -32,7 +32,7 @@ export default function Header() {
             <img src="/logo_vmddp.jpg" alt="VMDDP Logo" className="w-12 h-12 rounded-full" />
             <div className="hidden sm:block">
               <h1 className="font-display font-semibold text-lg">VMDDP</h1>
-              <p className="text-xs text-muted-foreground">{t('dairy_development_programme')}</p>
+              {/* <p className="text-xs text-muted-foreground">{t('dairy_development_programme')}</p> */}
             </div>
           </Link>
 
