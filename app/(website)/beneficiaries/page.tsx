@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { useTranslation } from 'react-i18next';
 
+export const runtime = 'edge';
+
 export default function Beneficiaries() {
     const { t } = useTranslation('common');
     const [selectedDistrict, setSelectedDistrict] = useState<string>("all");
