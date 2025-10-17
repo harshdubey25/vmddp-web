@@ -2,15 +2,9 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import RegistrationStepper from "@/components/RegistrationStepper";
 import { useToast } from "@/hooks/use-toast";
-import { User, Users, MapPin, Leaf, Award, Printer } from "lucide-react";
-
-import { useForm, Controller, FieldErrors } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import BasicDetailsStep from "@/components/register/BasicDetailsStep";
 import EligibilityStep from "@/components/register/EligibilityStep";
 import ComponentStep from "@/components/register/ComponentStep";

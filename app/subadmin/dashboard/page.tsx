@@ -241,7 +241,7 @@ export default async function SubAdminDashboard() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            {/* <div className="flex items-center gap-2">
                                                 <span className="text-xs text-muted-foreground">{app.date}</span>
                                                 <Button
                                                     variant="ghost"
@@ -250,7 +250,7 @@ export default async function SubAdminDashboard() {
                                                 >
                                                     View
                                                 </Button>
-                                            </div>
+                                            </div> */}
                                         </div>
                                     ))}
                                 </div>

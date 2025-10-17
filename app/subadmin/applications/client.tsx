@@ -64,14 +64,20 @@ interface Application {
     khasraNumber: string;
     milkPouringPoint: string;
     farmerPourerCode: string;
-    componentDetails: {
-        benefits: string[];
-        customQuestions: { label: string; answer: string }[];
-    };
+    components: {
+        name: string;
+        component: string;
+        response: any;
+    }[];
     documents: {
         name: string;
         uploaded: boolean;
         url?: string;
+    }[];
+    criteria: {
+        label: string;
+        value: string | number | null;
+        response?: any;
     }[];
 }
 
@@ -331,10 +337,7 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
                                             <Label className="text-muted-foreground">Applicant Name</Label>
                                             <p className="font-medium">{selectedApp.applicantName}</p>
                                         </div>
-                                        <div>
-                                            <Label className="text-muted-foreground">Father&apos;s Name</Label>
-                                            <p className="font-medium">{selectedApp.fatherName}</p>
-                                        </div>
+
                                         <div>
                                             <Label className="text-muted-foreground">Gender</Label>
                                             <p className="font-medium">{selectedApp.gender}</p>
@@ -407,32 +410,14 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
                                         Eligibility & Livestock
                                     </h3>
                                     <div className="space-y-3 text-sm">
-                                        <div>
-                                            <Label className="text-muted-foreground">Animal Count</Label>
-                                            <p className="font-medium">{selectedApp.animalCount ?? "N/A"}</p>
-                                        </div>
-                                        {selectedApp.animalTagNumber && (
-                                            <div>
-                                                <Label className="text-muted-foreground">Animal Tag Number</Label>
-                                                <p className="font-medium font-mono">{selectedApp.animalTagNumber}</p>
+                                        {selectedApp.criteria.map((crit, idx) => (
+                                            <div key={idx}>
+                                                <Label className="text-muted-foreground">{crit.label}</Label>
+                                                <p className="font-medium">
+                                                    {crit.value != null ? String(crit.value) : 'N/A'}
+                                                </p>
                                             </div>
-                                        )}
-                                        <div>
-                                            <Label className="text-muted-foreground">Land Holding (acres)</Label>
-                                            <p className="font-medium">{selectedApp.landHolding}</p>
-                                        </div>
-                                        <div>
-                                            <Label className="text-muted-foreground">Khasra Number</Label>
-                                            <p className="font-medium">{selectedApp.khasraNumber}</p>
-                                        </div>
-                                        <div>
-                                            <Label className="text-muted-foreground">Milk Pouring Point</Label>
-                                            <p className="font-medium">{selectedApp.milkPouringPoint}</p>
-                                        </div>
-                                        <div>
-                                            <Label className="text-muted-foreground">Farmer Pourer Code</Label>
-                                            <p className="font-medium font-mono">{selectedApp.farmerPourerCode}</p>
-                                        </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
@@ -442,34 +427,101 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
                                     <Award className="w-4 h-4" />
                                     Component Details
                                 </h3>
-                                <div className="p-4 bg-primary/5 rounded-lg space-y-4">
-                                    <div>
-                                        <Label className="text-muted-foreground">Selected Component</Label>
-                                        <p className="font-medium text-base mt-1">{selectedApp.component}</p>
-                                    </div>
-
-                                    <div>
-                                        <Label className="text-muted-foreground">Benefits</Label>
-                                        <ul className="list-disc list-inside mt-2 space-y-1">
-                                            {selectedApp.componentDetails.benefits.map((benefit, idx) => (
-                                                <li key={idx} className="text-sm">{benefit}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-
-                                    {selectedApp.componentDetails.customQuestions.length > 0 && (
-                                        <div>
-                                            <Label className="text-muted-foreground">Component-Specific Information</Label>
-                                            <div className="mt-2 space-y-2">
-                                                {selectedApp.componentDetails.customQuestions.map((q, idx) => (
-                                                    <div key={idx} className="flex justify-between items-start">
-                                                        <span className="text-sm text-muted-foreground">{q.label}:</span>
-                                                        <span className="text-sm font-medium">{q.answer}</span>
-                                                    </div>
-                                                ))}
+                                <div className="space-y-4">
+                                    {selectedApp.components.map((comp, idx) => (
+                                        <div key={comp.name} className="p-4 bg-primary/5 rounded-lg">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <h4 className="font-medium text-base">{comp.component}</h4>
+                                                <Badge variant="outline" className="text-xs">
+                                                    Component {idx + 1}
+                                                </Badge>
                                             </div>
+
+                                            {comp.response && comp.response !== "[]" && (() => {
+                                                try {
+                                                    const responseData = typeof comp.response === 'string'
+                                                        ? JSON.parse(comp.response)
+                                                        : comp.response;
+
+                                                    if (Array.isArray(responseData) && responseData.length > 0) {
+                                                        return (
+                                                            <div className="space-y-2">
+                                                                <Label className="text-muted-foreground text-sm">Component Response</Label>
+                                                                <div className="space-y-2">
+                                                                    {responseData.map((item, itemIdx) => (
+                                                                        <div key={itemIdx} className="flex justify-between items-start p-2 bg-background/50 rounded border">
+                                                                            <span className="text-sm text-muted-foreground flex-1 mr-2">
+                                                                                {item.question || item.label || item.name || `Question ${itemIdx + 1}`}:
+                                                                            </span>
+                                                                            <span className="text-sm font-medium flex-1 text-right">
+                                                                                {item.value != null ? String(item.value) : (item.answer != null ? String(item.answer) : 'N/A')}
+                                                                            </span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    } else if (typeof responseData === 'object' && responseData !== null) {
+                                                        // Format field names to be more readable
+                                                        const formatFieldName = (key: string) => {
+                                                            return key
+                                                                .replace(/_/g, ' ')
+                                                                .replace(/\b\w/g, l => l.toUpperCase())
+                                                                .replace(/Aadhar/g, 'Aadhaar')
+                                                                .replace(/Image/g, 'Image');
+                                                        };
+
+                                                        const isImageUrl = (value: any) => {
+                                                            return typeof value === 'string' && (
+                                                                value.includes('/files/') ||
+                                                                value.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+                                                            );
+                                                        };
+
+                                                        return (
+                                                            <div className="space-y-2">
+                                                                <Label className="text-muted-foreground text-sm">Component Response</Label>
+                                                                <div className="space-y-2">
+                                                                    {Object.entries(responseData).map(([key, value], itemIdx) => (
+                                                                        <div key={itemIdx} className="flex justify-between items-start p-2 bg-background/50 rounded border">
+                                                                            <span className="text-sm text-muted-foreground flex-1 mr-2">
+                                                                                {formatFieldName(key)}:
+                                                                            </span>
+                                                                            <span className="text-sm font-medium flex-1 text-right">
+                                                                                {isImageUrl(value) ? (
+                                                                                    <Button
+                                                                                        size="sm"
+                                                                                        variant="ghost"
+                                                                                        className="p-0 h-auto font-medium text-sm text-blue-600 hover:text-blue-800 underline"
+                                                                                        onClick={() => window.open(String(value), '_blank')}
+                                                                                    >
+                                                                                        View Image
+                                                                                    </Button>
+                                                                                ) : (
+                                                                                    value != null ? String(value) : 'N/A'
+                                                                                )}
+                                                                            </span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+                                                } catch (e) {
+                                                    // If parsing fails, show raw response
+                                                    return (
+                                                        <div className="space-y-2">
+                                                            <Label className="text-muted-foreground text-sm">Component Response</Label>
+                                                            <div className="text-sm bg-background/50 p-2 rounded border">
+                                                                {typeof comp.response === 'string' ? comp.response : JSON.stringify(comp.response, null, 2)}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            })()}
                                         </div>
-                                    )}
+                                    ))}
                                 </div>
                             </div>
 
