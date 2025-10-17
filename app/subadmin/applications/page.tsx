@@ -1,4 +1,4 @@
-import { frappeServer } from "@/app/lib/frappe";
+import { frappeServer } from "@/app/(website)/lib/frappe";
 import SubAdminApplicationsClient from "./client";
 import { cookies } from 'next/headers';
 

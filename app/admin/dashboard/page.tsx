@@ -16,7 +16,7 @@ import {
     Package,
     ArrowUpRight,
 } from "lucide-react";
-import { frappeServer } from "@/app/lib/frappe";
+import { frappeServer } from "@/app/(website)/lib/frappe";
 import Link from "next/link";
 
 export default async function AdminDashboard() {

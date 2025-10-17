@@ -29,7 +29,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { frappeBrowser } from "@/app/lib/frappe";
+import { frappeBrowser } from "@/app/(website)/lib/frappe";
 import { useAuth } from "@/context/AuthContext";
 
 interface Application {

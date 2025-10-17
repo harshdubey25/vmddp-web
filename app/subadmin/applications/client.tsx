@@ -39,7 +39,7 @@ import {
     Upload,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { frappeBrowser } from "@/app/lib/frappe";
+import { frappeBrowser } from "@/app/(website)/lib/frappe";
 
 interface Application {
     id: string;
