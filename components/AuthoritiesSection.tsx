@@ -43,6 +43,11 @@ const authorities = [
     image: "member6_1759739467947.png",
   },
   {
+    name: "डॉ. संजय गोराणी",
+    designation: "Hon. Project Director\nVidarbha And Marathwada Dairy development Project",
+    image: "member_head.png",
+  },
+  {
     name: "डॉ. नाना अर्जुन सोनवणे",
     designation: "Hon. Additional Project Director\n Vidarbha And Marathwada Dairy development Project",
     image: "member_7.jpg",
@@ -51,11 +56,6 @@ const authorities = [
     name: "डॉ. नरेंद्र पाटील",
     designation: "Hon. Officer On Special Duty\nVidarbha And Marathwada Dairy development Project",
     image: "membe_8.jpg",
-  },
-  {
-    name: "डॉ. संजय गोराणी",
-    designation: "Hon. Project Director\nVidarbha And Marathwada Dairy development Project",
-    image: "member_head.png",
   },
 ];
 
