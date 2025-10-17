@@ -21,7 +21,7 @@ type RegisterFormValues = {
     gender: string;
     category: string;
     mobile: string;
-    aadhaar: string;
+    aadhar_number: string;
     aadhaarImage: string;
     rationCardMembers: number;
     rationCardImage: string;
@@ -88,7 +88,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
             gender: "",
             category: "",
             mobile: "",
-            aadhaar: "",
+            aadhar_number: "",
             aadhaarImage: "",
             rationCardMembers: 0,
             rationCardImage: "",
@@ -127,7 +127,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
         // Validate current step before proceeding
         let fieldsToValidate: (keyof RegisterFormValues)[] = [];
         if (currentStep === 1) {
-            fieldsToValidate = ['firstName', 'lastName', 'gender', 'category', 'mobile', 'aadhaar', 'aadhaarImage', 'rationCardMembers', 'rationCardImage', 'district', 'taluka', 'village'];
+            fieldsToValidate = ['firstName', 'lastName', 'gender', 'category', 'mobile', 'aadhar_number', 'aadhaarImage', 'rationCardMembers', 'rationCardImage', 'district', 'taluka', 'village'];
             // Add family aadhaar fields if applicable
             const rationCardMembers = getValues('rationCardMembers');
             if (rationCardMembers > 1) {

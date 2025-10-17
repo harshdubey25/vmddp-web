@@ -139,9 +139,9 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="aadhaar">{t('aadhar_number')} *</Label>
-          <Controller name="aadhaar" control={control} rules={{ required: t('aadhar_required') }} render={({ field }) => <Input {...field} id="aadhaar" data-testid="input-aadhaar" />} />
-          {errors.aadhaar && <span className="text-red-500 text-xs">{errors.aadhaar.message}</span>}
+          <Label htmlFor="aadhar">{t('aadhar_number')} *</Label>
+          <Controller name="aadhar_number" control={control} rules={{ required: t('aadhar_required') }} render={({ field }) => <Input {...field} id="aadhar_number" data-testid="input-aadhar" />} />
+          {errors.aadhar_number && <span className="text-red-500 text-xs">{errors.aadhar_number.message}</span>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="aadhaarImage">{t('aadhar_image')} *</Label>
