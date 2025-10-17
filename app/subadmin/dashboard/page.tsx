@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { DashboardClient } from "./client";
 import { Header } from "./header";
-import { frappeServer } from "@/app/(website)/lib/frappe";
+import { frappeServer } from "@/lib/frappe";
 import { cookies } from 'next/headers';
 
 export const runtime = 'edge';

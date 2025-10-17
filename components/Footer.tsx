@@ -1,10 +1,9 @@
-"use client"
 import Link from "next/link";
 import { MapPin } from "lucide-react";
-import { useTranslation } from 'react-i18next';
+import { getServerTranslations } from '@/lib/server-translations';
 
-export default function Footer() {
-  const { t } = useTranslation('common');
+export default async function Footer() {
+  const { t } = await getServerTranslations();
   return (
     <footer className="relative bg-muted/50 border-t overflow-hidden text-white">
       {/* Background Image */}
@@ -33,12 +32,12 @@ export default function Footer() {
             <h4 className="font-display font-semibold mb-4">{t('footer_quick_links')}</h4>
             <ul className="space-y-2">
               {[
-                { labelKey: "home", path: "/" },
-                { labelKey: "about_us", path: "/about" },
-                { labelKey: "beneficiaries", path: "/beneficiaries" },
-                { labelKey: "register_now", path: "/register" },
-                { labelKey: "track_application", path: "/track" },
-                { labelKey: "contact_us", path: "/contact" },
+                { labelKey: "home" as const, path: "/" },
+                { labelKey: "about_us" as const, path: "/about" },
+                { labelKey: "beneficiaries" as const, path: "/beneficiaries" },
+                { labelKey: "register_now" as const, path: "/register" },
+                { labelKey: "track_application" as const, path: "/track" },
+                { labelKey: "contact_us" as const, path: "/contact" },
               ].map((link) => (
                 <li key={link.path}>
                   <Link href={link.path} className="text-sm text-white hover:text-primary transition-colors" data-testid={`link-footer-${link.labelKey.replace(/_/g, '-')}`}>

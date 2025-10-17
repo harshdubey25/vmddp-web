@@ -10,7 +10,7 @@ import EligibilityStep from "@/components/register/EligibilityStep";
 import ComponentStep from "@/components/register/ComponentStep";
 import BankDetailsStep from "@/components/register/BankDetailsStep";
 import ReviewStep from "@/components/register/ReviewStep";
-import { frappePublic, frappeServer } from "../lib/frappe";
+import { frappePublic, frappeServer } from "../../../lib/frappe";
 import { useRouter } from "next/navigation";
 import { useTranslation } from 'react-i18next';
 

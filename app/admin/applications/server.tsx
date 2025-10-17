@@ -37,7 +37,7 @@ export interface Application {
 }
 
 
-import { frappeServer } from "@/app/(website)/lib/frappe";
+import { frappeServer } from "@/lib/frappe";
 
 async function getApplications(): Promise<Application[]> {
     const response = await frappeServer.call().get('vmddp_app.api.api.get_all_docs_with_children', { doctype: 'App Form' });
