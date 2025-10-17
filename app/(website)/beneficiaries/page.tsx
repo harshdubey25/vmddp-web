@@ -1,55 +1,60 @@
 "use client"
-export const runtime = 'edge';
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useFrappeGetDocList } from "frappe-react-sdk";
 import BeneficiaryTable from "@/components/BeneficiaryTable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useTranslation } from 'react-i18next';
 
+export const runtime = 'edge';
+
 export default function Beneficiaries() {
     const { t } = useTranslation('common');
     const [selectedDistrict, setSelectedDistrict] = useState<string>("all");
     const [selectedComponent, setSelectedComponent] = useState<string>("all");
+    const [liveData, setLiveData] = useState<any | null>(null);
+    const [loading, setLoading] = useState(false);
 
-    const mockData = [
-        { district: "Nagpur", component: "Animal Induction (Calved Cow)", selected: 45, rejected: 5, inProgress: 12 },
-        { district: "Nagpur", component: "HGM (Pregnant Cow)", selected: 32, rejected: 7, inProgress: 18 },
-        { district: "Nagpur", component: "Fertility Feed", selected: 28, rejected: 4, inProgress: 15 },
-        { district: "Amravati", component: "Animal Induction (Calved Cow)", selected: 38, rejected: 8, inProgress: 15 },
-        { district: "Amravati", component: "Supply Chaff Cutter", selected: 28, rejected: 4, inProgress: 22 },
-        { district: "Amravati", component: "Farmer Training", selected: 52, rejected: 2, inProgress: 18 },
-        { district: "Yavatmal", component: "Fodder Seed", selected: 52, rejected: 3, inProgress: 20 },
-        { district: "Yavatmal", component: "SNF Enhancer", selected: 41, rejected: 6, inProgress: 18 },
-        { district: "Yavatmal", component: "Supply Of Silage", selected: 35, rejected: 5, inProgress: 16 },
-        { district: "Wardha", component: "Animal Induction (Calved Cow)", selected: 35, rejected: 9, inProgress: 14 },
-        { district: "Wardha", component: "Treatment of Infertile Animal", selected: 42, rejected: 3, inProgress: 20 },
-        { district: "Chandrapur", component: "HGM (Pregnant Cow)", selected: 48, rejected: 2, inProgress: 25 },
-        { district: "Chandrapur", component: "Fertility Feed", selected: 36, rejected: 6, inProgress: 14 },
-        { district: "Akola", component: "Fodder Seed", selected: 44, rejected: 4, inProgress: 19 },
-        { district: "Akola", component: "Supply Chaff Cutter", selected: 31, rejected: 7, inProgress: 12 },
-        { district: "Washim", component: "SNF Enhancer", selected: 29, rejected: 5, inProgress: 16 },
-        { district: "Washim", component: "Farmer Training", selected: 55, rejected: 1, inProgress: 22 },
-        { district: "Buldhana", component: "Animal Induction (Calved Cow)", selected: 40, rejected: 6, inProgress: 17 },
-        { district: "Buldhana", component: "Supply Of Silage", selected: 33, rejected: 8, inProgress: 15 },
-    ];
+    useEffect(() => {
+        const fetchLiveData = async () => {
+            setLoading(true);
+            try {
+                const res = await axios.get(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/vmddp_app.vmddp.doctype.app_form.app_form.get_applications_by_district_component?district=${selectedDistrict}&component=${selectedComponent}`, {
+                    withCredentials: true
+                });
+                setLiveData(res.data.message);
+            } catch (err) {
+                setLiveData(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchLiveData();
+    }, [selectedDistrict, selectedComponent]);
 
-    const mappedData = mockData.map(item => ({
-        district: item.district,
-        component: item.component,
-        pending: item.inProgress ?? 0,
-        approved: Math.max(0, item.selected - item.rejected),
-        selected: item.selected,
-        rejected: item.rejected,
-    }));
-
-    const filteredData = mappedData.filter(item => {
-        const districtMatch = selectedDistrict === "all" || item.district === selectedDistrict;
-        const componentMatch = selectedComponent === "all" || item.component === selectedComponent;
-        return districtMatch && componentMatch;
+    const { data: frappeDistricts, isLoading: districtsLoading } = useFrappeGetDocList("District Master", {
+        fields: ["name1"],
+        limit: 100,
     });
+    const { data: frappeComponents, isLoading: componentsLoading } = useFrappeGetDocList("Component", {
+        fields: ["component_name"],
+        limit: 100,
+    });
+    const districts = ["all", ...(frappeDistricts ? frappeDistricts.map((d: any) => d.name1) : [])];
+    const components = ["all", ...(frappeComponents ? frappeComponents.map((c: any) => c.component_name) : [])];
 
-    const districts = ["all", ...Array.from(new Set(mockData.map(item => item.district)))];
-    const components = ["all", ...Array.from(new Set(mockData.map(item => item.component)))];
+    // Format liveData for BeneficiaryTable
+    const tableData = liveData && typeof liveData === 'object' && 'submitted' in liveData
+        ? [{
+            district: selectedDistrict === 'all' ? 'All' : selectedDistrict,
+            component: selectedComponent === 'all' ? 'All' : selectedComponent,
+            pending: (liveData.total ?? 0) - (liveData.approved ?? 0) - (liveData.rejected ?? 0),
+            approved: liveData.approved ?? 0,
+            selected: liveData.submitted ?? 0,
+            rejected: liveData.rejected ?? 0,
+        }]
+        : [];
 
     return (
         <div className="min-h-[calc(100vh-16rem)] py-12 sm:py-16">
@@ -71,11 +76,15 @@ export default function Beneficiaries() {
                                 <SelectValue placeholder={t('select_district')} />
                             </SelectTrigger>
                             <SelectContent>
-                                {districts.map(district => (
-                                    <SelectItem key={district} value={district}>
-                                        {district === "all" ? t('all_districts') : district}
-                                    </SelectItem>
-                                ))}
+                                {districtsLoading ? (
+                                    <SelectItem value="all">Loading...</SelectItem>
+                                ) : (
+                                    districts.map(district => (
+                                        <SelectItem key={district} value={district}>
+                                            {district === "all" ? "All Districts" : district}
+                                        </SelectItem>
+                                    ))
+                                )}
                             </SelectContent>
                         </Select>
                     </div>
@@ -87,17 +96,21 @@ export default function Beneficiaries() {
                                 <SelectValue placeholder={t('select_component')} />
                             </SelectTrigger>
                             <SelectContent>
-                                {components.map(component => (
-                                    <SelectItem key={component} value={component}>
-                                        {component === "all" ? t('all_components') : component}
-                                    </SelectItem>
-                                ))}
+                                {componentsLoading ? (
+                                    <SelectItem value="all">Loading...</SelectItem>
+                                ) : (
+                                    components.map(component => (
+                                        <SelectItem key={component} value={component}>
+                                            {component === "all" ? "All Components" : component}
+                                        </SelectItem>
+                                    ))
+                                )}
                             </SelectContent>
                         </Select>
                     </div>
                 </div>
 
-                <BeneficiaryTable data={filteredData} />
+                <BeneficiaryTable data={loading ? [] : tableData} />
             </div>
         </div>
     );

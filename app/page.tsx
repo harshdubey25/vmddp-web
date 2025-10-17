@@ -17,6 +17,6 @@ export default function Home() {
       <AuthoritiesSection />
       <Footer />
     </div>
-  );
+  );      
 }
 
