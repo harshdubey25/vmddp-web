@@ -16,6 +16,7 @@ export default function HeroSection() {
     { value: "9", label: t("components"), icon: Package },
   ];
 
+  
   const heroBackground = "/hero.jpg";
 
   return (
