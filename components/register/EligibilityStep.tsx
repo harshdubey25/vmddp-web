@@ -123,8 +123,8 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                   name={mainValueName}
                   control={control}
                   rules={required ? { required: `${label} is required` } : {}}
-                  render={({ field }) => (
-                    <Input {...field} id={mainValueName} type="number" value={field.value ?? ""} />
+                  render={({ field: rhfField }) => (
+                    <Input {...rhfField} id={mainValueName} type="number" value={rhfField.value ?? ""} placeholder={field.placeholder || undefined} />
                   )}
                 />
                 {errors?.eligibility?.[idx]?.value && <span className="text-red-500 text-xs">{errors.eligibility[idx].value.message}</span>}
@@ -176,8 +176,8 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                   name={mainValueName}
                   control={control}
                   rules={required ? { required: `${label} is required` } : {}}
-                  render={({ field }) => (
-                    <Input {...field} id={mainValueName} type="text" value={field.value ?? ""} />
+                  render={({ field: rhfField }) => (
+                    <Input {...rhfField} id={mainValueName} type="text" value={rhfField.value ?? ""} placeholder={field.placeholder || undefined} />
                   )}
                 />
                 {errors?.eligibility?.[idx]?.value && <span className="text-red-500 text-xs">{errors.eligibility[idx].value.message}</span>}
@@ -209,8 +209,8 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                       <Controller
                         name={childValueName}
                         control={control}
-                        render={({ field }) => (
-                          <Input {...field} id={childValueName} type="text" value={field.value ?? ""} />
+                        render={({ field: rhfField }) => (
+                          <Input {...rhfField} id={childValueName} type="text" value={rhfField.value ?? ""} placeholder={child.placeholder || undefined} />
                         )}
                       />
                       {errors?.eligibility?.[idx]?.child?.[childIdx]?.value && <span className="text-red-500 text-xs">{errors.eligibility[idx].child[childIdx].value.message}</span>}
@@ -233,8 +233,8 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                     <Controller
                       name={childValueName}
                       control={control}
-                      render={({ field }) => (
-                        <Input {...field} id={childValueName} type="text" value={field.value ?? ""} />
+                      render={({ field: rhfField }) => (
+                        <Input {...rhfField} id={childValueName} type="text" value={rhfField.value ?? ""} placeholder={child.placeholder || undefined} />
                       )}
                     />
                     {errors?.eligibility?.[idx]?.child?.[childIdx]?.value && <span className="text-red-500 text-xs">{errors.eligibility[idx].child[childIdx].value.message}</span>}
