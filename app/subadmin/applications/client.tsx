@@ -145,8 +145,7 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
             // Update the App Form doctype via API
             await frappeBrowser.db().updateDoc('App Form', selectedApp.id, {
                 status: reviewAction,
-                // Add remarks if you want to store them (you may need to add a remarks field to the doctype)
-                // remarks: remarks
+                remarks: remarks,
             });
 
             // Update the application status in state

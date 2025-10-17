@@ -4,8 +4,8 @@ import { Controller, useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AutoComplete } from "../ui/searchable-input";
 import { useTranslation } from 'react-i18next';
+import { useFrappeGetDocList } from "frappe-react-sdk";
 interface Props {
   control: any;
   errors: any;
@@ -20,6 +20,33 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
 
   const watchedDistrict = useWatch({ control, name: 'district' });
   const watchedTaluka = useWatch({ control, name: 'taluka' });
+
+  const { data: genderData } = useFrappeGetDocList("Gender Master", {
+    fields: ["name"],
+    limit: 100,
+  });
+
+  const { data: categoryData } = useFrappeGetDocList("Category Master", {
+    fields: ["name"],
+    limit: 100,
+  });
+
+  const { data: districtData } = useFrappeGetDocList("District Master", {
+    fields: ["name"],
+    limit: 100,
+  });
+
+  const { data: talukaData } = useFrappeGetDocList("Taluka Master", {
+    fields: ["name"],
+    filters: watchedDistrict ? [['district', '=', watchedDistrict]] : undefined,
+    limit: 100,
+  });
+
+  const { data: villageData } = useFrappeGetDocList("Village Master", {
+    fields: ["name"],
+    filters: watchedDistrict && watchedTaluka ? [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]] : undefined,
+    limit: 100,
+  });
 
   const uploadFile = async (file: File, fieldName: string): Promise<string | null> => {
     setUploading(prev => ({ ...prev, [fieldName]: true }));
@@ -75,14 +102,32 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
         <div className="space-y-2">
           <Label htmlFor="gender">{t('gender')} *</Label>
           <Controller name="gender" control={control} rules={{ required: t('gender_required') }} render={({ field }) => (
-            <AutoComplete {...field} doctype="Gender Master" onSelectedValueChange={field.onChange} selectedValue={field.value} />
+            <Select onValueChange={field.onChange} value={field.value}>
+              <SelectTrigger>
+                <SelectValue placeholder={t('select_gender')} />
+              </SelectTrigger>
+              <SelectContent className={genderData && genderData.length > 8 ? "max-h-48 overflow-y-auto" : ""}>
+                {genderData?.map((item) => (
+                  <SelectItem key={item.name} value={item.name}>{item.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )} />
           {errors.gender && <span className="text-red-500 text-xs">{errors.gender.message}</span>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="category">{t('category')} *</Label>
           <Controller name="category" control={control} rules={{ required: t('category_required') }} render={({ field }) => (
-            <AutoComplete {...field} doctype="Category Master" onSelectedValueChange={field.onChange} selectedValue={field.value} />
+            <Select onValueChange={field.onChange} value={field.value}>
+              <SelectTrigger>
+                <SelectValue placeholder={t('select_category')} />
+              </SelectTrigger>
+              <SelectContent className={categoryData && categoryData.length > 8 ? "max-h-48 overflow-y-auto" : ""}>
+                {categoryData?.map((item) => (
+                  <SelectItem key={item.name} value={item.name}>{item.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )} />
           {errors.caste && <span className="text-red-500 text-xs">{errors.caste.message}</span>}
         </div>
@@ -179,21 +224,48 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
         <div className="space-y-2">
           <Label htmlFor="district">{t('district')} *</Label>
           <Controller name="district" control={control} rules={{ required: t('district_required') }} render={({ field }) => (
-            <AutoComplete doctype="District Master" onSelectedValueChange={field.onChange} selectedValue={field.value} />
+            <Select onValueChange={field.onChange} value={field.value}>
+              <SelectTrigger>
+                <SelectValue placeholder={t('select_district')} />
+              </SelectTrigger>
+              <SelectContent className={districtData && districtData.length > 8 ? "max-h-48 overflow-y-auto" : ""}>
+                {districtData?.map((item) => (
+                  <SelectItem key={item.name} value={item.name}>{item.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )} />
           {errors.district && <span className="text-red-500 text-xs">{errors.district.message}</span>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="taluka">{t('taluka')} *</Label>
           <Controller name="taluka" control={control} rules={{ required: t('taluka_required') }} render={({ field }) => (
-            <AutoComplete doctype="Taluka Master" onSelectedValueChange={field.onChange} selectedValue={field.value} filters={watchedDistrict ? [['district', '=', watchedDistrict]] : undefined} />
+            <Select onValueChange={field.onChange} value={field.value}>
+              <SelectTrigger>
+                <SelectValue placeholder={t('select_taluka')} />
+              </SelectTrigger>
+              <SelectContent className={talukaData && talukaData.length > 8 ? "max-h-48 overflow-y-auto" : ""}>
+                {talukaData?.map((item) => (
+                  <SelectItem key={item.name} value={item.name}>{item.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )} />
           {errors.taluka && <span className="text-red-500 text-xs">{errors.taluka.message}</span>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="village">{t('village')} *</Label>
           <Controller name="village" control={control} rules={{ required: t('village_required') }} render={({ field }) => (
-            <AutoComplete doctype="Village Master" onSelectedValueChange={field.onChange} selectedValue={field.value} filters={watchedDistrict && watchedTaluka ? [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]] : undefined} />
+            <Select onValueChange={field.onChange} value={field.value}>
+              <SelectTrigger>
+                <SelectValue placeholder={t('select_village')} />
+              </SelectTrigger>
+              <SelectContent className={villageData && villageData.length > 8 ? "max-h-48 overflow-y-auto" : ""}>
+                {villageData?.map((item) => (
+                  <SelectItem key={item.name} value={item.name}>{item.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )} />
           {errors.village && <span className="text-red-500 text-xs">{errors.village.message}</span>}
         </div>
