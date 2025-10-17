@@ -20,11 +20,11 @@ import {
   Calendar,
   AlertCircle,
 } from "lucide-react";
+import { frappePublic } from "@/lib/frappe";
 
 interface Application {
   id: string;
   applicantName: string;
-  fatherName: string;
   mobile: string;
   district: string;
   taluka: string;
@@ -45,104 +45,67 @@ export default function TrackResultPage() {
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const allApplications: Application[] = [
-    {
-      id: "APP-2025-001247",
-      applicantName: "Ramesh Kumar Patil",
-      fatherName: "Vishwanath Patil",
-      mobile: "9876543210",
-      district: "Nagpur",
-      taluka: "Nagpur Rural",
-      village: "Khapa",
-      component: "Animal Induction (Calved Cow)",
-      status: "selected",
-      submittedDate: "2025-01-06",
-    },
-    {
-      id: "APP-2025-001248",
-      applicantName: "Suresh Deshmukh",
-      fatherName: "Ganesh Deshmukh",
-      mobile: "9876543211",
-      district: "Nagpur",
-      taluka: "Nagpur Rural",
-      village: "Mouda",
-      component: "Chaff Cutter",
-      status: "approved",
-      submittedDate: "2025-01-07",
-    },
-    {
-      id: "APP-2025-001249",
-      applicantName: "Lakshmi Bai Kale",
-      fatherName: "Ramdas Kale",
-      mobile: "9876543210",
-      district: "Nagpur",
-      taluka: "Nagpur Rural",
-      village: "Khapa",
-      component: "Chaff Cutter",
-      status: "approved",
-      submittedDate: "2025-01-05",
-    },
-    {
-      id: "APP-2025-001250",
-      applicantName: "Ganesh Wankhede",
-      fatherName: "Vitthal Wankhede",
-      mobile: "9876543213",
-      district: "Nagpur",
-      taluka: "Nagpur Rural",
-      village: "Parseoni",
-      component: "Animal Induction (Calved Cow)",
-      status: "pending",
-      submittedDate: "2025-01-08",
-    },
-    {
-      id: "APP-2025-001251",
-      applicantName: "Anita Thakre",
-      fatherName: "Ramesh Thakre",
-      mobile: "9876543214",
-      district: "Nagpur",
-      taluka: "Kamptee",
-      village: "Kamptee",
-      component: "Animal Induction (Calved Cow)",
-      status: "rejected",
-      submittedDate: "2025-01-04",
-      rejectionReason: "Incomplete documentation - Missing animal tag verification certificate",
-    },
-  ];
-
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      let found: Application[] = [];
+    const fetchApplications = async () => {
+      try {
+        const params: any = {};
+        if (mobile) params.phone_number = mobile.trim();
+        if (appId) params.application_number = appId.trim();
 
-      if (mobile) {
-        found = allApplications.filter((app) => app.mobile === mobile);
-      } else if (appId) {
-        const app = allApplications.find((app) => app.id === appId);
-        if (app) found = [app];
-      }
+        const response = await frappePublic.call().get('vmddp_app.api.api.get_application_status', params);
+        console.log('API Response:', response);
+        console.log('Params:', params);
 
-      setApplications(found);
-      if (found.length === 1) {
-        setSelectedApp(found[0]);
+        if (response.message?.error) {
+          setApplications([]);
+        } else if (response.message && typeof response.message === 'object' && !Array.isArray(response.message)) {
+          // Single application response
+          const app: Application = {
+            ...response.message,
+            status: response.message.status as Application["status"],
+          };
+          setApplications([app]);
+          setSelectedApp(app);
+        } else {
+          // Array response (if API returns multiple)
+          const apps: Application[] = (response.message || []).map((app: any) => ({
+            ...app,
+            status: app.status as Application["status"],
+          }));
+          setApplications(apps);
+          if (apps.length === 1) {
+            setSelectedApp(apps[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching applications:', error);
+        setApplications([]);
+      } finally {
+        setLoading(false);
       }
+    };
+
+    if (mobile || appId) {
+      fetchApplications();
+    } else {
       setLoading(false);
-    }, 800);
+    }
   }, [mobile, appId]);
 
   const getStatusBadge = (status: Application["status"]) => {
     const statusConfig = {
-      pending: { label: t("pending_review"), variant: "secondary" as const, icon: Clock },
-      approved: { label: t("approved"), variant: "default" as const, icon: CheckCircle },
-      selected: { label: t("selected"), variant: "default" as const, icon: CheckCircle },
-      rejected: { label: t("rejected"), variant: "destructive" as const, icon: XCircle },
+      pending: { label: t("pending_review"), variant: "secondary" as const, icon: Clock, iconColor: "text-yellow-600" },
+      approved: { label: t("approved"), variant: "default" as const, icon: CheckCircle, iconColor: "text-green-600" },
+      selected: { label: t("selected"), variant: "default" as const, icon: CheckCircle, iconColor: "text-green-600" },
+      rejected: { label: t("rejected"), variant: "destructive" as const, icon: XCircle, iconColor: "text-red-600" },
     };
 
-    const config = statusConfig[status];
+    const config = statusConfig[status] || { label: status || "Unknown", variant: "outline" as const, icon: AlertCircle, iconColor: "text-gray-600" };
     const Icon = config.icon;
 
     return (
       <Badge variant={config.variant} className="gap-1.5">
-        <Icon className="w-3.5 h-3.5" />
+        <Icon className={`w-3.5 h-3.5 ${config.iconColor}`} />
         {config.label}
       </Badge>
     );
@@ -254,10 +217,6 @@ export default function TrackResultPage() {
 
         {/* Application Details */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex items-start gap-3">
-            <User className="w-5 h-5 text-muted-foreground mt-0.5" />
-          </div>
-
           <div className="flex items-start gap-3">
             <Phone className="w-5 h-5 text-muted-foreground mt-0.5" />
             <div>
