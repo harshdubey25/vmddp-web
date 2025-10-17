@@ -2,22 +2,17 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import RegistrationStepper from "@/components/RegistrationStepper";
 import { useToast } from "@/hooks/use-toast";
-import { User, Users, MapPin, Leaf, Award, Printer } from "lucide-react";
-
-import { useForm, Controller, FieldErrors } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import BasicDetailsStep from "@/components/register/BasicDetailsStep";
 import EligibilityStep from "@/components/register/EligibilityStep";
 import ComponentStep from "@/components/register/ComponentStep";
 import BankDetailsStep from "@/components/register/BankDetailsStep";
 import ReviewStep from "@/components/register/ReviewStep";
-import { frappePublic, frappeServer } from "../lib/frappe";
+import { frappePublic, frappeServer } from "../../../lib/frappe";
 import { useRouter } from "next/navigation";
+import { useTranslation } from 'react-i18next';
 
 type RegisterFormValues = {
     firstName: string;
@@ -58,14 +53,6 @@ type RegisterFormValues = {
     [key: `familyAadhaar${number}`]: string;
 };
 
-const steps = [
-    { number: 1, title: "Basic Details" },
-    { number: 2, title: "Eligibility" },
-    { number: 3, title: "Component" },
-    { number: 4, title: "Bank Details" },
-    { number: 5, title: "Review" },
-];
-
 export default function RegisterClient({ criteriaFields }: { criteriaFields: any[] }) {
 
     const [currentStep, setCurrentStep] = useState(1);
@@ -75,6 +62,15 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
     const [submitLoading, setSubmitLoading] = useState(false)
     const { toast } = useToast();
     const router = useRouter();
+    const { t } = useTranslation('common');
+
+    const steps = [
+        { number: 1, title: t('step_basic_details') },
+        { number: 2, title: t('step_eligibility') },
+        { number: 3, title: t('step_component') },
+        { number: 4, title: t('step_bank_details') },
+        { number: 5, title: t('step_review') },
+    ];
     const {
         control,
         handleSubmit,
@@ -152,8 +148,8 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
         const isValid = await trigger(fieldsToValidate);
         if (!isValid) {
             toast({
-                title: "Validation Error",
-                description: "Please fill in all required fields before proceeding.",
+                title: t('validation_error'),
+                description: t('validation_error_desc'),
                 variant: "destructive"
             });
             return;
@@ -169,8 +165,8 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                 setComponents(res.message || []);
             } catch (err) {
                 toast({
-                    title: "Component Fetch Error",
-                    description: "Could not fetch components for selected criteria.",
+                    title: t('component_fetch_error'),
+                    description: t('component_fetch_error_desc'),
                     variant: "destructive"
                 });
                 return; // Don't proceed if fetch fails
@@ -206,8 +202,8 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
             }
         }).then((res: any) => {
             toast({
-                title: "Application Submitted",
-                description: "Your application has been successfully submitted. You will receive an SMS with your application ID.",
+                title: t('application_submitted'),
+                description: t('application_submitted_desc'),
             });
             console.log("Application submitted", res);
 
@@ -225,8 +221,8 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
             router.push(`/success?applicationId=${applicationId}`);
         }).catch((err: any) => {
             toast({
-                title: "Submission Error",
-                description: "There was an error submitting your application. Please try again.",
+                title: t('submission_error'),
+                description: t('submission_error_desc'),
                 variant: "destructive"
             });
             console.error("Application submission error", err);
@@ -242,10 +238,10 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-8">
                     <h1 className="font-display font-semibold text-2xl sm:text-3xl mb-3" data-testid="text-register-title">
-                        Scheme Registration
+                        {t('register_title')}
                     </h1>
                     <p className="text-muted-foreground">
-                        Complete your application for VMDDP scheme benefits
+                        {t('register_subtitle')}
                     </p>
                 </div>
 
@@ -295,15 +291,15 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                                     disabled={currentStep === 1}
                                     data-testid="button-back"
                                 >
-                                    Back
+                                    {t('back')}
                                 </Button>
                                 {currentStep < steps.length ? (
                                     <Button onClick={handleNext} data-testid="button-next">
-                                        Next
+                                        {t('next')}
                                     </Button>
                                 ) : (
                                     <Button type="submit" data-testid="button-submit" disabled={submitLoading} >
-                                        Submit Application
+                                        {t('submit_application')}
                                     </Button>
                                 )}
                             </div>

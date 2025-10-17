@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   CheckCircle,
@@ -35,6 +36,7 @@ interface Application {
 }
 
 export default function TrackResultPage() {
+  const { t } = useTranslation('common');
   const searchParams = useSearchParams();
   const mobile = searchParams.get("mobile");
   const appId = searchParams.get("appId");
@@ -129,10 +131,10 @@ export default function TrackResultPage() {
 
   const getStatusBadge = (status: Application["status"]) => {
     const statusConfig = {
-      pending: { label: "Pending Review", variant: "secondary" as const, icon: Clock },
-      approved: { label: "Approved", variant: "default" as const, icon: CheckCircle },
-      selected: { label: "Selected", variant: "default" as const, icon: CheckCircle },
-      rejected: { label: "Rejected", variant: "destructive" as const, icon: XCircle },
+      pending: { label: t("pending_review"), variant: "secondary" as const, icon: Clock },
+      approved: { label: t("approved"), variant: "default" as const, icon: CheckCircle },
+      selected: { label: t("selected"), variant: "default" as const, icon: CheckCircle },
+      rejected: { label: t("rejected"), variant: "destructive" as const, icon: XCircle },
     };
 
     const config = statusConfig[status];
@@ -182,26 +184,23 @@ export default function TrackResultPage() {
             return (
               <div key={step.key} className="flex flex-col items-center flex-1">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
-                    isCompleted
-                      ? "bg-chart-3 border-chart-3 text-white"
-                      : "bg-background border-muted-foreground/30 text-muted-foreground"
-                  }`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${isCompleted
+                    ? "bg-chart-3 border-chart-3 text-white"
+                    : "bg-background border-muted-foreground/30 text-muted-foreground"
+                    }`}
                 >
                   <StepIcon className="w-5 h-5" />
                 </div>
                 <p
-                  className={`text-xs sm:text-sm mt-2 text-center ${
-                    isCurrent ? "font-semibold" : "text-muted-foreground"
-                  }`}
+                  className={`text-xs sm:text-sm mt-2 text-center ${isCurrent ? "font-semibold" : "text-muted-foreground"
+                    }`}
                 >
                   {step.label}
                 </p>
                 {index < steps.length - 1 && (
                   <div
-                    className={`absolute top-5 h-0.5 transition-colors ${
-                      index < currentIndex ? "bg-chart-3" : "bg-muted-foreground/30"
-                    }`}
+                    className={`absolute top-5 h-0.5 transition-colors ${index < currentIndex ? "bg-chart-3" : "bg-muted-foreground/30"
+                      }`}
                     style={{
                       left: `${(index / (steps.length - 1)) * 100 + 10}%`,
                       right: `${100 - ((index + 1) / (steps.length - 1)) * 100 + 10}%`,
@@ -335,8 +334,8 @@ export default function TrackResultPage() {
                 {!mobile && !appId
                   ? "Please provide a mobile number or application ID to search"
                   : mobile
-                  ? `No applications found for mobile number ${mobile}`
-                  : `No application found with ID ${appId}`}
+                    ? `No applications found for mobile number ${mobile}`
+                    : `No application found with ID ${appId}`}
               </p>
               <Link href="/track">
                 <Button data-testid="button-try-again">

@@ -5,8 +5,10 @@ import { useFrappeGetDocList } from "frappe-react-sdk";
 import BeneficiaryTable from "@/components/BeneficiaryTable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from 'react-i18next';
 
 export default function Beneficiaries() {
+    const { t } = useTranslation('common');
     const [selectedDistrict, setSelectedDistrict] = useState<string>("all");
     const [selectedComponent, setSelectedComponent] = useState<string>("all");
     const [liveData, setLiveData] = useState<any | null>(null);
@@ -57,19 +59,19 @@ export default function Beneficiaries() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-10">
                     <h1 className="font-display font-semibold text-2xl sm:text-3xl mb-3" data-testid="text-beneficiaries-title">
-                        Beneficiary Transparency
+                        {t('beneficiaries_title')}
                     </h1>
                     <p className="text-muted-foreground max-w-2xl mx-auto">
-                        View district and component-wise application status for complete transparency
+                        {t('beneficiaries_subtitle')}
                     </p>
                 </div>
 
                 <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
                     <div className="space-y-2">
-                        <Label htmlFor="district-filter">Filter by District</Label>
+                        <Label htmlFor="district-filter">{t('filter_by_district')}</Label>
                         <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
                             <SelectTrigger id="district-filter" data-testid="select-district">
-                                <SelectValue placeholder="Select District" />
+                                <SelectValue placeholder={t('select_district')} />
                             </SelectTrigger>
                             <SelectContent>
                                 {districtsLoading ? (
@@ -86,10 +88,10 @@ export default function Beneficiaries() {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="component-filter">Filter by Component</Label>
+                        <Label htmlFor="component-filter">{t('filter_by_component')}</Label>
                         <Select value={selectedComponent} onValueChange={setSelectedComponent}>
                             <SelectTrigger id="component-filter" data-testid="select-component">
-                                <SelectValue placeholder="Select Component" />
+                                <SelectValue placeholder={t('select_component')} />
                             </SelectTrigger>
                             <SelectContent>
                                 {componentsLoading ? (

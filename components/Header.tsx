@@ -12,7 +12,7 @@ export default function Header() {
   const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { t, i18n } = useTranslation('common');
+  const { t } = useTranslation('common');
 
   const navItems = [
     { label: t("home"), path: "/" },

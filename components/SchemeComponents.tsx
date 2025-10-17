@@ -3,110 +3,76 @@ import { Milk, HeartPulse, Pill, Sprout, Sparkles, Scissors, Package, Stethoscop
 import SchemeCard from "./SchemeCard";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
+import { useTranslation } from 'react-i18next';
 
 const schemes = [
   {
     id: 1,
     icon: Milk,
-    title: "Animal Induction (Calved Cow)",
-    description: "Financial assistance for purchasing high-yielding calved indigenous or crossbred dairy cows",
-    benefits: [
-      "Subsidy up to 50% (General) / 75% (SC/ST)",
-      "Support for quality milch animals",
-      "Veterinary health certification included"
-    ]
+    titleKey: "scheme_animal_induction_title",
+    descriptionKey: "scheme_animal_induction_desc",
+    benefitsKey: "scheme_animal_induction_benefits"
   },
   {
     id: 2,
     icon: HeartPulse,
-    title: "HGM (Pregnant Cow)",
-    description: "High Genetic Merit pregnant cow support for enhanced dairy productivity and breeding excellence",
-    benefits: [
-      "Financial aid for HGM pregnant cow acquisition",
-      "Genetic superiority certification",
-      "Breeding guidance and veterinary support"
-    ]
+    titleKey: "scheme_hgm_title",
+    descriptionKey: "scheme_hgm_desc",
+    benefitsKey: "scheme_hgm_benefits"
   },
   {
     id: 3,
     icon: Pill,
-    title: "Fertility Feed",
-    description: "Specialized nutritional supplements to improve reproductive health and fertility in dairy animals",
-    benefits: [
-      "Subsidized fertility-enhancing feed supply",
-      "Improves conception rates",
-      "Expert consultation on feeding protocols"
-    ]
+    titleKey: "scheme_fertility_feed_title",
+    descriptionKey: "scheme_fertility_feed_desc",
+    benefitsKey: "scheme_fertility_feed_benefits"
   },
   {
     id: 4,
     icon: Sprout,
-    title: "Fodder Seed",
-    description: "Quality fodder seed distribution for green and dry fodder cultivation to ensure year-round feed availability",
-    benefits: [
-      "Subsidized high-quality fodder seeds",
-      "Technical guidance on cultivation",
-      "Support for fodder crop varieties"
-    ]
+    titleKey: "scheme_fodder_seed_title",
+    descriptionKey: "scheme_fodder_seed_desc",
+    benefitsKey: "scheme_fodder_seed_benefits"
   },
   {
     id: 5,
     icon: Sparkles,
-    title: "SNF Enhancer",
-    description: "Solids-Not-Fat enhancer supplements to improve milk quality and increase farmer income",
-    benefits: [
-      "Enhances milk SNF content",
-      "Better price realization for quality milk",
-      "Feed additive supply support"
-    ]
+    titleKey: "scheme_snf_enhancer_title",
+    descriptionKey: "scheme_snf_enhancer_desc",
+    benefitsKey: "scheme_snf_enhancer_benefits"
   },
   {
     id: 6,
     icon: Scissors,
-    title: "Supply Chaff Cutter",
-    description: "Mechanized chaff cutting equipment to process fodder efficiently and reduce labor",
-    benefits: [
-      "Subsidy on chaff cutter machines",
-      "Training on equipment operation",
-      "Maintenance support included"
-    ]
+    titleKey: "scheme_chaff_cutter_title",
+    descriptionKey: "scheme_chaff_cutter_desc",
+    benefitsKey: "scheme_chaff_cutter_benefits"
   },
   {
     id: 7,
     icon: Package,
-    title: "Supply Of Silage",
-    description: "Provision of quality silage for round-the-year nutritious fodder availability",
-    benefits: [
-      "Ready-to-use silage supply",
-      "Ensures feed during scarcity periods",
-      "Nutritional quality assurance"
-    ]
+    titleKey: "scheme_silage_title",
+    descriptionKey: "scheme_silage_desc",
+    benefitsKey: "scheme_silage_benefits"
   },
   {
     id: 8,
     icon: Stethoscope,
-    title: "Treatment of Infertile Animal",
-    description: "Comprehensive veterinary treatment program for infertile animals to restore productivity",
-    benefits: [
-      "Free veterinary consultation and diagnosis",
-      "Subsidized treatment and medicines",
-      "Follow-up care and monitoring"
-    ]
+    titleKey: "scheme_infertile_treatment_title",
+    descriptionKey: "scheme_infertile_treatment_desc",
+    benefitsKey: "scheme_infertile_treatment_benefits"
   },
   {
     id: 9,
     icon: GraduationCap,
-    title: "Farmer Training",
-    description: "Capacity building programs on modern dairy management, animal health, and best practices",
-    benefits: [
-      "Free training sessions and workshops",
-      "Hands-on practical demonstrations",
-      "Certification and resource materials"
-    ]
+    titleKey: "scheme_training_title",
+    descriptionKey: "scheme_training_desc",
+    benefitsKey: "scheme_training_benefits"
   }
 ];
 
 export default function SchemeComponents() {
+  const { t } = useTranslation('common');
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -120,10 +86,10 @@ export default function SchemeComponents() {
           className="text-center mb-10"
         >
           <h2 className="font-display font-semibold text-2xl sm:text-3xl mb-3" data-testid="text-schemes-title">
-            Scheme Components
+            {t('scheme_components_title')}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Explore our comprehensive range of dairy development schemes designed to support farmers at every stage
+            {t('scheme_components_subtitle')}
           </p>
         </motion.div>
 
@@ -132,9 +98,9 @@ export default function SchemeComponents() {
             <SchemeCard
               key={scheme.id}
               icon={scheme.icon}
-              title={scheme.title}
-              description={scheme.description}
-              benefits={scheme.benefits}
+              title={t(scheme.titleKey)}
+              description={t(scheme.descriptionKey)}
+              benefits={t(scheme.benefitsKey, { returnObjects: true }) as string[]}
               componentId={scheme.id}
               index={index}
               isInView={isInView}

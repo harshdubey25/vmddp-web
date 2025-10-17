@@ -1,20 +1,21 @@
+"use client"
+export const runtime = 'edge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ImageCarousel from "@/components/ImageCarousel";
-
-
+import { useTranslation } from 'react-i18next';
 
 const galleryCategories = [
     {
-        title: "Programme Launch",
-        description: "Official inauguration and launch events",
+        titleKey: "gallery_programme_launch_title",
+        descriptionKey: "gallery_programme_launch_desc",
         images: [
             "/04-1_1759736734698.jpg",
             "/08_1759736734699.jpg",
         ],
     },
     {
-        title: "Farmer Training",
-        description: "Capacity building and skill development sessions",
+        titleKey: "gallery_farmer_training_title",
+        descriptionKey: "gallery_farmer_training_desc",
         images: [
             "/06-1_1759736734700.jpg",
             "/04-1_1759736734698.jpg",
@@ -22,8 +23,8 @@ const galleryCategories = [
         ],
     },
     {
-        title: "Success Stories",
-        description: "Beneficiary testimonials and achievements",
+        titleKey: "gallery_success_stories_title",
+        descriptionKey: "gallery_success_stories_desc",
         images: [
             "/cow-2755520_640_1759736734695.jpg",
             "/premium_photo-1677850455009-d67da2b774c9_1759736734697.jpg",
@@ -35,8 +36,8 @@ const galleryCategories = [
         ],
     },
     {
-        title: "Infrastructure",
-        description: "Dairy facilities and equipment installations",
+        titleKey: "gallery_infrastructure_title",
+        descriptionKey: "gallery_infrastructure_desc",
         images: [
             "/cow-shed-1_1759736734696.webp",
             "/cow-2755520_640_1759736734695.jpg",
@@ -45,15 +46,17 @@ const galleryCategories = [
 ];
 
 export default function Gallery() {
+    const { t } = useTranslation('common');
+
     return (
         <div className="min-h-[calc(100vh-16rem)] py-12 sm:py-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-10">
                     <h1 className="font-display font-semibold text-2xl sm:text-3xl mb-3" data-testid="text-gallery-title">
-                        Programme Gallery
+                        {t('gallery_title')}
                     </h1>
                     <p className="text-muted-foreground max-w-2xl mx-auto">
-                        Visual documentation of VMDDP implementation, events, and success stories
+                        {t('gallery_subtitle')}
                     </p>
                 </div>
 
@@ -61,13 +64,13 @@ export default function Gallery() {
                     {galleryCategories.map((category, index) => (
                         <Card key={index} data-testid={`card-gallery-${index}`}>
                             <CardHeader>
-                                <CardTitle className="font-display">{category.title}</CardTitle>
-                                <CardDescription>{category.description}</CardDescription>
+                                <CardTitle className="font-display">{t(category.titleKey)}</CardTitle>
+                                <CardDescription>{t(category.descriptionKey)}</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <ImageCarousel images={category.images} alt={category.title} />
+                                <ImageCarousel images={category.images} alt={t(category.titleKey)} />
                                 <p className="text-sm text-muted-foreground mt-4 text-center">
-                                    {category.images.length} {category.images.length === 1 ? 'Photo' : 'Photos'}
+                                    {category.images.length} {category.images.length === 1 ? t('photo') : t('photos')}
                                 </p>
                             </CardContent>
                         </Card>

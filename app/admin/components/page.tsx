@@ -34,7 +34,7 @@ import {
     MapPin,
     Edit,
 } from "lucide-react";
-import { frappeBrowser } from "@/app/lib/frappe";
+import { frappeBrowser } from "@/lib/frappe";
 
 interface CustomQuestion {
     id: string;

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ClientLayoutShell from "@/components/ClientLayoutShell";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { FrappeClientProvider } from "@/providers/FrappeClientProvider";
 import AuthProvider from "@/context/AuthContext";
@@ -36,7 +35,7 @@ export default function RootLayout({
           <FrappeClientProvider>
             <AuthProvider>
               <ThemeProvider>
-                <ClientLayoutShell>{children}</ClientLayoutShell>
+                {children}
                 <Toaster />
               </ThemeProvider>
             </AuthProvider>

@@ -1,4 +1,5 @@
 "use client";
+export const runtime = 'edge';
 import { Suspense } from "react";
 import TrackResultPage from "./client";
 
@@ -9,5 +10,5 @@ export default function TrackResult() {
       <TrackResultPage />
     </Suspense>
   )
-  
+
 }
