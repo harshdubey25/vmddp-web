@@ -1,5 +1,5 @@
-export const runtime = 'edge';
 "use client"
+export const runtime = 'edge';
 import TrackApplicationForm from "@/components/TrackApplicationForm";
 import { useTranslation } from 'react-i18next';
 
