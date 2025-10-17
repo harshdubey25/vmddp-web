@@ -17,13 +17,24 @@ export default function SchemeComponentPage({ params }: { params: { id: string }
   return (
     <main className="max-w-4xl mx-auto py-10 px-4">
       <h1 className="font-display text-3xl font-bold mb-4 text-primary">{component.title}</h1>
-      <div className="mb-6">
-        <Image src={component.image} alt={component.title} width={600} height={300} className="rounded-lg object-cover w-full h-64" />
+      <div className="flex flex-col md:flex-row md:items-start md:gap-8 mb-6">
+        <div className="flex-shrink-0 mb-4 md:mb-0 md:w-[350px]">
+          <Image
+            src={component.image}
+            alt={component.title}
+            width={350}
+            height={220}
+            className="rounded-lg object-contain border shadow w-full h-auto"
+            style={{ background: '#fff', maxHeight: '220px', maxWidth: '350px' }}
+          />
+        </div>
+        <div className="flex-1">
+          <div className="mb-4">
+            <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">{component.category}</span>
+          </div>
+          <p className="text-lg text-muted-foreground mb-6">{component.fullDescription}</p>
+        </div>
       </div>
-      <div className="mb-4">
-        <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">{component.category}</span>
-      </div>
-      <p className="text-lg text-muted-foreground mb-6">{component.fullDescription}</p>
       <section className="mb-8">
         <h2 className="font-semibold text-xl mb-2">{t('benefits')}</h2>
         <ul className="list-disc pl-6 space-y-1">
@@ -220,7 +231,7 @@ const schemeDetails = [
     description:
       "Infertility among cows and buffaloes is a major issue. 2,00,000 cows/buffaloes will receive hormonal therapy and traditional treatment.",
     details: [
-      "Physical targets set for each district for three years.",
+      "Physical targets set for each district for.",
       "Treatments provided through veterinary dispensaries.",
       "Service fees as per government norms will apply.",
       "Records of treated animals and successful conceptions maintained by District Deputy Commissioners.",

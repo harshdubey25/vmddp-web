@@ -53,9 +53,14 @@ export default function Footer() {
           <div>
             <h4 className="font-display font-semibold mb-4">{t('footer_contact_info')}</h4>
             <div className="flex items-start gap-3 text-sm">
-              <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+              <MapPin className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
               <p className="text-white">
-                {t('footer_address')}
+                {t('footer_address').split('\n').map((line, idx) => (
+                  <span key={idx}>
+                    {line}
+                    {idx !== t('footer_address').split('\n').length - 1 && <br />}
+                  </span>
+                ))}
               </p>
             </div>
           </div>

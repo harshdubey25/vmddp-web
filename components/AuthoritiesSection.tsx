@@ -55,7 +55,7 @@ const authorities = [
   {
     name: "डॉ. संजय गोराणी",
     designation: "Hon. Project Director\nVidarbha And Marathwada Dairy development Project",
-    image: "member_9.jpg",
+    image: "member_head.png",
   },
 ];
 
