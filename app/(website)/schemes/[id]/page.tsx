@@ -16,29 +16,18 @@ export default function SchemeComponentPage({ params }: { params: { id: string }
 
   return (
     <main className="max-w-4xl mx-auto py-10 px-4">
-      <h1 className="font-display text-3xl font-bold mb-4 text-primary">{component.title}</h1>
-      <div className="flex flex-col md:flex-row md:items-start md:gap-8 mb-6">
-        <div className="flex-shrink-0 mb-4 md:mb-0 md:w-[350px]">
-          <Image
-            src={component.image}
-            alt={component.title}
-            width={350}
-            height={220}
-            className="rounded-lg object-contain border shadow w-full h-auto"
-            style={{ background: '#fff', maxHeight: '220px', maxWidth: '350px' }}
-          />
-        </div>
-        <div className="flex-1">
-          <div className="mb-4">
-            <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">{component.category}</span>
-          </div>
-          <p className="text-lg text-muted-foreground mb-6">{component.fullDescription}</p>
-        </div>
+      <h1 className="font-display text-3xl font-bold mb-4 text-primary">{t(`schemes.${component.id}.title`)}</h1>
+      <div className="mb-6">
+        <Image src={component.image} alt={t(`schemes.${component.id}.title`)} width={600} height={300} className="rounded-lg object-cover w-full h-64" />
       </div>
+      <div className="mb-4">
+        <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">{component.category}</span>
+      </div>
+      <p className="text-lg text-muted-foreground mb-6">{t(`schemes.${component.id}.fullDescription`)}</p>
       <section className="mb-8">
         <h2 className="font-semibold text-xl mb-2">{t('benefits')}</h2>
         <ul className="list-disc pl-6 space-y-1">
-          {component.benefits.map((benefit, i) => (
+          {(t(`schemes.${component.id}.benefits`, { returnObjects: true }) as string[]).map((benefit: string, i: number) => (
             <li key={i}>{benefit}</li>
           ))}
         </ul>
@@ -46,7 +35,7 @@ export default function SchemeComponentPage({ params }: { params: { id: string }
       <section className="mb-8">
         <h2 className="font-semibold text-xl mb-2">{t('eligibility_criteria')}</h2>
         <ul className="list-disc pl-6 space-y-1">
-          {component.eligibilityCriteria.map((criteria, i) => (
+          {(t(`schemes.${component.id}.eligibilityCriteria`, { returnObjects: true }) as string[]).map((criteria: string, i: number) => (
             <li key={i}>{criteria}</li>
           ))}
         </ul>
@@ -54,16 +43,16 @@ export default function SchemeComponentPage({ params }: { params: { id: string }
       <section className="mb-8">
         <h2 className="font-semibold text-xl mb-2">{t('subsidy_information')}</h2>
         <div className="bg-muted/10 p-4 rounded-lg">
-          <p><strong>{t('amount')}:</strong> {component.subsidyInfo.amount}</p>
-          {component.subsidyInfo.percentage && <p><strong>{t('percentage')}:</strong> {component.subsidyInfo.percentage}</p>}
-          <p><strong>{t('details')}:</strong> {component.subsidyInfo.details}</p>
+          <p><strong>{t('amount')}:</strong> {(t(`schemes.${component.id}.subsidyInfo`, { returnObjects: true }) as any).amount}</p>
+          {(t(`schemes.${component.id}.subsidyInfo`, { returnObjects: true }) as any).percentage && <p><strong>{t('percentage')}:</strong> {(t(`schemes.${component.id}.subsidyInfo`, { returnObjects: true }) as any).percentage}</p>}
+          <p><strong>{t('details')}:</strong> {(t(`schemes.${component.id}.subsidyInfo`, { returnObjects: true }) as any).details}</p>
         </div>
       </section>
       {component.termsAndConditions && (
         <section className="mb-8">
           <h2 className="font-semibold text-xl mb-2">{t('terms_conditions')}</h2>
           <ul className="list-disc pl-6 space-y-1">
-            {component.termsAndConditions.map((term, i) => (
+            {(t(`schemes.${component.id}.termsAndConditions`, { returnObjects: true }) as string[]).map((term: string, i: number) => (
               <li key={i}>{term}</li>
             ))}
           </ul>
@@ -72,7 +61,7 @@ export default function SchemeComponentPage({ params }: { params: { id: string }
       <section className="mb-8">
         <h2 className="font-semibold text-xl mb-2">{t('required_documents')}</h2>
         <ul className="list-disc pl-6 space-y-1">
-          {component.requiredDocuments.map((doc, i) => (
+          {(t(`schemes.${component.id}.requiredDocuments`, { returnObjects: true }) as string[]).map((doc: string, i: number) => (
             <li key={i}>{doc}</li>
           ))}
         </ul>
@@ -80,16 +69,16 @@ export default function SchemeComponentPage({ params }: { params: { id: string }
       <section className="mb-8">
         <h2 className="font-semibold text-xl mb-2">{t('application_guidelines')}</h2>
         <ul className="list-disc pl-6 space-y-1">
-          {component.applicationGuidelines.map((guide, i) => (
+          {(t(`schemes.${component.id}.applicationGuidelines`, { returnObjects: true }) as string[]).map((guide: string, i: number) => (
             <li key={i}>{guide}</li>
           ))}
         </ul>
       </section>
       {component.targetBeneficiaries && (
-        <p className="mb-2"><strong>{t('target_beneficiaries')}:</strong> {component.targetBeneficiaries}</p>
+        <p className="mb-2"><strong>{t('target_beneficiaries')}:</strong> {t(`schemes.${component.id}.targetBeneficiaries`)}</p>
       )}
       {component.coverage && (
-        <p className="mb-2"><strong>{t('coverage')}:</strong> {component.coverage}</p>
+        <p className="mb-2"><strong>{t('coverage')}:</strong> {t(`schemes.${component.id}.coverage`)}</p>
       )}
     </main>
   );
