@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { MapPin } from "lucide-react";
-import { getServerTranslations } from '@/lib/server-translations';
+import { useTranslation } from "react-i18next";
 
 export default async function Footer() {
-  const { t } = await getServerTranslations();
+  const { t } = useTranslation('common');
   return (
     <footer className="relative bg-muted/50 border-t overflow-hidden text-white">
       {/* Background Image */}
