@@ -185,5 +185,16 @@
   "taluka": "तालुका",
   "taluka_required": "तालुका आवश्यक आहे",
   "village": "गाव",
-  "village_required": "गाव आवश्यक आहे"
+  "village_required": "गाव आवश्यक आहे",
+  "benefits": "फायदे",
+  "eligibility_criteria": "पात्रता निकष",
+  "subsidy_information": "अनुदान माहिती",
+  "terms_conditions": "अटी आणि शर्ती",
+  "required_documents": "आवश्यक कागदपत्रे",
+  "application_guidelines": "अर्ज मार्गदर्शक तत्त्वे",
+  "target_beneficiaries": "लक्ष्यित लाभार्थी",
+  "coverage": "व्याप्ती",
+  "amount": "रक्कम",
+  "percentage": "टक्केवारी",
+  "details": "तपशील"
 }

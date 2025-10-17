@@ -62,7 +62,7 @@ export default function TrackResultPage() {
           // Single application response
           const app: Application = {
             ...response.message,
-            status: response.message.status as Application["status"],
+            status: response.message.status.toLowerCase() as Application["status"],
           };
           setApplications([app]);
           setSelectedApp(app);
@@ -70,7 +70,7 @@ export default function TrackResultPage() {
           // Array response (if API returns multiple)
           const apps: Application[] = (response.message || []).map((app: any) => ({
             ...app,
-            status: app.status as Application["status"],
+            status: app.status.toLowerCase() as Application["status"],
           }));
           setApplications(apps);
           if (apps.length === 1) {
@@ -202,13 +202,15 @@ export default function TrackResultPage() {
         <Separator />
 
         {/* Rejection Reason */}
-        {app.status === "rejected" && app.rejectionReason && (
+        {app.status === "rejected" && (
           <>
             <div className="flex items-start gap-3 p-4 border border-destructive/30 rounded-lg bg-destructive/5">
               <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold text-sm">Reason for Rejection</p>
-                <p className="text-sm text-muted-foreground mt-1">{app.rejectionReason}</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {app.rejectionReason || "No specific reason provided"}
+                </p>
               </div>
             </div>
             <Separator />

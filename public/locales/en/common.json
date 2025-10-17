@@ -185,5 +185,16 @@
   "taluka": "Taluka",
   "taluka_required": "Taluka is required",
   "village": "Village",
-  "village_required": "Village is required"
+  "village_required": "Village is required",
+  "benefits": "Benefits",
+  "eligibility_criteria": "Eligibility Criteria",
+  "subsidy_information": "Subsidy Information",
+  "terms_conditions": "Terms & Conditions",
+  "required_documents": "Required Documents",
+  "application_guidelines": "Application Guidelines",
+  "target_beneficiaries": "Target Beneficiaries",
+  "coverage": "Coverage",
+  "amount": "Amount",
+  "percentage": "Percentage",
+  "details": "Details"
 }
