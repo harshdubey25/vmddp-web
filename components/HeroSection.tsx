@@ -16,7 +16,7 @@ export default function HeroSection() {
     { value: "9", label: t("components"), icon: Package },
   ];
 
-  const heroBackground = "/cow-shed-1_1760444698185.webp";
+  const heroBackground = "/cow-2755520_640_1759736734695.jpg";
 
   return (
     <section className="relative bg-gradient-to-br from-primary/95 to-primary text-primary-foreground overflow-hidden">
