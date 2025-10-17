@@ -78,6 +78,38 @@ const BankDetailsStep = ({ control, errors, setValue }: Props) => {
           />
           {errors.accountNumber && <span className="text-red-500 text-xs">{errors.accountNumber.message}</span>}
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="confirmAccountNumber">Confirm Account Number *</Label>
+          <Controller
+            name="confirmAccountNumber"
+            control={control}
+            rules={{
+              required: "Confirm Account Number is required",
+              pattern: { value: /^[0-9]+$/, message: "Account Number must be numeric" },
+              validate: (value, formValues) => {
+                const accountNumber = control._formValues?.accountNumber;
+                if (accountNumber && value !== accountNumber) {
+                  return "Account numbers do not match";
+                }
+                return true;
+              }
+            }}
+            render={({ field }) => {
+              const accountNumber = control._formValues?.accountNumber;
+              const isMismatch = field.value && accountNumber && field.value !== accountNumber;
+              return (
+                <Input
+                  {...field}
+                  id="confirmAccountNumber"
+                  data-testid="input-confirm-account-number"
+                  className={isMismatch ? "border-red-500 focus:border-red-500" : ""}
+                  type="password"
+                />
+              );
+            }}
+          />
+          {errors.confirmAccountNumber && <span className="text-red-500 text-xs">{errors.confirmAccountNumber.message}</span>}
+        </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">

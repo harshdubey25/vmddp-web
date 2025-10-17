@@ -7,17 +7,66 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { z } from "zod";
+
+const contactFormSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    // email: z.string().email("Please enter a valid email address"),
+    mobile: z.string()
+        .regex(/^[0-9]{10}$/, "Mobile number must be exactly 10 digits")
+        .refine(val => /^[6-9]/.test(val), { message: "Mobile number must start with 6, 7, 8, or 9" }),
+    districtId: z.string().min(1, "Please select a district"),
+    message: z.string().min(10, "Message must be at least 10 characters"),
+});
 
 export default function Contact() {
     const { toast } = useToast();
+    const [selectedDistrict, setSelectedDistrict] = useState<string>("all");
+    const [sent, setSent] = useState(false);
+    const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm({
+        resolver: zodResolver(contactFormSchema),
+        defaultValues: {
+            name: "",
+            // email: "",
+            mobile: "",
+            districtId: "",
+            message: "",
+        },
+    });
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        toast({
-            title: "Message Sent",
-            description: "Thank you for contacting us. We will get back to you soon.",
-        });
-        console.log("Contact form submitted");
+    const { data: frappeDistricts, isLoading: districtsLoading } = useFrappeGetDocList("District Master", {
+        fields: ["name1"],
+        limit: 100,
+    });
+    const districts = frappeDistricts ? frappeDistricts.map((d: any) => d.name1) : [];
+
+    const { createDoc, loading: creatingDoc } = useFrappeCreateDoc();
+
+    const onSubmit = async (data: any) => {
+        try {
+            await createDoc("Contact Us", {
+                district: data.districtId,
+                full_name: data.name,
+                mobile_number: data.mobile,
+                message: data.message,
+            });
+            toast({
+                title: "Message Sent",
+                description: "Thank you for contacting us. We will get back to you soon.",
+            });
+            setSent(true);
+            reset();
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to send message. Please try again.",
+                variant: "destructive",
+            });
+        }
     };
 
     return (
@@ -25,10 +74,10 @@ export default function Contact() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-10">
                     <h1 className="font-display font-semibold text-2xl sm:text-3xl mb-3" data-testid="text-contact-title">
-                        Contact Us
+                        Contact District Programme Officer
                     </h1>
                     <p className="text-muted-foreground max-w-2xl mx-auto">
-                        Have questions? We&apos;re here to help and answer any questions you may have
+                        Select your district and send a message to your local DPO for assistance with dairy schemes
                     </p>
                 </div>
 
@@ -36,15 +85,16 @@ export default function Contact() {
                     <div className="lg:col-span-1 space-y-6">
                         <Card data-testid="card-contact-info">
                             <CardContent className="p-6">
-                                <h3 className="font-display font-semibold text-lg mb-4">Get in Touch</h3>
+                                <h3 className="font-display font-semibold text-lg mb-4">Programme Office</h3>
                                 <div className="space-y-4">
                                     <div className="flex items-start gap-3">
                                         <MapPin className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                                         <div>
                                             <p className="font-semibold text-sm mb-1">Main Office</p>
                                             <p className="text-sm text-muted-foreground">
-                                                410, Orange Hive, LIC Colony<br />
-                                                Mowa, Raipur, Chhattisgarh 492001
+                                                Animal Husbandry Department<br />
+                                                Maharashtra Government<br />
+                                                Nagpur, Maharashtra
                                             </p>
                                         </div>
                                     </div>
@@ -52,14 +102,14 @@ export default function Contact() {
                                         <Phone className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                                         <div>
                                             <p className="font-semibold text-sm mb-1">Phone</p>
-                                            <p className="text-sm text-muted-foreground">+91 97659 38837</p>
+                                            <p className="text-sm text-muted-foreground">1800-XXX-XXXX</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3">
                                         <Mail className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                                         <div>
                                             <p className="font-semibold text-sm mb-1">Email</p>
-                                            <p className="text-sm text-muted-foreground">support@klaimify.in</p>
+                                            <p className="text-sm text-muted-foreground">vmddp@maharashtra.gov.in</p>
                                         </div>
                                     </div>
                                 </div>
@@ -82,20 +132,49 @@ export default function Contact() {
                         <Card>
                             <CardContent className="p-6">
                                 <h3 className="font-display font-semibold text-lg mb-6">Send us a Message</h3>
-                                <form onSubmit={handleSubmit} className="space-y-6">
+                                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="contact-name">Name *</Label>
-                                            <Input id="contact-name" data-testid="input-contact-name" required />
+                                            <Label htmlFor="contact-name">Full Name *</Label>
+                                            <Input id="contact-name" data-testid="input-contact-name" required {...register("name")} />
+                                            {errors.name && <div className="text-red-600 text-sm mt-1">{errors.name.message as string}</div>}
+                                        </div>
+
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="contact-mobile">Mobile Number *</Label>
+                                            <Input
+                                                id="contact-mobile"
+                                                type="tel"
+                                                data-testid="input-contact-mobile"
+                                                required
+                                                maxLength={10}
+                                                pattern="[0-9]{10}"
+                                                inputMode="numeric"
+                                                {...register("mobile")}
+                                            />
+                                            {errors.mobile && <div className="text-red-600 text-sm mt-1">{errors.mobile.message as string}</div>}
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="contact-email">Email *</Label>
-                                            <Input id="contact-email" type="email" data-testid="input-contact-email" required />
+                                            <Label htmlFor="contact-district">Select District</Label>
+                                            <select
+                                                id="contact-district"
+                                                className="w-full border rounded px-3 py-2 mt-1"
+                                                {...register("districtId")}
+                                                required
+                                            >
+                                                <option value="">Select District</option>
+                                                {districtsLoading ? (
+                                                    <option value="" disabled>Loading...</option>
+                                                ) : (
+                                                    districts.map((district: string) => (
+                                                        <option key={district} value={district}>{district}</option>
+                                                    ))
+                                                )}
+                                            </select>
+                                            {errors.districtId && <div className="text-red-600 text-sm mt-1">{errors.districtId.message as string}</div>}
                                         </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="contact-subject">Subject *</Label>
-                                        <Input id="contact-subject" data-testid="input-contact-subject" required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="contact-message">Message *</Label>
@@ -104,11 +183,14 @@ export default function Contact() {
                                             rows={6}
                                             data-testid="textarea-contact-message"
                                             required
+                                            {...register("message")}
                                         />
+                                        {errors.message && <div className="text-red-600 text-sm mt-1">{errors.message.message as string}</div>}
                                     </div>
-                                    <Button type="submit" className="w-full sm:w-auto" data-testid="button-contact-submit">
-                                        Send Message
+                                    <Button type="submit" className="w-full sm:w-auto" data-testid="button-contact-submit" disabled={creatingDoc}>
+                                        {creatingDoc ? "Sending..." : "Send Message To DPO"}
                                     </Button>
+                                    {sent && <div className="text-green-600 text-center mt-2">Message sent successfully!</div>}
                                 </form>
                             </CardContent>
                         </Card>
