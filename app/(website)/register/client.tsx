@@ -55,7 +55,7 @@ type RegisterFormValues = {
 
 export default function RegisterClient({ criteriaFields }: { criteriaFields: any[] }) {
 
-    const [currentStep, setCurrentStep] = useState(2);
+    const [currentStep, setCurrentStep] = useState(1);
     const [agreed, setAgreed] = useState(false);
     const [familyMemberCount, setFamilyMemberCount] = useState<number>(0);
     const [components, setComponents] = useState<any[]>([]);
