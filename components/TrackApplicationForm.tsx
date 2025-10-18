@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Search } from "lucide-react";
 
 const TrackApplicationForm = () => {
+  const { t } = useTranslation('common');
   const router = useRouter();
   const [trackBy, setTrackBy] = useState<"mobile" | "applicationId">("mobile");
   const [value, setValue] = useState("");
@@ -26,15 +28,15 @@ const TrackApplicationForm = () => {
   return (
     <Card className="max-w-2xl mx-auto" data-testid="card-track-application">
       <CardHeader>
-        <CardTitle className="font-display">Track Your Application</CardTitle>
+        <CardTitle className="font-display">{t('track_title')}</CardTitle>
         <CardDescription>
-          Check the status of your VMDDP scheme application
+          {t('track_application_status')}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
-            <Label>Track application by</Label>
+            <Label>{t('track_by')}</Label>
             <RadioGroup
               value={trackBy}
               onValueChange={(val) => setTrackBy(val as "mobile" | "applicationId")}
@@ -42,13 +44,13 @@ const TrackApplicationForm = () => {
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="mobile" id="mobile" data-testid="radio-mobile" />
                 <Label htmlFor="mobile" className="font-normal cursor-pointer">
-                  Mobile Number (Recommended)
+                  {t('mobile_number_recommended')}
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="applicationId" id="applicationId" data-testid="radio-application-id" />
                 <Label htmlFor="applicationId" className="font-normal cursor-pointer">
-                  Application ID
+                  {t('application_id')}
                 </Label>
               </div>
             </RadioGroup>
@@ -56,15 +58,15 @@ const TrackApplicationForm = () => {
 
           <div className="space-y-2">
             <Label htmlFor="trackValue">
-              {trackBy === "mobile" ? "Mobile Number" : "Application ID"}
+              {trackBy === "mobile" ? t('mobile_number') : t('application_id')}
             </Label>
             <Input
               id="trackValue"
               type={trackBy === "mobile" ? "tel" : "text"}
               placeholder={
                 trackBy === "mobile"
-                  ? "Enter your registered mobile number"
-                  : "Enter your application ID"
+                  ? t('enter_mobile_number')
+                  : t('enter_application_id')
               }
               value={value}
               onChange={(e) => setValue(e.target.value)}
@@ -74,7 +76,7 @@ const TrackApplicationForm = () => {
 
           <Button type="submit" className="w-full" data-testid="button-track-submit">
             <Search className="mr-2 w-4 h-4" />
-            Track Application
+            {t('track_application')}
           </Button>
         </form>
       </CardContent>

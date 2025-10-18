@@ -39,7 +39,7 @@ const galleryCategories = [
         titleKey: "gallery_infrastructure_title",
         descriptionKey: "gallery_infrastructure_desc",
         images: [
-            "/cow-shed-1_1759736734696.webp",
+            "/cow-shed-1_1760444698185.webp",
             "/cow-2755520_640_1759736734695.jpg",
         ],
     },

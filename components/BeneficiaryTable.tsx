@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 interface BeneficiaryData {
   district: string;
@@ -25,6 +26,7 @@ interface BeneficiaryTableProps {
 }
 
 export default function BeneficiaryTable({ data }: BeneficiaryTableProps) {
+  const { t } = useTranslation('common');
   const router = useRouter();
 
   const handleRowClick = (district: string, component: string) => {
@@ -34,20 +36,20 @@ export default function BeneficiaryTable({ data }: BeneficiaryTableProps) {
   return (
     <Card data-testid="card-beneficiary-table">
       <CardHeader>
-        <CardTitle className="font-display">Application Statistics</CardTitle>
-        <CardDescription>District and component-wise application status • Click row for details</CardDescription>
+        <CardTitle className="font-display">{t('application_statistics')}</CardTitle>
+        <CardDescription>{t('district_component_wise_status')} • {t('click_row_for_details')}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="font-semibold">District</TableHead>
-                <TableHead className="font-semibold">Component</TableHead>
-                <TableHead className="text-center font-semibold">Pending</TableHead>
-                <TableHead className="text-center font-semibold">Approved</TableHead>
-                <TableHead className="text-center font-semibold">Selected</TableHead>
-                <TableHead className="text-center font-semibold">Rejected</TableHead>
+                <TableHead className="font-semibold">{t('district')}</TableHead>
+                <TableHead className="font-semibold">{t('component')}</TableHead>
+                <TableHead className="text-center font-semibold">{t('pending')}</TableHead>
+                <TableHead className="text-center font-semibold">{t('approved')}</TableHead>
+                <TableHead className="text-center font-semibold">{t('selected')}</TableHead>
+                <TableHead className="text-center font-semibold">{t('rejected')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

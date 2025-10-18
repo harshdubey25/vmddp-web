@@ -77,11 +77,11 @@ export default function Beneficiaries() {
                             </SelectTrigger>
                             <SelectContent>
                                 {districtsLoading ? (
-                                    <SelectItem value="all">Loading...</SelectItem>
+                                    <SelectItem value="all">{t('loading')}</SelectItem>
                                 ) : (
                                     districts.map(district => (
                                         <SelectItem key={district} value={district}>
-                                            {district === "all" ? "All Districts" : district}
+                                            {district === "all" ? t('all_districts') : district}
                                         </SelectItem>
                                     ))
                                 )}
@@ -97,11 +97,11 @@ export default function Beneficiaries() {
                             </SelectTrigger>
                             <SelectContent>
                                 {componentsLoading ? (
-                                    <SelectItem value="all">Loading...</SelectItem>
+                                    <SelectItem value="all">{t('loading')}</SelectItem>
                                 ) : (
                                     components.map(component => (
                                         <SelectItem key={component} value={component}>
-                                            {component === "all" ? "All Components" : component}
+                                            {component === "all" ? t('all_components') : component}
                                         </SelectItem>
                                     ))
                                 )}
