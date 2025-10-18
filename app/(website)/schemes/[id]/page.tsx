@@ -17,7 +17,7 @@ export default function SchemeComponentPage({ params }: { params: { id: string }
   return (
     <main className="max-w-4xl mx-auto py-10 px-4">
       <h1 className="font-display text-3xl font-bold mb-4 text-primary">{t(`schemes.${component.id}.title`)}</h1>
-<div className="flex flex-col md:flex-row md:items-start md:gap-8 mb-6">
+      <div className="flex flex-col md:flex-row md:items-start md:gap-8 mb-6">
         <div className="flex-shrink-0 mb-4 md:mb-0 md:w-[350px]">
           <Image
             src={component.image}
@@ -32,9 +32,9 @@ export default function SchemeComponentPage({ params }: { params: { id: string }
           <div className="mb-4">
             <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">{component.category}</span>
           </div>
-          <p className="text-lg text-muted-foreground mb-6">{component.fullDescription}</p>
+          <p className="text-lg text-muted-foreground mb-6">{t(`schemes.${component.id}.fullDescription`)}</p>
         </div>
-        </div>
+      </div>
       <section className="mb-8">
         <h2 className="font-semibold text-xl mb-2">{t('benefits')}</h2>
         <ul className="list-disc pl-6 space-y-1">
@@ -250,8 +250,9 @@ const schemeDetails = [
   }
 ];
 
-export function SchemeDetailPage({ params }: { params: { id: string } }) {
-  const scheme = schemeDetails.find(s => s.id === Number(params.id));
+export async function SchemeDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const scheme = schemeDetails.find(s => s.id === Number(id));
   if (!scheme) return notFound();
 
   return (
