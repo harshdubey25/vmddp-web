@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,8 +11,7 @@ import {
 } from "lucide-react";
 import { DashboardClient } from "./client";
 import { Header } from "./header";
-import { frappeServer } from "@/lib/frappe";
-import { cookies } from 'next/headers';
+import { getFrappeWithUserToken } from "@/lib/frappeHelper";
 
 export const runtime = 'edge';
 
@@ -26,77 +24,24 @@ interface Application {
     date: string;
 }
 
-// Server-side function to get current user district
-async function getCurrentUserDistrict(): Promise<string | null> {
-    try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('frappe_access_token')?.value;
-
-        if (!token) {
-            return null;
-        }
-
-        // Get logged in user
-        const userResp = await fetch(
-            `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/frappe.auth.get_logged_user`,
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        if (!userResp.ok) {
-            return null;
-        }
-
-        const userData = await userResp.json();
-        const userId = userData.message;
-
-        // Get user details including district
-        const userDetailsResp = await fetch(
-            `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/vmddp_app.api.user.get_user_details?user_id=${userId}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        if (userDetailsResp.ok) {
-            const userDetails = await userDetailsResp.json();
-            return userDetails.message?.dpo?.district || null;
-        }
-
-        return null;
-    } catch (error) {
-        console.error('Error getting current user district:', error);
-        return null;
-    }
-}
 
 export default async function SubAdminDashboard() {
-    // Get current user's district
-    const userDistrict = await getCurrentUserDistrict();
 
-    // Fetch applications with district filter if user district is available
-    const filters: any = { doctype: 'App Form', limit: 5 };
-    if (userDistrict) {
-        filters.filters = { district: userDistrict };
-    }
-
-    const response = await frappeServer.call().get('vmddp_app.api.api.get_all_docs_with_children', filters);
+    const frappe = await getFrappeWithUserToken();
+    const response = await frappe.call().get('vmddp_app.api.api.get_applications_summary', { limit: 5 });
     console.log("Fetched applications:", response);
 
     // Process applications data
-    const applications: Application[] = (response || []).message.map((app: any): Application => {
+    const applications: Application[] = (response || []).message.applications.map((app: any): Application => {
         const applicant = [app.first_name, app.mid_name, app.last_name].filter(Boolean).join(' ') || 'Unknown';
         const component = app.components?.[0]?.component || 'N/A';
-        // Use the status field directly from the API response
-        const status: 'Approved' | 'Pending' | 'Rejected' | 'Selected' = app.status === 'pending' ? 'Pending' :
-            app.status === 'approved' ? 'Approved' :
-                app.status === 'rejected' ? 'Rejected' :
-                    app.status === 'selected' ? 'Selected' : 'Pending';
-        const date = new Date(app.creation).toISOString().split('T')[0];
         return {
             id: app.name,
-            applicant,
-            component,
+            applicant: app.fullname,
+            component: app.component_list,
             village: app.village || 'N/A',
             status: app.status,
-            date,
+            date: app.date,
         };
     });
 
@@ -150,7 +95,7 @@ export default async function SubAdminDashboard() {
     // Get recent applications (last 3, sorted by date desc)
     const recentApplications = applications
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 3);
+        ;
 
     const getStatusBadge = (status: string) => {
         const variants: Record<string, { variant: string; className: string }> = {

@@ -32,6 +32,7 @@ const adminMenuItems = [
 const subAdminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/subadmin/dashboard" },
   { icon: FileText, label: "Applications", path: "/subadmin/applications" },
+  { icon: FileText, label: "Selection", path: "/subadmin/selection" },
   { icon: FileText, label: "Messages", path: "/subadmin/messages" },
 ]
 // {icon:FileText,label:"Reports",path:"/subadmin/reports" }

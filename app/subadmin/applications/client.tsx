@@ -1,6 +1,6 @@
 "use client"
 // ...existing code...
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +40,19 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { frappeBrowser } from "@/lib/frappe";
+import { useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
 
+// Lightweight interface for list view
+interface ApplicationListItem {
+    id: string;
+    applicantName: string;
+    village: string;
+    component: string;
+    status: "Approved" | "Pending" | "Rejected" | "Selected";
+    submittedDate: string;
+}
+
+// Full interface for detail view
 interface Application {
     id: string;
     applicantName: string;
@@ -82,7 +94,7 @@ interface Application {
 }
 
 interface SubAdminApplicationsClientProps {
-    applications: Application[];
+    applications: ApplicationListItem[];
 }
 
 export default function SubAdminApplicationsClient({ applications: initialApplications }: SubAdminApplicationsClientProps) {
@@ -94,13 +106,148 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
     const [showReviewDialog, setShowReviewDialog] = useState(false);
     const [reviewAction, setReviewAction] = useState<"Approved" | "Rejected" | null>(null);
     const [remarks, setRemarks] = useState("");
-    const [applications, setApplications] = useState<Application[]>(initialApplications);
+    const [applications, setApplications] = useState<ApplicationListItem[]>(initialApplications);
+    const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
 
     // Mock zone - in real app, this would come from auth context
     const assignedZone = {
         district: "Nagpur",
         taluka: "Nagpur Rural",
     };
+
+    // Use Frappe hook to fetch document details
+    const { data: doc, isLoading: isLoadingDetails, error: docError } = useFrappeGetDoc<any>(
+        'App Form',
+        selectedAppId || undefined,
+        selectedAppId ? undefined : null // Don't fetch if no ID is selected
+    );
+
+    // Update doc for status changes
+    const { updateDoc } = useFrappeUpdateDoc();
+
+    // Transform Frappe document to Application interface when doc changes
+    useEffect(() => {
+        if (doc && selectedAppId) {
+            console.log('Fetched application details:', doc);
+
+            // Map the Frappe document to Application interface
+            const component_list = Array.isArray(doc.component_list)
+                ? doc.component_list.map((comp: any) => comp).join(', ')
+                : 'N/A';
+
+            const submittedDate = doc.creation
+                ? new Date(doc.creation).toISOString().split('T')[0]
+                : new Date().toISOString().split('T')[0];
+
+            // Documents: collect known file fields
+            const documents: { name: string; uploaded: boolean; url?: string }[] = [];
+            if (doc.self_ration_card_image) {
+                documents.push({ name: 'Self Ration Card', uploaded: true, url: doc.self_ration_card_image });
+            }
+            if (doc.family_ration_card_image) {
+                documents.push({ name: 'Family Ration Card', uploaded: true, url: doc.family_ration_card_image });
+            }
+            if (doc.aadhar_image && typeof doc.aadhar_image === 'string' && doc.aadhar_image.startsWith('http')) {
+                documents.push({ name: 'Aadhar Card', uploaded: true, url: doc.aadhar_image });
+            }
+
+            // Check component responses for additional documents
+            if (Array.isArray(doc.components)) {
+                doc.components.forEach((component: any) => {
+                    if (component.response && typeof component.response === 'string') {
+                        try {
+                            const responseData = JSON.parse(component.response);
+                            if (typeof responseData === 'object' && responseData !== null) {
+                                if (responseData.aadhar_image && typeof responseData.aadhar_image === 'string') {
+                                    documents.push({
+                                        name: `${component.component} - Aadhaar Card`,
+                                        uploaded: true,
+                                        url: responseData.aadhar_image
+                                    });
+                                }
+                            }
+                        } catch (e) {
+                            // Ignore parsing errors
+                        }
+                    }
+                });
+            }
+
+            // Family aadhar numbers
+            const familyAadharNumbers: string[] = [];
+            if (doc.family_member_aadhar_number) {
+                if (Array.isArray(doc.family_member_aadhar_number)) {
+                    familyAadharNumbers.push(...doc.family_member_aadhar_number.filter(Boolean).map(String));
+                } else if (typeof doc.family_member_aadhar_number === 'string') {
+                    const parts = doc.family_member_aadhar_number.split(',').map((s: string) => s.trim()).filter(Boolean);
+                    familyAadharNumbers.push(...parts);
+                }
+            }
+
+            // Map criteria
+            const criteria: { label: string; value: string | number | null; response?: any }[] = [];
+            if (Array.isArray(doc.criteria)) {
+                doc.criteria.forEach((crit: any) => {
+                    criteria.push({
+                        label: crit.criteria || '',
+                        value: crit.value,
+                        response: crit.response
+                    });
+                });
+            }
+
+            const fullApplication: Application = {
+                id: doc.name,
+                applicantName: doc.fullname,
+                fatherName: doc.father_name || doc.father || 'N/A',
+                mobile: doc.mobile_number || '',
+                district: doc.district || 'N/A',
+                taluka: doc.taluka || 'N/A',
+                village: doc.village || 'N/A',
+                component: component_list,
+                status: doc.status,
+                submittedDate,
+                animalCount: doc.number_of_animals ? parseInt(doc.number_of_animals) : undefined,
+                approver: doc.approver || undefined,
+                gender: doc.gender || 'N/A',
+                caste: doc.category || 'N/A',
+                aadharNumber: (doc.aadhar_number && typeof doc.aadhar_number === 'string' && doc.aadhar_number.startsWith('http'))
+                    ? doc.aadhar_number
+                    : (doc.aadhar_number || ''),
+                rationCardMembers: parseInt(doc.number_of_members_in_ration_card) || 0,
+                familyAadharNumbers,
+                animalTagNumber: undefined,
+                landHolding: parseFloat(doc.land_holding) || 0,
+                khasraNumber: doc.khasra_number || 'N/A',
+                milkPouringPoint: doc.milk_pouring_point || 'N/A',
+                farmerPourerCode: doc.farmer_pourer_code || 'N/A',
+                components: Array.isArray(doc.components)
+                    ? doc.components.map((c: any) => ({
+                        name: c.name,
+                        component: c.component,
+                        response: c.response
+                    }))
+                    : [],
+                documents,
+                criteria
+            };
+
+            setSelectedApp(fullApplication);
+        }
+    }, [doc, selectedAppId]);
+
+    // Handle errors from doc fetch
+    useEffect(() => {
+        if (docError) {
+            console.error('Error fetching application details:', docError);
+            toast({
+                title: "Error",
+                description: "Failed to load application details. Please try again.",
+                variant: "destructive",
+            });
+            setSelectedAppId(null);
+        }
+    }, [docError, toast]);
 
     // Remove the hardcoded applications array
 
@@ -129,8 +276,9 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
         );
     };
 
-    const handleViewDetails = (app: Application) => {
-        setSelectedApp(app);
+    const handleViewDetails = (app: ApplicationListItem) => {
+        // Set the app ID to trigger the useFrappeGetDoc hook
+        setSelectedAppId(app.id);
     };
 
     const handleReview = (action: "Approved" | "Rejected") => {
@@ -142,8 +290,8 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
         if (!selectedApp || !reviewAction) return;
 
         try {
-            // Update the App Form doctype via API
-            await frappeBrowser.db().updateDoc('App Form', selectedApp.id, {
+            // Update the App Form doctype via Frappe hook
+            await updateDoc('App Form', selectedApp.id, {
                 status: reviewAction,
                 remarks: remarks,
             });
@@ -155,11 +303,17 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
                         ? {
                             ...app,
                             status: reviewAction === "Approved" ? "Approved" : "Rejected",
-                            approver: `DPO ${assignedZone.taluka}`
                         }
                         : app
                 )
             );
+
+            // Update the selected app status as well
+            setSelectedApp({
+                ...selectedApp,
+                status: reviewAction === "Approved" ? "Approved" : "Rejected",
+                approver: `DPO ${assignedZone.taluka}`
+            });
 
             toast({
                 title: reviewAction === "Approved" ? "Application Approved" : "Application Rejected",
@@ -167,7 +321,6 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
             });
 
             setShowReviewDialog(false);
-            setSelectedApp(null);
             setRemarks("");
             setReviewAction(null);
         } catch (error) {
@@ -267,14 +420,13 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
                                                         <td className="p-4">
                                                             <div>
                                                                 <p className="font-medium text-sm">{app.applicantName}</p>
-                                                                <p className="text-xs text-muted-foreground">{app.mobile}</p>
                                                             </div>
                                                         </td>
                                                         <td className="p-4">
                                                             <p className="text-sm">{app.village}</p>
                                                         </td>
-                                                        <td className="p-4">
-                                                            <p className="text-sm">{app.component}</p>
+                                                        <td className="p-4 max-w-[200px]">
+                                                            <p className="text-sm break-words">{app.component}</p>
                                                         </td>
                                                         <td className="p-4">{getStatusBadge(app.status)}</td>
                                                         <td className="p-4">
@@ -303,8 +455,13 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
                 </main>
             </div>
 
-            {selectedApp && (
-                <Dialog open={!!selectedApp} onOpenChange={() => setSelectedApp(null)}>
+            {(selectedApp || isLoadingDetails) && (
+                <Dialog open={!!(selectedApp || isLoadingDetails)} onOpenChange={() => {
+                    if (!isLoadingDetails) {
+                        setSelectedApp(null);
+                        setSelectedAppId(null);
+                    }
+                }}>
                     <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-3">
@@ -316,282 +473,291 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
                             </DialogDescription>
                         </DialogHeader>
 
-                        <div className="space-y-6">
-                            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-                                <div>
-                                    <p className="font-mono font-semibold text-lg">{selectedApp.id}</p>
-                                    <p className="text-sm text-muted-foreground">Submitted on {selectedApp.submittedDate}</p>
+                        {isLoadingDetails ? (
+                            <div className="flex items-center justify-center py-12">
+                                <div className="text-center space-y-3">
+                                    <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                                    <p className="text-sm text-muted-foreground">Loading application details...</p>
                                 </div>
-                                {getStatusBadge(selectedApp.status)}
                             </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-4">
-                                    <h3 className="font-semibold flex items-center gap-2">
-                                        <User className="w-4 h-4" />
-                                        Personal Information
-                                    </h3>
-                                    <div className="space-y-3 text-sm">
-                                        <div>
-                                            <Label className="text-muted-foreground">Applicant Name</Label>
-                                            <p className="font-medium">{selectedApp.applicantName}</p>
-                                        </div>
-
-                                        <div>
-                                            <Label className="text-muted-foreground">Gender</Label>
-                                            <p className="font-medium">{selectedApp.gender}</p>
-                                        </div>
-                                        <div>
-                                            <Label className="text-muted-foreground">Caste/Category</Label>
-                                            <p className="font-medium">{selectedApp.caste}</p>
-                                        </div>
-                                        <div>
-                                            <Label className="text-muted-foreground">Mobile Number</Label>
-                                            <p className="font-medium flex items-center gap-2">
-                                                <Phone className="w-3 h-3" />
-                                                {selectedApp.mobile}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <Label className="text-muted-foreground">Aadhar Number</Label>
-                                            <p className="font-medium">{selectedApp.aadharNumber}</p>
-                                        </div>
+                        ) : selectedApp ? (
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+                                    <div>
+                                        <p className="font-mono font-semibold text-lg">{selectedApp.id}</p>
+                                        <p className="text-sm text-muted-foreground">Submitted on {selectedApp.submittedDate}</p>
                                     </div>
+                                    {getStatusBadge(selectedApp.status)}
                                 </div>
 
-                                <div className="space-y-4">
-                                    <h3 className="font-semibold flex items-center gap-2">
-                                        <Users className="w-4 h-4" />
-                                        Family Details
-                                    </h3>
-                                    <div className="space-y-3 text-sm">
-                                        <div>
-                                            <Label className="text-muted-foreground">Ration Card Members</Label>
-                                            <p className="font-medium">{selectedApp.rationCardMembers}</p>
-                                        </div>
-                                        <div>
-                                            <Label className="text-muted-foreground">Family Aadhar Numbers</Label>
-                                            <div className="space-y-1 mt-1">
-                                                {selectedApp.familyAadharNumbers.map((aadhar, idx) => (
-                                                    <p key={idx} className="font-medium text-xs font-mono">{aadhar}</p>
-                                                ))}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <h3 className="font-semibold flex items-center gap-2">
+                                            <User className="w-4 h-4" />
+                                            Personal Information
+                                        </h3>
+                                        <div className="space-y-3 text-sm">
+                                            <div>
+                                                <Label className="text-muted-foreground">Applicant Name</Label>
+                                                <p className="font-medium">{selectedApp.applicantName}</p>
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-4">
-                                    <h3 className="font-semibold flex items-center gap-2">
-                                        <MapPin className="w-4 h-4" />
-                                        Location Details
-                                    </h3>
-                                    <div className="space-y-3 text-sm">
-                                        <div>
-                                            <Label className="text-muted-foreground">District</Label>
-                                            <p className="font-medium">{selectedApp.district}</p>
-                                        </div>
-                                        <div>
-                                            <Label className="text-muted-foreground">Taluka</Label>
-                                            <p className="font-medium">{selectedApp.taluka}</p>
-                                        </div>
-                                        <div>
-                                            <Label className="text-muted-foreground">Village</Label>
-                                            <p className="font-medium">{selectedApp.village}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <h3 className="font-semibold flex items-center gap-2">
-                                        <Leaf className="w-4 h-4" />
-                                        Eligibility & Livestock
-                                    </h3>
-                                    <div className="space-y-3 text-sm">
-                                        {selectedApp.criteria.map((crit, idx) => (
-                                            <div key={idx}>
-                                                <Label className="text-muted-foreground">{crit.label}</Label>
-                                                <p className="font-medium">
-                                                    {crit.value != null ? String(crit.value) : 'N/A'}
+                                            <div>
+                                                <Label className="text-muted-foreground">Gender</Label>
+                                                <p className="font-medium">{selectedApp.gender}</p>
+                                            </div>
+                                            <div>
+                                                <Label className="text-muted-foreground">Caste/Category</Label>
+                                                <p className="font-medium">{selectedApp.caste}</p>
+                                            </div>
+                                            <div>
+                                                <Label className="text-muted-foreground">Mobile Number</Label>
+                                                <p className="font-medium flex items-center gap-2">
+                                                    <Phone className="w-3 h-3" />
+                                                    {selectedApp.mobile}
                                                 </p>
                                             </div>
-                                        ))}
+                                            <div>
+                                                <Label className="text-muted-foreground">Aadhar Number</Label>
+                                                <p className="font-medium">{selectedApp.aadharNumber}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <h3 className="font-semibold flex items-center gap-2">
+                                            <Users className="w-4 h-4" />
+                                            Family Details
+                                        </h3>
+                                        <div className="space-y-3 text-sm">
+                                            <div>
+                                                <Label className="text-muted-foreground">Ration Card Members</Label>
+                                                <p className="font-medium">{selectedApp.rationCardMembers}</p>
+                                            </div>
+                                            <div>
+                                                <Label className="text-muted-foreground">Family Aadhar Numbers</Label>
+                                                <div className="space-y-1 mt-1">
+                                                    {selectedApp.familyAadharNumbers.map((aadhar, idx) => (
+                                                        <p key={idx} className="font-medium text-xs font-mono">{aadhar}</p>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="space-y-4">
-                                <h3 className="font-semibold flex items-center gap-2">
-                                    <Award className="w-4 h-4" />
-                                    Component Details
-                                </h3>
-                                <div className="space-y-4">
-                                    {selectedApp.components.map((comp, idx) => (
-                                        <div key={comp.name} className="p-4 bg-primary/5 rounded-lg">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <h4 className="font-medium text-base">{comp.component}</h4>
-                                                <Badge variant="outline" className="text-xs">
-                                                    Component {idx + 1}
-                                                </Badge>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <h3 className="font-semibold flex items-center gap-2">
+                                            <MapPin className="w-4 h-4" />
+                                            Location Details
+                                        </h3>
+                                        <div className="space-y-3 text-sm">
+                                            <div>
+                                                <Label className="text-muted-foreground">District</Label>
+                                                <p className="font-medium">{selectedApp.district}</p>
                                             </div>
+                                            <div>
+                                                <Label className="text-muted-foreground">Taluka</Label>
+                                                <p className="font-medium">{selectedApp.taluka}</p>
+                                            </div>
+                                            <div>
+                                                <Label className="text-muted-foreground">Village</Label>
+                                                <p className="font-medium">{selectedApp.village}</p>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                            {comp.response && comp.response !== "[]" && (() => {
-                                                try {
-                                                    const responseData = typeof comp.response === 'string'
-                                                        ? JSON.parse(comp.response)
-                                                        : comp.response;
+                                    <div className="space-y-4">
+                                        <h3 className="font-semibold flex items-center gap-2">
+                                            <Leaf className="w-4 h-4" />
+                                            Eligibility & Livestock
+                                        </h3>
+                                        <div className="space-y-3 text-sm">
+                                            {selectedApp.criteria.map((crit, idx) => (
+                                                <div key={idx}>
+                                                    <Label className="text-muted-foreground">{crit.label}</Label>
+                                                    <p className="font-medium">
+                                                        {crit.value != null ? String(crit.value) : 'N/A'}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
 
-                                                    if (Array.isArray(responseData) && responseData.length > 0) {
-                                                        return (
-                                                            <div className="space-y-2">
-                                                                <Label className="text-muted-foreground text-sm">Component Response</Label>
+                                <div className="space-y-4">
+                                    <h3 className="font-semibold flex items-center gap-2">
+                                        <Award className="w-4 h-4" />
+                                        Component Details
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {selectedApp.components.map((comp, idx) => (
+                                            <div key={comp.name} className="p-4 bg-primary/5 rounded-lg">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <h4 className="font-medium text-base">{comp.component}</h4>
+                                                    <Badge variant="outline" className="text-xs">
+                                                        Component {idx + 1}
+                                                    </Badge>
+                                                </div>
+
+                                                {comp.response && comp.response !== "[]" && (() => {
+                                                    try {
+                                                        const responseData = typeof comp.response === 'string'
+                                                            ? JSON.parse(comp.response)
+                                                            : comp.response;
+
+                                                        if (Array.isArray(responseData) && responseData.length > 0) {
+                                                            return (
                                                                 <div className="space-y-2">
-                                                                    {responseData.map((item, itemIdx) => (
-                                                                        <div key={itemIdx} className="flex justify-between items-start p-2 bg-background/50 rounded border">
-                                                                            <span className="text-sm text-muted-foreground flex-1 mr-2">
-                                                                                {item.question || item.label || item.name || `Question ${itemIdx + 1}`}:
-                                                                            </span>
-                                                                            <span className="text-sm font-medium flex-1 text-right">
-                                                                                {item.value != null ? String(item.value) : (item.answer != null ? String(item.answer) : 'N/A')}
-                                                                            </span>
-                                                                        </div>
-                                                                    ))}
+                                                                    <Label className="text-muted-foreground text-sm">Component Response</Label>
+                                                                    <div className="space-y-2">
+                                                                        {responseData.map((item, itemIdx) => (
+                                                                            <div key={itemIdx} className="flex justify-between items-start p-2 bg-background/50 rounded border">
+                                                                                <span className="text-sm text-muted-foreground flex-1 mr-2">
+                                                                                    {item.question || item.label || item.name || `Question ${itemIdx + 1}`}:
+                                                                                </span>
+                                                                                <span className="text-sm font-medium flex-1 text-right">
+                                                                                    {item.value != null ? String(item.value) : (item.answer != null ? String(item.answer) : 'N/A')}
+                                                                                </span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        );
-                                                    } else if (typeof responseData === 'object' && responseData !== null) {
-                                                        // Format field names to be more readable
-                                                        const formatFieldName = (key: string) => {
-                                                            return key
-                                                                .replace(/_/g, ' ')
-                                                                .replace(/\b\w/g, l => l.toUpperCase())
-                                                                .replace(/Aadhar/g, 'Aadhaar')
-                                                                .replace(/Image/g, 'Image');
-                                                        };
-
-                                                        const isImageUrl = (value: any) => {
-                                                            return typeof value === 'string' && (
-                                                                value.includes('/files/') ||
-                                                                value.match(/\.(jpg|jpeg|png|gif|webp)$/i)
                                                             );
-                                                        };
+                                                        } else if (typeof responseData === 'object' && responseData !== null) {
+                                                            // Format field names to be more readable
+                                                            const formatFieldName = (key: string) => {
+                                                                return key
+                                                                    .replace(/_/g, ' ')
+                                                                    .replace(/\b\w/g, l => l.toUpperCase())
+                                                                    .replace(/Aadhar/g, 'Aadhaar')
+                                                                    .replace(/Image/g, 'Image');
+                                                            };
 
+                                                            const isImageUrl = (value: any) => {
+                                                                return typeof value === 'string' && (
+                                                                    value.includes('/files/') ||
+                                                                    value.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+                                                                );
+                                                            };
+
+                                                            return (
+                                                                <div className="space-y-2">
+                                                                    <Label className="text-muted-foreground text-sm">Component Response</Label>
+                                                                    <div className="space-y-2">
+                                                                        {Object.entries(responseData).map(([key, value], itemIdx) => (
+                                                                            <div key={itemIdx} className="flex justify-between items-start p-2 bg-background/50 rounded border">
+                                                                                <span className="text-sm text-muted-foreground flex-1 mr-2">
+                                                                                    {formatFieldName(key)}:
+                                                                                </span>
+                                                                                <span className="text-sm font-medium flex-1 text-right">
+                                                                                    {isImageUrl(value) ? (
+                                                                                        <Button
+                                                                                            size="sm"
+                                                                                            variant="ghost"
+                                                                                            className="p-0 h-auto font-medium text-sm text-blue-600 hover:text-blue-800 underline"
+                                                                                            onClick={() => window.open(String(value), '_blank')}
+                                                                                        >
+                                                                                            View Image
+                                                                                        </Button>
+                                                                                    ) : (
+                                                                                        value != null ? String(value) : 'N/A'
+                                                                                    )}
+                                                                                </span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        }
+                                                    } catch (e) {
+                                                        // If parsing fails, show raw response
                                                         return (
                                                             <div className="space-y-2">
                                                                 <Label className="text-muted-foreground text-sm">Component Response</Label>
-                                                                <div className="space-y-2">
-                                                                    {Object.entries(responseData).map(([key, value], itemIdx) => (
-                                                                        <div key={itemIdx} className="flex justify-between items-start p-2 bg-background/50 rounded border">
-                                                                            <span className="text-sm text-muted-foreground flex-1 mr-2">
-                                                                                {formatFieldName(key)}:
-                                                                            </span>
-                                                                            <span className="text-sm font-medium flex-1 text-right">
-                                                                                {isImageUrl(value) ? (
-                                                                                    <Button
-                                                                                        size="sm"
-                                                                                        variant="ghost"
-                                                                                        className="p-0 h-auto font-medium text-sm text-blue-600 hover:text-blue-800 underline"
-                                                                                        onClick={() => window.open(String(value), '_blank')}
-                                                                                    >
-                                                                                        View Image
-                                                                                    </Button>
-                                                                                ) : (
-                                                                                    value != null ? String(value) : 'N/A'
-                                                                                )}
-                                                                            </span>
-                                                                        </div>
-                                                                    ))}
+                                                                <div className="text-sm bg-background/50 p-2 rounded border">
+                                                                    {typeof comp.response === 'string' ? comp.response : JSON.stringify(comp.response, null, 2)}
                                                                 </div>
                                                             </div>
                                                         );
                                                     }
-                                                } catch (e) {
-                                                    // If parsing fails, show raw response
-                                                    return (
-                                                        <div className="space-y-2">
-                                                            <Label className="text-muted-foreground text-sm">Component Response</Label>
-                                                            <div className="text-sm bg-background/50 p-2 rounded border">
-                                                                {typeof comp.response === 'string' ? comp.response : JSON.stringify(comp.response, null, 2)}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                }
-                                                return null;
-                                            })()}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <h3 className="font-semibold flex items-center gap-2">
-                                    <Upload className="w-4 h-4" />
-                                    Documents Uploaded
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {selectedApp.documents.map((doc, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="flex items-center justify-between p-3 border rounded-lg"
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <FileText className="w-4 h-4 text-muted-foreground" />
-                                                <span className="text-sm font-medium">{doc.name}</span>
+                                                    return null;
+                                                })()}
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                {doc.uploaded ? (
-                                                    <>
-                                                        <Badge variant="outline" className="bg-chart-3/10 text-chart-3 border-chart-3/20">
-                                                            Uploaded
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h3 className="font-semibold flex items-center gap-2">
+                                        <Upload className="w-4 h-4" />
+                                        Documents Uploaded
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {selectedApp.documents.map((doc, idx) => (
+                                            <div
+                                                key={idx}
+                                                className="flex items-center justify-between p-3 border rounded-lg"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <FileText className="w-4 h-4 text-muted-foreground" />
+                                                    <span className="text-sm font-medium">{doc.name}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {doc.uploaded ? (
+                                                        <>
+                                                            <Badge variant="outline" className="bg-chart-3/10 text-chart-3 border-chart-3/20">
+                                                                Uploaded
+                                                            </Badge>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={() => {
+                                                                    if (doc.url) {
+                                                                        window.open(doc.url, '_blank');
+                                                                    }
+                                                                }}
+                                                                data-testid={`button-view-document-${doc.name.toLowerCase().replace(/\s+/g, '-')}`}
+                                                            >
+                                                                <Eye className="w-3 h-3 mr-1" />
+                                                                View
+                                                            </Button>
+                                                        </>
+                                                    ) : (
+                                                        <Badge variant="outline" className="bg-chart-1/10 text-chart-1 border-chart-1/20">
+                                                            Missing
                                                         </Badge>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            onClick={() => {
-                                                                if (doc.url) {
-                                                                    window.open(doc.url, '_blank');
-                                                                }
-                                                            }}
-                                                            data-testid={`button-view-document-${doc.name.toLowerCase().replace(/\s+/g, '-')}`}
-                                                        >
-                                                            <Eye className="w-3 h-3 mr-1" />
-                                                            View
-                                                        </Button>
-                                                    </>
-                                                ) : (
-                                                    <Badge variant="outline" className="bg-chart-1/10 text-chart-1 border-chart-1/20">
-                                                        Missing
-                                                    </Badge>
-                                                )}
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
 
-                            {selectedApp.status === "Pending" && (
-                                <div className="flex gap-3 pt-4 border-t">
-                                    <Button
-                                        className="flex-1 bg-chart-3 hover:bg-chart-3/90"
-                                        onClick={() => handleReview("Approved")}
-                                        data-testid="button-approve"
-                                    >
-                                        <CheckCircle className="w-4 h-4 mr-2" />
-                                        Approve Application
-                                    </Button>
-                                    <Button
-                                        variant="destructive"
-                                        className="flex-1"
-                                        onClick={() => handleReview("Rejected")}
-                                        data-testid="button-reject"
-                                    >
-                                        <XCircle className="w-4 h-4 mr-2" />
-                                        Reject Application
-                                    </Button>
-                                </div>
-                            )}
-                        </div>
+                                {selectedApp.status === "Pending" && (
+                                    <div className="flex gap-3 pt-4 border-t">
+                                        <Button
+                                            className="flex-1 bg-chart-3 hover:bg-chart-3/90"
+                                            onClick={() => handleReview("Approved")}
+                                            data-testid="button-approve"
+                                        >
+                                            <CheckCircle className="w-4 h-4 mr-2" />
+                                            Approve Application
+                                        </Button>
+                                        <Button
+                                            variant="destructive"
+                                            className="flex-1"
+                                            onClick={() => handleReview("Rejected")}
+                                            data-testid="button-reject"
+                                        >
+                                            <XCircle className="w-4 h-4 mr-2" />
+                                            Reject Application
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : null}
                     </DialogContent>
                 </Dialog>
             )}

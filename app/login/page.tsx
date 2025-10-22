@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Shield, Lock, User, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "@/hooks/use-toast";
 
 import Link from "next/link";
 export default function Login() {
@@ -26,7 +27,14 @@ export default function Login() {
         setIsLoading(true);
 
         // Simulate login process
-        await login(formData.username, formData.password);
+        const success = await login(formData.username, formData.password);
+        if (!success) {
+            toast({
+                title: "Login Failed",
+                description: "Invalid username or password. Please try again.",
+                variant: "destructive",
+            });
+        }
 
         setIsLoading(false);
     };
