@@ -1,14 +1,14 @@
 export const runtime = 'edge'; // Ensure the page uses the Edge runtime
 export const dynamic = 'force-dynamic';
 import RegisterClient from "./client";
-import { frappeServer } from "@/lib/frappe";
+import { frappeServer, frappePublic } from "@/lib/frappe";
 export default async function RegisterPage() {
     // Server component: only renders the client component
 
     // Fetch criteria with child table data from custom API
     let criteriaFieldsData: any[] = [];
     try {
-        const res = await frappeServer.call().get('vmddp_app.api.api.get_all_docs_with_children', { doctype: 'Criteria' });
+        const res = await frappePublic.call().get('vmddp_app.api.api.get_all_docs_with_children', { doctype: 'Criteria' });
         console.log("Fetched criteria fields with children:", res);
         criteriaFieldsData = res?.message ?? [];
     } catch (error) {
