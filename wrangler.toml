@@ -21,7 +21,7 @@ compatibility_flags = ["nodejs_compat"]
 
 [env.preview.vars]
 NEXT_PUBLIC_FRAPPE_BASE_URL = "https://gov-vmddp.klaimify.in"
-NEXT_PUBLIC_BASE_URL = "https://vmddp-web.pages.dev"
+NEXT_PUBLIC_BASE_URL = "https://main.vmddp-web.pages.dev"
 
 
 
