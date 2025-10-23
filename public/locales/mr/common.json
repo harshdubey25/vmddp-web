@@ -7,6 +7,10 @@
   "gallery": "गॅलरी",
   "contact_us": "संपर्क करा",
   "register_now": "आता नोंदणी करा",
+  "category_animal_purchase": "प्राणी खरेदी",
+  "category_nutrition_feed": "पोषण आणि आहार",
+  "category_equipment_infrastructure": "उपकरणे आणि पायाभूत सुविधा",
+  "category_services_training": "सेवा आणि प्रशिक्षण",
   "hero_title": "विदर्भ आणि मराठवाडा\nदुग्ध विकास प्रकल्प",
   "hero_subtitle": "१९ जिल्हे, १९२ तालुके आणि २४,६५७ गावे यांमधील दुग्ध उत्पादक शेतकऱ्यांना सक्षम बनविणे. योजनांचा लाभ घ्या आणि अर्जाची स्थिती ऑनलाईन तपासा.",
   "districts": "जिल्हे",
@@ -43,7 +47,7 @@
   ],
   "scheme_components_title": "योजना घटक",
   "scheme_components_subtitle": "शेतकऱ्यांना प्रत्येक टप्प्यावर मदत करणाऱ्या आमच्या व्यापक दुग्ध विकास योजनांचा शोध घ्या",
-  "scheme_animal_induction_title": "प्राणी समावेश (वाचलेली गाय)",
+  "scheme_animal_induction_title": "प्राणी समावेश ",
   "scheme_animal_induction_desc": "उच्च उत्पादकता असलेल्या वाचलेल्या देशी किंवा संकरित दुग्ध गायी खरेदीसाठी आर्थिक सहाय्य",
   "scheme_animal_induction_benefits": [
     "50% (सामान्य) / 75% (SC/ST) पर्यंत अनुदान",
@@ -292,7 +296,8 @@
         "जिल्हा उपसंचालक (पशुधन) तपशीलवार नोंदी ठेवतो"
       ],
       "targetBeneficiaries": "१३,४०० शेतकरी",
-      "coverage": "विदर्भ आणि मराठवाडाचे १९ जिल्हे"
+      "coverage": "विदर्भ आणि मराठवाडाचे १९ जिल्हे",
+      "category":"प्राणी खरेदी"
     },
     "2": {
       "title": "एचजीएम (गर्भवती हेफर)",

@@ -7,6 +7,10 @@
   "gallery": "Gallery",
   "contact_us": "Contact Us",
   "register_now": "Register Now",
+  "category_animal_purchase": "Animal Purchase",
+  "category_nutrition_feed": "Nutrition & Feed",
+  "category_equipment_infrastructure": "Equipment & Infrastructure",
+  "category_services_training": "Services & Training",
   "hero_title": "Vidarbha and Marathwada Dairy Development Project",
   "hero_subtitle": "Empowering dairy farmers across 19 districts, 192 talukas, and 24,657 villages. Apply for scheme benefits and track your application status online.",
   "districts": "Districts",
@@ -43,7 +47,7 @@
   ],
   "scheme_components_title": "Scheme Components",
   "scheme_components_subtitle": "Explore our comprehensive range of dairy development schemes designed to support farmers at every stage",
-  "scheme_animal_induction_title": "Animal Induction (Calved Cow)",
+  "scheme_animal_induction_title": "Animal Induction",
   "scheme_animal_induction_desc": "Financial assistance for purchasing high-yielding calved indigenous or crossbred dairy cows",
   "scheme_animal_induction_benefits": [
     "Subsidy up to 50% (General) / 75% (SC/ST)",
@@ -292,7 +296,8 @@
         "District Deputy Commissioner maintains detailed records"
       ],
       "targetBeneficiaries": "13,400 farmers",
-      "coverage": "19 districts of Vidarbha and Marathwada"
+      "coverage": "19 districts of Vidarbha and Marathwada",
+      "category":"Animal Purchase"
     },
     "2": {
       "title": "HGM (Pregnant Heifer)",
@@ -591,4 +596,5 @@
       "coverage": "All project areas through recognized training institutions"
     }
   }
+  
 }

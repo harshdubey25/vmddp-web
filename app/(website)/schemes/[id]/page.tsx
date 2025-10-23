@@ -1,6 +1,6 @@
 "use client"
 
-import { getComponentById } from "@/componentData/componentData";
+import { getComponentById, getCategoryTranslationKey } from "@/componentData/componentData";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
@@ -30,7 +30,7 @@ export default function SchemeComponentPage({ params }: { params: { id: string }
         </div>
         <div className="flex-1">
           <div className="mb-4">
-            <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">{component.category}</span>
+            <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">{t(getCategoryTranslationKey(component.category))}</span>
           </div>
           <p className="text-lg text-muted-foreground mb-6">{t(`schemes.${component.id}.fullDescription`)}</p>
         </div>
