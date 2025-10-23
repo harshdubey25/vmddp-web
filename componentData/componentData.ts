@@ -13,7 +13,7 @@ export const image ={
   farmer_training_agri_442883c8: "/stock_images/farmer.png",
   fodder_seed_field_3_8c6f2f4b: "/stock_images/fodder_seed.png",
   snf_enhancer_feed_5_2f3e4c6d: "/stock_images/enhancer.png", 
-  supply_chaff_cutter:"/stock_images/cutter.png",
+  supply_chaff_cutter:"/chaffcutter.jpg",
 }
 
 export type ComponentCategory = "Animal Purchase" | "Nutrition & Feed" | "Equipment & Infrastructure" | "Services & Training";

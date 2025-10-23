@@ -18,7 +18,7 @@ const galleryCategories = [
         descriptionKey: "gallery_farmer_training_desc",
         images: [
             "/06-1_1759736734700.jpg",
-            "/04-1_1759736734698.jpg",
+            "/training.jpg",
             "/08_1759736734699.jpg",
         ],
     },
