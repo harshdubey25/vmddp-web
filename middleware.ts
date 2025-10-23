@@ -9,7 +9,10 @@ export async function middleware(req: NextRequest) {
     try {
       const resp = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/validate`,
-        { headers: { cookie: req.headers.get("cookie") || "" } }
+        { 
+          headers: { cookie: req.headers.get("cookie") || "" },
+          cache: 'no-store' // Prevent Cloudflare caching
+        }
       );
       if (!resp.ok) return null;
       return await resp.json();
@@ -67,11 +70,15 @@ export async function middleware(req: NextRequest) {
   if (url.pathname === "/login" && token) {
     const data = await validateUser();
     console.log("Middleware validate data:", data);
-    if (data?.roles.includes(UserRole.VMDDP_ADMIN)) {
-      return NextResponse.redirect(new URL("/admin/dashboard", req.url));
-    } else if (data?.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {
-      return NextResponse.redirect(new URL("/subadmin/dashboard", req.url));
+    if (data?.roles) {
+      if (data.roles.includes(UserRole.VMDDP_ADMIN)) {
+        return NextResponse.redirect(new URL("/admin/dashboard", req.url));
+      } else if (data.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {
+        return NextResponse.redirect(new URL("/subadmin/dashboard", req.url));
+      }
     }
+    // If validation failed but token exists, allow access to login page
+    // to prevent redirect loops in production
   }
 
   return NextResponse.next();

@@ -38,13 +38,14 @@ export async function POST(req: Request): Promise<Response> {
       "Content-Type": "application/json",
     });
 
+    // Set cookies with Max-Age to ensure they persist
     headers.append(
       "Set-Cookie",
-      `frappe_access_token=${data.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax`
+      `frappe_access_token=${data.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=3600`
     );
     headers.append(
       "Set-Cookie",
-      `frappe_refresh_token=${data.refresh_token}; Path=/; HttpOnly; Secure; SameSite=Lax`
+      `frappe_refresh_token=${data.refresh_token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=86400`
     );
 
     return new Response(

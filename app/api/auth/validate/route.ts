@@ -33,7 +33,10 @@ export async function GET(req: NextRequest) {
   try {
     const resp = await fetch(
       `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/frappe.auth.get_logged_user`,
-      { headers: { Authorization: `Bearer ${token}` } }
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store", // Prevent caching in Cloudflare
+      }
     );
 
     if (!resp.ok) {
@@ -46,9 +49,20 @@ export async function GET(req: NextRequest) {
     const userResp = await resp.json();
     const userId = userResp.message;
 
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Invalid user" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const userDoc = await fetch(
       `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/resource/User/${userId}?fields=["name","user_type","full_name","role_profile_name"]`,
-      { method: "GET", headers: { Authorization: `Bearer ${token}` } }
+      {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      }
     );
 
     if (!userDoc.ok) {
@@ -65,7 +79,11 @@ export async function GET(req: NextRequest) {
     try {
       const userDetails = await fetch(
         `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/vmddp_app.api.user.get_user_details?user_id=${userId}`,
-        { method: "GET", headers: { Authorization: `Bearer ${token}` } }
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        }
       );
       console.log("User Details Response:", userDetails);
       if (userDetails.ok) {
@@ -92,9 +110,13 @@ export async function GET(req: NextRequest) {
 
     return new Response(JSON.stringify(response), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+      },
     });
   } catch (err) {
+    console.error("Validation error:", err);
     return new Response(
       JSON.stringify({ error: "Validation failed", details: String(err) }),
       {
