@@ -234,21 +234,21 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
     };
 
     return (
-        <div className="min-h-[calc(100vh-16rem)] py-12 sm:py-16">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-8">
-                    <h1 className="font-display font-semibold text-2xl sm:text-3xl mb-3" data-testid="text-register-title">
+        <div className="min-h-[calc(100vh-8rem)] sm:min-h-[calc(100vh-16rem)] py-6 sm:py-12 md:py-16">
+            <div className="max-w-4xl mx-auto px-3 xs:px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-6 sm:mb-8">
+                    <h1 className="font-display font-semibold text-xl xs:text-2xl sm:text-3xl mb-2 sm:mb-3 px-2" data-testid="text-register-title">
                         {t('register_title')}
                     </h1>
-                    <p className="text-muted-foreground">
+                    <p className="text-muted-foreground text-sm sm:text-base px-2">
                         {t('register_subtitle')}
                     </p>
                 </div>
 
                 <RegistrationStepper currentStep={currentStep} steps={steps} />
 
-                <Card className="mt-16">
-                    <CardContent className="p-6 sm:p-8">
+                <Card className="mt-6 sm:mt-12 md:mt-16 shadow-sm">
+                    <CardContent className="p-4 xs:p-5 sm:p-6 md:p-8">
                         <form onSubmit={handleSubmit(onSubmit)} >
 
                             {currentStep === 1 && (
@@ -284,21 +284,22 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                                 />
                             )}
 
-                            <div className="flex justify-between mt-8 pt-6 border-t print:hidden">
+                            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t print:hidden">
                                 <Button
                                     variant="outline"
                                     onClick={handleBack}
                                     disabled={currentStep === 1}
                                     data-testid="button-back"
+                                    className="w-full order-2 sm:order-1"
                                 >
                                     {t('back')}
                                 </Button>
                                 {currentStep < steps.length ? (
-                                    <Button onClick={handleNext} data-testid="button-next">
+                                    <Button onClick={handleNext} data-testid="button-next" className="w-full order-1 sm:order-2">
                                         {t('next')}
                                     </Button>
                                 ) : (
-                                    <Button type="submit" data-testid="button-submit" disabled={submitLoading} >
+                                    <Button type="submit" data-testid="button-submit" disabled={submitLoading} className="w-full order-1 sm:order-2">
                                         {t('submit_application')}
                                     </Button>
                                 )}
