@@ -102,18 +102,18 @@ export default function Contact() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-start gap-3">
+                                    {/* <div className="flex items-start gap-3">
                                         <Phone className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                                         <div>
                                             <p className="font-semibold text-sm mb-1">{t('phone')}</p>
                                             <p className="text-sm text-muted-foreground">1800-XXX-XXXX</p>
                                         </div>
-                                    </div>
+                                    </div> */}
                                     <div className="flex items-start gap-3">
                                         <Mail className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                                         <div>
                                             <p className="font-semibold text-sm mb-1">{t('email')}</p>
-                                            <p className="text-sm text-muted-foreground">vmddp@maharashtra.gov.in</p>
+                                            <p className="text-sm text-muted-foreground">pdvmddpnagpur@gmail.com</p>
                                         </div>
                                     </div>
                                 </div>

@@ -42,7 +42,14 @@ export default function HeroSection() {
               className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mb-6"
               data-testid="text-hero-title"
             >
-              {t("hero_title")}
+              {t("hero_title")
+                .split('\n')
+                .map((line, idx, arr) => (
+                  <span key={idx}>
+                    {line}
+                    {idx < arr.length - 1 && <br />}
+                  </span>
+                ))}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}

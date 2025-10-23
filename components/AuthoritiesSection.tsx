@@ -11,7 +11,7 @@ import member4 from "@assets/member4_1759739467948.png";
 import member5 from "@assets/member5_1759739467948.png";
 import member7 from "@assets/member7_1759739467947.png";
 
-const authorities = [
+const mainAuthorities = [
   {
     name: "श्री देवेंद्र फडणवीस",
     designation: "Hon. Chief Minister of Maharashtra Government",
@@ -34,7 +34,7 @@ const authorities = [
   },
   {
     name: "डॉ. रामस्वामी एन.",
-    designation: "Hon. Additional Chief Secretary, Animal Husbandry And Dairy Development",
+    designation: "Hon. Secretary of Animal Husbandry And Dairy Development",
     image: "member5_1759739467948.png",
   },
   {
@@ -42,6 +42,9 @@ const authorities = [
     designation: "Hon. Commissioner Department of Animal Husbandry Maharashtra Government",
     image: "member6_1759739467947.png",
   },
+];
+
+const projectTeam = [
   {
     name: "डॉ. संजय गोराणी",
     designation: "Hon. Project Director\nVidarbha And Marathwada Dairy development Project",
@@ -73,19 +76,45 @@ export default function AuthoritiesSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-10"
         >
-          <h2
-            className="font-display font-semibold text-2xl sm:text-3xl mb-3"
-            data-testid="text-authorities-title"
-          >
+          <h2 className="font-display font-semibold text-2xl sm:text-3xl mb-3" data-testid="text-authorities-title">
             {t('authorities_title')}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             {t('authorities_subtitle')}
           </p>
         </motion.div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          {mainAuthorities.map((authority, index) => (
+            <motion.div
+              key={authority.name}
+              initial={{ opacity: 0, y: 50, scale: 0.95 }}
+              animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 50, scale: 0.95 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <AuthorityMember
+                name={authority.name}
+                designation={authority.designation.replace(/\n/g, '<br />')}
+                image={authority.image}
+              />
+            </motion.div>
+          ))}
+        </div>
 
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {authorities.map((authority, index) => (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-8"
+        >
+          <h2 className="font-display font-semibold text-2xl sm:text-3xl mb-3" data-testid="text-project-team-title">
+            {t('authorities_title1')}
+          </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            {t('authorities_subtitle1')}
+          </p>
+        </motion.div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {projectTeam.map((authority, index) => (
             <motion.div
               key={authority.name}
               initial={{ opacity: 0, y: 50, scale: 0.95 }}

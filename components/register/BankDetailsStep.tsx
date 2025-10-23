@@ -1,4 +1,5 @@
-import { Controller, UseFormSetValue } from "react-hook-form";
+import { Controller, UseFormSetValue, useWatch } from "react-hook-form";
+import { useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,19 @@ interface Props {
 const BankDetailsStep = ({ control, errors, setValue }: Props) => {
   const [isLoadingBankDetails, setIsLoadingBankDetails] = useState(false);
   const { toast } = useToast();
+
+  const watchedFirstName = useWatch({ control, name: 'firstName' });
+  const watchedMiddleName = useWatch({ control, name: 'middleName' });
+  const watchedLastName = useWatch({ control, name: 'lastName' });
+  const accountHolderNameValue = [watchedFirstName, watchedMiddleName, watchedLastName]
+    .filter(Boolean)
+    .join(' ');
+
+  useEffect(() => {
+    if (setValue) {
+      setValue('accountHolderName', accountHolderNameValue);
+    }
+  }, [accountHolderNameValue, setValue]);
 
   const handleIFSCLookup = async (ifscCode: string) => {
     if (!ifscCode || !isValidIFSCFormat(ifscCode)) {
@@ -61,7 +75,13 @@ const BankDetailsStep = ({ control, errors, setValue }: Props) => {
             control={control}
             rules={{ required: "Account Holder Name is required" }}
             render={({ field }) => (
-              <Input {...field} id="accountHolderName" data-testid="input-account-holder-name" />
+              <Input
+                {...field}
+                id="accountHolderName"
+                data-testid="input-account-holder-name"
+                value={accountHolderNameValue}
+                readOnly
+              />
             )}
           />
           {errors.accountHolderName && <span className="text-red-500 text-xs">{errors.accountHolderName.message}</span>}
@@ -73,7 +93,15 @@ const BankDetailsStep = ({ control, errors, setValue }: Props) => {
             control={control}
             rules={{ required: "Account Number is required", pattern: { value: /^[0-9]+$/, message: "Account Number must be numeric" } }}
             render={({ field }) => (
-              <Input {...field} id="accountNumber" data-testid="input-account-number" />
+              <Input
+                {...field}
+                id="accountNumber"
+                data-testid="input-account-number"
+                type="password"
+                onCopy={e => e.preventDefault()}
+                onPaste={e => e.preventDefault()}
+                onCut={e => e.preventDefault()}
+              />
             )}
           />
           {errors.accountNumber && <span className="text-red-500 text-xs">{errors.accountNumber.message}</span>}
@@ -103,7 +131,9 @@ const BankDetailsStep = ({ control, errors, setValue }: Props) => {
                   id="confirmAccountNumber"
                   data-testid="input-confirm-account-number"
                   className={isMismatch ? "border-red-500 focus:border-red-500" : ""}
-                  type="password"
+                  onCopy={e => e.preventDefault()}
+                  onPaste={e => e.preventDefault()}
+                  onCut={e => e.preventDefault()}
                 />
               );
             }}

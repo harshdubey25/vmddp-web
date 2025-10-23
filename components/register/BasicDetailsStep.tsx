@@ -140,8 +140,31 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="aadhar">{t('aadhar_number')} *</Label>
-          <Controller name="aadhar_number" control={control} rules={{ required: t('aadhar_required') }} render={({ field }) => <Input {...field} id="aadhar_number" data-testid="input-aadhar" />} />
-          {errors.aadhar_number && <span className="text-red-500 text-xs">{errors.aadhar_number.message}</span>}
+          <Controller
+            name="aadhar_number"
+            control={control}
+            rules={{
+              required: t('aadhar_required'),
+              pattern: {
+                value: /^\d{12}$/,
+                message: t('aadhar_invalid'),
+              },
+            }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="aadhar_number"
+                data-testid="input-aadhar"
+                inputMode="numeric"
+                maxLength={12}
+                onChange={e => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 12);
+                  field.onChange(value);
+                }}
+              />
+            )}
+          />
+        {errors.aadhar_number && <span className="text-red-500 text-xs">{errors.aadhar_number.message}</span>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="aadhaarImage">{t('aadhar_image')} *</Label>
@@ -213,7 +236,31 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
           {Array.from({ length: familyMemberCount - 1 }).map((_, index) => (
             <div key={index} className="space-y-2">
               <Label htmlFor={`familyAadhaar${index + 1}`}>{t('family_member_aadhar', { index: index + 1 })} *</Label>
-              <Controller name={`familyAadhaar${index + 1}`} control={control} rules={{ required: t('aadhar_required') }} render={({ field }) => <Input {...field} id={`familyAadhaar${index + 1}`} data-testid={`input-family-aadhaar-${index + 1}`} placeholder={t('aadhar_placeholder')} />} />
+              <Controller
+                name={`familyAadhaar${index + 1}`}
+                control={control}
+                rules={{
+                  required: t('aadhar_required'),
+                  pattern: {
+                    value: /^\d{12}$/,
+                    message: t('aadhar_invalid'),
+                  },
+                }}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    id={`familyAadhaar${index + 1}`}
+                    data-testid={`input-family-aadhaar-${index + 1}`}
+                    placeholder={t('aadhar_placeholder')}
+                    inputMode="numeric"
+                    maxLength={12}
+                    onChange={e => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 12);
+                      field.onChange(value);
+                    }}
+                  />
+                )}
+              />
               {errors[`familyAadhaar${index + 1}`] && <span className="text-red-500 text-xs">{errors[`familyAadhaar${index + 1}`].message}</span>}
 
             </div>

@@ -50,7 +50,7 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
           <h2 className="font-display font-semibold text-xl mb-2">Review & Submit</h2>
           <p className="text-sm text-muted-foreground">Please review all the information before submitting your application</p>
         </div>
-        {onPrint && (
+        {/* {onPrint && (
           <button
             type="button"
             onClick={onPrint}
@@ -60,7 +60,7 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
             <Printer className="w-4 h-4" />
             Print
           </button>
-        )}
+        )} */}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
