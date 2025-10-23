@@ -159,7 +159,7 @@ const BankDetailsStep = ({ control, errors, setValue }: Props) => {
                   data-testid="input-ifsc-code"
                   placeholder="e.g. SBIN0001234"
                   onChange={(e) => {
-                    field.onChange(e);
+                    field.onChange(e.target.value.toUpperCase());
                     const ifscCode = e.target.value;
                     if (isValidIFSCFormat(ifscCode)) {
                       handleIFSCLookup(ifscCode);
