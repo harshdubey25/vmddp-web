@@ -4,7 +4,7 @@ import type { LucideIcon } from "lucide-react";
 export const image ={
   fertility_feed_bf4e2f3c: "/stock_images/fertility_feed.png",
   dairy_cow_grazing_in_bb297871: "/stock_images/animal_induction.png",
-  pregnant_heifer_cow__33614af7: "/stock_images/pregnanat_cow.png",
+  pregnant_heifer_cow__33614af7: "/stock_images/hgm.jpg",
   animal_feed_suppleme_bd677c66: "/stock_images/animal_feed_suppleme_bd677c66.jpg",
   fodder_crops_green_c_2328b89f: "/stock_images/fodder_crops_green_c_2328b89f.jpg",
   chaff_cutter_machine_b258d8e0: "/stock_images/chaff_cutter_machine_b258d8e0.jpg",
