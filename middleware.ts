@@ -1,26 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { UserRole } from "@/enums/roles";
+import { validateUserToken } from "@/lib/auth";
+
 export async function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
   const token = req.cookies.get("frappe_access_token")?.value;
-
-  async function validateUser() {
-    try {
-      const resp = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/validate`,
-        { 
-          headers: { cookie: req.headers.get("cookie") || "" },
-          cache: 'no-store' // Prevent Cloudflare caching
-        }
-      );
-      if (!resp.ok) return null;
-      return await resp.json();
-    } catch (err) {
-      console.error("validate error:", err);
-      return null;
-    }
-  }
 
   // 🔹 Protect /admin and /subadmin routes and block cross-access
   if (url.pathname.startsWith("/admin")) {
@@ -28,7 +13,7 @@ export async function middleware(req: NextRequest) {
       url.pathname = "/login";
       return NextResponse.redirect(url);
     }
-    const data = await validateUser();
+    const data = await validateUserToken(token);
     if (!data || !data.roles) {
       url.pathname = "/login";
       return NextResponse.redirect(url);
@@ -49,7 +34,7 @@ export async function middleware(req: NextRequest) {
       url.pathname = "/login";
       return NextResponse.redirect(url);
     }
-    const data = await validateUser();
+    const data = await validateUserToken(token);
     if (!data || !data.roles) {
       url.pathname = "/login";
       return NextResponse.redirect(url);
@@ -68,7 +53,7 @@ export async function middleware(req: NextRequest) {
 
   // 🔹 Redirect logged-in users away from /login
   if (url.pathname === "/login" && token) {
-    const data = await validateUser();
+    const data = await validateUserToken(token);
     console.log("Middleware validate data:", data);
     if (data?.roles) {
       if (data.roles.includes(UserRole.VMDDP_ADMIN)) {
