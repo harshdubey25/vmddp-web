@@ -238,6 +238,8 @@
   "village": "गाव",
   "village_required": "गाव आवश्यक आहे",
   "select_village": "गाव निवडा",
+  "select_district_first": "कृपया प्रथम जिल्हा निवडा",
+  "select_taluka_first": "कृपया प्रथम तालुका निवडा",
   "benefits": "फायदे",
   "eligibility_criteria": "पात्रता निकष",
   "subsidy_information": "अनुदान माहिती",

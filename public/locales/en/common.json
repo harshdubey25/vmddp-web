@@ -238,6 +238,8 @@
   "village": "Village",
   "village_required": "Village is required",
   "select_village": "Select Village",
+  "select_district_first": "Please select a district first",
+  "select_taluka_first": "Please select a taluka first",
   "benefits": "Benefits",
   "eligibility_criteria": "Eligibility Criteria",
   "subsidy_information": "Subsidy Information",

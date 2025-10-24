@@ -45,7 +45,7 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
   const { data: villageData } = useFrappeGetDocList("Village Master", {
     fields: ["name"],
     filters: watchedDistrict && watchedTaluka ? [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]] : undefined,
-    limit: 100,
+
   });
 
   const uploadFile = async (file: File, fieldName: string): Promise<string | null> => {
@@ -164,7 +164,7 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
               />
             )}
           />
-        {errors.aadhar_number && <span className="text-red-500 text-xs">{errors.aadhar_number.message}</span>}
+          {errors.aadhar_number && <span className="text-red-500 text-xs">{errors.aadhar_number.message}</span>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="aadhaarImage">{t('aadhar_image')} *</Label>
@@ -287,7 +287,7 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
         <div className="space-y-2">
           <Label htmlFor="taluka">{t('taluka')} *</Label>
           <Controller name="taluka" control={control} rules={{ required: t('taluka_required') }} render={({ field }) => (
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value} disabled={!watchedDistrict}>
               <SelectTrigger>
                 <SelectValue placeholder={t('select_taluka')} />
               </SelectTrigger>
@@ -298,12 +298,14 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
               </SelectContent>
             </Select>
           )} />
-          {errors.taluka && <span className="text-red-500 text-xs">{errors.taluka.message}</span>}
+          {!watchedDistrict ? (
+            <span className="text-amber-600 text-xs">{t('select_district_first')}</span>
+          ) : errors.taluka && <span className="text-red-500 text-xs">{errors.taluka.message}</span>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="village">{t('village')} *</Label>
           <Controller name="village" control={control} rules={{ required: t('village_required') }} render={({ field }) => (
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value} disabled={!watchedDistrict || !watchedTaluka}>
               <SelectTrigger>
                 <SelectValue placeholder={t('select_village')} />
               </SelectTrigger>
@@ -314,7 +316,9 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
               </SelectContent>
             </Select>
           )} />
-          {errors.village && <span className="text-red-500 text-xs">{errors.village.message}</span>}
+          {!watchedDistrict || !watchedTaluka ? (
+            <span className="text-amber-600 text-xs">{t('select_taluka_first')}</span>
+          ) : errors.village && <span className="text-red-500 text-xs">{errors.village.message}</span>}
         </div>
       </div>
     </div>

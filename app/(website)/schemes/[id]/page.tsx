@@ -4,10 +4,12 @@ import { getComponentById, getCategoryTranslationKey } from "@/componentData/com
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
+import { use } from "react";
 
-export default function SchemeComponentPage({ params }: { params: { id: string } }) {
+export default function SchemeComponentPage({ params }: { params: Promise<{ id: string }> }) {
   const { t } = useTranslation('common');
-  const componentId = Number(params.id);
+  const { id } = use(params);
+  const componentId = Number(id);
   const component = getComponentById(componentId);
 
   if (!component) {
