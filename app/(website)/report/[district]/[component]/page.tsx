@@ -1,6 +1,7 @@
 "use client";
 export const runtime = 'edge';
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,64 +31,39 @@ export default function Report({ params }: { params: { district: string; compone
   const district = params.district;
   const component = decodeURIComponent(params.component);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data - would come from API
-  const applications: Application[] = [
-    {
-      id: "APP-2025-001247",
-      applicantName: "Ramesh Kumar Patil",
-      village: "Khapa",
-      taluka: "Nagpur Rural",
-      status: "selected",
-      submittedDate: "2025-01-06",
-      mobile: "9876543210",
-    },
-    {
-      id: "APP-2025-001248",
-      applicantName: "Suresh Deshmukh",
-      village: "Mouda",
-      taluka: "Nagpur Rural",
-      status: "approved",
-      submittedDate: "2025-01-07",
-      mobile: "9876543211",
-    },
-    {
-      id: "APP-2025-001249",
-      applicantName: "Lakshmi Bai Kale",
-      village: "Khapa",
-      taluka: "Nagpur Rural",
-      status: "selected",
-      submittedDate: "2025-01-05",
-      mobile: "9876543212",
-    },
-    {
-      id: "APP-2025-001250",
-      applicantName: "Ganesh Wankhede",
-      village: "Parseoni",
-      taluka: "Nagpur Rural",
-      status: "pending",
-      submittedDate: "2025-01-08",
-      mobile: "9876543213",
-    },
-    {
-      id: "APP-2025-001251",
-      applicantName: "Anita Thakre",
-      village: "Kamptee",
-      taluka: "Nagpur Rural",
-      status: "approved",
-      submittedDate: "2025-01-04",
-      mobile: "9876543214",
-    },
-    {
-      id: "APP-2025-001252",
-      applicantName: "Prakash Bhoyar",
-      village: "Khapa",
-      taluka: "Nagpur Rural",
-      status: "rejected",
-      submittedDate: "2025-01-06",
-      mobile: "9876543215",
-    },
-  ];
+  useEffect(() => {
+    const fetchApplications = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/vmddp_app.vmddp.doctype.app_form.app_form.get_applications_list?district=${district}&component=${component}&limit=100&page=1`, {
+          withCredentials: true
+        });
+        console.log('API response:', res.data);
+        const apiApps = Array.isArray(res.data.message?.message) ? res.data.message.message : [];
+        const mappedApps = apiApps.map((app: any) => ({
+          id: app.application_id,
+          applicantName: [app.first_name, app.mid_name, app.last_name].filter(Boolean).join(" "),
+          village: app.village,
+          taluka: app.taluka,
+          status: (app.status || "pending").toLowerCase(),
+          submittedDate: app.submitted_date,
+          mobile: app.mobile_no,
+        }));
+        setApplications(mappedApps);
+      } catch (err) {
+        setError("Failed to fetch applications");
+        setApplications([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchApplications();
+  }, [district, component]);
 
   const filteredApplications = applications.filter((app) => {
     if (statusFilter === "all") return true;
@@ -181,7 +157,7 @@ export default function Report({ params }: { params: { district: string; compone
               <div>
                 <CardTitle>Applications List</CardTitle>
                 <CardDescription>
-                  {filteredApplications.length} applications found
+                  {loading ? "Loading..." : `${filteredApplications.length} applications found`}
                 </CardDescription>
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -213,7 +189,19 @@ export default function Report({ params }: { params: { district: string; compone
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredApplications.length === 0 ? (
+                    {loading ? (
+                      <tr>
+                        <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                          Loading applications...
+                        </td>
+                      </tr>
+                    ) : error ? (
+                      <tr>
+                        <td colSpan={6} className="p-8 text-center text-destructive">
+                          {error}
+                        </td>
+                      </tr>
+                    ) : filteredApplications.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="p-8 text-center text-muted-foreground">
                           No applications found
