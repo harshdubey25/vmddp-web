@@ -54,7 +54,7 @@
     "Support for quality milch animals",
     "Veterinary health certification included"
   ],
-  "scheme_hgm_title": "HGM (Pregnant Cow)",
+  "scheme_hgm_title": "HGM",
   "scheme_hgm_desc": "High Genetic Merit pregnant cow support for enhanced dairy productivity and breeding excellence",
   "scheme_hgm_benefits": [
     "Financial aid for HGM pregnant cow acquisition",
@@ -253,7 +253,7 @@
   "details": "Details",
   "schemes": {
     "1": {
-      "title": "Animal Induction (Calved Cow)",
+      "title": "Distribution of high genetic merit animals (cows-buffaloes) to farmers",
       "shortDescription": "Financial assistance for purchasing high-yielding calved indigenous or crossbred dairy cows",
       "fullDescription": "Under the Vidarbha and Marathwada Dairy Development Project, 13,400 high milk-yielding cows and buffaloes will be distributed over three years across 19 districts. Each beneficiary receives one cow or buffalo with minimum 8-10 litres daily milk production capacity.",
       "benefits": [
@@ -298,11 +298,10 @@
         "District Deputy Commissioner maintains detailed records"
       ],
       "targetBeneficiaries": "13,400 farmers",
-      "coverage": "19 districts of Vidarbha and Marathwada",
-      "category":"Animal Purchase"
+      "coverage": "19 districts of Vidarbha and Marathwada"
     },
     "2": {
-      "title": "HGM (Pregnant Heifer)",
+      "title": "Distribution of HGM (IVF – Embryo) pregnant Heifer to the farmers",
       "shortDescription": "High Genetic Merit pregnant heifer support through IVF embryo transfer for enhanced dairy productivity",
       "fullDescription": "Embryo transfer using In-Vitro Fertilization (IVF) technology produces high-genetic-quality offspring, increasing future high-yielding cows and buffaloes. Pregnant heifers developed using IVF embryos from reputed institutions like MLDB, BAIF, Godrej Agrovet, and NDS.",
       "benefits": [
@@ -345,7 +344,7 @@
       "coverage": "Project areas in Vidarbha and Marathwada"
     },
     "3": {
-      "title": "Fertility Feed",
+      "title": "Supply of Fertility Feed (30,000 MT)",
       "shortDescription": "Specialized NDDB fertility feed to improve reproductive health and reduce repeat breeding",
       "fullDescription": "NDDB-developed Fertility Feed improves reproductive efficiency and reduces repeat breeding in cows and buffaloes. Feeding 5 kg daily from 60th to 120th day post-calving enhances fertility, milk yield, and milk quality.",
       "benefits": [
@@ -381,7 +380,7 @@
       "coverage": "All project districts"
     },
     "4": {
-      "title": "Fodder Seed",
+      "title": "Supply of feed supplement to enhance Fat and SNF in milk",
       "shortDescription": "Quality fodder seed distribution for year-round feed availability and drought mitigation",
       "fullDescription": "To mitigate fodder scarcity during drought, quality fodder seeds and cuttings provided for cultivation on 22,000 acres across 19 districts. 100% subsidy support for multi-purpose fodder crop cultivation.",
       "benefits": [
@@ -417,7 +416,7 @@
       "coverage": "22,000 acres across 19 districts"
     },
     "5": {
-      "title": "SNF Enhancer",
+      "title": "Subsidy for cultivating perennial fodder crops",
       "shortDescription": "NDDB supplements to improve Fat and SNF levels in milk for better pricing",
       "fullDescription": "Specially developed supplements to improve Fat and SNF (Solids-Not-Fat) levels in milk, which determine acceptance and pricing at milk collection centres. Feed 250 grams per day per animal for 90 days after calving.",
       "benefits": [
@@ -453,7 +452,7 @@
       "coverage": "All project areas"
     },
     "6": {
-      "title": "Supply Chaff Cutter",
+      "title": "Distribution of electric chaff cutter to farmers",
       "shortDescription": "Electrically operated chaff cutting machines to reduce fodder wastage and improve digestibility",
       "fullDescription": "Distribution of 10,000 electric chaff cutters to reduce wastage of green fodder and improve digestibility. Mechanized equipment makes fodder processing efficient and reduces labor requirements.",
       "benefits": [
@@ -527,7 +526,7 @@
       "coverage": "Fodder scarcity affected areas"
     },
     "8": {
-      "title": "Treatment of Infertile Animal",
+      "title": "Treatment of Infertile cows and buffaloes",
       "shortDescription": "Comprehensive veterinary treatment program to restore productivity in infertile animals",
       "fullDescription": "Based on 20th Livestock Census (2019), 30% of 35.62 lakh breedable cows and buffaloes in 19 districts face temporary infertility. Treatment provided through hormonal therapy and traditional methods at veterinary dispensaries.",
       "benefits": [
@@ -563,7 +562,7 @@
       "coverage": "All 19 project districts over 3 years"
     },
     "9": {
-      "title": "Farmer Training",
+      "title": "Training to the farmers on modern dairy practices",
       "shortDescription": "Two-day training programs on modern dairy management practices and best techniques",
       "fullDescription": "Comprehensive capacity building programs for 36,000 farmers on modern dairy management, animal health, and best practices through recognized institutions like State Animal Husbandry Department, Veterinary Universities, and Krishi Vigyan Kendras (KVKs).",
       "benefits": [

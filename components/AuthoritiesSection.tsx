@@ -34,7 +34,7 @@ const mainAuthorities = [
   },
   {
     name: "डॉ. रामस्वामी एन.",
-    designation: "Hon. Secretary of Animal Husbandry And Dairy Development",
+    designation: "Hon. Secretary of Animal Husbandry , Dairy Development & Fisheries",
     image: "member5_1759739467948.png",
   },
   {
