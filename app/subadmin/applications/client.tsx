@@ -51,6 +51,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { frappeBrowser } from "@/lib/frappe";
 import { useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
+import { getStatusBadge } from "@/lib/status-utils";
 
 // Lightweight interface for list view
 interface ApplicationListItem {
@@ -274,21 +275,6 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
 
         return matchesSearch && matchesStatus;
     });
-
-    const getStatusBadge = (status: string) => {
-        const variants: Record<string, { variant: string; className: string }> = {
-            Pending: { variant: "outline", className: "bg-chart-4/10 text-chart-4 border-chart-4/20" },
-            Approved: { variant: "outline", className: "bg-chart-3/10 text-chart-3 border-chart-3/20" },
-            Rejected: { variant: "outline", className: "bg-chart-5/10 text-chart-5 border-chart-5/20" },
-            Selected: { variant: "outline", className: "bg-chart-1/10 text-chart-1 border-chart-1/20" },
-        };
-
-        return (
-            <Badge variant={variants[status]?.variant as any} className={variants[status]?.className}>
-                {status}
-            </Badge>
-        );
-    };
 
     const handleViewDetails = (app: ApplicationListItem) => {
         // Set the app ID to trigger the useFrappeGetDoc hook

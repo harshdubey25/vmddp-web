@@ -1,6 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import AdminSidebar from "@/components/AdminSidebar";
 import {
     FileText,
@@ -12,6 +11,7 @@ import {
 import { DashboardClient } from "./client";
 import { Header } from "./header";
 import { getFrappeWithUserToken } from "@/lib/frappeHelper";
+import { getStatusBadge } from "@/lib/status-utils";
 
 export const runtime = 'edge';
 
@@ -96,21 +96,6 @@ export default async function SubAdminDashboard() {
     const recentApplications = applications
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         ;
-
-    const getStatusBadge = (status: string) => {
-        const variants: Record<string, { variant: string; className: string }> = {
-            Pending: { variant: "outline", className: "bg-chart-4/10 text-chart-4 border-chart-4/20" },
-            Approved: { variant: "outline", className: "bg-chart-3/10 text-chart-3 border-chart-3/20" },
-            Rejected: { variant: "outline", className: "bg-chart-5/10 text-chart-5 border-chart-5/20" },
-            Selected: { variant: "outline", className: "bg-chart-1/10 text-chart-1 border-chart-1/20" },
-        };
-
-        return (
-            <Badge variant={variants[status]?.variant as any} className={variants[status]?.className}>
-                {status}
-            </Badge>
-        );
-    };
 
     return (
         <div className="flex h-screen overflow-hidden">

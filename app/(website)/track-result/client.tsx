@@ -21,6 +21,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { frappePublic } from "@/lib/frappe";
+import { getStatusBadge } from "@/lib/status-utils";
 
 interface Application {
   id: string;
