@@ -50,7 +50,7 @@ import {
     Upload,
 } from "lucide-react";
 
-import { Application } from "./server";
+import { Application } from "./page";
 
 interface AdminApplicationsClientProps {
     applications: Application[];
