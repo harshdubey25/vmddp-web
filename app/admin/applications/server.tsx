@@ -39,81 +39,62 @@ export interface Application {
 
 import { frappeServer } from "@/lib/frappe";
 
-async function getApplications(): Promise<Application[]> {
-    const response = await frappeServer.call().get('vmddp_app.api.api.get_all_docs_with_children', { doctype: 'App Form' });
+async function getApplications(page: number = 1, limit: number = 20): Promise<Application[]> {
+    const response = await frappeServer.call().get('vmddp_app.api.api.get_applications_summary', {
+        page: page.toString(),
+        limit: limit.toString()
+    });
     console.log(response)
+
     type FrappeApp = {
         name: string;
-        first_name?: string;
-        mid_name?: string;
-        last_name?: string;
-        father_name?: string;
-        mobile?: string;
+        fullname?: string;
+        mobile_number?: string;
         district?: string;
-        taluka?: string;
         village?: string;
-        component?: string;
-        component_name?: string;
-        components?: { component?: string; component_name?: string; name: string }[];
+        component_list?: string[];
         status?: string;
-        creation?: string;
-        approver?: string;
-        gender?: string;
-        category?: string;
-        aadhar_number?: string;
-        ration_card_members?: number;
-        family_aadhar_numbers?: string[];
-        animal_tag_number?: string;
-        land_holding?: number;
-        khasra_number?: string;
-        milk_pouring_point?: string;
-        farmer_pourer_code?: string;
-        component_details?: {
-            benefits?: string[];
-            custom_questions?: { label: string; answer: string }[];
-        };
-        documents?: {
-            name: string;
-            uploaded: boolean;
-            url?: string;
-        }[];
+        date?: string;
     };
 
-    return (response.message || []).map((app: FrappeApp) => ({
+    return (response.message?.applications || []).map((app: FrappeApp) => ({
         id: app.name,
-        applicantName: `${app.first_name ?? ''} ${app.mid_name ?? ''} ${app.last_name ?? ''}`.trim(),
-        fatherName: app.father_name ?? '',
-        mobile: app.mobile ?? '',
+        applicantName: app.fullname ?? '',
+        fatherName: '',
+        mobile: app.mobile_number ?? '',
         district: app.district ?? '',
-        taluka: app.taluka ?? '',
+        taluka: '',
         village: app.village ?? '',
-        component: Array.isArray(app.components)
-            ? app.components.map(c => c.component || c.name).join(', ')
-            : app.component ?? '',
+        component: Array.isArray(app.component_list)
+            ? app.component_list.join(', ')
+            : '',
         status: app.status,
-        submittedDate: app.creation ? app.creation.split(' ')[0] : '',
+        submittedDate: app.date ?? '',
         animalCount: undefined,
-        approver: app.approver ?? '',
-        gender: app.gender ?? '',
-        category: app.category ?? '',
-        aadharNumber: app.aadhar_number ?? '',
-        rationCardMembers: app.ration_card_members ?? 0,
-        familyAadharNumbers: app.family_aadhar_numbers ?? [],
-        animalTagNumber: app.animal_tag_number ?? '',
-        landHolding: app.land_holding ?? 0,
-        khasraNumber: app.khasra_number ?? '',
-        milkPouringPoint: app.milk_pouring_point ?? '',
-        farmerPourerCode: app.farmer_pourer_code ?? '',
+        approver: '',
+        gender: '',
+        caste: '',
+        aadharNumber: '',
+        rationCardMembers: 0,
+        familyAadharNumbers: [],
+        animalTagNumber: '',
+        landHolding: 0,
+        khasraNumber: '',
+        milkPouringPoint: '',
+        farmerPourerCode: '',
         componentDetails: {
-            benefits: app.component_details?.benefits ?? [],
-            customQuestions: app.component_details?.custom_questions ?? [],
+            benefits: [],
+            customQuestions: [],
         },
-        documents: app.documents ?? [],
+        documents: [],
     }));
 }
 
-export default async function AdminApplicationsServer() {
-    const applications = await getApplications();
+export default async function AdminApplicationsServer({ searchParams }: { searchParams: { page?: string; limit?: string } }) {
+    const page = parseInt(searchParams.page || '1');
+    const limit = parseInt(searchParams.limit || '20');
+
+    const applications = await getApplications(page, limit);
     console.log('Loaded applications:', applications);
-    return <AdminApplicationsClient applications={applications} />;
+    return <AdminApplicationsClient applications={applications} currentPage={page} pageSize={limit} />;
 }

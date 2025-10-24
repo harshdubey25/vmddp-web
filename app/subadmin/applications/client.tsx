@@ -1,6 +1,7 @@
 "use client"
 // ...existing code...
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,15 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 import AdminSidebar from "@/components/AdminSidebar";
 import {
     Search,
@@ -95,10 +105,14 @@ interface Application {
 
 interface SubAdminApplicationsClientProps {
     applications: ApplicationListItem[];
+    currentPage: number;
+    pageSize: number;
 }
 
-export default function SubAdminApplicationsClient({ applications: initialApplications }: SubAdminApplicationsClientProps) {
+export default function SubAdminApplicationsClient({ applications: initialApplications, currentPage, pageSize }: SubAdminApplicationsClientProps) {
     console.log(initialApplications)
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -448,6 +462,63 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
                                             </tbody>
                                         </table>
                                     </div>
+                                </div>
+
+                                {/* Pagination */}
+                                <div className="flex items-center justify-between pt-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        Showing page {currentPage} ({pageSize} items per page)
+                                    </p>
+                                    <Pagination>
+                                        <PaginationContent>
+                                            <PaginationItem>
+                                                <PaginationPrevious
+                                                    href={currentPage > 1 ? `?page=${currentPage - 1}&limit=${pageSize}` : '#'}
+                                                    onClick={(e) => {
+                                                        if (currentPage <= 1) {
+                                                            e.preventDefault();
+                                                        }
+                                                    }}
+                                                    className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
+                                                />
+                                            </PaginationItem>
+
+                                            {/* Page numbers */}
+                                            {[...Array(Math.min(5, Math.max(1, currentPage + 2)))].map((_, i) => {
+                                                const pageNum = Math.max(1, currentPage - 2) + i;
+                                                return (
+                                                    <PaginationItem key={pageNum}>
+                                                        <PaginationLink
+                                                            href={`?page=${pageNum}&limit=${pageSize}`}
+                                                            isActive={pageNum === currentPage}
+                                                        >
+                                                            {pageNum}
+                                                        </PaginationLink>
+                                                    </PaginationItem>
+                                                );
+                                            })}
+
+                                            {currentPage < 10 && (
+                                                <>
+                                                    <PaginationItem>
+                                                        <PaginationEllipsis />
+                                                    </PaginationItem>
+                                                </>
+                                            )}
+
+                                            <PaginationItem>
+                                                <PaginationNext
+                                                    href={filteredApplications.length === pageSize ? `?page=${currentPage + 1}&limit=${pageSize}` : '#'}
+                                                    onClick={(e) => {
+                                                        if (filteredApplications.length < pageSize) {
+                                                            e.preventDefault();
+                                                        }
+                                                    }}
+                                                    className={filteredApplications.length < pageSize ? 'pointer-events-none opacity-50' : ''}
+                                                />
+                                            </PaginationItem>
+                                        </PaginationContent>
+                                    </Pagination>
                                 </div>
                             </CardContent>
                         </Card>

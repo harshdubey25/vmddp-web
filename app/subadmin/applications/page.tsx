@@ -15,10 +15,15 @@ interface ApplicationListItem {
 
 
 
-export default async function SubAdminApplications() {
+export default async function SubAdminApplications({ searchParams }: { searchParams: { page?: string; limit?: string } }) {
+    const page = parseInt(searchParams.page || '1');
+    const limit = parseInt(searchParams.limit || '20');
 
     const frappe = await getFrappeWithUserToken();
-    const response = await frappe.call().get('vmddp_app.api.api.get_applications_summary');
+    const response = await frappe.call().get('vmddp_app.api.api.get_applications_summary', {
+        page: page.toString(),
+        limit: limit.toString()
+    });
     console.log(response)
 
     // Map to lightweight list items only
@@ -36,5 +41,5 @@ export default async function SubAdminApplications() {
         };
     });
 
-    return <SubAdminApplicationsClient applications={applications} />;
+    return <SubAdminApplicationsClient applications={applications} currentPage={page} pageSize={limit} />;
 }
