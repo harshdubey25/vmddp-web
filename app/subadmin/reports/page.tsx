@@ -1,11 +1,10 @@
 "use client"
-// ...existing code...
-// Content from src/pages/subadmin/Reports.tsx
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+import AdminSidebar from "@/components/AdminSidebar";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import {
     Select,
     SelectContent,
@@ -13,30 +12,28 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import AdminSidebar from "@/components/AdminSidebar";
-import {
-    Download,
-    FileText,
-    TrendingUp,
-    BarChart3,
-    Calendar,
-    Search,
-    MapPin,
-} from "lucide-react";
 import { getStatusBadge } from "@/lib/status-utils";
 import {
-    BarChart,
+    BarChart3,
+    Download,
+    FileText,
+    MapPin,
+    Search,
+    TrendingUp
+} from "lucide-react";
+import { useState } from "react";
+import {
     Bar,
-    PieChart as RechartsPieChart,
-    Pie,
+    BarChart,
+    CartesianGrid,
     Cell,
+    Legend,
+    Pie,
+    PieChart as RechartsPieChart,
+    ResponsiveContainer,
+    Tooltip,
     XAxis,
     YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    ResponsiveContainer,
 } from "recharts";
 
 export default function SubAdminReports() {

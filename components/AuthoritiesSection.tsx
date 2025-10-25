@@ -4,13 +4,6 @@ import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { useTranslation } from 'react-i18next';
 
-import member1 from "@assets/member1_1759739467950.png";
-import member2 from "@assets/member2_1759739467949.png";
-import member3 from "@assets/member3_1759739467949.png";
-import member4 from "@assets/member4_1759739467948.png";
-import member5 from "@assets/member5_1759739467948.png";
-import member7 from "@assets/member7_1759739467947.png";
-
 const mainAuthorities = [
   {
     name: "श्री देवेंद्र फडणवीस",

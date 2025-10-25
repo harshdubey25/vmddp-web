@@ -1,17 +1,16 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import AdminSidebar from "@/components/AdminSidebar";
-import {
-    FileText,
-    CheckCircle,
-    Clock,
-    XCircle,
-    TrendingUp,
-} from "lucide-react";
-import { DashboardClient } from "./client";
-import { Header } from "./header";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getFrappeWithUserToken } from "@/lib/frappeHelper";
 import { getStatusBadge } from "@/lib/status-utils";
+import {
+    CheckCircle,
+    Clock,
+    FileText,
+    TrendingUp,
+    XCircle,
+} from "lucide-react";
+import { Header } from "./header";
 
 export const runtime = 'edge';
 

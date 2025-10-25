@@ -1,5 +1,5 @@
 "use client"
-export const runtime = 'edge';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ImageCarousel from "@/components/ImageCarousel";
 import { useTranslation } from 'react-i18next';

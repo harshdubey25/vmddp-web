@@ -1,11 +1,10 @@
 "use client"
-// ...existing code...
-// Content from src/pages/admin/SubAdmins.tsx
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
+import AdminSidebar from "@/components/AdminSidebar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     Dialog,
     DialogContent,
@@ -13,6 +12,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
     Select,
     SelectContent,
@@ -20,20 +21,18 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import AdminSidebar from "@/components/AdminSidebar";
 import {
-    UserPlus,
-    Search,
-    MapPin,
-    Phone,
-    Mail,
-    Edit,
-    Shield,
     BarChart3,
     CheckCircle,
+    Edit,
+    Mail,
+    MapPin,
+    Phone,
+    Search,
+    Shield,
+    UserPlus,
 } from "lucide-react";
+import { useState } from "react";
 
 interface SubAdmin {
     id: string;
@@ -48,6 +47,66 @@ interface SubAdmin {
     pendingApplications: number;
     joinedDate: string;
 }
+
+const subAdmins: SubAdmin[] = [
+    {
+        id: "SA-001",
+        name: "Dr. Rajesh Shinde",
+        username: "rajesh.shinde",
+        email: "rajesh.shinde@vmddp.gov.in",
+        mobile: "9876543210",
+        assignedDistricts: ["Nagpur"],
+        assignedTalukas: ["Nagpur Rural", "Kamptee", "Hingna"],
+        status: "active",
+        totalApplications: 245,
+        pendingApplications: 32,
+        joinedDate: "2024-06-15",
+    },
+    {
+        id: "SA-002",
+        name: "Mrs. Sunita Deshmukh",
+        username: "sunita.deshmukh",
+        email: "sunita.deshmukh@vmddp.gov.in",
+        mobile: "9876543211",
+        assignedDistricts: ["Amravati"],
+        assignedTalukas: ["Morshi", "Warud", "Daryapur"],
+        status: "active",
+        totalApplications: 189,
+        pendingApplications: 28,
+        joinedDate: "2024-07-01",
+    },
+    {
+        id: "SA-003",
+        name: "Mr. Prashant Kale",
+        username: "prashant.kale",
+        email: "prashant.kale@vmddp.gov.in",
+        mobile: "9876543212",
+        assignedDistricts: ["Akola", "Washim"],
+        assignedTalukas: ["Akot", "Murtizapur", "Karanja"],
+        status: "active",
+        totalApplications: 312,
+        pendingApplications: 45,
+        joinedDate: "2024-06-20",
+    },
+    {
+        id: "SA-004",
+        name: "Dr. Vandana Patil",
+        username: "vandana.patil",
+        email: "vandana.patil@vmddp.gov.in",
+        mobile: "9876543213",
+        assignedDistricts: ["Yavatmal"],
+        assignedTalukas: ["Pusad", "Digras", "Umarkhed"],
+        status: "inactive",
+        totalApplications: 156,
+        pendingApplications: 0,
+        joinedDate: "2024-05-10",
+    },
+];
+
+const districts = [
+    "Nagpur", "Amravati", "Akola", "Yavatmal", "Wardha",
+    "Washim", "Buldhana", "Chandrapur", "Gadchiroli"
+];
 
 export default function AdminSubAdmins() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -67,74 +126,6 @@ export default function AdminSubAdmins() {
         districts: [] as string[],
         talukas: [] as string[],
     });
-
-    const subAdmins: SubAdmin[] = [
-        {
-            id: "SA-001",
-            name: "Dr. Rajesh Shinde",
-            username: "rajesh.shinde",
-            email: "rajesh.shinde@vmddp.gov.in",
-            mobile: "9876543210",
-            assignedDistricts: ["Nagpur"],
-            assignedTalukas: ["Nagpur Rural", "Kamptee", "Hingna"],
-            status: "active",
-            totalApplications: 245,
-            pendingApplications: 32,
-            joinedDate: "2024-06-15",
-        },
-        {
-            id: "SA-002",
-            name: "Mrs. Sunita Deshmukh",
-            username: "sunita.deshmukh",
-            email: "sunita.deshmukh@vmddp.gov.in",
-            mobile: "9876543211",
-            assignedDistricts: ["Amravati"],
-            assignedTalukas: ["Morshi", "Warud", "Daryapur"],
-            status: "active",
-            totalApplications: 189,
-            pendingApplications: 28,
-            joinedDate: "2024-07-01",
-        },
-        {
-            id: "SA-003",
-            name: "Mr. Prashant Kale",
-            username: "prashant.kale",
-            email: "prashant.kale@vmddp.gov.in",
-            mobile: "9876543212",
-            assignedDistricts: ["Akola", "Washim"],
-            assignedTalukas: ["Akot", "Murtizapur", "Karanja"],
-            status: "active",
-            totalApplications: 312,
-            pendingApplications: 45,
-            joinedDate: "2024-06-20",
-        },
-        {
-            id: "SA-004",
-            name: "Dr. Vandana Patil",
-            username: "vandana.patil",
-            email: "vandana.patil@vmddp.gov.in",
-            mobile: "9876543213",
-            assignedDistricts: ["Yavatmal"],
-            assignedTalukas: ["Pusad", "Digras", "Umarkhed"],
-            status: "inactive",
-            totalApplications: 156,
-            pendingApplications: 0,
-            joinedDate: "2024-05-10",
-        },
-    ];
-
-    const districts = [
-        "Nagpur", "Amravati", "Akola", "Yavatmal", "Wardha",
-        "Washim", "Buldhana", "Chandrapur", "Gadchiroli"
-    ];
-
-    const talukasByDistrict: Record<string, string[]> = {
-        "Nagpur": ["Nagpur Rural", "Kamptee", "Hingna", "Parseoni"],
-        "Amravati": ["Morshi", "Warud", "Daryapur", "Achalpur"],
-        "Akola": ["Akot", "Murtizapur", "Patur", "Telhara"],
-        "Yavatmal": ["Pusad", "Digras", "Umarkhed", "Wani"],
-        "Wardha": ["Hinganghat", "Deoli", "Arvi", "Ashti"],
-    };
 
     const filteredSubAdmins = subAdmins.filter((sa) => {
         const matchesSearch =

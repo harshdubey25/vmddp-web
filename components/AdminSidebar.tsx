@@ -1,20 +1,16 @@
 "use client"
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import {
-  LayoutDashboard,
-  FileText,
-  Users,
-  Package,
-  BarChart3,
-  Settings,
-  LogOut,
-  Shield,
-} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import {
+  FileText,
+  LayoutDashboard,
+  LogOut,
+  Shield
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface AdminSidebarProps {
   userRole: "admin" | "subadmin";

@@ -1,7 +1,7 @@
 export const runtime = 'edge'; // Ensure the page uses the Edge runtime
 export const dynamic = 'force-dynamic';
 import RegisterClient from "./client";
-import { frappeServer, frappePublic } from "@/lib/frappe";
+import { frappeServer } from "@/lib/frappe";
 export default async function RegisterPage() {
     // Server component: only renders the client component
 
