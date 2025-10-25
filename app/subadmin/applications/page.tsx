@@ -1,4 +1,3 @@
-import { frappeServer } from "@/lib/frappe";
 import SubAdminApplicationsClient from "./client";
 import { getFrappeWithUserToken } from "@/lib/frappeHelper";
 export const runtime = 'edge';

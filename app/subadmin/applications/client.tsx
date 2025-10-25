@@ -1,7 +1,6 @@
 "use client"
 // ...existing code...
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,7 +67,7 @@ interface Application {
     id: string;
     applicantName: string;
     fatherName: string;
-    mobile: string;
+    mobile_no: string;
     district: string;
     taluka: string;
     village: string;
@@ -112,8 +111,7 @@ interface SubAdminApplicationsClientProps {
 
 export default function SubAdminApplicationsClient({ applications: initialApplications, currentPage, pageSize }: SubAdminApplicationsClientProps) {
     console.log(initialApplications)
-    const router = useRouter();
-    const searchParams = useSearchParams();
+
     const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -215,7 +213,7 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
                 id: doc.name,
                 applicantName: doc.fullname,
                 fatherName: doc.father_name || doc.father || 'N/A',
-                mobile: doc.mobile_number || '',
+                mobile_no: doc.mobile_no || '',
                 district: doc.district || 'N/A',
                 taluka: doc.taluka || 'N/A',
                 village: doc.village || 'N/A',
@@ -571,7 +569,7 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
                                                 <Label className="text-muted-foreground">Mobile Number</Label>
                                                 <p className="font-medium flex items-center gap-2">
                                                     <Phone className="w-3 h-3" />
-                                                    {selectedApp.mobile}
+                                                    {selectedApp.mobile_no}
                                                 </p>
                                             </div>
                                             <div>
