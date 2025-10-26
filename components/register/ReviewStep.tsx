@@ -2,6 +2,7 @@
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { User, Users, MapPin, Leaf, Award, Printer } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 type ComponentSelection = {
   component_name: string;
@@ -28,27 +29,55 @@ interface ReviewStepProps {
   agreed: boolean;
   onAgreedChange: (checked: boolean) => void;
   criteriaFields?: any[];
+  components?: any[]; // Add original components data for translations
   onPrint?: () => void;
 }
 
-const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint, criteriaFields }: ReviewStepProps) => {
+const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint, criteriaFields, components }: ReviewStepProps) => {
+  const { t, i18n } = useTranslation('common');
   console.log("review step values", values);
 
   const getFileName = (url: any) => {
-    if (!url || typeof url !== 'string') return "Not uploaded";
+    if (!url || typeof url !== 'string') return t('not_uploaded');
     try {
-      return url.split('/').pop() || "Unknown file";
+      return url.split('/').pop() || t('unknown_file');
     } catch {
-      return "Unknown file";
+      return t('unknown_file');
     }
+  };
+
+  // Helper function to get localized criteria name
+  const getCriteriaName = (criteriaName: string) => {
+    if (i18n.language === 'mr' && criteriaFields) {
+      const criteriaField = criteriaFields.find(field =>
+        field.fieldname === criteriaName ||
+        field.name === criteriaName ||
+        field.name1 === criteriaName
+      );
+      if (criteriaField && criteriaField.name_in_local_language) {
+        return criteriaField.name_in_local_language;
+      }
+    }
+    return criteriaName;
+  };
+
+  // Helper function to get localized component name
+  const getComponentName = (componentName: string) => {
+    if (i18n.language === 'mr' && components) {
+      const component = components.find(comp => comp.component_name === componentName);
+      if (component && component.name_in_local_language) {
+        return component.name_in_local_language;
+      }
+    }
+    return componentName;
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-display font-semibold text-xl mb-2">Review & Submit</h2>
-          <p className="text-sm text-muted-foreground">Please review all the information before submitting your application</p>
+          <h2 className="font-display font-semibold text-xl mb-2">{t('review_submit_title')}</h2>
+          <p className="text-sm text-muted-foreground">{t('review_submit_description')}</p>
         </div>
         {/* {onPrint && (
           <button
@@ -67,31 +96,31 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
         <div className="space-y-4">
           <h3 className="font-semibold flex items-center gap-2">
             <User className="w-4 h-4" />
-            Personal Information
+            {t('personal_information')}
           </h3>
           <div className="space-y-3 text-sm">
             <div>
-              <Label className="text-muted-foreground">Full Name</Label>
+              <Label className="text-muted-foreground">{t('full_name')}</Label>
               <p className="font-medium">{values.firstName} {values.middleName} {values.lastName}</p>
             </div>
             <div>
-              <Label className="text-muted-foreground">Gender</Label>
+              <Label className="text-muted-foreground">{t('gender')}</Label>
               <p className="font-medium">{values.gender}</p>
             </div>
             <div>
-              <Label className="text-muted-foreground">Caste/Category</Label>
+              <Label className="text-muted-foreground">{t('caste_category')}</Label>
               <p className="font-medium">{values.category}</p>
             </div>
             <div>
-              <Label className="text-muted-foreground">Mobile Number</Label>
+              <Label className="text-muted-foreground">{t('mobile_number')}</Label>
               <p className="font-medium">{values.mobile}</p>
             </div>
             <div>
-              <Label className="text-muted-foreground">Aadhar Number</Label>
+              <Label className="text-muted-foreground">{t('aadhar_number')}</Label>
               <p className="font-medium">{values.aadhaar}</p>
             </div>
             <div>
-              <Label className="text-muted-foreground">Aadhar Image</Label>
+              <Label className="text-muted-foreground">{t('aadhar_image')}</Label>
               <p className="font-medium">{getFileName(values.aadhaarImage)}</p>
             </div>
           </div>
@@ -99,24 +128,24 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
         <div className="space-y-4">
           <h3 className="font-semibold flex items-center gap-2">
             <Users className="w-4 h-4" />
-            Family Details
+            {t('family_details')}
           </h3>
           <div className="space-y-3 text-sm">
             <div>
-              <Label className="text-muted-foreground">Ration Card Members</Label>
+              <Label className="text-muted-foreground">{t('ration_card_members')}</Label>
               <p className="font-medium">{values.rationCardMembers}</p>
             </div>
             <div>
-              <Label className="text-muted-foreground">Self Ration Card Image</Label>
+              <Label className="text-muted-foreground">{t('self_ration_card_image')}</Label>
               <p className="font-medium">{getFileName(values.rationCardImage)}</p>
             </div>
             <div>
-              <Label className="text-muted-foreground">Family Ration Card Image</Label>
+              <Label className="text-muted-foreground">{t('family_ration_card_image')}</Label>
               <p className="font-medium">{getFileName(values.familyRationCardImage)}</p>
             </div>
             {familyMemberCount > 1 && (
               <div>
-                <Label className="text-muted-foreground">Family Members&apos; Aadhar Numbers</Label>
+                <Label className="text-muted-foreground">{t('family_members_aadhar')}</Label>
                 <div className="space-y-1 mt-1">
                   {Array.from({ length: familyMemberCount - 1 }).map((_, index) => (
                     <p key={index} className="font-medium text-xs font-mono">{values[`familyAadhaar${index + 1}`]}</p>
@@ -131,19 +160,19 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
         <div className="space-y-4">
           <h3 className="font-semibold flex items-center gap-2">
             <MapPin className="w-4 h-4" />
-            Location Details
+            {t('location_details')}
           </h3>
           <div className="space-y-3 text-sm">
             <div>
-              <Label className="text-muted-foreground">District</Label>
+              <Label className="text-muted-foreground">{t('district')}</Label>
               <p className="font-medium">{values.district}</p>
             </div>
             <div>
-              <Label className="text-muted-foreground">Taluka</Label>
+              <Label className="text-muted-foreground">{t('taluka')}</Label>
               <p className="font-medium">{values.taluka}</p>
             </div>
             <div>
-              <Label className="text-muted-foreground">Village</Label>
+              <Label className="text-muted-foreground">{t('village')}</Label>
               <p className="font-medium">{values.village}</p>
             </div>
           </div>
@@ -151,18 +180,18 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
         <div className="space-y-4">
           <h3 className="font-semibold flex items-center gap-2">
             <Leaf className="w-4 h-4" />
-            Eligibility & Criteria
+            {t('eligibility_criteria')}
           </h3>
           <div className="space-y-3 text-sm">
             {Array.isArray(values.eligibility) && values.eligibility.map((item: any, idx: number) => (
               <div key={idx}>
-                <Label className="text-muted-foreground">{item.name}</Label>
+                <Label className="text-muted-foreground">{getCriteriaName(item.name)}</Label>
                 <p className="font-medium">{item.value && typeof item.value === 'string' && (item.value.startsWith('http') || item.value.includes('/files/')) ? getFileName(item.value) : item.value}</p>
                 {Array.isArray(item.child) && item.child.length > 0 && (
                   <div className="ml-4 space-y-1">
                     {item.child.map((child: any, cidx: number) => (
                       <div key={cidx}>
-                        <Label className="text-xs text-muted-foreground">{child.name}</Label>
+                        <Label className="text-xs text-muted-foreground">{getCriteriaName(child.name)}</Label>
                         <p className="text-xs font-mono">{child.value && typeof child.value === 'string' && (child.value.startsWith('http') || child.value.includes('/files/')) ? getFileName(child.value) : child.value}</p>
                       </div>
                     ))}
@@ -176,26 +205,27 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
       <div className="space-y-4">
         <h3 className="font-semibold flex items-center gap-2">
           <Award className="w-4 h-4" />
-          Component Details
+          {t('component_details')}
         </h3>
         <div className="p-4 bg-primary/5 rounded-lg space-y-4">
           <div>
-            <Label className="text-muted-foreground">Selected Component(s)</Label>
+            <Label className="text-muted-foreground">{t('selected_components')}</Label>
             <div className="mt-1">
               {Array.isArray(values.components)
                 ? values.components.map((comp: ComponentSelection, idx: number) => {
                   const option = COMPONENT_OPTIONS.find(o => o.label === comp.component_name);
+                  const localizedComponentName = getComponentName(comp.component_name);
                   return (
                     <div key={idx} className="mb-4 p-3 bg-white rounded border">
-                      <p className="font-medium text-base">{comp.component_name}</p>
+                      <p className="font-medium text-base">{localizedComponentName}</p>
                       {option && <p className="text-sm text-muted-foreground mb-2">{option.description}</p>}
                       {comp.questions && comp.questions.length > 0 && (
                         <div className="mt-2 space-y-1">
-                          <Label className="text-sm font-medium">Questions:</Label>
+                          <Label className="text-sm font-medium">{t('questions')}:</Label>
                           {comp.questions.map((q, qIdx) => (
                             <div key={qIdx} className="text-sm">
                               <span className="font-medium">{q.question}:</span>
-                              <span className="ml-2 text-muted-foreground">{q.value || "Not answered"}</span>
+                              <span className="ml-2 text-muted-foreground">{q.value || t('not_answered')}</span>
                             </div>
                           ))}
                         </div>
@@ -205,9 +235,10 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
                 })
                 : (() => {
                   const option = COMPONENT_OPTIONS.find(o => o.value === values.component);
+                  const localizedComponentName = getComponentName(values.component);
                   return (
                     <div>
-                      <p className="font-medium text-base">{option ? option.label : values.component}</p>
+                      <p className="font-medium text-base">{option ? localizedComponentName : values.component}</p>
                       {option && <p className="text-sm text-muted-foreground">{option.description}</p>}
                     </div>
                   );
@@ -227,10 +258,10 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
           />
           <div className="flex-1">
             <Label htmlFor="declaration" className="text-sm font-medium cursor-pointer block mb-1">
-              Declaration
+              {t('declaration')}
             </Label>
             <p className="text-sm text-muted-foreground cursor-pointer" onClick={() => onAgreedChange(!agreed)}>
-              I hereby declare that all the information provided by me is true and correct to the best of my knowledge. I understand that any false information may lead to rejection of my application and penal action as per law.
+              {t('declaration_text')}
             </p>
           </div>
         </div>

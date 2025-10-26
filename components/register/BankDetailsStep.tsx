@@ -7,6 +7,7 @@ import { useState } from "react";
 import { fetchBankDetailsByIFSC, isValidIFSCFormat } from "@/lib/ifsc";
 import { Loader2, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   control: any;
@@ -17,6 +18,7 @@ interface Props {
 const BankDetailsStep = ({ control, errors, setValue }: Props) => {
   const [isLoadingBankDetails, setIsLoadingBankDetails] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('common');
 
   const watchedFirstName = useWatch({ control, name: 'firstName' });
   const watchedMiddleName = useWatch({ control, name: 'middleName' });
@@ -42,21 +44,24 @@ const BankDetailsStep = ({ control, errors, setValue }: Props) => {
       if (bankDetails && setValue) {
         setValue('bankName', bankDetails.BANK);
         toast({
-          title: "Bank Details Fetched",
-          description: `Found ${bankDetails.BANK} - ${bankDetails.BRANCH}`,
+          title: t('bank_details_fetched_title'),
+          description: t('bank_details_fetched_description', {
+            bank: bankDetails.BANK,
+            branch: bankDetails.BRANCH
+          }),
         });
       } else {
         toast({
-          title: "IFSC Not Found",
-          description: "Could not find bank details for this IFSC code.",
+          title: t('ifsc_not_found_title'),
+          description: t('ifsc_not_found_description'),
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Error fetching bank details:", error);
       toast({
-        title: "Error",
-        description: "Failed to fetch bank details. Please try again.",
+        title: t('error'),
+        description: t('bank_details_fetch_error'),
         variant: "destructive",
       });
     } finally {
@@ -66,14 +71,14 @@ const BankDetailsStep = ({ control, errors, setValue }: Props) => {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-display font-semibold text-xl mb-4">Bank Details</h2>
+      <h2 className="font-display font-semibold text-xl mb-4">{t('bank_details_title')}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="accountHolderName">Account Holder Name *</Label>
+          <Label htmlFor="accountHolderName">{t('account_holder_name')} *</Label>
           <Controller
             name="accountHolderName"
             control={control}
-            rules={{ required: "Account Holder Name is required" }}
+            rules={{ required: t('account_holder_name_required') }}
             render={({ field }) => (
               <Input
                 {...field}
@@ -87,11 +92,17 @@ const BankDetailsStep = ({ control, errors, setValue }: Props) => {
           {errors.accountHolderName && <span className="text-red-500 text-xs">{errors.accountHolderName.message}</span>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="accountNumber">Account Number *</Label>
+          <Label htmlFor="accountNumber">{t('account_number')} *</Label>
           <Controller
             name="accountNumber"
             control={control}
-            rules={{ required: "Account Number is required", pattern: { value: /^[0-9]+$/, message: "Account Number must be numeric" } }}
+            rules={{
+              required: t('account_number_required'),
+              pattern: {
+                value: /^[0-9]+$/,
+                message: t('account_number_numeric')
+              }
+            }}
             render={({ field }) => (
               <Input
                 {...field}
@@ -107,17 +118,20 @@ const BankDetailsStep = ({ control, errors, setValue }: Props) => {
           {errors.accountNumber && <span className="text-red-500 text-xs">{errors.accountNumber.message}</span>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="confirmAccountNumber">Confirm Account Number *</Label>
+          <Label htmlFor="confirmAccountNumber">{t('confirm_account_number')} *</Label>
           <Controller
             name="confirmAccountNumber"
             control={control}
             rules={{
-              required: "Confirm Account Number is required",
-              pattern: { value: /^[0-9]+$/, message: "Account Number must be numeric" },
+              required: t('confirm_account_number_required'),
+              pattern: {
+                value: /^[0-9]+$/,
+                message: t('account_number_numeric')
+              },
               validate: (value, formValues) => {
                 const accountNumber = control._formValues?.accountNumber;
                 if (accountNumber && value !== accountNumber) {
-                  return "Account numbers do not match";
+                  return t('account_numbers_mismatch');
                 }
                 return true;
               }
@@ -143,21 +157,21 @@ const BankDetailsStep = ({ control, errors, setValue }: Props) => {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="ifscCode">IFSC Code *</Label>
+          <Label htmlFor="ifscCode">{t('ifsc_code')} *</Label>
           <div className="flex gap-2">
             <Controller
               name="ifscCode"
               control={control}
               rules={{
-                required: "IFSC Code is required",
-                validate: (value) => isValidIFSCFormat(value) || "Invalid IFSC code format"
+                required: t('ifsc_code_required'),
+                validate: (value) => isValidIFSCFormat(value) || t('ifsc_code_invalid')
               }}
               render={({ field }) => (
                 <Input
                   {...field}
                   id="ifscCode"
                   data-testid="input-ifsc-code"
-                  placeholder="e.g. SBIN0001234"
+                  placeholder={t('ifsc_code_placeholder')}
                   onChange={(e) => {
                     field.onChange(e.target.value.toUpperCase());
                     const ifscCode = e.target.value;
@@ -190,11 +204,11 @@ const BankDetailsStep = ({ control, errors, setValue }: Props) => {
           {errors.ifscCode && <span className="text-red-500 text-xs">{errors.ifscCode.message}</span>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="bankName">Bank Name *</Label>
+          <Label htmlFor="bankName">{t('bank_name')} *</Label>
           <Controller
             name="bankName"
             control={control}
-            rules={{ required: "Bank Name is required" }}
+            rules={{ required: t('bank_name_required') }}
             render={({ field }) => (
               <Input {...field} id="bankName" data-testid="input-bank-name" readOnly />
             )}

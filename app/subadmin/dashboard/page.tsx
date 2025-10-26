@@ -3,15 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getFrappeWithUserToken } from "@/lib/frappeHelper";
 import { getStatusBadge } from "@/lib/status-utils";
-import {
-    CheckCircle,
-    Clock,
-    FileText,
-    TrendingUp,
-    XCircle,
-} from "lucide-react";
 import { Header } from "./header";
-
+import SubAdminDashboardStats from "./stats";
 export const runtime = 'edge';
 
 interface Application {
@@ -44,11 +37,7 @@ export default async function SubAdminDashboard() {
         };
     });
 
-    // Calculate stats
-    const total = applications.length;
-    const approved = applications.filter(a => a.status === 'Approved').length;
-    const pending = applications.filter(a => a.status === 'Pending').length;
-    const rejected = applications.filter(a => a.status === 'Rejected').length;
+
 
     // Mock zone data - in real app, this would come from auth context
     const assignedZone = {
@@ -56,40 +45,7 @@ export default async function SubAdminDashboard() {
         taluka: "Nagpur Rural",
     };
 
-    const stats = [
-        {
-            title: "Total Applications",
-            value: total.toString(),
-            change: "+8.2%",
-            icon: FileText,
-            color: "text-chart-2",
-            bgColor: "bg-chart-2/10",
-        },
-        {
-            title: "Approved",
-            value: approved.toString(),
-            change: "+5.1%",
-            icon: CheckCircle,
-            color: "text-chart-3",
-            bgColor: "bg-chart-3/10",
-        },
-        {
-            title: "Pending Review",
-            value: pending.toString(),
-            change: "+12.5%",
-            icon: Clock,
-            color: "text-chart-4",
-            bgColor: "bg-chart-4/10",
-        },
-        {
-            title: "Rejected",
-            value: rejected.toString(),
-            change: "-3.2%",
-            icon: XCircle,
-            color: "text-chart-5",
-            bgColor: "bg-chart-5/10",
-        },
-    ];
+
 
     // Get recent applications (last 3, sorted by date desc)
     const recentApplications = applications
@@ -102,34 +58,9 @@ export default async function SubAdminDashboard() {
 
             <div className="flex-1 flex flex-col overflow-hidden">
                 <Header />
-
                 <main className="flex-1 overflow-auto p-6 bg-muted/30">
                     <div className="space-y-6 max-w-7xl">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {stats.map((stat, index) => {
-                                const Icon = stat.icon;
-                                return (
-                                    <Card key={index} data-testid={`stat-card-${index}`}>
-                                        <CardContent className="p-6">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
-                                                    <Icon className={`w-5 h-5 ${stat.color}`} />
-                                                </div>
-                                                <span className="text-xs font-medium text-chart-3 flex items-center gap-1">
-                                                    <TrendingUp className="w-3 h-3" />
-                                                    {stat.change}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <p className="text-2xl font-bold">{stat.value}</p>
-                                                <p className="text-sm text-muted-foreground mt-1">{stat.title}</p>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                );
-                            })}
-                        </div>
-
+                        <SubAdminDashboardStats />
                         <Card>
                             <CardHeader>
                                 <div className="flex items-center justify-between">

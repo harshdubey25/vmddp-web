@@ -14,16 +14,18 @@ interface ApplicationListItem {
 
 
 
-export default async function SubAdminApplications({ searchParams }: { searchParams: { page?: string; limit?: string } }) {
-    const page = parseInt(searchParams.page || '1');
-    const limit = parseInt(searchParams.limit || '20');
-
+export default async function SubAdminApplications({ searchParams }: { searchParams: Promise<{ page?: string; limit?: string; status?: string }> }) {
+    const page = parseInt((await searchParams).page || '1');
+    const limit = parseInt((await searchParams).limit || '20');
+    const status = (await searchParams).status || '';
+    const statusFilter = status && status !== 'all' ? { "status": status } : {};
     const frappe = await getFrappeWithUserToken();
     const response = await frappe.call().get('vmddp_app.api.api.get_applications_summary', {
         page: page.toString(),
-        limit: limit.toString()
+        limit: limit.toString(),
+        filters: statusFilter
     });
-    console.log(response)
+    console.log(response)  
 
     // Map to lightweight list items only
     const applications: ApplicationListItem[] = (response || []).message.applications.map((app: any): ApplicationListItem => {

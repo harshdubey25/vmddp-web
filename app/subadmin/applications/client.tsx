@@ -1,6 +1,6 @@
 "use client"
 // ...existing code...
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,10 +48,9 @@ import {
     Upload,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { frappeBrowser } from "@/lib/frappe";
 import { useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
 import { getStatusBadge } from "@/lib/status-utils";
-
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 // Lightweight interface for list view
 interface ApplicationListItem {
     id: string;
@@ -109,24 +108,26 @@ interface SubAdminApplicationsClientProps {
     pageSize: number;
 }
 
-export default function SubAdminApplicationsClient({ applications: initialApplications, currentPage, pageSize }: SubAdminApplicationsClientProps) {
-    console.log(initialApplications)
+export default function SubAdminApplicationsClient({ applications, currentPage, pageSize }: SubAdminApplicationsClientProps) {
+    console.log(applications)
 
     const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState("");
-    const [statusFilter, setStatusFilter] = useState("all");
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
     const [showReviewDialog, setShowReviewDialog] = useState(false);
     const [reviewAction, setReviewAction] = useState<"Approved" | "Rejected" | null>(null);
     const [remarks, setRemarks] = useState("");
-    const [applications, setApplications] = useState<ApplicationListItem[]>(initialApplications);
+    // const [applications, setApplications] = useState<ApplicationListItem[]>(initialApplications);
     const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
-
+    const searchParams = useSearchParams();
+    const router = useRouter()
+    const pathname = usePathname()
     // Mock zone - in real app, this would come from auth context
     const assignedZone = {
         district: "Nagpur",
         taluka: "Nagpur Rural",
     };
+    const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all');
 
     // Use Frappe hook to fetch document details
     const { data: doc, isLoading: isLoadingDetails, error: docError } = useFrappeGetDoc<any>(
@@ -137,7 +138,18 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
 
     // Update doc for status changes
     const { updateDoc } = useFrappeUpdateDoc();
+    const createQueryString = useCallback(
+        (name: string, value: string) => {
+            const params = new URLSearchParams(searchParams.toString())
+            params.set(name, value)
 
+            return params.toString()
+        },
+        [searchParams]
+    )
+    useEffect(() => {
+        router.push(pathname + '?' + createQueryString('status', statusFilter))
+    }, [statusFilter]);
     // Transform Frappe document to Application interface when doc changes
     useEffect(() => {
         if (doc && selectedAppId) {
@@ -264,15 +276,7 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
 
     // Remove the hardcoded applications array
 
-    const filteredApplications = applications.filter((app) => {
-        const matchesSearch =
-            app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            app.applicantName.toLowerCase().includes(searchQuery.toLowerCase());
 
-        const matchesStatus = statusFilter === "all" || app.status === statusFilter;
-
-        return matchesSearch && matchesStatus;
-    });
 
     const handleViewDetails = (app: ApplicationListItem) => {
         // Set the app ID to trigger the useFrappeGetDoc hook
@@ -295,16 +299,16 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
             });
 
             // Update the application status in state
-            setApplications(prev =>
-                prev.map(app =>
-                    app.id === selectedApp.id
-                        ? {
-                            ...app,
-                            status: reviewAction === "Approved" ? "Approved" : "Rejected",
-                        }
-                        : app
-                )
-            );
+            // setApplications(prev =>
+            //     prev.map(app =>
+            //         app.id === selectedApp.id
+            //             ? {
+            //                 ...app,
+            //                 status: reviewAction === "Approved" ? "Approved" : "Rejected",
+            //             }
+            //             : app
+            //     )
+            // );
 
             // Update the selected app status as well
             setSelectedApp({
@@ -359,7 +363,7 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
                                     <div>
                                         <CardTitle>All Applications</CardTitle>
                                         <CardDescription>
-                                            {filteredApplications.length} applications found in your zone
+                                            {applications.length} applications found in your zone
                                         </CardDescription>
                                     </div>
                                 </div>
@@ -406,7 +410,7 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {filteredApplications.map((app, index) => (
+                                                {applications.map((app, index) => (
                                                     <tr
                                                         key={app.id}
                                                         className="border-b hover:bg-muted/30 transition-colors"
@@ -492,13 +496,13 @@ export default function SubAdminApplicationsClient({ applications: initialApplic
 
                                             <PaginationItem>
                                                 <PaginationNext
-                                                    href={filteredApplications.length === pageSize ? `?page=${currentPage + 1}&limit=${pageSize}` : '#'}
+                                                    href={applications.length === pageSize ? `?page=${currentPage + 1}&limit=${pageSize}` : '#'}
                                                     onClick={(e) => {
-                                                        if (filteredApplications.length < pageSize) {
+                                                        if (applications.length < pageSize) {
                                                             e.preventDefault();
                                                         }
                                                     }}
-                                                    className={filteredApplications.length < pageSize ? 'pointer-events-none opacity-50' : ''}
+                                                    className={applications.length < pageSize ? 'pointer-events-none opacity-50' : ''}
                                                 />
                                             </PaginationItem>
                                         </PaginationContent>

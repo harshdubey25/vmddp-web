@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { JSX } from "react";
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 interface Props {
   control: any;
   errors: any;
@@ -13,6 +14,7 @@ interface Props {
 
 const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => {
 
+  const { t, i18n } = useTranslation('common');
   console.log(values)
   // Collect all mainFieldNames for useWatch
   const mainFieldNames = criteriaFields?.map((field, idx) => {
@@ -58,16 +60,18 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
 
   return (
     <div className="space-y-6">
-      <h2 className="font-display font-semibold text-xl mb-4">Eligibility Details</h2>
+      <h2 className="font-display font-semibold text-xl mb-4">{t('eligibility_details_title')}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {criteriaFields?.map((field, idx) => {
           // ...existing code...
           const fieldKey = field.fieldname || field.name || `criteria_${idx}`;
           const mainValueName = `eligibility[${idx}].value`;
           const mainNameName = `eligibility[${idx}].name`;
-          const label = field.label || fieldKey;
+          const label = (i18n.language === 'mr' && field.name_in_local_language)
+            ? field.name_in_local_language
+            : (field.label || field.name1 || fieldKey);
           const type = field.type || "text";
-          const required = field.required || false;
+          const required = field.required || field.mandatory || false;
 
           // ...existing code for mainInput...
           let mainInput = null;
@@ -87,7 +91,7 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                   <Controller
                     name={mainValueName}
                     control={control}
-                    rules={required ? { required: `${label} is required` } : {}}
+                    rules={required ? { required: t('field_required', { field: label }) } : {}}
                     render={({ field }) => (
                       <Checkbox
                         id={mainValueName}
@@ -99,7 +103,7 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Check the box if you meet this eligibility requirement
+                  {t('eligibility_checkbox_description')}
                 </p>
                 {errors?.eligibility?.[idx]?.value && (
                   <span className="text-red-500 text-xs flex items-center gap-1">
@@ -122,7 +126,7 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                 <Controller
                   name={mainValueName}
                   control={control}
-                  rules={required ? { required: `${label} is required` } : {}}
+                  rules={required ? { required: t('field_required', { field: label }) } : {}}
                   render={({ field: rhfField }) => (
                     <Input {...rhfField} id={mainValueName} type="number" value={rhfField.value ?? ""} placeholder={field.placeholder || undefined} />
                   )}
@@ -143,7 +147,7 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                 <Controller
                   name={mainValueName}
                   control={control}
-                  rules={required ? { required: `${label} is required` } : {}}
+                  rules={required ? { required: t('field_required', { field: label }) } : {}}
                   render={({ field }) => (
                     <>
                       <Input id={mainValueName} type="file" accept="image/*" onChange={async (e) => {
@@ -155,7 +159,7 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                           }
                         }
                       }} disabled={uploading[mainValueName]} />
-                      {uploading[mainValueName] && <span className="text-blue-500 text-xs">Uploading...</span>}
+                      {uploading[mainValueName] && <span className="text-blue-500 text-xs">{t('uploading')}</span>}
                     </>
                   )}
                 />
@@ -175,7 +179,7 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                 <Controller
                   name={mainValueName}
                   control={control}
-                  rules={required ? { required: `${label} is required` } : {}}
+                  rules={required ? { required: t('field_required', { field: label }) } : {}}
                   render={({ field: rhfField }) => (
                     <Input {...rhfField} id={mainValueName} type="text" value={rhfField.value ?? ""} placeholder={field.placeholder || undefined} />
                   )}
