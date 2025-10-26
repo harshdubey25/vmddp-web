@@ -296,6 +296,10 @@
   "unknown_file": "Unknown file",
   "declaration": "Declaration",
   "declaration_text": "I hereby declare that all the information provided by me is true and correct to the best of my knowledge. I understand that any false information may lead to rejection of my application and penal action as per law.",
+  "applications_by_component": "Applications by Component",
+  "component_distribution_description": "Distribution across different schemes",
+  "error_loading_data": "Error loading data",
+  "no_data_available": "No data available",
   "schemes": {
     "1": {
       "title": "Distribution of high genetic merit animals (cows-buffaloes) to farmers",
@@ -641,6 +645,8 @@
       "targetBeneficiaries": "36,000 farmers",
       "coverage": "All project areas through recognized training institutions"
     }
-  }
+  },
+  "villageWiseApplications": "Village-wise Applications",
+  "applicationStatusByVillage": "Application status by village"
   
 }

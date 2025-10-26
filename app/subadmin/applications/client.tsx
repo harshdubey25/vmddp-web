@@ -48,9 +48,10 @@ import {
     Upload,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
+import { useFrappeGetDoc, useFrappeUpdateDoc, useFrappeGetDocList } from "frappe-react-sdk";
 import { getStatusBadge } from "@/lib/status-utils";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useDebounce } from "@/hooks/use-debounce";
 // Lightweight interface for list view
 interface ApplicationListItem {
     id: string;
@@ -59,6 +60,13 @@ interface ApplicationListItem {
     component: string;
     status: "Approved" | "Pending" | "Rejected" | "Selected";
     submittedDate: string;
+}
+
+interface Component {
+    name: string;
+    component_name: string;
+    name_in_local_language?: string;
+    dont_show_in_website?: number;
 }
 
 // Full interface for detail view
@@ -106,19 +114,46 @@ interface SubAdminApplicationsClientProps {
     applications: ApplicationListItem[];
     currentPage: number;
     pageSize: number;
+    initialFilters?: {
+        status: string;
+        search: string;
+        component: string;
+        start_date: string;
+        end_date: string;
+    };
 }
 
-export default function SubAdminApplicationsClient({ applications, currentPage, pageSize }: SubAdminApplicationsClientProps) {
+export default function SubAdminApplicationsClient({ applications, currentPage, pageSize, initialFilters }: SubAdminApplicationsClientProps) {
     console.log(applications)
 
     const { toast } = useToast();
-    const [searchQuery, setSearchQuery] = useState("");
+    const [searchQuery, setSearchQuery] = useState(initialFilters?.search || "");
+
+    const [componentFilter, setComponentFilter] = useState(initialFilters?.component || "all");
+    const [dateFrom, setDateFrom] = useState(initialFilters?.start_date || "");
+    const [dateTo, setDateTo] = useState(initialFilters?.end_date || "");
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
     const [showReviewDialog, setShowReviewDialog] = useState(false);
     const [reviewAction, setReviewAction] = useState<"Approved" | "Rejected" | null>(null);
     const [remarks, setRemarks] = useState("");
-    // const [applications, setApplications] = useState<ApplicationListItem[]>(initialApplications);
     const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
+
+    // Fetch components for dropdown
+    const { data: components } = useFrappeGetDocList<Component>(
+        'Component',
+        {
+            fields: ['name', 'component_name', 'name_in_local_language', 'dont_show_in_website'],
+            filters: [['dont_show_in_website', '=', 0]],
+            orderBy: {
+                field: 'component_name',
+                order: 'asc'
+            }
+        }
+    );
+
+    // Debounce search query
+    const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
     const searchParams = useSearchParams();
     const router = useRouter()
     const pathname = usePathname()
@@ -128,6 +163,28 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
         taluka: "Nagpur Rural",
     };
     const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all');
+
+    // Update URL with filters
+    const updateFilters = useCallback(() => {
+        const params = new URLSearchParams();
+
+        if (statusFilter !== 'all') params.set('status', statusFilter);
+        if (componentFilter !== 'all') params.set('component', componentFilter);
+        if (debouncedSearchQuery) params.set('search', debouncedSearchQuery);
+        if (dateFrom) params.set('start_date', dateFrom);
+        if (dateTo) params.set('end_date', dateTo);
+
+        // Preserve pagination
+        params.set('page', '1'); // Reset to first page on filter change
+
+        router.push(pathname + '?' + params.toString());
+    }, [statusFilter, componentFilter, debouncedSearchQuery, dateFrom, dateTo, pathname, router]);
+
+    // Update URL when filters change
+    useEffect(() => {
+        updateFilters();
+    }, [updateFilters]);
+
 
     // Use Frappe hook to fetch document details
     const { data: doc, isLoading: isLoadingDetails, error: docError } = useFrappeGetDoc<any>(
@@ -346,7 +403,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                             Applications
                         </h1>
                         <p className="text-sm text-muted-foreground">
-                            Review and manage applications from {assignedZone.district} - {assignedZone.taluka}
+                            Review and manage applications
                         </p>
                     </div>
                     <Button variant="outline" className="gap-2" data-testid="button-export">
@@ -369,7 +426,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                     <div className="relative">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                         <Input
@@ -393,6 +450,37 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                             <SelectItem value="Selected">Selected</SelectItem>
                                         </SelectContent>
                                     </Select>
+
+                                    <Select value={componentFilter} onValueChange={setComponentFilter}>
+                                        <SelectTrigger data-testid="select-component-filter">
+                                            <SelectValue placeholder="Filter by component" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Components</SelectItem>
+                                            {components?.map((component) => (
+                                                <SelectItem key={component.name} value={component.component_name}>
+                                                    {component.component_name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+
+                                    <div className="flex gap-2">
+                                        <Input
+                                            type="date"
+                                            value={dateFrom}
+                                            onChange={(e) => setDateFrom(e.target.value)}
+                                            className="flex-1"
+                                            placeholder="From date"
+                                        />
+                                        <Input
+                                            type="date"
+                                            value={dateTo}
+                                            onChange={(e) => setDateTo(e.target.value)}
+                                            className="flex-1"
+                                            placeholder="To date"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="border rounded-lg overflow-hidden">
