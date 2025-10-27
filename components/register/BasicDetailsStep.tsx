@@ -188,33 +188,78 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="rationCardMembers">{t('ration_card_members')} *</Label>
-          <Controller 
-            name="rationCardMembers" 
-            control={control} 
-            rules={{ 
-              required: t('ration_card_members_required'), 
+          <Controller
+            name="rationCardMembers"
+            control={control}
+            rules={{
+              required: t('ration_card_members_required'),
               min: { value: 1, message: t('min_members_required') },
-              max: { value: 9, message: 'Maximum 9 members allowed' },
-              pattern: { value: /^[1-9]$/, message: 'Only numbers 1-9 are allowed' }
-            }} 
-            render={({ field }) => (
-              <Input 
-                {...field} 
-                id="rationCardMembers" 
-                type="text" 
-                inputMode="numeric"
-                maxLength={1}
-                min="1" 
-                max="9"
-                value={field.value || ''} 
-                onChange={e => { 
-                  const value = e.target.value.replace(/[^1-9]/g, '').slice(0, 1);
-                  field.onChange(value); 
-                  setFamilyMemberCount(parseInt(value) || 0); 
-                }} 
-                data-testid="input-ration-card-members" 
-              />
-            )} 
+              max: { value: 99, message: 'Maximum 99 members allowed' },
+              pattern: { value: /^[1-9]\d*$/, message: 'Only positive numbers are allowed' }
+            }}
+            render={({ field }) => {
+              const currentValue = parseInt(field.value) || 1;
+
+              const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                const value = e.target.value;
+                const numValue = parseInt(value);
+
+                // Allow spinner changes (when value comes from browser's built-in increment/decrement)
+                if (!isNaN(numValue) && numValue >= 1 && numValue <= 99) {
+                  field.onChange(numValue.toString());
+                  setFamilyMemberCount(numValue);
+                }
+                // For direct typing, only allow single digits (1-9)
+                else if (value.length <= 1) {
+                  const singleDigit = value.replace(/[^1-9]/g, '');
+                  if (singleDigit) {
+                    field.onChange(singleDigit);
+                    setFamilyMemberCount(parseInt(singleDigit));
+                  }
+                }
+              };
+
+              const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+                // Allow navigation keys, backspace, delete, and arrow keys (for spinners)
+                const allowedKeys = ['ArrowUp', 'ArrowDown', 'Tab', 'Backspace', 'Delete', 'Enter', 'Home', 'End'];
+
+                // Prevent typing numbers if current value is already double digit
+                if (currentValue >= 10 && !allowedKeys.includes(e.key)) {
+                  e.preventDefault();
+                  return;
+                }
+
+                // For single digits, prevent typing if it would create invalid input
+                if (currentValue < 10 && e.key >= '0' && e.key <= '9') {
+                  // Only allow digits 1-9 for direct typing
+                  if (e.key === '0' || (currentValue > 0 && e.key >= '1' && e.key <= '9')) {
+                    e.preventDefault();
+                  }
+                }
+              };
+
+              return (
+                <Input
+                  {...field}
+                  id="rationCardMembers"
+                  type="number"
+                  min="1"
+                  max="99"
+                  step="1"
+                  value={field.value || '1'}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  data-testid="input-ration-card-members"
+                  onBlur={() => {
+                    // Ensure value is within bounds and update family count
+                    const value = parseInt(field.value) || 1;
+                    const clampedValue = Math.max(1, Math.min(99, value));
+                    field.onChange(clampedValue.toString());
+                    setFamilyMemberCount(clampedValue);
+                  }}
+                />
+              );
+            }}
           />
           {errors.rationCardMembers && <span className="text-red-500 text-xs">{errors.rationCardMembers.message}</span>}
         </div>
