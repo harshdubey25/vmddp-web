@@ -257,12 +257,47 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
 
             // Family aadhar numbers
             const familyAadharNumbers: string[] = [];
-            if (doc.family_member_aadhar_number) {
-                if (Array.isArray(doc.family_member_aadhar_number)) {
-                    familyAadharNumbers.push(...doc.family_member_aadhar_number.filter(Boolean).map(String));
-                } else if (typeof doc.family_member_aadhar_number === 'string') {
-                    const parts = doc.family_member_aadhar_number.split(',').map((s: string) => s.trim()).filter(Boolean);
-                    familyAadharNumbers.push(...parts);
+            
+            // Check various possible locations for family member Aadhar numbers
+            const possibleFields = [
+                doc.family_member_aadhar_number,
+                doc.family_aadhar_numbers,
+                doc.family_members,
+                doc.family_aadhar,
+                doc.aadhar_numbers,
+                doc.members_aadhar
+            ];
+            
+            for (const field of possibleFields) {
+                if (field) {
+                    if (Array.isArray(field)) {
+                        familyAadharNumbers.push(...field.filter(Boolean).map(String));
+                        break;
+                    } else if (typeof field === 'string') {
+                        const parts = field.split(',').map((s: string) => s.trim()).filter(Boolean);
+                        familyAadharNumbers.push(...parts);
+                        break;
+                    }
+                }
+            }
+            
+            // Check for individual family member fields (familyAadhaar1, familyAadhaar2, etc.)
+            const rationCardMembers = parseInt(doc.number_of_members_in_ration_card) || 0;
+            if (rationCardMembers > 1) {
+                for (let i = 1; i < rationCardMembers; i++) {
+                    const fieldNames = [
+                        `familyAadhaar${i}`,
+                        `family_aadhaar_${i}`,
+                        `family_aadhar_${i}`,
+                        `familyAadhar${i}`
+                    ];
+                    
+                    for (const fieldName of fieldNames) {
+                        if (doc[fieldName]) {
+                            familyAadharNumbers.push(String(doc[fieldName]));
+                            break;
+                        }
+                    }
                 }
             }
 
@@ -695,9 +730,13 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                             <div>
                                                 <Label className="text-muted-foreground">Family Aadhar Numbers</Label>
                                                 <div className="space-y-1 mt-1">
-                                                    {selectedApp.familyAadharNumbers.map((family_member_aadhar_number, idx) => (
-                                                        <p key={idx} className="font-medium text-xs font-mono">{family_member_aadhar_number}</p>
-                                                    ))}
+                                                    {selectedApp.familyAadharNumbers.length > 0 ? (
+                                                        selectedApp.familyAadharNumbers.map((aadhar, idx) => (
+                                                            <p key={idx} className="font-medium text-xs font-mono">{aadhar}</p>
+                                                        ))
+                                                    ) : (
+                                                        <p className="text-sm text-muted-foreground italic">No family member Aadhar numbers provided</p>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -736,7 +775,11 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                                 <div key={idx}>
                                                     <Label className="text-muted-foreground">{crit.label}</Label>
                                                     <p className="font-medium">
-                                                        {crit.value != null ? String(crit.value) : 'N/A'}
+                                                        {crit.value != null ? (
+                                                            crit.value === 1 || crit.value === "1" ? "Yes" :
+                                                            crit.value === 0 || crit.value === "0" ? "No" :
+                                                            String(crit.value)
+                                                        ) : 'N/A'}
                                                     </p>
                                                 </div>
                                             ))}
