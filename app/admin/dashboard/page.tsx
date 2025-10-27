@@ -1,3 +1,4 @@
+
 // ...existing code...
 // Content from src/pages/admin/Dashboard.tsx
 export const runtime = 'edge';
@@ -8,13 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import AdminSidebar from "@/components/AdminSidebar";
 import {
     FileText,
-    CheckCircle,
-    Clock,
-    XCircle,
-    TrendingUp,
     Users,
     Package,
     ArrowUpRight,
+    AlertTriangle,
+    RefreshCw,
 } from "lucide-react";
 import { frappeServer } from "@/lib/frappe";
 import AdminDashboardStats from "./stats";
@@ -22,10 +21,72 @@ import TopComponents from "./topComponents";
 import Link from "next/link";
 export default async function AdminDashboard() {
     // Get recent applications
-    const applicationsResponse = await frappeServer.call().get('vmddp_app.api.api.get_applications_summary', {
-        page: '1',
-        limit: '4'
-    });
+    let applicationsResponse: any;
+    try {
+
+        applicationsResponse = await frappeServer.call().get('vmddp_app.api.api.get_applications_summary', {
+            page: '1',
+            limit: '4'
+        });
+    } catch (error) {
+        console.error('Error fetching applications summary:', error);
+
+        // For production: create a detailed error page that shows in browser
+        return (
+            <div className="min-h-screen bg-muted/30 p-4">
+                <div className="max-w-4xl mx-auto space-y-6">
+                    <div className="text-center space-y-4">
+                        <div className="w-16 h-16 mx-auto bg-destructive/10 rounded-full flex items-center justify-center">
+                            <AlertTriangle className="w-8 h-8 text-destructive" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold text-destructive mb-2">
+                                Dashboard Loading Error
+                            </h1>
+                            <p className="text-muted-foreground">
+                                Failed to load dashboard data
+                            </p>
+                        </div>
+                    </div>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-destructive">Error Details</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                                <h3 className="font-semibold text-destructive mb-2">Error Message:</h3>
+                                <p className="text-sm font-mono break-all">
+                                    {error instanceof Error ? error.message : String(error)}
+                                </p>
+                            </div>
+
+                            <div className="bg-gray-900 text-gray-100 p-4 rounded font-mono text-xs overflow-auto max-h-96">
+                                <h4 className="text-white mb-2">Full Error Object:</h4>
+                                <pre className="whitespace-pre-wrap">
+                                    {JSON.stringify(error, null, 2)}
+                                </pre>
+                            </div>
+
+                            <div className="flex gap-2">
+                                <Link href="/admin/dashboard">
+                                    <Button className="gap-2">
+                                        <RefreshCw className="w-4 h-4" />
+                                        Refresh Page
+                                    </Button>
+                                </Link>
+                                <Link href="/admin">
+                                    <Button variant="outline">
+                                        Back to Admin
+                                    </Button>
+                                </Link>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        );
+    }
 
     const recentApplications = (applicationsResponse?.message?.applications || []).map((app: any) => ({
         id: app.name,
