@@ -124,7 +124,6 @@ interface SubAdminApplicationsClientProps {
 }
 
 export default function SubAdminApplicationsClient({ applications, currentPage, pageSize, initialFilters }: SubAdminApplicationsClientProps) {
-    console.log(applications)
 
     const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState(initialFilters?.search || "");
@@ -210,7 +209,6 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
     // Transform Frappe document to Application interface when doc changes
     useEffect(() => {
         if (doc && selectedAppId) {
-            console.log('Fetched application details:', doc);
 
             // Map the Frappe document to Application interface
             const component_list = Array.isArray(doc.component_list)
@@ -367,7 +365,6 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
     // Handle errors from doc fetch
     useEffect(() => {
         if (docError) {
-            console.error('Error fetching application details:', docError);
             toast({
                 title: "Error",
                 description: "Failed to load application details. Please try again.",
@@ -429,7 +426,6 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
             setRemarks("");
             setReviewAction(null);
         } catch (error) {
-            console.error('Error updating application status:', error);
             toast({
                 title: "Error",
                 description: `Failed to ${reviewAction === "Approved" ? "approve" : "reject"} the application. Please try again.`,
