@@ -59,6 +59,8 @@ export default function SuccessPage() {
         if (storedData) {
             try {
                 const data = JSON.parse(storedData);
+                console.log('Application Data:', data);
+                console.log('Eligibility Data:', data.eligibility);
                 setApplicationData(data);
                 // Clear the data after reading it
                 localStorage.removeItem('submittedApplicationData');
@@ -78,11 +80,21 @@ export default function SuccessPage() {
     };
 
     const formatValue = (value: any) => {
-        if (!value) return "Not provided";
+        if (value === null || value === undefined) return "Not provided";
+        if (value === "") return "Not provided";
         if (typeof value === 'string' && (value.startsWith('http') || value.includes('/files/'))) {
             return getFileName(value);
         }
-        return value;
+        if (typeof value === 'boolean') {
+            return value ? "Yes" : "No";
+        }
+        if (typeof value === 'number') {
+            return value.toString();
+        }
+        if (Array.isArray(value)) {
+            return value.length > 0 ? value.join(', ') : "Not provided";
+        }
+        return value.toString();
     };
 
     if (!applicationData) {
