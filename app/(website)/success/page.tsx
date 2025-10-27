@@ -13,7 +13,7 @@ type ApplicationData = {
     gender: string;
     category: string;
     mobile: string;
-    aadhaar: string;
+    aadhar_number: string;
     district: string;
     taluka: string;
     village: string;
@@ -181,7 +181,7 @@ export default function SuccessPage() {
                                 </div>
                                 <div>
                                     <span className="text-muted-foreground">Aadhar Number:</span>
-                                    <p className="font-medium font-mono">{applicationData.aadhaar}</p>
+                                    <p className="font-medium font-mono">{applicationData.aadhar_number}</p>
                                 </div>
                             </div>
                         </div>
@@ -276,7 +276,7 @@ export default function SuccessPage() {
                                 </div>
                                 <div>
                                     <span className="text-muted-foreground">Account Number:</span>
-                                    <p className="font-medium font-mono">{applicationData.accountNumber}</p>
+                                    <p className="font-medium font-mono">****{applicationData.accountNumber?.slice(-4)}</p>
                                 </div>
                                 <div>
                                     <span className="text-muted-foreground">Bank Name:</span>

@@ -187,27 +187,39 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
 
     const onSubmit = (formData: RegisterFormValues) => {
         if (!agreed) {
-            // toast({
-            //     title: "Declaration Required",
-            //     description: "Please agree to the declaration to submit your application",
-            //     variant: "destructive"
-            // });
             return;
         }
-        setSubmitLoading(true)
-        frappePublic.call().post('vmddp_app.api.app_form.create_app_form', {
-            data: {
-                ...formData,
-                components: formData.components
+        setSubmitLoading(true);
+
+        // Extract family member Aadhar numbers
+        const familyAadharNumbers: string[] = [];
+        const familyMemberCount = parseInt(String(formData.rationCardMembers)) || 0;
+        
+        if (familyMemberCount > 1) {
+            for (let i = 1; i < familyMemberCount; i++) {
+                const fieldName = `familyAadhaar${i}` as keyof RegisterFormValues;
+                const aadharValue = formData[fieldName];
+                if (aadharValue && typeof aadharValue === 'string' && aadharValue.trim()) {
+                    familyAadharNumbers.push(aadharValue.trim());
+                }
             }
+        }
+
+        const submissionData = {
+            ...formData,
+            family_member_aadhar_number: familyAadharNumbers.join(','),
+            components: formData.components
+        };
+
+        
+        frappePublic.call().post('vmddp_app.api.app_form.create_app_form', {
+            data: submissionData
         }).then((res: any) => {
             toast({
                 title: t('application_submitted'),
                 description: t('application_submitted_desc'),
             });
-            console.log("Application submitted", res);
 
-            // Extract application ID from response
             const applicationId = res?.message?.name || res?.data?.name || '';
 
             // Store form data in localStorage for success page
@@ -225,7 +237,6 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                 description: t('submission_error_desc'),
                 variant: "destructive"
             });
-            console.error("Application submission error", err);
         }).finally(() => setSubmitLoading(false));
     }
 
