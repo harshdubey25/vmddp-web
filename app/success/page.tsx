@@ -47,6 +47,25 @@ export default function SuccessPage() {
     const [applicationData, setApplicationData] = useState<ApplicationData | null>(null);
 
     useEffect(() => {
+        // Add basic print styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @media print {
+                @page {
+                    margin: 0.5in;
+                    size: A4;
+                }
+                .print-hidden {
+                    display: none !important;
+                }
+                body {
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
         // Get application ID from URL params
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('applicationId');
@@ -59,8 +78,6 @@ export default function SuccessPage() {
         if (storedData) {
             try {
                 const data = JSON.parse(storedData);
-                console.log('Application Data:', data);
-                console.log('Eligibility Data:', data.eligibility);
                 setApplicationData(data);
                 // Clear the data after reading it
                 localStorage.removeItem('submittedApplicationData');
@@ -68,6 +85,12 @@ export default function SuccessPage() {
                 console.error('Error parsing application data:', error);
             }
         }
+
+        return () => {
+            if (style.parentNode) {
+                style.parentNode.removeChild(style);
+            }
+        };
     }, []);
 
     const getFileName = (url: any) => {
@@ -113,34 +136,34 @@ export default function SuccessPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12 sm:py-16">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <Card className="shadow-xl border-0 mb-8">
-                    <CardHeader className="text-center pb-8">
-                        <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                            <CheckCircle className="w-8 h-8 text-green-600" />
+        <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12 sm:py-16 print:bg-white print:py-4">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 print:px-2">
+                <Card className="shadow-xl border-0 mb-8 print:shadow-none print:border">
+                    <CardHeader className="text-center pb-8 print:pb-4">
+                        <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 print:w-12 print:h-12">
+                            <CheckCircle className="w-8 h-8 text-green-600 print:w-6 print:h-6" />
                         </div>
-                        <CardTitle className="text-2xl sm:text-3xl font-display font-semibold text-green-800 mb-2">
+                        <CardTitle className="text-2xl sm:text-3xl font-display font-semibold text-green-800 mb-2 print:text-xl">
                             Application Submitted Successfully!
                         </CardTitle>
-                        <p className="text-muted-foreground">
+                        <p className="text-muted-foreground print:text-gray-800 print:text-sm">
                             Your VMDDP scheme application has been submitted and is being processed.
                         </p>
                     </CardHeader>
 
-                    <CardContent className="space-y-6">
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <CardContent className="space-y-6 print:space-y-3">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 print:bg-gray-50 print:border-gray-300 print:p-2">
                             <div className="flex items-center gap-2 mb-2">
-                                <FileText className="w-5 h-5 text-blue-600" />
-                                <h3 className="font-semibold text-blue-800">Application Details</h3>
+                                <FileText className="w-5 h-5 text-blue-600 print:w-4 print:h-4 print:text-gray-600" />
+                                <h3 className="font-semibold text-blue-800 print:text-gray-800 print:text-sm">Application Details</h3>
                             </div>
-                            <p className="text-sm text-blue-700">
+                            <p className="text-sm text-blue-700 print:text-gray-700 print:text-xs">
                                 <strong>Application ID:</strong> <span className="font-mono">{applicationId || applicationData.applicationId}</span>
                             </p>
-                            <p className="text-sm text-blue-700">
+                            <p className="text-sm text-blue-700 print:text-gray-700 print:text-xs">
                                 <strong>Submitted At:</strong> <span>{new Date(applicationData.submittedAt).toLocaleString()}</span>
                             </p>
-                            <p className="text-xs text-blue-600 mt-2">
+                            <p className="text-xs text-blue-600 mt-2 print:text-gray-600">
                                 Please save this ID for future reference. You will also receive an SMS with this ID.
                             </p>
                         </div>
@@ -148,21 +171,21 @@ export default function SuccessPage() {
                 </Card>
 
                 {/* Application Summary */}
-                <Card className="shadow-xl border-0 mb-8">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <FileText className="w-5 h-5" />
+                <Card className="shadow-xl border-0 mb-8 print:shadow-none print:border print:mb-4">
+                    <CardHeader className="print:pb-2">
+                        <CardTitle className="flex items-center gap-2 print:text-lg">
+                            <FileText className="w-5 h-5 print:w-4 print:h-4" />
                             Application Summary
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6">
+                    <CardContent className="space-y-6 print:space-y-3">
                         {/* Personal Information */}
                         <div>
-                            <h3 className="font-semibold flex items-center gap-2 mb-3">
+                            <h3 className="font-semibold flex items-center gap-2 mb-3 print:text-sm print:mb-2">
                                 <User className="w-4 h-4" />
                                 Personal Information
                             </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm print:gap-2 print:text-xs">
                                 <div>
                                     <span className="text-muted-foreground">Full Name:</span>
                                     <p className="font-medium">{applicationData.firstName} {applicationData.middleName} {applicationData.lastName}</p>
@@ -188,11 +211,11 @@ export default function SuccessPage() {
 
                         {/* Location Details */}
                         <div>
-                            <h3 className="font-semibold flex items-center gap-2 mb-3">
+                            <h3 className="font-semibold flex items-center gap-2 mb-3 print:text-sm print:mb-2">
                                 <MapPin className="w-4 h-4" />
                                 Location Details
                             </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm print:gap-2 print:text-xs">
                                 <div>
                                     <span className="text-muted-foreground">District:</span>
                                     <p className="font-medium">{applicationData.district}</p>
@@ -211,17 +234,17 @@ export default function SuccessPage() {
                         {/* Eligibility Criteria */}
                         {applicationData.eligibility && applicationData.eligibility.length > 0 && (
                             <div>
-                                <h3 className="font-semibold flex items-center gap-2 mb-3">
+                                <h3 className="font-semibold flex items-center gap-2 mb-3 print:text-sm print:mb-2">
                                     <Leaf className="w-4 h-4" />
                                     Eligibility Criteria
                                 </h3>
-                                <div className="space-y-2">
+                                <div className="space-y-2 print:space-y-1">
                                     {applicationData.eligibility.map((item, idx) => (
-                                        <div key={idx} className="text-sm">
+                                        <div key={idx} className="text-sm print:text-xs">
                                             <span className="text-muted-foreground">{item.name}:</span>
                                             <p className="font-medium">{formatValue(item.value)}</p>
                                             {item.child && item.child.length > 0 && (
-                                                <div className="ml-4 mt-1 space-y-1">
+                                                <div className="ml-4 mt-1 space-y-1 print:ml-2 print:space-y-0">
                                                     {item.child.map((child, cidx) => (
                                                         <div key={cidx} className="text-xs">
                                                             <span className="text-muted-foreground">{child.name}:</span>
@@ -239,18 +262,18 @@ export default function SuccessPage() {
                         {/* Selected Components */}
                         {applicationData.components && applicationData.components.length > 0 && (
                             <div>
-                                <h3 className="font-semibold flex items-center gap-2 mb-3">
+                                <h3 className="font-semibold flex items-center gap-2 mb-3 print:text-sm print:mb-2">
                                     <Award className="w-4 h-4" />
                                     Selected Components
                                 </h3>
-                                <div className="space-y-3">
+                                <div className="space-y-3 print:space-y-2">
                                     {applicationData.components.map((comp, idx) => (
-                                        <div key={idx} className="border rounded-lg p-3 bg-gray-50">
-                                            <p className="font-medium text-base mb-2">{comp.component_name}</p>
+                                        <div key={idx} className="border rounded-lg p-3 bg-gray-50 print:p-2 print:bg-white print:border-gray-400">
+                                            <p className="font-medium text-base mb-2 print:text-sm print:mb-1">{comp.component_name}</p>
                                             {comp.questions && comp.questions.length > 0 && (
-                                                <div className="space-y-1">
+                                                <div className="space-y-1 print:space-y-0">
                                                     {comp.questions.map((q, qIdx) => (
-                                                        <div key={qIdx} className="text-sm">
+                                                        <div key={qIdx} className="text-sm print:text-xs">
                                                             <span className="text-muted-foreground">{q.question}:</span>
                                                             <span className="ml-2 font-medium">{q.value || "Not answered"}</span>
                                                         </div>
@@ -265,11 +288,11 @@ export default function SuccessPage() {
 
                         {/* Bank Details */}
                         <div>
-                            <h3 className="font-semibold flex items-center gap-2 mb-3">
+                            <h3 className="font-semibold flex items-center gap-2 mb-3 print:text-sm print:mb-2">
                                 <Users className="w-4 h-4" />
                                 Bank Details
                             </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm print:gap-2 print:text-xs">
                                 <div>
                                     <span className="text-muted-foreground">Account Holder:</span>
                                     <p className="font-medium">{applicationData.accountHolderName}</p>
@@ -292,11 +315,11 @@ export default function SuccessPage() {
                 </Card>
 
                 {/* Next Steps and Actions */}
-                <Card className="shadow-xl border-0">
-                    <CardContent className="space-y-6 pt-6">
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <h3 className="font-semibold text-yellow-800 mb-2">What happens next?</h3>
-                            <ul className="text-sm text-yellow-700 space-y-1">
+                <Card className="shadow-xl border-0 print:shadow-none print:border">
+                    <CardContent className="space-y-6 pt-6 print:space-y-3 print:pt-3">
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 print:bg-gray-50 print:border-gray-300 print:p-2">
+                            <h3 className="font-semibold text-yellow-800 mb-2 print:text-gray-800 print:text-sm print:mb-1">What happens next?</h3>
+                            <ul className="text-sm text-yellow-700 space-y-1 print:text-gray-700 print:text-xs print:space-y-0">
                                 <li>• Your application will be reviewed by the sub-admin</li>
                                 <li>• You will receive updates via SMS</li>
                                 <li>• Processing may take 7-10 working days</li>
@@ -304,9 +327,9 @@ export default function SuccessPage() {
                             </ul>
                         </div>
 
-                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                            <h3 className="font-semibold text-gray-800 mb-2">Important Information</h3>
-                            <ul className="text-sm text-gray-700 space-y-1">
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 print:p-2">
+                            <h3 className="font-semibold text-gray-800 mb-2 print:text-sm print:mb-1">Important Information</h3>
+                            <ul className="text-sm text-gray-700 space-y-1 print:text-xs print:space-y-0">
                                 <li>• All information provided must be accurate</li>
                                 <li>• False information may lead to application rejection</li>
                                 <li>• Contact your local sub-admin for any queries</li>
@@ -314,7 +337,7 @@ export default function SuccessPage() {
                             </ul>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row gap-4 pt-6">
+                        <div className="flex flex-col sm:flex-row gap-4 pt-6 print-hidden">
                             <Button
                                 onClick={() => window.print()}
                                 variant="outline"
