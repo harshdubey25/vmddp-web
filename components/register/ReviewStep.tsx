@@ -117,7 +117,7 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
             </div>
             <div>
               <Label className="text-muted-foreground">{t('aadhar_number')}</Label>
-              <p className="font-medium">{values.aadhaar}</p>
+              <p className="font-medium">{values.aadhar_number}</p>
             </div>
             <div>
               <Label className="text-muted-foreground">{t('aadhar_image')}</Label>
