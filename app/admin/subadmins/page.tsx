@@ -31,94 +31,71 @@ import {
     Search,
     Shield,
     UserPlus,
+    Loader2,
 } from "lucide-react";
 import { useState } from "react";
+import { useFrappeGetCall, useFrappeGetDocList, useFrappePostCall } from "frappe-react-sdk";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
-interface SubAdmin {
-    id: string;
+interface DPO {
+    dpo_id: string;
+    user_id: string;
     name: string;
-    username: string;
     email: string;
-    mobile: string;
-    assignedDistricts: string[];
-    assignedTalukas: string[];
-    status: "active" | "inactive";
-    totalApplications: number;
-    pendingApplications: number;
-    joinedDate: string;
+    district: string;
+    mobile_number: string;
+    enabled: boolean;
+    user_type: string;
 }
 
-const subAdmins: SubAdmin[] = [
-    {
-        id: "SA-001",
-        name: "Dr. Rajesh Shinde",
-        username: "rajesh.shinde",
-        email: "rajesh.shinde@vmddp.gov.in",
-        mobile: "9876543210",
-        assignedDistricts: ["Nagpur"],
-        assignedTalukas: ["Nagpur Rural", "Kamptee", "Hingna"],
-        status: "active",
-        totalApplications: 245,
-        pendingApplications: 32,
-        joinedDate: "2024-06-15",
-    },
-    {
-        id: "SA-002",
-        name: "Mrs. Sunita Deshmukh",
-        username: "sunita.deshmukh",
-        email: "sunita.deshmukh@vmddp.gov.in",
-        mobile: "9876543211",
-        assignedDistricts: ["Amravati"],
-        assignedTalukas: ["Morshi", "Warud", "Daryapur"],
-        status: "active",
-        totalApplications: 189,
-        pendingApplications: 28,
-        joinedDate: "2024-07-01",
-    },
-    {
-        id: "SA-003",
-        name: "Mr. Prashant Kale",
-        username: "prashant.kale",
-        email: "prashant.kale@vmddp.gov.in",
-        mobile: "9876543212",
-        assignedDistricts: ["Akola", "Washim"],
-        assignedTalukas: ["Akot", "Murtizapur", "Karanja"],
-        status: "active",
-        totalApplications: 312,
-        pendingApplications: 45,
-        joinedDate: "2024-06-20",
-    },
-    {
-        id: "SA-004",
-        name: "Dr. Vandana Patil",
-        username: "vandana.patil",
-        email: "vandana.patil@vmddp.gov.in",
-        mobile: "9876543213",
-        assignedDistricts: ["Yavatmal"],
-        assignedTalukas: ["Pusad", "Digras", "Umarkhed"],
-        status: "inactive",
-        totalApplications: 156,
-        pendingApplications: 0,
-        joinedDate: "2024-05-10",
-    },
-];
-
-const districts = [
-    "Nagpur", "Amravati", "Akola", "Yavatmal", "Wardha",
-    "Washim", "Buldhana", "Chandrapur", "Gadchiroli"
-];
+interface DPOApiResponse {
+    message: {
+        dpos: DPO[];
+        total_count: number;
+    };
+    error?: string;
+}
 
 export default function AdminSubAdmins() {
+    const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [showAddDialog, setShowAddDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-    const [selectedSubAdmin, setSelectedSubAdmin] = useState<SubAdmin | null>(null);
+    const [selectedDPO, setSelectedDPO] = useState<DPO | null>(null);
     const [newPassword, setNewPassword] = useState("");
+    const [isUpdating, setIsUpdating] = useState(false);
 
-    const [formData, setFormData] = useState({
-        name: "",
+    // Fetch DPOs from API
+    const { data: dpoResponse, isLoading, error, mutate: refetchDPOs } = useFrappeGetCall<DPOApiResponse>(
+        'vmddp_app.api.v1.admin.get_all_dpos',
+        undefined,
+        'dpos-list'
+    );
+
+    // Fetch districts from Frappe
+    const { data: frappeDistricts, isLoading: districtsLoading } = useFrappeGetDocList("District Master", {
+        fields: ["name", "name1"],
+        limit: 100,
+    });
+
+    console.log("dpoResponse:", dpoResponse);
+    console.log("frappeDistricts:", frappeDistricts);
+    const dpos = dpoResponse?.message?.dpos || [];
+    const districts = frappeDistricts ? frappeDistricts.map((d: any) => d.name1) : [];
+
+    // Hook for updating DPO
+    const { call: updateDPO, loading: updateLoading } = useFrappePostCall('vmddp_app.api.v1.admin.update_dpo');
+
+    // Hook for creating DPO
+    const { call: createDPO, loading: createLoading } = useFrappePostCall('vmddp_app.api.v1.admin.create_dpo');
+
+    // Hook for updating DPO password
+    const { call: updateDPOPassword, loading: passwordLoading } = useFrappePostCall('vmddp_app.api.v1.admin.update_dpo_password'); const [formData, setFormData] = useState({
+        first_name: "",
+        last_name: "",
         username: "",
         email: "",
         mobile: "",
@@ -127,64 +104,233 @@ export default function AdminSubAdmins() {
         talukas: [] as string[],
     });
 
-    const filteredSubAdmins = subAdmins.filter((sa) => {
+    const filteredDPOs = dpos.filter((dpo) => {
         const matchesSearch =
-            sa.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            sa.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            sa.id.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = statusFilter === "all" || sa.status === statusFilter;
+            dpo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            dpo.user_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            dpo.dpo_id.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesStatus = statusFilter === "all" ||
+            (statusFilter === "active" && dpo.enabled) ||
+            (statusFilter === "inactive" && !dpo.enabled);
         return matchesSearch && matchesStatus;
     });
 
-    const handleAddSubAdmin = () => {
-        console.log("Adding sub-admin:", formData);
-        setShowAddDialog(false);
-        setFormData({
-            name: "",
-            username: "",
-            email: "",
-            mobile: "",
-            password: "",
-            districts: [],
-            talukas: [],
-        });
+    const handleAddSubAdmin = async () => {
+        if (!formData.first_name || !formData.last_name || !formData.email || !formData.mobile || !formData.password || formData.districts.length === 0) {
+            toast({
+                title: "Error",
+                description: "Please fill in all required fields",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        try {
+            const createData = {
+                first_name: formData.first_name,
+                last_name: formData.last_name,
+                email: formData.email,
+                mobile_number: formData.mobile,
+                password: formData.password,
+                district: formData.districts[0], // Take the first selected district
+            };
+
+            console.log("Creating DPO with data:", createData);
+            const response = await createDPO(createData);
+
+            if (response?.message?.success) {
+                toast({
+                    title: "Success",
+                    description: response.message.message || "DPO created successfully",
+                });
+
+                // Refresh the DPO list
+                await refetchDPOs();
+
+                // Close dialog and reset form
+                setShowAddDialog(false);
+                setFormData({
+                    first_name: "",
+                    last_name: "",
+                    username: "",
+                    email: "",
+                    mobile: "",
+                    password: "",
+                    districts: [],
+                    talukas: [],
+                });
+            } else {
+                throw new Error(response?.error || "Creation failed");
+            }
+
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to create DPO",
+                variant: "destructive",
+            });
+        }
     };
 
-    const handleEditSubAdmin = (subAdmin: SubAdmin) => {
-        setSelectedSubAdmin(subAdmin);
+    const handleEditDPO = (dpo: DPO) => {
+        setSelectedDPO(dpo);
+        // Split the full name into first and last name
+        const nameParts = dpo.name.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
         setFormData({
-            name: subAdmin.name,
-            username: subAdmin.username,
-            email: subAdmin.email,
-            mobile: subAdmin.mobile,
+            first_name: firstName,
+            last_name: lastName,
+            username: dpo.user_id,
+            email: dpo.email,
+            mobile: dpo.mobile_number,
             password: "",
-            districts: subAdmin.assignedDistricts,
-            talukas: subAdmin.assignedTalukas,
+            districts: [dpo.district],
+            talukas: [],
         });
         setShowEditDialog(true);
     };
 
-    const handleUpdateSubAdmin = () => {
-        console.log("Updating sub-admin:", selectedSubAdmin?.id, formData);
-        setShowEditDialog(false);
-        setSelectedSubAdmin(null);
+    const handleUpdateSubAdmin = async () => {
+        if (!selectedDPO) return;
+
+        setIsUpdating(true);
+        try {
+            // Prepare the update data
+            const updateData: any = {
+                dpo_id: selectedDPO.dpo_id,
+            };
+
+            // Split the original name to compare with current form data
+            const originalNameParts = selectedDPO.name.split(' ');
+            const originalFirstName = originalNameParts[0] || '';
+            const originalLastName = originalNameParts.slice(1).join(' ') || '';
+
+            // Only include fields that have changed
+            if (formData.first_name !== originalFirstName) {
+                updateData.first_name = formData.first_name;
+            }
+            if (formData.last_name !== originalLastName) {
+                updateData.last_name = formData.last_name;
+            }
+            if (formData.email !== selectedDPO.email) {
+                updateData.email = formData.email;
+            }
+            if (formData.mobile !== selectedDPO.mobile_number) {
+                updateData.mobile_number = formData.mobile;
+            }
+            if (formData.districts.length > 0 && formData.districts[0] !== selectedDPO.district) {
+                // Since autoname is set to "field:name1", both name and name1 will be the same
+                const selectedDistrictName = formData.districts[0];
+                console.log("Updating district from", selectedDPO.district, "to", selectedDistrictName);
+
+                // Simply use the selected district name directly since name1 = name in District Master
+                updateData.district = selectedDistrictName;
+                console.log("Setting district in updateData:", updateData.district);
+            }
+
+            // Only proceed if there are changes to make
+            if (Object.keys(updateData).length === 1) { // Only dpo_id is present
+                toast({
+                    title: "Info",
+                    description: "No changes detected.",
+                });
+                setShowEditDialog(false);
+                setSelectedDPO(null);
+                setIsUpdating(false);
+                return;
+            }
+
+            console.log("Final updateData being sent:", updateData);
+            const response = await updateDPO(updateData);
+
+            if (response?.message?.success) {
+                toast({
+                    title: "Success",
+                    description: response.message.message || "DPO updated successfully",
+                });
+
+                // Refresh the DPO list without full page reload
+                await refetchDPOs();
+
+                // Close dialog and reset state
+                setShowEditDialog(false);
+                setSelectedDPO(null);
+            } else {
+                throw new Error(response?.error || "Update failed");
+            }
+
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to update DPO",
+                variant: "destructive",
+            });
+
+            // Close dialog on error too
+            setShowEditDialog(false);
+            setSelectedDPO(null);
+        } finally {
+            setIsUpdating(false);
+        }
     };
 
-    const handleOpenPasswordDialog = (subAdmin: SubAdmin) => {
-        setSelectedSubAdmin(subAdmin);
+    const handleOpenPasswordDialog = (dpo: DPO) => {
+        setSelectedDPO(dpo);
         setNewPassword("");
         setShowPasswordDialog(true);
     };
 
-    const handleUpdatePassword = () => {
+    const handleUpdatePassword = async () => {
         if (!newPassword || newPassword.length < 6) {
-            alert("Password must be at least 6 characters long");
+            toast({
+                title: "Error",
+                description: "Password must be at least 6 characters long",
+                variant: "destructive",
+            });
             return;
         }
-        console.log("Updating password for:", selectedSubAdmin?.username, "New password:", newPassword);
-        setShowPasswordDialog(false);
-        setSelectedSubAdmin(null);
-        setNewPassword("");
+
+        if (!selectedDPO) {
+            toast({
+                title: "Error",
+                description: "No DPO selected",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        try {
+            const passwordData = {
+                dpo_id: selectedDPO.dpo_id,
+                new_password: newPassword,
+            };
+
+            console.log("Updating password for DPO:", selectedDPO.dpo_id);
+            const response = await updateDPOPassword(passwordData);
+
+            if (response?.message?.success) {
+                toast({
+                    title: "Success",
+                    description: response.message.message || "Password updated successfully",
+                });
+
+                // Close dialog and reset state
+                setShowPasswordDialog(false);
+                setSelectedDPO(null);
+                setNewPassword("");
+            } else {
+                throw new Error(response?.error || "Password update failed");
+            }
+
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to update password",
+                variant: "destructive",
+            });
+        }
     };
 
     const handleDistrictToggle = (district: string) => {
@@ -222,176 +368,176 @@ export default function AdminSubAdmins() {
 
                 <main className="flex-1 overflow-auto p-6 bg-muted/30">
                     <div className="space-y-6 max-w-7xl">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <Card>
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Total Sub-Admins</p>
-                                            <p className="font-display font-bold text-2xl">{subAdmins.length}</p>
-                                        </div>
-                                        <div className="w-10 h-10 rounded-lg bg-chart-2/10 flex items-center justify-center">
-                                            <Shield className="w-5 h-5 text-chart-2" />
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Active Users</p>
-                                            <p className="font-display font-bold text-2xl">
-                                                {subAdmins.filter((sa) => sa.status === "active").length}
-                                            </p>
-                                        </div>
-                                        <div className="w-10 h-10 rounded-lg bg-chart-3/10 flex items-center justify-center">
-                                            <CheckCircle className="w-5 h-5 text-chart-3" />
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Districts Covered</p>
-                                            <p className="font-display font-bold text-2xl">
-                                                {new Set(subAdmins.flatMap((sa) => sa.assignedDistricts)).size}
-                                            </p>
-                                        </div>
-                                        <div className="w-10 h-10 rounded-lg bg-chart-4/10 flex items-center justify-center">
-                                            <MapPin className="w-5 h-5 text-chart-4" />
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        <Card>
-                            <CardHeader>
-                                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-                                    <div>
-                                        <CardTitle>All Sub-Administrators</CardTitle>
-                                        <CardDescription>
-                                            {filteredSubAdmins.length} DPOs registered
-                                        </CardDescription>
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex gap-4">
-                                    <div className="relative flex-1">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Search by name, username, or ID..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="pl-10"
-                                            data-testid="input-search"
-                                        />
-                                    </div>
-
-                                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                        <SelectTrigger className="w-48" data-testid="select-status-filter">
-                                            <SelectValue placeholder="Filter by status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All Status</SelectItem>
-                                            <SelectItem value="active">Active</SelectItem>
-                                            <SelectItem value="inactive">Inactive</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {filteredSubAdmins.map((subAdmin, index) => (
-                                        <Card
-                                            key={subAdmin.id}
-                                            className="hover-elevate transition-all"
-                                            data-testid={`subadmin-card-${index}`}
-                                        >
-                                            <CardContent className="p-6">
-                                                <div className="flex flex-col lg:flex-row gap-6">
-                                                    <div className="flex-1 space-y-4">
-                                                        <div className="flex items-start justify-between">
-                                                            <div>
-                                                                <div className="flex items-center gap-3 mb-1">
-                                                                    <h3 className="font-semibold text-lg">{subAdmin.name}</h3>
-                                                                    <Badge
-                                                                        variant={subAdmin.status === "active" ? "default" : "secondary"}
-                                                                        className={subAdmin.status === "active" ? "bg-chart-3" : ""}
-                                                                    >
-                                                                        {subAdmin.status}
-                                                                    </Badge>
-                                                                </div>
-                                                                <p className="text-sm text-muted-foreground">
-                                                                    ID: {subAdmin.id} • @{subAdmin.username}
-                                                                </p>
-                                                            </div>
-                                                            <div className="flex gap-2">
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    onClick={() => handleEditSubAdmin(subAdmin)}
-                                                                    data-testid={`button-edit-${index}`}
-                                                                >
-                                                                    <Edit className="w-4 h-4 mr-1" />
-                                                                    Edit
-                                                                </Button>
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    onClick={() => handleOpenPasswordDialog(subAdmin)}
-                                                                    data-testid={`button-reset-password-${index}`}
-                                                                >
-                                                                    <Shield className="w-4 h-4 mr-1" />
-                                                                    Reset Password
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                                            <div className="flex items-center gap-2 text-muted-foreground">
-                                                                <Mail className="w-4 h-4" />
-                                                                <span>{subAdmin.email}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2 text-muted-foreground">
-                                                                <Phone className="w-4 h-4" />
-                                                                <span>{subAdmin.mobile}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2 text-muted-foreground">
-                                                                <MapPin className="w-4 h-4" />
-                                                                <span>Districts: {subAdmin.assignedDistricts.join(", ")}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2 text-muted-foreground">
-                                                                <BarChart3 className="w-4 h-4" />
-                                                                <span>
-                                                                    {subAdmin.totalApplications} applications ({subAdmin.pendingApplications} pending)
-                                                                </span>
-                                                            </div>
-                                                        </div>
-
-                                                        <div>
-                                                            <p className="text-xs text-muted-foreground mb-2">Assigned Talukas:</p>
-                                                            <div className="flex flex-wrap gap-2">
-                                                                {subAdmin.assignedTalukas.map((taluka) => (
-                                                                    <Badge key={taluka} variant="outline" className="text-xs">
-                                                                        {taluka}
-                                                                    </Badge>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                        {isLoading ? (
+                            <div className="flex items-center justify-center p-8">
+                                <Loader2 className="w-8 h-8 animate-spin" />
+                                <span className="ml-2">Loading DPOs...</span>
+                            </div>
+                        ) : error ? (
+                            <div className="text-center p-8 text-red-500">
+                                Error loading DPOs: {error.message}
+                            </div>
+                        ) : (
+                            <>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <Card>
+                                        <CardContent className="p-6">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-sm text-muted-foreground mb-1">Total Sub-Admins</p>
+                                                    <p className="font-display font-bold text-2xl">{dpos.length}</p>
                                                 </div>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
+                                                <div className="w-10 h-10 rounded-lg bg-chart-2/10 flex items-center justify-center">
+                                                    <Shield className="w-5 h-5 text-chart-2" />
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    <Card>
+                                        <CardContent className="p-6">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-sm text-muted-foreground mb-1">Active Users</p>
+                                                    <p className="font-display font-bold text-2xl">
+                                                        {dpos.filter((dpo) => dpo.enabled).length}
+                                                    </p>
+                                                </div>
+                                                <div className="w-10 h-10 rounded-lg bg-chart-3/10 flex items-center justify-center">
+                                                    <CheckCircle className="w-5 h-5 text-chart-3" />
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    <Card>
+                                        <CardContent className="p-6">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-sm text-muted-foreground mb-1">Districts Covered</p>
+                                                    <p className="font-display font-bold text-2xl">
+                                                        {new Set(dpos.map((dpo) => dpo.district).filter(Boolean)).size}
+                                                    </p>
+                                                </div>
+                                                <div className="w-10 h-10 rounded-lg bg-chart-4/10 flex items-center justify-center">
+                                                    <MapPin className="w-5 h-5 text-chart-4" />
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
                                 </div>
-                            </CardContent>
-                        </Card>
+
+                                <Card>
+                                    <CardHeader>
+                                        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                                            <div>
+                                                <CardTitle>All Sub-Administrators</CardTitle>
+                                                <CardDescription>
+                                                    {filteredDPOs.length} DPOs registered
+                                                </CardDescription>
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="flex gap-4">
+                                            <div className="relative flex-1">
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                                <Input
+                                                    placeholder="Search by name, username, or ID..."
+                                                    value={searchQuery}
+                                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                                    className="pl-10"
+                                                    data-testid="input-search"
+                                                />
+                                            </div>
+
+                                            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                                <SelectTrigger className="w-48" data-testid="select-status-filter">
+                                                    <SelectValue placeholder="Filter by status" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">All Status</SelectItem>
+                                                    <SelectItem value="active">Active</SelectItem>
+                                                    <SelectItem value="inactive">Inactive</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            {filteredDPOs.map((dpo, index) => (
+                                                <Card
+                                                    key={dpo.dpo_id}
+                                                    className="hover-elevate transition-all"
+                                                    data-testid={`subadmin-card-${index}`}
+                                                >
+                                                    <CardContent className="p-6">
+                                                        <div className="flex flex-col lg:flex-row gap-6">
+                                                            <div className="flex-1 space-y-4">
+                                                                <div className="flex items-start justify-between">
+                                                                    <div>
+                                                                        <div className="flex items-center gap-3 mb-1">
+                                                                            <h3 className="font-semibold text-lg">{dpo.name}</h3>
+                                                                            <Badge
+                                                                                variant={dpo.enabled ? "default" : "secondary"}
+                                                                                className={dpo.enabled ? "bg-chart-3" : ""}
+                                                                            >
+                                                                                {dpo.enabled ? "active" : "inactive"}
+                                                                            </Badge>
+                                                                        </div>
+                                                                        <p className="text-sm text-muted-foreground">
+                                                                            ID: {dpo.dpo_id} • @{dpo.user_id}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className="flex gap-2">
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            onClick={() => handleEditDPO(dpo)}
+                                                                            data-testid={`button-edit-${index}`}
+                                                                        >
+                                                                            <Edit className="w-4 h-4 mr-1" />
+                                                                            Edit
+                                                                        </Button>
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            onClick={() => handleOpenPasswordDialog(dpo)}
+                                                                            data-testid={`button-reset-password-${index}`}
+                                                                        >
+                                                                            <Shield className="w-4 h-4 mr-1" />
+                                                                            Reset Password
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                                                        <Mail className="w-4 h-4" />
+                                                                        <span>{dpo.email}</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                                                        <Phone className="w-4 h-4" />
+                                                                        <span>{dpo.mobile_number}</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                                                        <MapPin className="w-4 h-4" />
+                                                                        <span>District: {dpo.district}</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                                                        <BarChart3 className="w-4 h-4" />
+                                                                        <span>User Type: {dpo.user_type}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </>
+                        )}
                     </div>
                 </main>
             </div>
@@ -408,13 +554,24 @@ export default function AdminSubAdmins() {
                     <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name">Full Name *</Label>
+                                <Label htmlFor="first-name">First Name *</Label>
                                 <Input
-                                    id="name"
-                                    placeholder="Enter full name"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    data-testid="input-name"
+                                    id="first-name"
+                                    placeholder="Enter first name"
+                                    value={formData.first_name}
+                                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                                    data-testid="input-first-name"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="last-name">Last Name *</Label>
+                                <Input
+                                    id="last-name"
+                                    placeholder="Enter last name"
+                                    value={formData.last_name}
+                                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                                    data-testid="input-last-name"
                                 />
                             </div>
 
@@ -468,22 +625,33 @@ export default function AdminSubAdmins() {
                         <div className="space-y-2">
                             <Label>Assign Districts *</Label>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 border rounded-lg max-h-48 overflow-y-auto">
-                                {districts.map((district) => (
-                                    <div key={district} className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id={`district-${district}`}
-                                            checked={formData.districts.includes(district)}
-                                            onCheckedChange={() => handleDistrictToggle(district)}
-                                            data-testid={`checkbox-district-${district}`}
-                                        />
-                                        <label
-                                            htmlFor={`district-${district}`}
-                                            className="text-sm cursor-pointer"
-                                        >
-                                            {district}
-                                        </label>
+                                {districtsLoading ? (
+                                    <div className="col-span-full flex items-center justify-center p-4">
+                                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                        <span className="text-sm text-muted-foreground">Loading districts...</span>
                                     </div>
-                                ))}
+                                ) : districts.length > 0 ? (
+                                    districts.map((district: string) => (
+                                        <div key={district} className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`district-${district}`}
+                                                checked={formData.districts.includes(district)}
+                                                onCheckedChange={() => handleDistrictToggle(district)}
+                                                data-testid={`checkbox-district-${district}`}
+                                            />
+                                            <label
+                                                htmlFor={`district-${district}`}
+                                                className="text-sm cursor-pointer"
+                                            >
+                                                {district}
+                                            </label>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-full text-center p-4 text-muted-foreground text-sm">
+                                        No districts available
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -499,8 +667,9 @@ export default function AdminSubAdmins() {
                                 className="flex-1"
                                 onClick={handleAddSubAdmin}
                                 disabled={
-                                    !formData.name ||
-                                    !formData.username ||
+                                    createLoading ||
+                                    !formData.first_name ||
+                                    !formData.last_name ||
                                     !formData.email ||
                                     !formData.mobile ||
                                     !formData.password ||
@@ -508,7 +677,14 @@ export default function AdminSubAdmins() {
                                 }
                                 data-testid="button-submit-add"
                             >
-                                Create Sub-Admin
+                                {createLoading ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Creating...
+                                    </>
+                                ) : (
+                                    "Create Sub-Admin"
+                                )}
                             </Button>
                         </div>
                     </div>
@@ -527,12 +703,22 @@ export default function AdminSubAdmins() {
                     <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="edit-name">Full Name</Label>
+                                <Label htmlFor="edit-first-name">First Name</Label>
                                 <Input
-                                    id="edit-name"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    data-testid="input-edit-name"
+                                    id="edit-first-name"
+                                    value={formData.first_name}
+                                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                                    data-testid="input-edit-first-name"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-last-name">Last Name</Label>
+                                <Input
+                                    id="edit-last-name"
+                                    value={formData.last_name}
+                                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                                    data-testid="input-edit-last-name"
                                 />
                             </div>
 
@@ -561,21 +747,32 @@ export default function AdminSubAdmins() {
                         <div className="space-y-2">
                             <Label>Assign Districts</Label>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 border rounded-lg max-h-48 overflow-y-auto">
-                                {districts.map((district) => (
-                                    <div key={district} className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id={`edit-district-${district}`}
-                                            checked={formData.districts.includes(district)}
-                                            onCheckedChange={() => handleDistrictToggle(district)}
-                                        />
-                                        <label
-                                            htmlFor={`edit-district-${district}`}
-                                            className="text-sm cursor-pointer"
-                                        >
-                                            {district}
-                                        </label>
+                                {districtsLoading ? (
+                                    <div className="col-span-full flex items-center justify-center p-4">
+                                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                        <span className="text-sm text-muted-foreground">Loading districts...</span>
                                     </div>
-                                ))}
+                                ) : districts.length > 0 ? (
+                                    districts.map((district: string) => (
+                                        <div key={district} className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`edit-district-${district}`}
+                                                checked={formData.districts.includes(district)}
+                                                onCheckedChange={() => handleDistrictToggle(district)}
+                                            />
+                                            <label
+                                                htmlFor={`edit-district-${district}`}
+                                                className="text-sm cursor-pointer"
+                                            >
+                                                {district}
+                                            </label>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-full text-center p-4 text-muted-foreground text-sm">
+                                        No districts available
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -590,9 +787,17 @@ export default function AdminSubAdmins() {
                             <Button
                                 className="flex-1"
                                 onClick={handleUpdateSubAdmin}
+                                disabled={isUpdating || updateLoading}
                                 data-testid="button-submit-update"
                             >
-                                Update Sub-Admin
+                                {(isUpdating || updateLoading) ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Updating...
+                                    </>
+                                ) : (
+                                    "Update Sub-Admin"
+                                )}
                             </Button>
                         </div>
                     </div>
@@ -604,7 +809,7 @@ export default function AdminSubAdmins() {
                     <DialogHeader>
                         <DialogTitle>Reset Password</DialogTitle>
                         <DialogDescription>
-                            Set a new password for {selectedSubAdmin?.name} ({selectedSubAdmin?.username})
+                            Set a new password for {selectedDPO?.name} ({selectedDPO?.user_id})
                         </DialogDescription>
                     </DialogHeader>
 
@@ -639,14 +844,23 @@ export default function AdminSubAdmins() {
                             <Button
                                 className="flex-1"
                                 onClick={handleUpdatePassword}
+                                disabled={passwordLoading || !newPassword || newPassword.length < 6}
                                 data-testid="button-submit-password"
                             >
-                                Update Password
+                                {passwordLoading ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Updating...
+                                    </>
+                                ) : (
+                                    "Update Password"
+                                )}
                             </Button>
                         </div>
                     </div>
                 </DialogContent>
             </Dialog>
+            <Toaster />
         </div>
     );
 }

@@ -7,7 +7,11 @@ import {
   FileText,
   LayoutDashboard,
   LogOut,
-  Shield
+  Shield,
+  Users,
+  Package,
+  BarChart3,
+  Settings,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -20,11 +24,11 @@ const adminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
   { icon: FileText, label: "Applications", path: "/admin/applications" },
 
+  { icon: Users, label: "Sub-Admins", path: "/admin/subadmins" },
+  { icon: Package, label: "Components", path: "/admin/components" },
 ];
-// { icon: Users, label: "Sub-Admins", path: "/admin/subadmins" },
-// { icon: Package, label: "Components", path: "/admin/components" },
 // { icon: BarChart3, label: "Reports", path: "/admin/reports" },
-// { icon: Settings, label: "Settings", path: "/admin/settings" },
+// { icon: Settings, label: "Settings", path: "/admin/settings" }
 const subAdminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/subadmin/dashboard" },
   { icon: FileText, label: "Applications", path: "/subadmin/applications" },

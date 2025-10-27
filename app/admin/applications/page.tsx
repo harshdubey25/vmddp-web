@@ -44,50 +44,67 @@ async function getApplications(page: number = 1, limit: number = 20): Promise<Ap
         page: page.toString(),
         limit: limit.toString()
     });
-    console.log(response)
+    console.log('API Response:', response);
+    console.log('Applications raw data:', response.message?.applications);
 
     type FrappeApp = {
         name: string;
         fullname?: string;
         mobile_number?: string;
+        mobile_no?: string;
         district?: string;
         village?: string;
-        component_list?: string[];
+        component_list?: string | string[];
         status?: string;
         date?: string;
+        creation?: string;
     };
 
-    return (response.message?.applications || []).map((app: FrappeApp) => ({
-        id: app.name,
-        applicantName: app.fullname ?? '',
-        fatherName: '',
-        mobile: app.mobile_number ?? '',
-        district: app.district ?? '',
-        taluka: '',
-        village: app.village ?? '',
-        component: Array.isArray(app.component_list)
-            ? app.component_list.join(', ')
-            : '',
-        status: app.status,
-        submittedDate: app.date ?? '',
-        animalCount: undefined,
-        approver: '',
-        gender: '',
-        caste: '',
-        aadharNumber: '',
-        rationCardMembers: 0,
-        familyAadharNumbers: [],
-        animalTagNumber: '',
-        landHolding: 0,
-        khasraNumber: '',
-        milkPouringPoint: '',
-        farmerPourerCode: '',
-        componentDetails: {
-            benefits: [],
-            customQuestions: [],
-        },
-        documents: [],
-    }));
+    const mappedApplications = (response.message?.applications || []).map((app: FrappeApp) => {
+        console.log('Mapping application:', app);
+
+        // Handle component_list - it might be a string or array
+        let component = 'N/A';
+        if (Array.isArray(app.component_list)) {
+            component = app.component_list.join(', ');
+        } else if (typeof app.component_list === 'string') {
+            component = app.component_list;
+        }
+
+        const mapped = {
+            id: app.name,
+            applicantName: app.fullname ?? 'Unknown',
+            fatherName: '',
+            mobile: app.mobile_number ?? app.mobile_no ?? '',
+            district: app.district ?? 'N/A',
+            taluka: '',
+            village: app.village ?? '',
+            component: component,
+            status: app.status,
+            submittedDate: app.date ?? app.creation ?? '',
+            animalCount: undefined,
+            approver: '',
+            gender: '',
+            caste: '',
+            aadharNumber: '',
+            rationCardMembers: 0,
+            familyAadharNumbers: [],
+            animalTagNumber: '',
+            landHolding: 0,
+            khasraNumber: '',
+            milkPouringPoint: '',
+            farmerPourerCode: '',
+            componentDetails: {
+                benefits: [],
+                customQuestions: [],
+            },
+            documents: [],
+        };
+        console.log('Mapped application:', mapped);
+        return mapped;
+    });
+
+    return mappedApplications;
 }
 
 export default async function Page({ searchParams }: { searchParams: { page?: string; limit?: string } }) {

@@ -17,79 +17,24 @@ import {
     ArrowUpRight,
 } from "lucide-react";
 import { frappeServer } from "@/lib/frappe";
+import AdminDashboardStats from "./stats";
+import TopComponents from "./topComponents";
 import Link from "next/link";
-
 export default async function AdminDashboard() {
-    const response = await frappeServer.call().get('vmddp_app.api.api.get_all_docs_with_children', { doctype: 'App Form' });
-    type FrappeApp = {
-        name: string;
-        first_name?: string;
-        mid_name?: string;
-        last_name?: string;
-        component_name?: string;
-        components?: { component_name?: string; name: string; component?: string }[];
-        district?: string;
-        status?: string;
-        creation?: string;
-    };
+    // Get recent applications
+    const applicationsResponse = await frappeServer.call().get('vmddp_app.api.api.get_applications_summary', {
+        page: '1',
+        limit: '4'
+    });
 
-
-    const recentApplications = (response.message || []).map((app: FrappeApp) => ({
+    const recentApplications = (applicationsResponse?.message?.applications || []).map((app: any) => ({
         id: app.name,
-        applicant: `${app.first_name ?? ''} ${app.mid_name ?? ''} ${app.last_name ?? ''}`.trim(),
-        component: Array.isArray(app.components)
-            ? app.components.map(c => c.component_name || c.component).join(', ')
-            : '',
-        district: app.district ?? '',
-        status: app.status ?? '',
-        date: app.creation ? app.creation.split(' ')[0] : '',
-    })).slice(0, 4);
-    const totalApplications = recentApplications.length;
-    const approvedCount = recentApplications.filter((app: FrappeApp) => app.status === "approved").length;
-    const pendingCount = recentApplications.filter((app: FrappeApp) => app.status === "pending").length;
-    const rejectedCount = recentApplications.filter((app: FrappeApp) => app.status === "rejected").length;
-
-    const stats = [
-        {
-            title: "Total Applications",
-            value: totalApplications.toLocaleString(),
-            change: "+12.5%",
-            icon: FileText,
-            color: "text-chart-2",
-            bgColor: "bg-chart-2/10",
-        },
-        {
-            title: "Approved",
-            value: approvedCount.toLocaleString(),
-            change: "+8.2%",
-            icon: CheckCircle,
-            color: "text-chart-3",
-            bgColor: "bg-chart-3/10",
-        },
-        {
-            title: "Pending Review",
-            value: pendingCount.toLocaleString(),
-            change: "+4.1%",
-            icon: Clock,
-            color: "text-chart-4",
-            bgColor: "bg-chart-4/10",
-        },
-        {
-            title: "Rejected",
-            value: rejectedCount.toLocaleString(),
-            change: "-2.3%",
-            icon: XCircle,
-            color: "text-chart-5",
-            bgColor: "bg-chart-5/10",
-        },
-    ];
-
-    const topComponents = [
-        { name: "Animal Induction", count: 342, percentage: 27 },
-        { name: "HGM Purchase", count: 298, percentage: 24 },
-        { name: "Fertility Feed", count: 215, percentage: 17 },
-        { name: "Chaff Cutter", count: 187, percentage: 15 },
-    ];
+        applicant: app.fullname,
+        component: Array.isArray(app.component_list) ? app.component_list.join(', ') : 'N/A',
+        district: app.village || 'N/A',
+        status: app.status,
+        date: app.date,
+    }));
 
     return (
         <div className="flex h-screen overflow-hidden">
@@ -113,28 +58,7 @@ export default async function AdminDashboard() {
 
                 <main className="flex-1 overflow-auto p-6 bg-muted/30">
                     <div className="space-y-6 max-w-7xl">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {stats.map((stat, index) => {
-                                const Icon = stat.icon;
-                                return (
-                                    <Card key={index} data-testid={`stat-card-${index}`}>
-                                        <CardContent className="p-6">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
-                                                    <Icon className={`w-5 h-5 ${stat.color}`} />
-                                                </div>
-                                                <Badge variant="secondary" className="gap-1">
-                                                    <TrendingUp className="w-3 h-3" />
-                                                    {stat.change}
-                                                </Badge>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground mb-1">{stat.title}</p>
-                                            <p className="font-display font-bold text-2xl">{stat.value}</p>
-                                        </CardContent>
-                                    </Card>
-                                );
-                            })}
-                        </div>
+                        <AdminDashboardStats />
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <Card className="lg:col-span-2">
@@ -194,50 +118,37 @@ export default async function AdminDashboard() {
                                 </CardContent>
                             </Card>
 
-                            {/* <div className="space-y-6">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle data-testid="text-top-components">Top Components</CardTitle>
-                                        <CardDescription>Most requested schemes</CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        {topComponents.map((component, index) => (
-                                            <div key={index} className="space-y-2">
-                                                <div className="flex items-center justify-between text-sm">
-                                                    <span className="font-medium">{component.name}</span>
-                                                    <span className="text-muted-foreground">{component.count}</span>
-                                                </div>
-                                                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                                                    <div
-                                                        className="h-full bg-primary rounded-full"
-                                                        style={{ width: `${component.percentage}%` }}
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </CardContent>
-                                </Card>
+                            <div className="space-y-6">
+                                <TopComponents />
 
                                 <Card>
                                     <CardHeader>
                                         <CardTitle data-testid="text-quick-actions">Quick Actions</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-2">
-                                        <Button variant="outline" className="w-full justify-start gap-3">
-                                            <FileText className="w-4 h-4" />
-                                            Review Applications
-                                        </Button>
-                                        <Button variant="outline" className="w-full justify-start gap-3">
-                                            <Users className="w-4 h-4" />
-                                            Manage Sub-Admins
-                                        </Button>
-                                        <Button variant="outline" className="w-full justify-start gap-3">
-                                            <Package className="w-4 h-4" />
-                                            Configure Components
-                                        </Button>
+                                        <Link href={"/admin/applications"}>
+                                            <Button variant="outline" className="w-full justify-start gap-3">
+                                                <FileText className="w-4 h-4" />
+                                                Review Applications
+                                            </Button>
+                                        </Link>
+                                        <Link href={"/admin/subadmins"}>
+                                            <Button variant="outline" className="w-full justify-start gap-3">
+                                                <Users className="w-4 h-4" />
+                                                Manage Sub-Admins
+                                            </Button>
+                                        </Link>
+                                        <Link href={"/admin/components"}>
+                                            <Button variant="outline" className="w-full justify-start gap-3">
+                                                <Package className="w-4 h-4" />
+                                                Configure Components
+                                            </Button>
+                                        </Link>
                                     </CardContent>
                                 </Card>
-                            </div> */}
+                            </div>
+
+
                         </div>
                     </div>
                 </main>

@@ -23,6 +23,9 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { frappeBrowser } from "@/lib/frappe";
+import { useFrappeCreateDoc } from "frappe-react-sdk";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 import {
     BarChart3,
     Edit,
@@ -72,12 +75,16 @@ interface Component {
 }
 
 export default function AdminComponents() {
+    const { toast } = useToast();
     const [selectedComponent, setSelectedComponent] = useState<Component | null>(null);
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [showAddDialog, setShowAddDialog] = useState(false);
     const [activeTab, setActiveTab] = useState("config");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Hook for creating new component
+    const { createDoc, loading: createLoading, error: createError } = useFrappeCreateDoc();
 
     const [components, setComponents] = useState<Component[]>([
         {
@@ -162,50 +169,50 @@ export default function AdminComponents() {
     ]);
 
     // Fetch components from Frappe
-    useEffect(() => {
-        const fetchComponents = async () => {
-            try {
-                setLoading(true);
-                setError(null);
+    const fetchComponents = async () => {
+        try {
+            setLoading(true);
+            setError(null);
 
-                // Get list of components from Frappe
-                const response = await frappeBrowser.db().getDocList('Component', {
-                    fields: ['name', 'component_name', 'criteria_table', 'or']
-                });
+            // Get list of components from Frappe
+            const response = await frappeBrowser.db().getDocList('Component', {
+                fields: ['name', 'component_name', 'criteria_table', 'or', 'dont_show_in_website']
+            });
 
-                if (response && response.length > 0) {
-                    // Transform Frappe data to match our Component interface
-                    const fetchedComponents: Component[] = response.map((item: any, index: number) => ({
-                        id: index + 1,
-                        name: item.name,
-                        component_name: item.component_name,
-                        criteria_table: item.criteria_table || [],
-                        questions: item.questions || [],
-                        or: item.or,
-                        // Default values for UI fields (these might need to be stored separately or derived)
-                        description: item.component_name || "No description available",
-                        isActive: true,
-                        benefits: [],
-                        eligibilityCriteria: {},
-                        customQuestions: [],
-                        documentRequirements: [],
-                        quotas: [],
-                        applicationGuidelines: "",
-                        totalApplications: 0,
-                        approvedApplications: 0,
-                    }));
+            if (response && response.length > 0) {
+                // Transform Frappe data to match our Component interface
+                const fetchedComponents: Component[] = response.map((item: any, index: number) => ({
+                    id: index + 1,
+                    name: item.name,
+                    component_name: item.component_name,
+                    criteria_table: item.criteria_table || [],
+                    questions: item.questions || [],
+                    or: item.or,
+                    // Default values for UI fields (these might need to be stored separately or derived)
+                    description: item.component_name || "No description available",
+                    isActive: !item.dont_show_in_website, // Inverted logic
+                    benefits: [],
+                    eligibilityCriteria: {},
+                    customQuestions: [],
+                    documentRequirements: [],
+                    quotas: [],
+                    applicationGuidelines: "",
+                    totalApplications: 0,
+                    approvedApplications: 0,
+                }));
 
-                    setComponents(fetchedComponents);
-                }
-            } catch (err) {
-                console.error('Error fetching components:', err);
-                setError('Failed to load components. Please try again.');
-                // Keep the default components as fallback
-            } finally {
-                setLoading(false);
+                setComponents(fetchedComponents);
             }
-        };
+        } catch (err) {
+            console.error('Error fetching components:', err);
+            setError('Failed to load components. Please try again.');
+            // Keep the default components as fallback
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchComponents();
     }, []);
 
@@ -243,11 +250,44 @@ export default function AdminComponents() {
         setShowAddDialog(true);
     };
 
-    const handleSaveNewComponent = () => {
-        if (editForm) {
-            setComponents([...components, editForm]);
-            setShowAddDialog(false);
-            setEditForm(null);
+    const handleSaveNewComponent = async () => {
+        if (!editForm?.name) {
+            toast({
+                title: "Error",
+                description: "Component name is required",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        try {
+            // Create component in Frappe
+            const componentDoc = await createDoc("Component", {
+                component_name: editForm.name,
+                dont_show_in_website: !editForm.isActive,
+                name_in_local_language: editForm.name, // Using same name for now
+            });
+
+            if (componentDoc) {
+                toast({
+                    title: "Success",
+                    description: "Component created successfully",
+                });
+
+                // Close dialog and reset form
+                setShowAddDialog(false);
+                setEditForm(null);
+
+                // Refetch components to ensure sync with Frappe
+                await fetchComponents();
+            }
+        } catch (error: any) {
+            console.error("Error creating component:", error);
+            toast({
+                title: "Error",
+                description: error.message || "Failed to create component",
+                variant: "destructive",
+            });
         }
     };
 
@@ -449,7 +489,7 @@ export default function AdminComponents() {
                                                     </div>
                                                     <CardDescription>{component.description}</CardDescription>
                                                 </div>
-                                                <Button
+                                                {/* <Button
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => handleEditComponent(component)}
@@ -457,10 +497,10 @@ export default function AdminComponents() {
                                                 >
                                                     <Edit className="w-4 h-4 mr-1" />
                                                     Edit
-                                                </Button>
+                                                </Button> */}
                                             </div>
                                         </CardHeader>
-                                        <CardContent className="space-y-4">
+                                        {/* <CardContent className="space-y-4">
                                             <div className="grid grid-cols-2 gap-4 text-sm">
                                                 <div>
                                                     <p className="text-muted-foreground mb-1">Applications</p>
@@ -479,7 +519,7 @@ export default function AdminComponents() {
                                                     <p className="font-semibold">{component.customQuestions.length} custom</p>
                                                 </div>
                                             </div>
-                                        </CardContent>
+                                        </CardContent> */}
                                     </Card>
                                 ))}
                             </div>
@@ -910,7 +950,7 @@ export default function AdminComponents() {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
+                            {/* <div className="space-y-2">
                                 <Label>Description *</Label>
                                 <Textarea
                                     placeholder="Enter component description"
@@ -932,7 +972,7 @@ export default function AdminComponents() {
                                     rows={3}
                                     data-testid="textarea-new-guidelines"
                                 />
-                            </div>
+                            </div> */}
 
                             <div className="flex gap-3 pt-4 border-t">
                                 <Button
@@ -945,16 +985,24 @@ export default function AdminComponents() {
                                 <Button
                                     className="flex-1"
                                     onClick={handleSaveNewComponent}
-                                    disabled={!editForm.name || !editForm.description}
+                                    disabled={createLoading || !editForm.name}
                                     data-testid="button-save-new"
                                 >
-                                    Create Component
+                                    {createLoading ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                            Creating...
+                                        </>
+                                    ) : (
+                                        "Create Component"
+                                    )}
                                 </Button>
                             </div>
                         </div>
                     </DialogContent>
                 </Dialog>
             )}
+            <Toaster />
         </div>
     );
 }
