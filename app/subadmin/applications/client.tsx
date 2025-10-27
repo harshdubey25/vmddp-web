@@ -278,9 +278,20 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                 });
             }
 
+            const FullName = () => {
+                if (doc.fullname) return doc.fullname;
+                if (doc.applicant_name) return doc.applicant_name;
+                
+                const firstName = doc.first_name || '';
+                const middleName = doc.mid_name || '';
+                const lastName = doc.last_name || '';
+                const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
+                return fullName || 'N/A';
+            };
+
             const fullApplication: Application = {
                 id: doc.name,
-                applicantName: doc.fullname,
+                applicantName: FullName(),
                 fatherName: doc.father_name || doc.father || 'N/A',
                 mobile_no: doc.mobile_no || '',
                 district: doc.district || 'N/A',
@@ -684,8 +695,8 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                             <div>
                                                 <Label className="text-muted-foreground">Family Aadhar Numbers</Label>
                                                 <div className="space-y-1 mt-1">
-                                                    {selectedApp.familyAadharNumbers.map((aadhar, idx) => (
-                                                        <p key={idx} className="font-medium text-xs font-mono">{aadhar}</p>
+                                                    {selectedApp.familyAadharNumbers.map((family_member_aadhar_number, idx) => (
+                                                        <p key={idx} className="font-medium text-xs font-mono">{family_member_aadhar_number}</p>
                                                     ))}
                                                 </div>
                                             </div>
