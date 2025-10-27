@@ -188,9 +188,34 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="rationCardMembers">{t('ration_card_members')} *</Label>
-          <Controller name="rationCardMembers" control={control} rules={{ required: t('ration_card_members_required'), min: { value: 1, message: t('min_members_required') } }} render={({ field }) => (
-            <Input {...field} id="rationCardMembers" type="number" min="1" value={field.value || ''} onChange={e => { field.onChange(e); setFamilyMemberCount(parseInt(e.target.value) || 0); }} data-testid="input-ration-card-members" />
-          )} />
+          <Controller 
+            name="rationCardMembers" 
+            control={control} 
+            rules={{ 
+              required: t('ration_card_members_required'), 
+              min: { value: 1, message: t('min_members_required') },
+              max: { value: 9, message: 'Maximum 9 members allowed' },
+              pattern: { value: /^[1-9]$/, message: 'Only numbers 1-9 are allowed' }
+            }} 
+            render={({ field }) => (
+              <Input 
+                {...field} 
+                id="rationCardMembers" 
+                type="text" 
+                inputMode="numeric"
+                maxLength={1}
+                min="1" 
+                max="9"
+                value={field.value || ''} 
+                onChange={e => { 
+                  const value = e.target.value.replace(/[^1-9]/g, '').slice(0, 1);
+                  field.onChange(value); 
+                  setFamilyMemberCount(parseInt(value) || 0); 
+                }} 
+                data-testid="input-ration-card-members" 
+              />
+            )} 
+          />
           {errors.rationCardMembers && <span className="text-red-500 text-xs">{errors.rationCardMembers.message}</span>}
         </div>
         <div className="space-y-2">
