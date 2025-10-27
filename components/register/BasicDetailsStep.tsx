@@ -43,7 +43,7 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
   });
 
   const { data: villageData } = useFrappeGetDocList("Village Master", {
-    fields: ["name"],
+    fields: ["name1"],
     filters: watchedDistrict && watchedTaluka ? [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]] : undefined,
 
   });
@@ -381,7 +381,7 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
               </SelectTrigger>
               <SelectContent className={villageData && villageData.length > 8 ? "max-h-48 overflow-y-auto" : ""}>
                 {villageData?.map((item) => (
-                  <SelectItem key={item.name} value={item.name}>{item.name}</SelectItem>
+                  <SelectItem key={item.name1} value={item.name1}>{item.name1}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

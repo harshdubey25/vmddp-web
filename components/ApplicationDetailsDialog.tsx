@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Dialog,
     DialogContent,
@@ -25,6 +25,7 @@ import {
     Eye,
 } from "lucide-react";
 import { getStatusBadge } from "@/lib/status-utils";
+import { useFrappeGetDoc } from "frappe-react-sdk";
 
 interface ApplicationDetailsDialogProps {
     application: any | null;
@@ -44,6 +45,24 @@ export default function ApplicationDetailsDialog({
     const [showReviewDialog, setShowReviewDialog] = useState(false);
     const [reviewAction, setReviewAction] = useState<"approve" | "reject" | null>(null);
     const [remarks, setRemarks] = useState("");
+    const [villageName, setVillageName] = useState<string>("");
+
+    // Fetch village details to get the actual village name (name1 field)
+    const { data: villageDoc } = useFrappeGetDoc(
+        "Village Master",
+        application?.village && application.village !== 'N/A' ? application.village : null
+    );
+
+    // Update village name when village document is fetched
+    useEffect(() => {
+        if (villageDoc?.name1) {
+            setVillageName(villageDoc.name1);
+        } else if (application?.village) {
+            setVillageName(application.village);
+        } else {
+            setVillageName('N/A');
+        }
+    }, [villageDoc, application?.village]);
 
     if (!application) return null;
 
@@ -160,7 +179,7 @@ export default function ApplicationDetailsDialog({
                                     </div>
                                     <div>
                                         <Label className="text-muted-foreground">Village</Label>
-                                        <p className="font-medium">{application.village}</p>
+                                        <p className="font-medium">{villageName}</p>
                                     </div>
                                 </div>
                             </div>

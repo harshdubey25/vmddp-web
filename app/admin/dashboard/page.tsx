@@ -92,7 +92,7 @@ export default async function AdminDashboard() {
         id: app.name,
         applicant: app.fullname,
         component: Array.isArray(app.component_list) ? app.component_list.join(', ') : 'N/A',
-        district: app.village || 'N/A',
+        district: app.district || 'N/A',
         status: app.status,
         date: app.date,
     }));
