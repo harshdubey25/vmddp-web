@@ -30,7 +30,7 @@ import {
     FileText,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useFrappeGetDoc, useFrappeUpdateDoc, useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetDoc, useFrappeUpdateDoc, useFrappeGetDocList, useFrappeAuth } from "frappe-react-sdk";
 import { getStatusBadge } from "@/lib/status-utils";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -108,6 +108,7 @@ interface SubAdminApplicationsClientProps {
 export default function SubAdminApplicationsClient({ applications, currentPage, pageSize, initialFilters }: SubAdminApplicationsClientProps) {
 
     const { toast } = useToast();
+    const { currentUser } = useFrappeAuth();
     const [searchQuery, setSearchQuery] = useState(initialFilters?.search || "");
 
     const [componentFilter, setComponentFilter] = useState(initialFilters?.component || "all");
@@ -372,13 +373,14 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
             await updateDoc('App Form', selectedApp.id, {
                 status: status,
                 remarks: reviewRemarks,
+                approver: currentUser || undefined,
             });
 
             // Update the selected app status as well
             setSelectedApp({
                 ...selectedApp,
                 status: status,
-                approver: `DPO ${assignedZone.taluka}`
+                approver: currentUser || `DPO ${assignedZone.taluka}`
             });
 
             toast({

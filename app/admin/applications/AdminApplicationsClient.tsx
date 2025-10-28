@@ -149,7 +149,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                             )}
                                         </SelectContent>
                                     </Select>
-                                    {/* <Select value={componentFilter} onValueChange={setComponentFilter}>
+                                    <Select value={componentFilter} onValueChange={setComponentFilter}>
                                         <SelectTrigger data-testid="select-component-filter">
                                             <SelectValue placeholder="Filter by component" />
                                         </SelectTrigger>
@@ -160,7 +160,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                             <SelectItem value="Fertility Feed">Fertility Feed</SelectItem>
                                             <SelectItem value="Supply Chaff Cutter">Chaff Cutter</SelectItem>
                                         </SelectContent>
-                                    </Select> */}
+                                    </Select>
                                 </div>
                                 <div className="border rounded-lg overflow-hidden">
                                     <div className="overflow-x-auto">
