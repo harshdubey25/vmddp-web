@@ -39,7 +39,8 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mb-6"
+              className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mb-6 drop-shadow-lg text-shadow-lg"
+              style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)' }}
               data-testid="text-hero-title"
             >
               {t("hero_title")
@@ -55,7 +56,8 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg sm:text-xl mb-8 text-primary-foreground/80"
+              className="text-lg sm:text-xl mb-8 text-primary-foreground/80 drop-shadow-md"
+              style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.4)' }}
               data-testid="text-hero-subtitle"
             >
               {t("hero_subtitle")}
@@ -82,8 +84,8 @@ export default function HeroSection() {
               <Link href="/track">
                 <Button
                   size="lg"
-                  variant="outline"
-                  className="w-full sm:w-auto bg-primary-foreground/10 hover:bg-primary-foreground/20 border-primary-foreground/30 backdrop-blur-sm"
+                  variant="secondary"
+                  className="w-full sm:w-auto"
                   data-testid="button-hero-track"
                 >
                   <FileText className="mr-2 w-5 h-5" />

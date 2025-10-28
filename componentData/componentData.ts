@@ -72,7 +72,7 @@ export const componentData: ComponentDetail[] = [
       "Under the Vidarbha and Marathwada Dairy Development Project, 13,400 high milk-yielding cows and buffaloes will be distributed over three years across 19 districts. Each beneficiary receives one cow or buffalo with minimum 8-10 litres daily milk production capacity.",
     image: image.dairy_cow_grazing_in_bb297871,
     images: [
-      image.dairy_cow_grazing_in_bb297871,
+      "/stock_images/brown-cow.png",
       "/stock_images/buffalo-2.png",
       "/stock_images/white-cow-2.png",
     ],

@@ -12,7 +12,7 @@
   "category_equipment_infrastructure": "Equipment & Infrastructure",
   "category_services_training": "Services & Training",
   "hero_title": "Vidarbha and Marathwada Dairy Development Project",
-  "hero_subtitle": "Empowering dairy farmers across 19 districts, 192 talukas, and 24,657 villages. Apply for scheme benefits and track your application status online.",
+  "hero_subtitle": "An initiative by the Government of Maharashtra and National Dairy Development Board (NDDB) to strengthen dairy infrastructure and support farmers across all 19 districts in Vidarbha and Marathwada regions.",
   "districts": "Districts",
   "talukas": "Talukas",
   "villages": "Villages",
@@ -24,48 +24,47 @@
   "pending_review": "Pending Review",
   "rejected": "Rejected",
   "about_hero_alt": "Dairy farming in Maharashtra",
-  "about_title": "About Vidarbha and Marathwada Dairy Development Project",
-  "about_subtitle": "A comprehensive initiative by the Government of Maharashtra and National Dairy Development Board (NDDB) to strengthen dairy infrastructure and support farmers across 19 districts in Vidarbha and Marathwada regions.",
+  "about_title": "Vidarbha and Marathwada Dairy Development Project",
   "about_mission_title": "Our Mission",
-  "about_mission_desc": "To build robust dairy infrastructure and empower farmers through financial assistance, modern technology, and comprehensive veterinary support across Vidarbha and Marathwada regions.",
+  "about_mission_desc": "Empower farmers through financial assistance, modern animal husbandry practices, and comprehensive veterinary support across Vidarbha and Marathwada regions.",
   "about_vision_title": "Our Vision",
   "about_vision_desc": "To establish Vidarbha and Marathwada as self-reliant dairy hubs with sustainable livelihoods, ensuring economic prosperity and food security for farming families.",
   "about_values_title": "Core Values",
-  "about_values_desc": "Transparency in operations, farmer-first approach, efficient service delivery, fair resource distribution, and commitment to sustainable dairy development.",
-  "about_highlights_title": "Programme Highlights",
+  "about_values_desc": "Transparency in operations, farmer-Centric approach, efficient service delivery, fair resource distribution, and commitment to sustainable dairy development.",
+  "about_highlights_title": "Project Highlights",
   "about_highlights": [
     "Joint initiative of Government of Maharashtra and NDDB",
-    "Coverage across 19 districts, 192 talukas, and 24,657 villages",
     "9 comprehensive dairy development components",
-    "Modern dairy infrastructure and equipment support",
-    "Digital application platform with transparent workflow",
-    "Direct financial assistance to farmers' accounts",
-    "Quality breeding stock and veterinary care support",
+    "Modern animal husbandry practices and equipment support",
+    "Digital application platform with transparent tracking",
+    "Direct benefit transfer (DBT) to farmer’s bank account",
+    "Quality Dairy animals and veterinary care support",
     "Capacity building through farmer training programs",
     "Real-time application tracking and status monitoring",
     "Fair and equitable resource allocation system"
   ],
-  "scheme_components_title": "Scheme Components",
-  "scheme_components_subtitle": "Explore our comprehensive range of dairy development schemes designed to support farmers at every stage",
-  "scheme_animal_induction_title": "Distribution of high genetic merit animals (cows-buffaloes) to farmers",
-  "scheme_animal_induction_desc": "Financial assistance for purchasing high-yielding calved indigenous or crossbred dairy cows",
+  "scheme_components_title": "Project Components",
+  "scheme_components_subtitle": "Comprehensive support to dairy farmers through following components",
+  "scheme_animal_induction_title": "Distribution of high genetic merit animals (cows-buffaloes) to dairy farmers",
+  "scheme_animal_induction_desc": "Financial assistance for purchasing high-yielding indigenous or crossbred dairy animals.",
   "scheme_animal_induction_benefits": [
-    "Only 50% subsidy",
+    "Susidy 50%",
+    "Digital collar included",
     "Support for quality milch animals",
     "Animal Insurance included"
   ],
-  "scheme_hgm_title": "Distribution of HGM (IVF – Embryo) pregnant Heifer to the farmers",
-  "scheme_hgm_desc": "High Genetic Merit pregnant cow support for enhanced dairy productivity and breeding excellence",
+  "scheme_hgm_title": "Distribution of HGM (IVF – Embryo) pregnant Heifer to the dairy farmer",
+  "scheme_hgm_desc": "High Genetic Merit pregnant Heifer support for enhanced dairy productivity and breeding excellence",
   "scheme_hgm_benefits": [
-    "Financial aid for HGM pregnant cow acquisition",
+    "Financial aid for HGM pregnant Heifer acquisition",
     "Genetic superiority certification",
     "Breeding guidance and veterinary support"
   ],
-  "scheme_fertility_feed_title": "Supply of Fertility Feed (30,000 MT)",  
+  "scheme_fertility_feed_title": "Supply of Fertility Feed",
   "scheme_fertility_feed_desc": "Specialized nutritional supplements to improve reproductive health and fertility in dairy animals",
   "scheme_fertility_feed_benefits": [
-    "Subsidized fertility-enhancing feed supply",
-    "Improves conception rates",
+    "Subsidized fertility feed supply",
+    "Improved conception rates",
     "Expert consultation on feeding protocols"
   ],
   "scheme_fodder_seed_title": "Supply of feed supplement to enhance Fat and SNF in milk",
@@ -75,7 +74,6 @@
     "Technical guidance on cultivation",
     "Support for fodder crop varieties"
   ],
-  
   "scheme_snf_enhancer_title": "Subsidy for cultivating perennial fodder crops",
   "scheme_snf_enhancer_desc": "Solids-Not-Fat enhancer supplements to improve milk quality and increase farmer income",
   "scheme_snf_enhancer_benefits": [
@@ -83,12 +81,12 @@
     "Better price realization for quality milk",
     "Feed additive supply support"
   ],
-  "scheme_chaff_cutter_title": "Distribution of electric chaffcutter to farmers",
+  "scheme_chaff_cutter_title": "Distribution of power driven chaff cutter to farmers",
   "scheme_chaff_cutter_desc": "Mechanized chaff cutting equipment to process fodder efficiently and reduce labor",
   "scheme_chaff_cutter_benefits": [
     "Subsidy on chaff cutter machines",
-    "Training on equipment operation",
-    "Maintenance support included"
+    "Min. 2Hp single phase 2 blade chaff cutter",
+    "Equipped with Copper winding electric motor"
   ],
   "scheme_silage_title": "Supply Of Silage",
   "scheme_silage_desc": "Provision of quality silage for round-the-year nutritious fodder availability",
@@ -118,8 +116,8 @@
   "footer_description": "Empowering dairy farmers across Vidarbha and Marathwada regions through comprehensive scheme support and digital transparency.",
   "footer_quick_links": "Quick Links",
   "footer_contact_info": "Contact Information",
-  "footer_address": "Project Directorate\nVidarbha and Marathwada Dairy Development Project Mother Dairy\nCampus, Telankhedi Road,\nCivil lines Nagpur 400001",
-  "footer_copyright": "© 2025 Vidarbha and Marathwada Dairy Development Project - Vidarbha Marathwada Dairy Development Project. All rights reserved.",
+  "footer_address": "Project Directorate\nVidarbha and Marathwada Dairy Development Project\n Mother Dairy Campus, Telankhedi Road,\nCivil lines Nagpur 400001",
+  "footer_copyright": "© 2025 Vidarbha and Marathwada Dairy Development Project. All rights reserved.",
   "footer_developed_by": "Developed by Klaimify Private Limited | CIN: U72900PN2020PTC190748",
   "track_title": "Track Your Application",
   "track_subtitle": "Enter your mobile number or application ID to check the current status of your Vidarbha and Marathwada Dairy Development Project scheme application",
@@ -249,6 +247,8 @@
   "application_guidelines": "Application Guidelines",
   "target_beneficiaries": "Target Beneficiaries",
   "coverage": "Coverage",
+  "availability": "Availability",
+  "project_area": "Project Area",
   "amount": "Amount",
   "percentage": "Percentage",
   "details": "Details",
@@ -303,7 +303,7 @@
   "no_data_available": "No data available",
   "schemes": {
     "1": {
-      "title": "Distribution of high genetic merit animals (cows-buffaloes) to farmers",
+      "title": "Distribution of high genetic merit animals (cow/buffalo) to dairyfarmers",
       "shortDescription": "Financial assistance for purchasing high-yielding calved indigenous or crossbred dairy cows",
       "fullDescription": "Under the Vidarbha and Marathwada Dairy Development Project, 13,400 high milk-yielding cows and buffaloes will be distributed over three years across 19 districts. Each beneficiary receives one cow or buffalo with minimum 8-10 litres daily milk production capacity.",
       "benefits": [
@@ -313,20 +313,23 @@
         "3-year mandatory insurance coverage"
       ],
       "eligibilityCriteria": [
-        "Must possess at least 2 milch animals",
-        "Must have sold milk to cooperative for minimum 3 months in previous year",
+        "Must possess at least 2 milch animals Registerd in Bharat Pashudhan App",
+        "Must have sold milk to Milk Producer organization for minimum 3 months in previous year",
         "Not availed government scheme benefits in past 3 years",
-        "Only one member per family eligible",
-        "Maximum 5 beneficiaries per village"
+        "Only one member per family",
+        "Maximum 5 beneficiaries per village",
+        "Milk sale proof (3 months minimum from Milk Producer organization)",
+        "Purchase Animal From NDDB or Government Registered Vendor",
+        "Verification required in Bharat Pashudhan App"
       ],
       "subsidyInfo": {
         "amount": "₹50,000",
         "percentage": "50%",
-        "details": "The Average cost per animal: ₹1,00,000 including digital tagging, transportation, and insurance, 50% subsidy of cost or ₹50,000 (whichever is less)."
+        "details": "The Maximum cost per animal: ₹1,00,000 including digital tagging, transportation, and insurance, 50% subsidy of cost or ₹50,000 (whichever is less)."
       },
       "termsAndConditions": [
-        "Animal cannot be sold for 3 years",
-        "Ownership mortgaged with Project Director during project period",
+        "50% beneficiary contribution required upfront",
+        "Animal mortgaged with Project Director during project period",
         "Mandatory digital tracking collar and geo-tagging",
         "3-year insurance coverage compulsory",
         "In case of death, beneficiary must purchase replacement animal (no cash compensation)"
@@ -337,30 +340,25 @@
         "Bank Details",
         "Milk sale proof (3 months minimum)"
       ],
-      "applicationGuidelines": [
-        "Purchase Animal From Government or Government Registered Vendor",
-        "Verification required in Bharat Pashudhan (Livestock) System",
-        "District Deputy Commissioner maintains detailed records"
-      ],
-      "targetBeneficiaries": "13,400 farmers",
-      "coverage": "19 districts of Vidarbha and Marathwada"
+      "targetBeneficiaries": "13,400 farmers"
     },
     "2": {
-      "title": "Distribution of HGM (IVF – Embryo) pregnant Heifer to the farmers",
-      "shortDescription": "High Genetic Merit pregnant heifer support through IVF embryo transfer for enhanced dairy productivity",
+      "title": "Distribution of HGM (IVF – Embryo) pregnant Heifer to the dairy farmer",
+      "shortDescription": "Heifers made pregnant through IVF embryos using Sex sorted semen",
       "fullDescription": "Embryo transfer using In-Vitro Fertilization (IVF) technology produces high-genetic-quality offspring, increasing future high-yielding cows and buffaloes. Pregnant heifers developed using IVF embryos from reputed institutions like MLDB, BAIF, Godrej Agrovet, and NDS.",
       "benefits": [
         "75% subsidy up to ₹1,68,750 per heifer",
         "High-genetic quality offspring through IVF",
-        "7-month pregnant heifers from reputed institutions",
-        "Parentage certificate provided",
-        "Enhanced future milk production potential"
+        "7-month pregnant heifers",
+        "Parentage certificate Compulsory",
+        "Enhanced milk production potential"
       ],
       "eligibilityCriteria": [
-        "Must possess at least 5 milch animals",
+        "Must possess at least 5 milch animals Registered in Bharat Pashudhan App",
         "Must have knowledge of scientific feeding practices",
         "Willing to carry out breeding only through artificial insemination",
-        "Verification by project veterinary teams"
+        "Verification by project veterinarians",
+        "Maximum cost per heifer(7 month pregnant): ₹2,25,000. 75% subsidy or ₹1,68,750 (whichever is less)"
       ],
       "subsidyInfo": {
         "amount": "₹1,68,750",
@@ -370,43 +368,61 @@
       "termsAndConditions": [
         "25% beneficiary contribution required upfront",
         "25% payment retained until post-delivery verification",
-        "Parentage certificate and breed verification mandatory",
-        "Compensation provisions if calf not of mentioned breed"
-      ],
+        "Parentage certificate mandatory"      ],
       "requiredDocuments": [
         "Aadhar Card",
-        "Proof of owning 5+ milch animals",
+        "Ration card Image",
         "Bank details"
       ],
-      "applicationGuidelines": [
-        "Pay 25% contribution to District Deputy Commissioner",
-        "Project Director issues supply order to selected agency",
-        "Supplier delivers pregnant heifer within stipulated time",
-        "Final 25% released after calving and breed verification"
-      ],
-      "targetBeneficiaries": "1,000 farmers",
-      "coverage": "Project areas in Vidarbha and Marathwada"
+      "targetBeneficiaries": "1,000 farmers"
     },
     "3": {
-      "title": "Supply of Fertility Feed (30,000 MT)",
+      "title": "Supply of Fertility Feed",
       "shortDescription": "Specialized NDDB fertility feed to improve reproductive health and reduce repeat breeding",
-      "fullDescription": "NDDB-developed Fertility Feed improves reproductive efficiency and reduces repeat breeding in cows and buffaloes. Feeding 5 kg daily from 60th to 120th day post-calving enhances fertility, milk yield, and milk quality.",
+      "fullDescription": "NDDB-developed Fertility Feed improves reproductive efficiency and reduces repeat breeding in cows and buffaloes. Feeding 5 kg daily from 60th to 120th day post-calving,By replacing equal quantity of regular cattle field.",
       "benefits": [
         "25% subsidy on fertility feed",
-        "Improves conception rates significantly",
-        "Enhances milk yield and quality",
+        "Improved Conception rate",
         "Reduces repeat breeding issues",
-        "NDDB quality assurance"
+        "Assured quality"
       ],
       "eligibilityCriteria": [
         "Must own milch animals",
-        "Animals in 60-120 day post-calving period",
-        "Not availed similar benefits recently"
+        "Animals in 60-120 day post-calving period"
       ],
       "subsidyInfo": {
         "amount": "25% subsidy",
         "percentage": "25%",
-        "details": "Cost: ₹9,600 per animal (₹32 per kg × 300 kg for 60 days). 25% subsidy provided via DBT after purchase proof submission."
+        "details": "25% subsidy provided via DBT after purchase proof submission."
+      },
+      "requiredDocuments": [
+        "Aadhar Card",
+        "Ration card",
+        "Purchase invoice/receipt from Milk producing organization",
+        "Bank account details"
+      ],
+      "availability": "Fertility feed will be available at Milk Pooling point/ Dairy cooperative society level",
+      "targetBeneficiaries": "1,00,000 animals"
+    },
+    "4": {
+      "title": "Supply of feed supplement to enhance Fat and SNF in milk",
+      "shortDescription": "NDDB-developed Fat and SNF enhancer improve Fat and SNF (Solids-Not-Fat) levels in milk, which determine acceptance and pricing",
+      "fullDescription": "Feeding 250gm daily from 0th to 90th day post-calving, By replacing equal quantity of regular mineral mixture.",
+      "benefits": [
+        "25% subsidy on Fat and SNF enhancer",
+        "Improves milk Fat and SNF content",
+        "Better price realization at collection centres",
+        "Enhanced milk quality and acceptance",
+        "Animals in post-calving period 0 to 90 days after calving"
+      ],
+      "eligibilityCriteria": [
+        "Must own milch animals",
+        "Regular milk supplier to collection centres"
+      ],
+      "subsidyInfo": {
+        "amount": "25% subsidy",
+        "percentage": "25%",
+        "details": "Cost: ₹4,500 per animal (₹200/kg × 22.5 kg for 90 days). 25% subsidy provided via DBT after purchase proof submission."
       },
       "requiredDocuments": [
         "Aadhar Card",
@@ -414,50 +430,7 @@
         "Purchase invoice/receipt",
         "Bank account details"
       ],
-      "applicationGuidelines": [
-        "Feed 5 kg per day for 60 days (60th to 120th day post-calving)",
-        "Purchase from authorized NDDB dealers",
-        "Submit purchase proof for DBT subsidy",
-        "Maintain feeding records"
-      ],
-      "targetBeneficiaries": "1,00,000 animals",
-      "coverage": "All project districts"
-    },
-    "4": {
-      "title": "Supply of feed supplement to enhance Fat and SNF in milk",
-      "shortDescription": "NDDB supplements to improve Fat and SNF levels in milk for better pricing",
-      "fullDescription": "Specially developed supplements to improve Fat and SNF (Solids-Not-Fat) levels in milk, which determine acceptance and pricing at milk collection centres. Feed 250 grams per day per animal for 90 days after calving.",
-      "benefits": [
-        "25% subsidy on SNF enhancer",
-        "Improves milk Fat and SNF content",
-        "Better price realization at collection centres",
-        "Enhanced milk quality and acceptance",
-        "90-day supplementation program"
-      ],
-      "eligibilityCriteria": [
-        "Must own milch animals",
-        "Animals in post-calving period",
-        "Regular milk supplier to collection centres"
-      ],
-      "subsidyInfo": {
-        "amount": "25% subsidy",
-        "percentage": "25%",
-        "details": "Cost: ₹4,500 per animal (₹200/kg × 22.5 kg for 90 days). 25% subsidy via DBT after purchase proof."
-      },
-      "requiredDocuments": [
-        "Aadhar Card",
-        "Milk collection centre registration",
-        "Purchase invoice",
-        "Bank account details"
-      ],
-      "applicationGuidelines": [
-        "Feed 250 grams per day for 90 days after calving",
-        "Purchase from authorized NDDB suppliers",
-        "Submit purchase proof for subsidy",
-        "Monitor milk quality improvements"
-      ],
-      "targetBeneficiaries": "33,000 animals",
-      "coverage": "All project areas"
+      "targetBeneficiaries": "33,000 animals"
     },
     "5": {
       "title": "Subsidy for cultivating perennial fodder crops",
@@ -485,25 +458,18 @@
         "Land ownership documents (7/12)",
         "Proof of irrigation facility"
       ],
-      "applicationGuidelines": [
-        "Apply for 1 acre minimum cultivation",
-        "Ensure irrigation facility available",
-        "Receive seeds/saplings from department",
-        "Follow cultivation guidelines provided"
-      ],
-      "targetBeneficiaries": "22,000 farmers",
-      "coverage": "22,000 acres across 19 districts"
+      "targetBeneficiaries": "22,000 farmers"
     },
     "6": {
-      "title": "Distribution of electric chaff cutter to farmers",
-      "shortDescription": "Electrically operated chaff cutting machines to reduce fodder wastage and improve digestibility",
-      "fullDescription": "Distribution of 10,000 electric chaff cutters to reduce wastage of green fodder and improve digestibility. Mechanized equipment makes fodder processing efficient and reduces labor requirements.",
+      "title": "Distribution of power driven chaff cutter to farmers",
+      "shortDescription": "Power driven chaff cutting machines to reduce fodder wastage and improve digestibility",
+      "fullDescription": "Distribution of 10,000 power driven chaff cutters to reduce wastage of green fodder and improve digestibility. Mechanized equipment makes fodder processing efficient and reduces labor requirements.",
       "benefits": [
-        "50% subsidy up to ₹15,000 per unit",
+        "Remove 50% subsidy up to ₹15,000 per unit from benefits bullets",
         "Reduces green fodder wastage",
         "Improves fodder digestibility",
         "Saves labor and time",
-        "ISI-marked quality equipment"
+        "ISI-marked quality equipment to Quality Equipment"
       ],
       "eligibilityCriteria": [
         "Must own at least 3-4 milch animals",
@@ -514,7 +480,7 @@
       "subsidyInfo": {
         "amount": "₹15,000",
         "percentage": "50%",
-        "details": "Estimated cost per unit: ₹30,000. Subsidy via DBT after GST invoice submission, 50% subsidy or ₹15,000 (whichever is less)."
+        "details": "Subsidy via DBT after GST invoice submission, 50% subsidy or ₹15,000 (whichever is less)."
       },
       "requiredDocuments": [
         "Aadhar Card",
@@ -522,14 +488,7 @@
         "ISI certification of equipment",
         "Bank account details"
       ],
-      "applicationGuidelines": [
-        "Purchase ISI-marked chaff cutter (minimum 2 HP motor)",
-        "Ensure electric connection available",
-        "Submit GST invoice for subsidy claim",
-        "Receive subsidy via DBT"
-      ],
-      "targetBeneficiaries": "10,000 farmers",
-      "coverage": "All project districts"
+      "targetBeneficiaries": "10,000 farmers"
     },
     "7": {
       "title": "Supply Of Silage",
@@ -558,14 +517,8 @@
         "Silage purchase receipt",
         "Bank account details"
       ],
-      "applicationGuidelines": [
-        "Purchase silage from authorized suppliers",
-        "Feed 5 kg per animal daily for three months",
-        "Submit purchase proof for subsidy",
-        "Receive DBT transfer"
-      ],
       "targetBeneficiaries": "33,000 farmers",
-      "Project area": "Fodder scarcity affected areas"
+      "projectArea": "Fodder scarcity affected areas"
     },
     "8": {
       "title": "Treatment of Infertile cows and buffaloes",
@@ -590,15 +543,7 @@
         "Treatment history if any",
         "Identification documents"
       ],
-      "applicationGuidelines": [
-        "Visit designated veterinary dispensary",
-        "Register for treatment program",
-        "Receive hormonal/traditional therapy",
-        "Follow-up visits as prescribed",
-        "Monthly reports submitted to Project Director"
-      ],
-      "targetBeneficiaries": "2,00,000 animals",
-      "coverage": "All 19 project districts over 3 years"
+      "targetBeneficiaries": "2,00,000 animals"
     },
     "9": {
       "title": "Training to the farmers on modern dairy practices",
@@ -625,15 +570,7 @@
         "Proof of dairy farming",
         "Registration form"
       ],
-      "applicationGuidelines": [
-        "Register through district project offices",
-        "Attend scheduled 1-day training",
-        "Participate in practical demonstrations",
-        "Receive certification and materials",
-        "Implement modern practices learned"
-      ],
-      "targetBeneficiaries": "36,000 farmers",
-      "coverage": "All project areas"
+      "targetBeneficiaries": "36,000 farmers"
     }
   },
   "villageWiseApplications": "Village-wise Applications",
@@ -683,11 +620,10 @@
         "image": "member_7.jpg"
       },
       {
-        "name": "Dr. Narendra Patel",
+        "name": "Dr. Narendra Patil",
         "designation": "Hon. Officer On Special Duty\nVidarbha And Marathwada Dairy Development Project",
         "image": "membe_8.jpg"
       }
     ]
   }
-  
 }
