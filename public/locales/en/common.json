@@ -223,7 +223,7 @@
   "loading": "Loading...",
   "ration_card_members": "Number of members in Ration Card",
   "ration_card_members_required": "Number of members is required",
-  "min_members_required": "At least 1 member required",
+  "min_members_required": "Minimum 0 members allowed",
   "self_ration_card_image": "Self Ration Card Image",
   "ration_card_image_required": "Ration card image is required",
   "family_ration_card_image": "Family Ration Card Last Page",

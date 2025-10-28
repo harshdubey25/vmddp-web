@@ -256,28 +256,31 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
             control={control}
             rules={{
               required: t('ration_card_members_required'),
-              min: { value: 1, message: t('min_members_required') },
+              min: { value: 0, message: 'Minimum 0 members allowed' },
               max: { value: 99, message: 'Maximum 99 members allowed' },
-              pattern: { value: /^[1-9]\d*$/, message: 'Only positive numbers are allowed' }
+              pattern: { value: /^[0-9]\d*$/, message: 'Only non-negative numbers are allowed' }
             }}
             render={({ field }) => {
-              const currentValue = parseInt(field.value) || 1;
+              const currentValue = parseInt(field.value) || 0;
 
               const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                 const value = e.target.value;
                 const numValue = parseInt(value);
 
                 // Allow spinner changes (when value comes from browser's built-in increment/decrement)
-                if (!isNaN(numValue) && numValue >= 1 && numValue <= 99) {
+                if (!isNaN(numValue) && numValue >= 0 && numValue <= 99) {
                   field.onChange(numValue.toString());
                   setFamilyMemberCount(numValue);
                 }
-                // For direct typing, only allow single digits (1-9)
+                // For direct typing, allow single digits (0-9)
                 else if (value.length <= 1) {
-                  const singleDigit = value.replace(/[^1-9]/g, '');
-                  if (singleDigit) {
+                  const singleDigit = value.replace(/[^0-9]/g, '');
+                  if (singleDigit !== '') {
                     field.onChange(singleDigit);
                     setFamilyMemberCount(parseInt(singleDigit));
+                  } else if (value === '') {
+                    field.onChange('0');
+                    setFamilyMemberCount(0);
                   }
                 }
               };
@@ -294,8 +297,8 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
 
                 // For single digits, prevent typing if it would create invalid input
                 if (currentValue < 10 && e.key >= '0' && e.key <= '9') {
-                  // Only allow digits 1-9 for direct typing
-                  if (e.key === '0' || (currentValue > 0 && e.key >= '1' && e.key <= '9')) {
+                  // Allow any digit 0-9 for direct typing
+                  if (currentValue > 0 && e.key >= '0' && e.key <= '9') {
                     e.preventDefault();
                   }
                 }
@@ -306,17 +309,17 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
                   {...field}
                   id="rationCardMembers"
                   type="number"
-                  min="1"
+                  min="0"
                   max="99"
                   step="1"
-                  value={field.value || '1'}
+                  value={field.value || '0'}
                   onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
                   data-testid="input-ration-card-members"
                   onBlur={() => {
                     // Ensure value is within bounds and update family count
-                    const value = parseInt(field.value) || 1;
-                    const clampedValue = Math.max(1, Math.min(99, value));
+                    const value = parseInt(field.value) || 0;
+                    const clampedValue = Math.max(0, Math.min(99, value));
                     field.onChange(clampedValue.toString());
                     setFamilyMemberCount(clampedValue);
                   }}

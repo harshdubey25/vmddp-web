@@ -223,7 +223,7 @@
   "loading": "लोड करत आहे...",
   "ration_card_members": "रेशन कार्डमधील सदस्यांची संख्या",
   "ration_card_members_required": "सदस्यांची संख्या आवश्यक आहे",
-  "min_members_required": "किमान 1 सदस्य आवश्यक",
+  "min_members_required": "किमान 0 सदस्य अनुमतीत",
   "self_ration_card_image": "स्वतःचे रेशन कार्ड प्रतिमा",
   "ration_card_image_required": "रेशन कार्ड प्रतिमा आवश्यक आहे",
   "family_ration_card_image": "कौटुंबिक रेशन कार्डचे शेवटचे पान",
