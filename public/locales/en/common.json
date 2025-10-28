@@ -75,6 +75,7 @@
     "Technical guidance on cultivation",
     "Support for fodder crop varieties"
   ],
+  
   "scheme_snf_enhancer_title": "Subsidy for cultivating perennial fodder crops",
   "scheme_snf_enhancer_desc": "Solids-Not-Fat enhancer supplements to improve milk quality and increase farmer income",
   "scheme_snf_enhancer_benefits": [
@@ -424,41 +425,6 @@
     },
     "4": {
       "title": "Supply of feed supplement to enhance Fat and SNF in milk",
-      "shortDescription": "Quality fodder seed distribution for year-round feed availability and drought mitigation",
-      "fullDescription": "To mitigate fodder scarcity during drought, quality fodder seeds and saplings provided for cultivation on 22,000 acres across 19 districts. 100% subsidy support for multi-purpose fodder crop cultivation.",
-      "benefits": [
-        "100% subsidy up to ₹6,000 per beneficiary",
-        "Quality fodder seeds and saplings",
-        "Year-round feed availability",
-        "Drought mitigation support",
-        "Multi-purpose crop varieties"
-      ],
-      "eligibilityCriteria": [
-        "Must own at least 3-4 milch animals",
-        "Minimum 1 acre land with irrigation facility",
-        "Should not have availed free fodder seed under district schemes"
-      ],
-      "subsidyInfo": {
-        "amount": "₹6,000",
-        "percentage": "100%",
-        "details": "100% subsidy up to ₹6,000 per beneficiary for quality fodder seeds and saplings."
-      },
-      "requiredDocuments": [
-        "Aadhar Card",
-        "Land ownership documents (7/12)",
-        "Proof of irrigation facility"
-      ],
-      "applicationGuidelines": [
-        "Apply for 1 acre minimum cultivation",
-        "Ensure irrigation facility available",
-        "Receive seeds/saplings from department",
-        "Follow cultivation guidelines provided"
-      ],
-      "targetBeneficiaries": "22,000 farmers",
-      "coverage": "22,000 acres across 19 districts"
-    },
-    "5": {
-      "title": "Subsidy for cultivating perennial fodder crops",
       "shortDescription": "NDDB supplements to improve Fat and SNF levels in milk for better pricing",
       "fullDescription": "Specially developed supplements to improve Fat and SNF (Solids-Not-Fat) levels in milk, which determine acceptance and pricing at milk collection centres. Feed 250 grams per day per animal for 90 days after calving.",
       "benefits": [
@@ -492,6 +458,41 @@
       ],
       "targetBeneficiaries": "33,000 animals",
       "coverage": "All project areas"
+    },
+    "5": {
+      "title": "Subsidy for cultivating perennial fodder crops",
+      "shortDescription": "Quality fodder seed distribution for year-round feed availability and drought mitigation",
+      "fullDescription": "To mitigate fodder scarcity during drought, quality fodder seeds and saplings provided for cultivation on 22,000 acres across 19 districts. 100% subsidy support for multi-purpose fodder crop cultivation.",
+      "benefits": [
+        "100% subsidy up to ₹6,000 per beneficiary",
+        "Quality fodder seeds and saplings",
+        "Year-round feed availability",
+        "Drought mitigation support",
+        "Multi-purpose crop varieties"
+      ],
+      "eligibilityCriteria": [
+        "Must own at least 3-4 milch animals",
+        "Minimum 1 acre land with irrigation facility",
+        "Should not have availed free fodder seed under district schemes"
+      ],
+      "subsidyInfo": {
+        "amount": "₹6,000",
+        "percentage": "100%",
+        "details": "100% subsidy up to ₹6,000 per beneficiary for quality fodder seeds and saplings."
+      },
+      "requiredDocuments": [
+        "Aadhar Card",
+        "Land ownership documents (7/12)",
+        "Proof of irrigation facility"
+      ],
+      "applicationGuidelines": [
+        "Apply for 1 acre minimum cultivation",
+        "Ensure irrigation facility available",
+        "Receive seeds/saplings from department",
+        "Follow cultivation guidelines provided"
+      ],
+      "targetBeneficiaries": "22,000 farmers",
+      "coverage": "22,000 acres across 19 districts"
     },
     "6": {
       "title": "Distribution of electric chaff cutter to farmers",

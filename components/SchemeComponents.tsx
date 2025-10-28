@@ -30,17 +30,17 @@ const schemes = [
   },
   {
     id: 4,
-    icon: Sprout,
+    icon: Sparkles,
     titleKey: "scheme_fodder_seed_title",
-    descriptionKey: "scheme_fodder_seed_desc",
-    benefitsKey: "scheme_fodder_seed_benefits"
+    descriptionKey: "scheme_snf_enhancer_desc",
+    benefitsKey: "scheme_snf_enhancer_benefits"
   },
   {
     id: 5,
-    icon: Sparkles,
+    icon: Sprout,
     titleKey: "scheme_snf_enhancer_title",
-    descriptionKey: "scheme_snf_enhancer_desc",
-    benefitsKey: "scheme_snf_enhancer_benefits"
+    descriptionKey: "scheme_fodder_seed_desc",
+    benefitsKey: "scheme_fodder_seed_benefits"
   },
   {
     id: 6,
