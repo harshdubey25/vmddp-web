@@ -45,7 +45,7 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
   const { data: villageData } = useFrappeGetDocList("Village Master", {
     fields: ["name1"],
     filters: watchedDistrict && watchedTaluka ? [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]] : undefined,
-
+    limit: 1000,
   });
 
   const uploadFile = async (file: File, fieldName: string): Promise<string | null> => {
