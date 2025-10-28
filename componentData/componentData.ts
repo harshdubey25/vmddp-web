@@ -12,6 +12,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 
 export const image = {
+  fodder_seed: "/stock_images/fodder_seed_new.png",
   fertility_feed_bf4e2f3c: "/stock_images/fertility_feed.png",
   dairy_cow_grazing_in_bb297871: "/stock_images/animal_induction.png",
   pregnant_heifer_cow__33614af7: "/stock_images/hgm.jpg",
@@ -42,6 +43,7 @@ export interface ComponentDetail {
   shortDescription: string;
   fullDescription: string;
   image: string;
+  images?: string[]; // Multiple images for components that need them
   category: ComponentCategory;
   benefits: string[];
   eligibilityCriteria: string[];
@@ -67,6 +69,11 @@ export const componentData: ComponentDetail[] = [
     fullDescription:
       "Under the Vidarbha and Marathwada Dairy Development Project, 13,400 high milk-yielding cows and buffaloes will be distributed over three years across 19 districts. Each beneficiary receives one cow or buffalo with minimum 8-10 litres daily milk production capacity.",
     image: image.dairy_cow_grazing_in_bb297871,
+    images: [
+      image.dairy_cow_grazing_in_bb297871,
+      "/stock_images/buffalo.jpg",
+      "/stock_images/white-cow.jpg",
+    ],
     category: "Animal Purchase",
     benefits: [
       "50% subsidy up to ₹50,000 per animal",
@@ -257,7 +264,7 @@ export const componentData: ComponentDetail[] = [
       "NDDB supplements to improve Fat and SNF levels in milk for better pricing",
     fullDescription:
       "Specially developed supplements to improve Fat and SNF (Solids-Not-Fat) levels in milk, which determine acceptance and pricing at milk collection centres. Feed 250 grams per day per animal for 90 days after calving.",
-    image: image.snf_enhancer_feed_5_2f3e4c6d,
+    image: image.fodder_seed,
     category: "Nutrition & Feed",
     benefits: [
       "25% subsidy on SNF enhancer feed",

@@ -19,24 +19,50 @@ export default function SchemeComponentPage({ params }: { params: Promise<{ id: 
   return (
     <main className="max-w-4xl mx-auto py-10 px-4">
       <h1 className="font-display text-3xl font-bold mb-4 text-primary">{t(`schemes.${component.id}.title`)}</h1>
-      <div className="flex flex-col md:flex-row md:items-start md:gap-8 mb-6">
-        <div className="flex-shrink-0 mb-4 md:mb-0 md:w-[350px]">
-          <Image
-            src={component.image}
-            alt={component.title}
-            width={350}
-            height={220}
-            className="rounded-lg object-contain border shadow w-full h-auto"
-            style={{ background: '#fff', maxHeight: '220px', maxWidth: '350px' }}
-          />
-        </div>
-        <div className="flex-1">
+
+      {/* Show multiple images for component ID 1, single image for others */}
+      {component.id === 1 && component.images ? (
+        <div className="mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            {component.images.map((img, index) => (
+              <div key={index} className="flex-shrink-0">
+                <Image
+                  src={img}
+                  alt={`${component.title} - Image ${index + 1}`}
+                  width={300}
+                  height={200}
+                  className="rounded-lg object-cover border shadow w-full h-auto"
+                  style={{ background: '#fff', height: '200px' }}
+                />
+              </div>
+            ))}
+          </div>
           <div className="mb-4">
             <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">{t(getCategoryTranslationKey(component.category))}</span>
           </div>
           <p className="text-lg text-muted-foreground mb-6">{t(`schemes.${component.id}.fullDescription`)}</p>
         </div>
-      </div>
+      ) : (
+        <div className="flex flex-col md:flex-row md:items-start md:gap-8 mb-6">
+          <div className="flex-shrink-0 mb-4 md:mb-0 md:w-[350px]">
+            <Image
+              src={component.image}
+              alt={component.title}
+              width={350}
+              height={220}
+              className="rounded-lg object-contain border shadow w-full h-auto"
+              style={{ background: '#fff', maxHeight: '220px', maxWidth: '350px' }}
+            />
+          </div>
+          <div className="flex-1">
+            <div className="mb-4">
+              <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">{t(getCategoryTranslationKey(component.category))}</span>
+            </div>
+            <p className="text-lg text-muted-foreground mb-6">{t(`schemes.${component.id}.fullDescription`)}</p>
+          </div>
+        </div>
+      )}
+
       <section className="mb-8">
         <h2 className="font-semibold text-xl mb-2">{t('benefits')}</h2>
         <ul className="list-disc pl-6 space-y-1">
