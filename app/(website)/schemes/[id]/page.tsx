@@ -20,19 +20,19 @@ export default function SchemeComponentPage({ params }: { params: Promise<{ id: 
     <main className="max-w-4xl mx-auto py-10 px-4">
       <h1 className="font-display text-3xl font-bold mb-4 text-primary">{t(`schemes.${component.id}.title`)}</h1>
 
-      {/* Show multiple images for component ID 1, single image for others */}
-      {component.id === 1 && component.images ? (
+      {/* Show multiple images if component has images array, single image otherwise */}
+      {component.images && component.images.length > 1 ? (
         <div className="mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          <div className="flex flex-wrap gap-4 mb-6 justify-center">
             {component.images.map((img, index) => (
-              <div key={index} className="flex-shrink-0">
+              <div key={index} className="flex-shrink-0 max-w-xs">
                 <Image
                   src={img}
                   alt={`${component.title} - Image ${index + 1}`}
                   width={300}
-                  height={200}
-                  className="rounded-lg object-cover border shadow w-full h-auto"
-                  style={{ background: '#fff', height: '200px' }}
+                  height={300}
+                  className="rounded-lg object-contain border shadow w-full h-auto"
+                  style={{ background: '#fff', maxHeight: 'none' }}
                 />
               </div>
             ))}

@@ -12,6 +12,8 @@ import {
 import type { LucideIcon } from "lucide-react";
 
 export const image = {
+  fodder_crops: "/stock_images/fodder_crops.png",
+  fat_and_snf_new: "/stock_images/fat_and_snf.png",
   fodder_seed: "/stock_images/fodder_seed_new.png",
   fertility_feed_bf4e2f3c: "/stock_images/fertility_feed.png",
   dairy_cow_grazing_in_bb297871: "/stock_images/animal_induction.png",
@@ -71,8 +73,8 @@ export const componentData: ComponentDetail[] = [
     image: image.dairy_cow_grazing_in_bb297871,
     images: [
       image.dairy_cow_grazing_in_bb297871,
-      "/stock_images/buffalo.jpg",
-      "/stock_images/white-cow.jpg",
+      "/stock_images/buffalo-2.png",
+      "/stock_images/white-cow-2.png",
     ],
     category: "Animal Purchase",
     benefits: [
@@ -220,8 +222,8 @@ export const componentData: ComponentDetail[] = [
     shortDescription:
       "Quality fodder seed distribution for year-round feed availability and drought mitigation",
     fullDescription:
-      "To mitigate fodder scarcity during drought, quality fodder seeds and cuttings provided for cultivation on 22,000 acres across 19 districts. 100% subsidy support for multi-purpose fodder crop cultivation.",
-    image: image.fodder_seed_field_3_8c6f2f4b,
+      "Specially developed supplements to improve Fat and SNF (Solids-Not-Fat) levels in milk, which determine acceptance and pricing at milk collection centres. Feed 250 grams per day per animal for 90 days after calving.",
+    image: image.fat_and_snf_new,
     category: "Nutrition & Feed",
     benefits: [
       "100% subsidy up to ₹6,000 per beneficiary",
@@ -263,8 +265,14 @@ export const componentData: ComponentDetail[] = [
     shortDescription:
       "NDDB supplements to improve Fat and SNF levels in milk for better pricing",
     fullDescription:
-      "Specially developed supplements to improve Fat and SNF (Solids-Not-Fat) levels in milk, which determine acceptance and pricing at milk collection centres. Feed 250 grams per day per animal for 90 days after calving.",
-    image: image.fodder_seed,
+      "To mitigate fodder scarcity during drought, quality fodder seeds and cuttings provided for cultivation on 22,000 acres across 19 districts. 100% subsidy support for multi-purpose fodder crop cultivation.",
+    image: image.fodder_crops,
+    images: [
+      "/stock_images/sugargraze.png",
+      "/stock_images/hybrid_corn_seed.png",
+      "/stock_images/speedfeed.png",
+      "/stock_images/nutrifeed.png",
+    ],
     category: "Nutrition & Feed",
     benefits: [
       "25% subsidy on SNF enhancer feed",
