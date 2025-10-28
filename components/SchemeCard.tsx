@@ -12,16 +12,33 @@ interface SchemeCardProps {
   componentId: number;
   index: number;
   isInView: boolean;
+  backgroundImage?: string;
 }
 
-export default function SchemeCard({ icon: Icon, title, description, benefits, componentId, index, isInView }: SchemeCardProps) {
+export default function SchemeCard({ icon: Icon, title, description, benefits, componentId, index, isInView, backgroundImage }: SchemeCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 50, scale: 0.95 }}
       animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 50, scale: 0.95 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
-  <Card className="hover-elevate transition-all duration-300 h-full flex flex-col" style={{ height: '420px' }} data-testid={`card-scheme-${componentId}`}>
+  <Card 
+        className="hover-elevate transition-all duration-300 h-full flex flex-col relative overflow-hidden" 
+        style={{ height: '420px' }} 
+        data-testid={`card-scheme-${componentId}`}
+      >
+        {/* Background Image */}
+        {backgroundImage && (
+          <>
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+              style={{ backgroundImage: `url(${backgroundImage})` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-background/50 to-background/80" />
+          </>
+        )}
+        {/* Content Overlay */}
+        <div className="relative z-10 flex flex-col h-full">
         <CardHeader>
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
@@ -60,6 +77,7 @@ export default function SchemeCard({ icon: Icon, title, description, benefits, c
             </Link>
           </div>
         </CardContent>
+        </div>
       </Card>
     </motion.div>
   );

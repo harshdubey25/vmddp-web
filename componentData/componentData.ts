@@ -23,7 +23,7 @@ export const image = {
     "/stock_images/chaff_cutter_machine_b258d8e0.jpg",
   silage_storage_farm__cdce1e08: "/stock_images/silage.png",
   veterinary_treatment_358caf0f: "/stock_images/treatment.png",
-  farmer_training_agri_442883c8: "/stock_images/farmer.png",
+  farmer_training_agri_442883c8: "/Training.jpg",
   fodder_seed_field_3_8c6f2f4b: "/stock_images/fodder_seed.png",
   snf_enhancer_feed_5_2f3e4c6d: "/stock_images/enhancer.png",
   supply_chaff_cutter: "/chaffcutter.jpg",

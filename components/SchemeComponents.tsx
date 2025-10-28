@@ -4,6 +4,7 @@ import SchemeCard from "./SchemeCard";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { useTranslation } from 'react-i18next';
+import { getComponentById } from "@/componentData/componentData";
 
 const schemes = [
   {
@@ -94,18 +95,22 @@ export default function SchemeComponents() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {schemes.map((scheme, index) => (
-            <SchemeCard
-              key={scheme.id}
-              icon={scheme.icon}
-              title={t(scheme.titleKey)}
-              description={t(scheme.descriptionKey)}
-              benefits={t(scheme.benefitsKey, { returnObjects: true }) as string[]}
-              componentId={scheme.id}
-              index={index}
-              isInView={isInView}
-            />
-          ))}
+          {schemes.map((scheme, index) => {
+            const componentDetail = getComponentById(scheme.id);
+            return (
+              <SchemeCard
+                key={scheme.id}
+                icon={scheme.icon}
+                title={t(scheme.titleKey)}
+                description={t(scheme.descriptionKey)}
+                benefits={t(scheme.benefitsKey, { returnObjects: true }) as string[]}
+                componentId={scheme.id}
+                index={index}
+                isInView={isInView}
+                backgroundImage={componentDetail?.image}
+              />
+            );
+          })}
         </div>
       </div>
     </section>
