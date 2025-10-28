@@ -687,6 +687,8 @@
         "image": "membe_8.jpg"
       }
     ]
-  }
+  },
+  "aadhaar_not_verified": "Aadhaar Not Verified",
+  "aadhaar_verification_required": "Please verify your Aadhaar number before proceeding to the next step."
   
 }

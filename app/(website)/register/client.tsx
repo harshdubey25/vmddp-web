@@ -59,7 +59,8 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
     const [agreed, setAgreed] = useState(false);
     const [familyMemberCount, setFamilyMemberCount] = useState<number>(0);
     const [components, setComponents] = useState<any[]>([]);
-    const [submitLoading, setSubmitLoading] = useState(false)
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [isAadhaarVerified, setIsAadhaarVerified] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
     const { t } = useTranslation('common');
@@ -127,6 +128,16 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
         // Validate current step before proceeding
         let fieldsToValidate: (keyof RegisterFormValues)[] = [];
         if (currentStep === 1) {
+            // Check if Aadhaar is verified before proceeding
+            if (!isAadhaarVerified) {
+                toast({
+                    title: t('aadhaar_not_verified'),
+                    description: t('aadhaar_verification_required'),
+                    variant: "destructive"
+                });
+                return;
+            }
+
             fieldsToValidate = ['firstName', 'lastName', 'gender', 'category', 'mobile', 'aadhar_number', 'aadhaarImage', 'rationCardMembers', 'rationCardImage', 'district', 'taluka', 'village'];
             // Add family aadhaar fields if applicable
             const rationCardMembers = getValues('rationCardMembers');
@@ -283,6 +294,8 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                                     errors={errors}
                                     familyMemberCount={familyMemberCount}
                                     setFamilyMemberCount={setFamilyMemberCount}
+                                    isAadhaarVerified={isAadhaarVerified}
+                                    setIsAadhaarVerified={setIsAadhaarVerified}
                                 />
                             )}
 
