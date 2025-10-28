@@ -99,8 +99,8 @@ const BankDetailsStep = ({ control, errors, setValue }: Props) => {
             rules={{
               required: t('account_number_required'),
               pattern: {
-                value: /^[0-9]+$/,
-                message: t('account_number_numeric')
+                value: /^[0-9]{14}$/,
+                message: 'Account number must be exactly 14 digits'
               }
             }}
             render={({ field }) => (
@@ -109,6 +109,12 @@ const BankDetailsStep = ({ control, errors, setValue }: Props) => {
                 id="accountNumber"
                 data-testid="input-account-number"
                 type="password"
+                maxLength={14}
+                inputMode="numeric"
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 14);
+                  field.onChange(value);
+                }}
                 onCopy={e => e.preventDefault()}
                 onPaste={e => e.preventDefault()}
                 onCut={e => e.preventDefault()}
@@ -125,8 +131,8 @@ const BankDetailsStep = ({ control, errors, setValue }: Props) => {
             rules={{
               required: t('confirm_account_number_required'),
               pattern: {
-                value: /^[0-9]+$/,
-                message: t('account_number_numeric')
+                value: /^[0-9]{14}$/,
+                message: 'Account number must be exactly 14 digits'
               },
               validate: (value, formValues) => {
                 const accountNumber = control._formValues?.accountNumber;
@@ -145,6 +151,12 @@ const BankDetailsStep = ({ control, errors, setValue }: Props) => {
                   id="confirmAccountNumber"
                   data-testid="input-confirm-account-number"
                   className={isMismatch ? "border-red-500 focus:border-red-500" : ""}
+                  maxLength={14}
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 14);
+                    field.onChange(value);
+                  }}
                   onCopy={e => e.preventDefault()}
                   onPaste={e => e.preventDefault()}
                   onCut={e => e.preventDefault()}

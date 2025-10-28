@@ -85,16 +85,79 @@ const BasicDetailsStep = ({ control, errors, familyMemberCount, setFamilyMemberC
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="firstName">{t('first_name')} *</Label>
-          <Controller name="firstName" control={control} rules={{ required: t('first_name_required') }} render={({ field }) => <Input {...field} id="firstName" data-testid="input-first-name" />} />
+          <Controller
+            name="firstName"
+            control={control}
+            rules={{
+              required: t('first_name_required'),
+              pattern: {
+                value: /^[^\s]+$/,
+                message: 'First name should be a single word without spaces'
+              }
+            }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="firstName"
+                data-testid="input-first-name"
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\s/g, '');
+                  field.onChange(value);
+                }}
+              />
+            )}
+          />
           {errors.firstName && <span className="text-red-500 text-xs">{errors.firstName.message}</span>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="middleName">{t('middle_name')}</Label>
-          <Controller name="middleName" control={control} render={({ field }) => <Input {...field} id="middleName" data-testid="input-middle-name" />} />
+          <Controller
+            name="middleName"
+            control={control}
+            rules={{
+              pattern: {
+                value: /^[^\s]*$/,
+                message: 'Middle name should be a single word without spaces'
+              }
+            }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="middleName"
+                data-testid="input-middle-name"
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\s/g, '');
+                  field.onChange(value);
+                }}
+              />
+            )}
+          />
+          {errors.middleName && <span className="text-red-500 text-xs">{errors.middleName.message}</span>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="lastName">{t('last_name')} *</Label>
-          <Controller name="lastName" control={control} rules={{ required: t('last_name_required') }} render={({ field }) => <Input {...field} id="lastName" data-testid="input-last-name" />} />
+          <Controller
+            name="lastName"
+            control={control}
+            rules={{
+              required: t('last_name_required'),
+              pattern: {
+                value: /^[^\s]+$/,
+                message: 'Last name should be a single word without spaces'
+              }
+            }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="lastName"
+                data-testid="input-last-name"
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\s/g, '');
+                  field.onChange(value);
+                }}
+              />
+            )}
+          />
           {errors.lastName && <span className="text-red-500 text-xs">{errors.lastName.message}</span>}
         </div>
       </div>

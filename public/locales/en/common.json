@@ -226,7 +226,7 @@
   "min_members_required": "At least 1 member required",
   "self_ration_card_image": "Self Ration Card Image",
   "ration_card_image_required": "Ration card image is required",
-  "family_ration_card_image": "Family Ration Card Image",
+  "family_ration_card_image": "Family Ration Card Last Page",
   "family_members_aadhar": "Family Members' Aadhar Numbers",
   "family_member_aadhar": "Family Member {{index}} Aadhar Number",
   "aadhar_placeholder": "Enter 12-digit Aadhar number",
