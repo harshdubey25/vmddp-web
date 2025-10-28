@@ -57,7 +57,7 @@ const BasicDetailsStep = ({
   const { data: villageData } = useFrappeGetDocList("Village Master", {
     fields: ["name1"],
     filters: watchedDistrict && watchedTaluka ? [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]] : undefined,
-
+    limit: 1000, // Increased limit to handle talukas with many villages
   });
 
   const uploadFile = async (file: File, fieldName: string): Promise<string | null> => {
