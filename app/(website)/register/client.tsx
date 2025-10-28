@@ -136,9 +136,24 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                 }
             }
         } else if (currentStep === 2) {
-            // Eligibility fields - assuming eligibility is an array, but need to check specific criteria
-            // For now, assume all eligibility fields are required if present
-            fieldsToValidate = ['eligibility'];
+            // Eligibility fields - validate all eligibility fields and their children
+            const eligibilityData = getValues('eligibility') || [];
+            const eligibilityFieldsToValidate: string[] = [];
+
+            eligibilityData.forEach((_, idx) => {
+                // Validate main eligibility field
+                eligibilityFieldsToValidate.push(`eligibility.${idx}.value`);
+
+                // Validate child fields if they exist
+                const childData = eligibilityData[idx]?.child;
+                if (Array.isArray(childData)) {
+                    childData.forEach((_, childIdx) => {
+                        eligibilityFieldsToValidate.push(`eligibility.${idx}.child.${childIdx}.value`);
+                    });
+                }
+            });
+
+            fieldsToValidate = eligibilityFieldsToValidate as (keyof RegisterFormValues)[];
         } else if (currentStep === 3) {
             fieldsToValidate = ['components'];
         } else if (currentStep === 4) {
@@ -194,7 +209,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
         // Extract family member Aadhar numbers
         const familyAadharNumbers: string[] = [];
         const familyMemberCount = parseInt(String(formData.rationCardMembers)) || 0;
-        
+
         if (familyMemberCount > 1) {
             for (let i = 1; i < familyMemberCount; i++) {
                 const fieldName = `familyAadhaar${i}` as keyof RegisterFormValues;
@@ -211,7 +226,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
             components: formData.components
         };
 
-        
+
         frappePublic.call().post('vmddp_app.api.app_form.create_app_form', {
             data: submissionData
         }).then((res: any) => {

@@ -126,9 +126,14 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                 <Controller
                   name={mainValueName}
                   control={control}
-                  rules={required ? { required: t('field_required', { field: label }) } : {}}
+                  rules={required ? {
+                    required: t('field_required', { field: label }),
+                    min: { value: 1, message: t('field_required', { field: label }) }
+                  } : {
+                    min: { value: 0, message: 'Value must be non-negative' }
+                  }}
                   render={({ field: rhfField }) => (
-                    <Input {...rhfField} id={mainValueName} type="number" value={rhfField.value ?? ""} placeholder={field.placeholder || undefined} />
+                    <Input {...rhfField} id={mainValueName} type="number" value={rhfField.value ?? ""} placeholder={field.placeholder || undefined} min="0" />
                   )}
                 />
                 {errors?.eligibility?.[idx]?.value && <span className="text-red-500 text-xs">{errors.eligibility[idx].value.message}</span>}
@@ -196,11 +201,27 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
           let childIdx = 0;
           if (Array.isArray(field.criteria_fields)) {
             field.criteria_fields.forEach((child: any, cidx: number) => {
+              const childRequired = required; // Child fields are mandatory if parent is mandatory
+              const maxChars = child.max_number_of_characters ? parseInt(child.max_number_of_characters) : null;
+
               if (child.condition === "=") {
                 const count = Number(mainFieldValue) || 0;
                 for (let i = 0; i < count; i++) {
                   const childValueName = `eligibility[${idx}].child[${childIdx}].value`;
                   const childNameName = `eligibility[${idx}].child[${childIdx}].name`;
+
+                  // Build validation rules for child fields
+                  const childValidationRules: any = {};
+                  if (childRequired) {
+                    childValidationRules.required = t('field_required', { field: child.field });
+                  }
+                  if (maxChars) {
+                    childValidationRules.pattern = {
+                      value: new RegExp(`^.{${maxChars}}$`),
+                      message: `${child.field} must be exactly ${maxChars} characters`
+                    };
+                  }
+
                   childInputs.push(
                     <div className="space-y-2" key={childValueName}>
                       <Controller
@@ -209,12 +230,27 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                         defaultValue={child.field}
                         render={({ field }) => <input type="hidden" {...field} />}
                       />
-                      <Label htmlFor={childValueName}>{child.field} (#{i + 1})</Label>
+                      <Label htmlFor={childValueName}>{child.field} (#{i + 1}){childRequired ? " *" : ""}</Label>
                       <Controller
                         name={childValueName}
                         control={control}
+                        rules={childValidationRules}
                         render={({ field: rhfField }) => (
-                          <Input {...rhfField} id={childValueName} type="text" value={rhfField.value ?? ""} placeholder={child.placeholder || undefined} />
+                          <Input
+                            {...rhfField}
+                            id={childValueName}
+                            type="text"
+                            value={rhfField.value ?? ""}
+                            placeholder={child.placeholder || undefined}
+                            maxLength={maxChars || undefined}
+                            onChange={(e) => {
+                              let value = e.target.value;
+                              if (maxChars) {
+                                value = value.slice(0, maxChars);
+                              }
+                              rhfField.onChange(value);
+                            }}
+                          />
                         )}
                       />
                       {errors?.eligibility?.[idx]?.child?.[childIdx]?.value && <span className="text-red-500 text-xs">{errors.eligibility[idx].child[childIdx].value.message}</span>}
@@ -225,6 +261,19 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
               } else {
                 const childValueName = `eligibility[${idx}].child[${childIdx}].value`;
                 const childNameName = `eligibility[${idx}].child[${childIdx}].name`;
+
+                // Build validation rules for child fields
+                const childValidationRules: any = {};
+                if (childRequired) {
+                  childValidationRules.required = t('field_required', { field: child.field });
+                }
+                if (maxChars) {
+                  childValidationRules.pattern = {
+                    value: new RegExp(`^.{${maxChars}}$`),
+                    message: `${child.field} must be exactly ${maxChars} characters`
+                  };
+                }
+
                 childInputs.push(
                   <div className="space-y-2" key={childValueName}>
                     <Controller
@@ -233,12 +282,27 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                       defaultValue={child.field}
                       render={({ field }) => <input type="hidden" {...field} />}
                     />
-                    <Label htmlFor={childValueName}>{child.field} ({child.condition})</Label>
+                    <Label htmlFor={childValueName}>{child.field} ({child.condition}){childRequired ? " *" : ""}</Label>
                     <Controller
                       name={childValueName}
                       control={control}
+                      rules={childValidationRules}
                       render={({ field: rhfField }) => (
-                        <Input {...rhfField} id={childValueName} type="text" value={rhfField.value ?? ""} placeholder={child.placeholder || undefined} />
+                        <Input
+                          {...rhfField}
+                          id={childValueName}
+                          type="text"
+                          value={rhfField.value ?? ""}
+                          placeholder={child.placeholder || undefined}
+                          maxLength={maxChars || undefined}
+                          onChange={(e) => {
+                            let value = e.target.value;
+                            if (maxChars) {
+                              value = value.slice(0, maxChars);
+                            }
+                            rhfField.onChange(value);
+                          }}
+                        />
                       )}
                     />
                     {errors?.eligibility?.[idx]?.child?.[childIdx]?.value && <span className="text-red-500 text-xs">{errors.eligibility[idx].child[childIdx].value.message}</span>}
