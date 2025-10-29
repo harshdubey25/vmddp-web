@@ -39,7 +39,8 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mb-6"
+              className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mb-6 drop-shadow-lg text-shadow-lg"
+              style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)' }}
               data-testid="text-hero-title"
             >
               {t("hero_title")
@@ -55,7 +56,8 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg sm:text-xl mb-8 text-primary-foreground/80"
+              className="text-lg sm:text-xl mb-8 text-primary-foreground/80 drop-shadow-md"
+              style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.4)' }}
               data-testid="text-hero-subtitle"
             >
               {t("hero_subtitle")}
@@ -82,8 +84,8 @@ export default function HeroSection() {
               <Link href="/track">
                 <Button
                   size="lg"
-                  variant="outline"
-                  className="w-full sm:w-auto bg-primary-foreground/10 hover:bg-primary-foreground/20 border-primary-foreground/30 backdrop-blur-sm"
+                  variant="secondary"
+                  className="w-full sm:w-auto"
                   data-testid="button-hero-track"
                 >
                   <FileText className="mr-2 w-5 h-5" />
@@ -111,13 +113,13 @@ export default function HeroSection() {
                     transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
                     data-testid={`stat-${stat.label.toLowerCase()}`}
                   >
-                    <Card className="bg-primary-foreground/10 border-primary-foreground/20 backdrop-blur-sm p-4 sm:p-6 hover-elevate">
+                    <Card className="bg-white/15 border-white/30 backdrop-blur-md p-4 sm:p-6 hover-elevate shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-white/20">
                       <div className="flex flex-col items-center text-center gap-2">
-                        <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center mb-1">
-                          <Icon className="w-5 h-5 text-primary-foreground" />
+                        <div className="w-10 h-10 rounded-full bg-white/25 flex items-center justify-center mb-2 shadow-md">
+                          <Icon className="w-5 h-5 text-white drop-shadow-sm" />
                         </div>
-                        <div className="font-display font-bold text-2xl sm:text-3xl text-primary-foreground">{stat.value}</div>
-                        <div className="text-xs sm:text-sm text-primary-foreground/80">{stat.label}</div>
+                        <div className="font-display font-bold text-2xl sm:text-3xl text-white drop-shadow-md">{stat.value}</div>
+                        <div className="text-sm sm:text-base text-white/90 font-medium drop-shadow-sm">{stat.label}</div>
                       </div>
                     </Card>
                   </motion.div>
