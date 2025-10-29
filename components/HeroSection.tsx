@@ -39,7 +39,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mb-6 drop-shadow-2xl"
+              className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mb-6 drop-shadow-2xl text-blue-500"
               style={{ textShadow: '3px 3px 8px rgba(0, 0, 0, 0.8), 1px 1px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.6)' }}
               data-testid="text-hero-title"
             >
@@ -56,7 +56,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg sm:text-xl mb-8 text-primary-foreground/80 drop-shadow-xl"
+              className="text-lg sm:text-xl mb-8 text-primary-foreground/80 drop-shadow-xl "
               style={{ textShadow: '2px 2px 6px rgba(0, 0, 0, 0.7), 1px 1px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5)' }}
               data-testid="text-hero-subtitle"
             >
