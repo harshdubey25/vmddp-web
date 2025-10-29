@@ -31,6 +31,7 @@ const AadhaarVerification: React.FC<AadhaarVerificationProps> = ({
         verifyOtp,
         reset,
     } = useAadhaarVerification();
+    const [otpVerified, setOtpVerified] = useState(false);
 
     const handleSendOtp = async () => {
         if (!aadhaar || aadhaar.length !== 12) {
@@ -49,9 +50,11 @@ const AadhaarVerification: React.FC<AadhaarVerificationProps> = ({
         }
 
         const result = await verifyOtp(otp);
-        if (result.success && result.verified) {
+        if (result.success) {
+            setOtpVerified(true);
             onVerificationComplete(true, result.data);
-        } else if (result.success && !result.verified) {
+        } else {
+            setOtpVerified(false);
             onVerificationComplete(false);
         }
     };
@@ -59,18 +62,19 @@ const AadhaarVerification: React.FC<AadhaarVerificationProps> = ({
     const handleReset = () => {
         reset();
         setOtp('');
+        setOtpVerified(false);
         onVerificationComplete(false);
     };
 
     const isAadhaarValid = aadhaar && /^\d{12}$/.test(aadhaar);
 
-    if (isVerified) {
+    if (isVerified || otpVerified) {
         return (
             <div className="space-y-3">
                 <Alert className="border-green-200 bg-green-50">
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     <AlertDescription className="text-green-800">
-                        Aadhaar verified successfully!
+                        OTP verified successfully! You can move to the next step.
                         {verifiedData?.name && (
                             <div className="mt-2">
                                 <strong>Name:</strong> {verifiedData.name}

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const CASHFREE_BASE_URL =
-  "https://payout-gamma.cashfree.com/payout/v1/verification/aadhaar";
+const CASHFREE_BASE_URL = `${process.env.CASHFREE_BASE_URL}/verification/offline-aadhaar/otp`;
 
 export async function POST(request: NextRequest) {
   console.log("=== Cashfree Aadhaar Verification Started ===");
@@ -86,7 +85,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        verification_id: data.verification_id,
+        verification_id: data.ref_id,
         message: data.message || "OTP sent successfully",
       },
     });

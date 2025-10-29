@@ -41,7 +41,7 @@ export const useAadhaarVerification = () => {
       if (!response.ok) {
         throw new Error(data.error || "Failed to send OTP");
       }
-
+      console.log("OTP sent response data:", data);
       setState((prev) => ({
         ...prev,
         isLoading: false,

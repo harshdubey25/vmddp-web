@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const CASHFREE_BASE_URL =
-  "https://payout-gamma.cashfree.com/payout/v1/verification/aadhaar";
+const CASHFREE_BASE_URL = `${process.env.CASHFREE_BASE_URL}/verification/offline-aadhaar/verify`;
 
 export async function POST(request: NextRequest) {
   console.log("=== Cashfree OTP Verification Started ===");
@@ -48,11 +47,12 @@ export async function POST(request: NextRequest) {
       clientSecretLength: process.env.CASHFREE_CLIENT_SECRET?.length,
     });
 
-    const apiUrl = `${CASHFREE_BASE_URL}/${verification_id}`;
+    const apiUrl = `${CASHFREE_BASE_URL}`;
     console.log("Making API call to:", apiUrl);
 
     const requestPayload = {
       otp: otp,
+      ref_id: verification_id,
     };
     console.log("Request payload:", { otp: `${otp.substring(0, 2)}****` });
 
