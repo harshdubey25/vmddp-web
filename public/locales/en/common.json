@@ -45,7 +45,7 @@
   ],
   "scheme_components_title": "Project Components",
   "scheme_components_subtitle": "Comprehensive support to dairy farmers through following components",
-  "scheme_animal_induction_title": "Distribution of high genetic merit animals (cow/buffalo) to dairy farmers",
+  "scheme_animal_induction_title": "Distribution of high genetic merit animals (cow-buffalo) to dairy farmers",
   "scheme_animal_induction_desc": "Financial assistance for purchasing high-yielding indigenous or crossbred dairy animals.",
   "scheme_animal_induction_benefits": [
     "Subsidy 50%",
@@ -303,7 +303,7 @@
   "no_data_available": "No data available",
   "schemes": {
     "1": {
-      "title": "Distribution of high genetic merit animals (cow/buffalo) to dairy farmers",
+      "title": "Distribution of high genetic merit animals (cow-buffalo) to dairy farmers",
       "shortDescription": "Financial assistance for purchasing high-yielding calved indigenous or crossbred dairy cows",
       "fullDescription": "Under the Vidarbha and Marathwada Dairy Development Project, 13,400 high milk-yielding cows and buffaloes will be distributed over three years across 19 districts. Each beneficiary receives one cow or buffalo with minimum 8-10 litres daily milk production capacity.",
       "benefits": [
