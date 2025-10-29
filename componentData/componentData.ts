@@ -75,6 +75,7 @@ export const componentData: ComponentDetail[] = [
       "/stock_images/brown-cow.jpg",
       "/stock_images/buffalo-2.jpg",
       "/stock_images/white-cow-2.jpg",
+      "/stock_images/cow4.png",
     ],
     category: "Animal Purchase",
     benefits: [
