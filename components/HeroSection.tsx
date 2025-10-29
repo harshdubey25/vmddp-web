@@ -10,10 +10,10 @@ import { useTranslation } from 'react-i18next';
 export default function HeroSection() {
   const { t } = useTranslation('common');
   const stats = [
-    { value: "19", label: t("districts"), icon: MapPin },
-    { value: "192", label: t("talukas"), icon: Building },
-    { value: "24,657", label: t("villages"), icon: Home },
-    { value: "9", label: t("components"), icon: Package },
+    { value: "19", label: t("districts"), icon: MapPin, color: "bg-blue-500/80 hover:bg-blue-500/90" },
+    { value: "192", label: t("talukas"), icon: Building, color: "bg-green-500/80 hover:bg-green-500/90" },
+    { value: "24,657", label: t("villages"), icon: Home, color: "bg-orange-500/80 hover:bg-orange-500/90" },
+    { value: "9", label: t("components"), icon: Package, color: "bg-red-700/80 hover:bg-red-700/90" },
   ];
 
 
@@ -113,7 +113,7 @@ export default function HeroSection() {
                     transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
                     data-testid={`stat-${stat.label.toLowerCase()}`}
                   >
-                    <Card className="bg-white/15 border-white/30 backdrop-blur-md p-4 sm:p-6 hover-elevate shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-white/20">
+                    <Card className={`${stat.color} border-white/30 backdrop-blur-md p-4 sm:p-6 hover-elevate shadow-lg hover:shadow-xl transition-all duration-300`}>
                       <div className="flex flex-col items-center text-center gap-2">
                         <div className="w-10 h-10 rounded-full bg-white/25 flex items-center justify-center mb-2 shadow-md">
                           <Icon className="w-5 h-5 text-white drop-shadow-sm" />
