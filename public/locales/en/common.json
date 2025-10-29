@@ -1,5 +1,5 @@
 {
-  "dairy_development_programme": "Dairy Development Programme",
+  "dairy_development_programme": "Dairy Development Project",
   "home": "Home",
   "about_us": "About Us",
   "track_application": "Track Application",
@@ -17,7 +17,7 @@
   "talukas": "Talukas",
   "villages": "Villages",
   "components": "Components",
-  "stats_title": "Real-Time Programme Statistics",
+  "stats_title": "Real-Time Project Statistics",
   "stats_subtitle": "Track the progress of Vidarbha and Marathwada Dairy Development Project scheme applications across Vidarbha and Marathwada regions",
   "total_applications": "Total Applications",
   "approved": "Approved",
@@ -26,7 +26,7 @@
   "about_hero_alt": "Dairy farming in Maharashtra",
   "about_title": "Vidarbha and Marathwada Dairy Development Project",
   "about_mission_title": "Our Mission",
-  "about_mission_desc": "Empower farmers through financial assistance, modern animal husbandry practices, and comprehensive veterinary support across Vidarbha and Marathwada regions.",
+  "about_mission_desc": "Empower dairy farmer through financial assistance, modern animal husbandry practices, and comprehensive veterinary support across Vidarbha and Marathwada regions.",
   "about_vision_title": "Our Vision",
   "about_vision_desc": "To establish Vidarbha and Marathwada as self-reliant dairy hubs with sustainable livelihoods, ensuring economic prosperity and food security for farming families.",
   "about_values_title": "Core Values",
@@ -39,66 +39,66 @@
     "Digital application platform with transparent tracking",
     "Direct benefit transfer (DBT) to farmer’s bank account",
     "Quality Dairy animals and veterinary care support",
-    "Capacity building through farmer training programs",
+    "Capacity building through dairy farmer training programs",
     "Real-time application tracking and status monitoring",
     "Fair and equitable resource allocation system"
   ],
   "scheme_components_title": "Project Components",
   "scheme_components_subtitle": "Comprehensive support to dairy farmers through following components",
-  "scheme_animal_induction_title": "Distribution of high genetic merit animals (cows-buffaloes) to dairy farmers",
+  "scheme_animal_induction_title": "Distribution of high genetic merit animals (cow/buffalo) to dairy farmers",
   "scheme_animal_induction_desc": "Financial assistance for purchasing high-yielding indigenous or crossbred dairy animals.",
   "scheme_animal_induction_benefits": [
-    "Susidy 50%",
+    "Subsidy 50%",
     "Digital collar included",
     "Support for quality milch animals",
     "Animal Insurance included"
   ],
-  "scheme_hgm_title": "Distribution of HGM (IVF – Embryo) pregnant Heifer to the dairy farmer",
-  "scheme_hgm_desc": "High Genetic Merit pregnant Heifer support for enhanced dairy productivity and breeding excellence",
+  "scheme_hgm_title": "Distribution of HGM (IVF – Embryo) pregnant heifer to the dairy farmer",
+  "scheme_hgm_desc": "High Genetic Merit pregnant heifer support for enhanced dairy productivity and breeding excellence",
   "scheme_hgm_benefits": [
-    "Financial aid for HGM pregnant Heifer acquisition",
+    "Subsidy 75%",
     "Genetic superiority certification",
     "Breeding guidance and veterinary support"
   ],
   "scheme_fertility_feed_title": "Supply of Fertility Feed",
   "scheme_fertility_feed_desc": "Specialized nutritional supplements to improve reproductive health and fertility in dairy animals",
   "scheme_fertility_feed_benefits": [
-    "Subsidized fertility feed supply",
+    "Subsidy 25%",
     "Improved conception rates",
     "Expert consultation on feeding protocols"
   ],
   "scheme_fodder_seed_title": "Supply of feed supplement to enhance Fat and SNF in milk",
   "scheme_fodder_seed_desc": "Quality fodder seed distribution for green and dry fodder cultivation to ensure year-round feed availability",
   "scheme_fodder_seed_benefits": [
-    "Subsidized high-quality fodder seeds",
+    "Subsidy 25%",
     "Technical guidance on cultivation",
     "Support for fodder crop varieties"
   ],
   "scheme_snf_enhancer_title": "Subsidy for cultivating perennial fodder crops",
-  "scheme_snf_enhancer_desc": "Solids-Not-Fat enhancer supplements to improve milk quality and increase farmer income",
+  "scheme_snf_enhancer_desc": "Solids-Not-Fat enhancer supplements to improve milk quality and increase dairy farmer income",
   "scheme_snf_enhancer_benefits": [
-    "Enhances milk SNF content",
+    "Subsidy 25%",
     "Better price realization for quality milk",
     "Feed additive supply support"
   ],
   "scheme_chaff_cutter_title": "Distribution of power driven chaff cutter to farmers",
   "scheme_chaff_cutter_desc": "Mechanized chaff cutting equipment to process fodder efficiently and reduce labor",
   "scheme_chaff_cutter_benefits": [
-    "Subsidy on chaff cutter machines",
+    "Subsidy 25%",
     "Min. 2Hp single phase 2 blade chaff cutter",
     "Equipped with Copper winding electric motor"
   ],
   "scheme_silage_title": "Supply Of Silage",
   "scheme_silage_desc": "Provision of quality silage for round-the-year nutritious fodder availability",
   "scheme_silage_benefits": [
-    "Ready-to-use silage supply",
+    "Subsidy 25%",
     "Ensures feed during scarcity periods",
     "Nutritional quality assurance"
   ],
   "scheme_infertile_treatment_title": "Treatment of Infertile cows and buffaloes",
   "scheme_infertile_treatment_desc": "Comprehensive veterinary treatment program for infertile animals to restore productivity",
   "scheme_infertile_treatment_benefits": [
-    "Free veterinary consultation and diagnosis",
+    "Subsidy 25%",
     "Subsidized treatment and medicines",
     "Follow-up care and monitoring"
   ],
@@ -303,7 +303,7 @@
   "no_data_available": "No data available",
   "schemes": {
     "1": {
-      "title": "Distribution of high genetic merit animals (cow/buffalo) to dairyfarmers",
+      "title": "Distribution of high genetic merit animals (cow/buffalo) to dairy farmers",
       "shortDescription": "Financial assistance for purchasing high-yielding calved indigenous or crossbred dairy cows",
       "fullDescription": "Under the Vidarbha and Marathwada Dairy Development Project, 13,400 high milk-yielding cows and buffaloes will be distributed over three years across 19 districts. Each beneficiary receives one cow or buffalo with minimum 8-10 litres daily milk production capacity.",
       "benefits": [
@@ -368,10 +368,11 @@
       "termsAndConditions": [
         "25% beneficiary contribution required upfront",
         "25% payment retained until post-delivery verification",
-        "Parentage certificate mandatory"      ],
+        "Parentage certificate mandatory"
+      ],
       "requiredDocuments": [
         "Aadhar Card",
-        "Ration card Image",
+        "Ration card",
         "Bank details"
       ],
       "targetBeneficiaries": "1,000 farmers"
