@@ -113,7 +113,33 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                 )}
               </div>
             );
-          } else if (type === "number") {
+          } else if (type === "number" || type === "Int") {
+            // Parse min and max values
+            const minValue = field.minimum ? parseFloat(field.minimum) : null;
+            const maxValue = field.maximum ? parseFloat(field.maximum) : null;
+
+            // Build validation rules
+            const validationRules: any = {};
+            if (required) {
+              validationRules.required = t('field_required', { field: label });
+            }
+
+            // Add min validation
+            if (minValue !== null) {
+              validationRules.min = {
+                value: minValue,
+                message: `${label} must be at least ${minValue}`
+              };
+            }
+
+            // Add max validation
+            if (maxValue !== null) {
+              validationRules.max = {
+                value: maxValue,
+                message: `${label} must be at most ${maxValue}`
+              };
+            }
+
             mainInput = (
               <div className="space-y-2" key={mainValueName}>
                 <Controller
@@ -126,14 +152,17 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                 <Controller
                   name={mainValueName}
                   control={control}
-                  rules={required ? {
-                    required: t('field_required', { field: label }),
-                    min: { value: 1, message: t('field_required', { field: label }) }
-                  } : {
-                    min: { value: 0, message: 'Value must be non-negative' }
-                  }}
+                  rules={validationRules}
                   render={({ field: rhfField }) => (
-                    <Input {...rhfField} id={mainValueName} type="number" value={rhfField.value ?? ""} placeholder={field.placeholder || undefined} min="0" />
+                    <Input
+                      {...rhfField}
+                      id={mainValueName}
+                      type="number"
+                      value={rhfField.value ?? ""}
+                      placeholder={field.placeholder || undefined}
+                      min={minValue !== null ? minValue.toString() : undefined}
+                      max={maxValue !== null ? maxValue.toString() : undefined}
+                    />
                   )}
                 />
                 {errors?.eligibility?.[idx]?.value && <span className="text-red-500 text-xs">{errors.eligibility[idx].value.message}</span>}
