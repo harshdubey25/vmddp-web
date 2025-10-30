@@ -11,6 +11,12 @@ const galleryCategories = [
         images: [
             "/04-1_1759736734698.jpg",
             "/08_1759736734699.jpg",
+            "IMG-20250711-WA0008.jpg",
+            "IMG-20250711-WA0009.jpg",
+            "IMG-20250711-WA0010.jpg",
+            "IMG-20250722-WA0003.jpg",
+            "IMG-20250722-WA0002.jpg",
+            "IMG-20250722-WA0005.jpg",
         ],
     },
     {
