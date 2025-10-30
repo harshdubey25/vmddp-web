@@ -22,15 +22,13 @@ export default function HeroSection() {
   const heroImages = [
     "/hero.jpg",
     "/cow-heroimage1.JPG",
-    "/cow-heroimage2.jpg",
-    "/cow-heroimage3.jpeg"
   ];
 
   return (
     <section className="relative bg-gradient-to-br from-primary/95 to-primary text-primary-foreground overflow-hidden">
       {/* Background Image Slider with Dark Overlay */}
-  <div className="absolute inset-0 z-0">
-        <ImageCarousel images={heroImages} alt="Hero Background" />
+      <div className="absolute inset-0 z-0">
+        <ImageCarousel images={heroImages} alt="Hero Background" hideArrows={true} />
         <div className="absolute inset-0 bg-black bg-opacity-40" />
       </div>
 

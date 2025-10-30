@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 interface ImageCarouselProps {
   images: string[];
   alt: string;
+  hideArrows?: boolean;
 }
 
-export default function ImageCarousel({ images, alt }: ImageCarouselProps) {
+export default function ImageCarousel({ images, alt, hideArrows }: ImageCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -79,26 +80,29 @@ export default function ImageCarousel({ images, alt }: ImageCarouselProps) {
       </div>
 
       {/* Left/Right Arrows */}
-      <button
-        type="button"
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm border border-border/50 rounded-full p-2"
-        onClick={scrollPrev}
-        aria-label="Previous image"
-        style={{outline: 'none'}}
-      >
-        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
-      </button>
-      <button
-        type="button"
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm border border-border/50 rounded-full p-2"
-        onClick={scrollNext}
-        aria-label="Next image"
-        style={{outline: 'none'}}
-      >
-        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
-      </button>
-
-
+      {!hideArrows && (
+        <div>
+          <button
+            type="button"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm border border-border/50 rounded-full p-2 text-black"
+            onClick={scrollPrev}
+            aria-label="Previous image"
+            style={{ outline: 'none' }}
+          >
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <button
+            type="button"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm border border-border/50 rounded-full p-2 text-black"
+            onClick={scrollNext}
+            aria-label="Next image"
+            style={{ outline: 'none' }}
+          >
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </div>
+      )
+      }
       <div className="absolute bottom-4 right-4 z-10 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-medium border border-border/50" data-testid="carousel-counter">
         {selectedIndex + 1} / {images.length}
       </div>
