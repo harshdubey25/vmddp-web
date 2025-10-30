@@ -22,7 +22,6 @@ const galleryCategories = [
             "/Seloo1.jpg",
             "/Karanja1.jpg",
             "/Katol2.jpg",
-            "/katol5.jpg",
             "/Nagpur1.jpg",
             "/Nagpur4.jpg",
         ],
