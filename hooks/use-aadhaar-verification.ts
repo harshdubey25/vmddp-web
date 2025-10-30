@@ -106,7 +106,7 @@ export const useAadhaarVerification = () => {
       setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: errorMessage,
+        error: "otp verification failed",
       }));
       return { success: false, error: errorMessage };
     }
