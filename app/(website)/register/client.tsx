@@ -176,7 +176,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
             toast({
                 title: t('validation_error'),
                 description: t('validation_error_desc'),
-                variant: "destructive"
+                variant: "default"
             });
             return;
         }
@@ -193,7 +193,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                 toast({
                     title: t('component_fetch_error'),
                     description: t('component_fetch_error_desc'),
-                    variant: "destructive"
+                    variant: "default"
                 });
                 return; // Don't proceed if fetch fails
             }

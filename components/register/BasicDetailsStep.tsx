@@ -57,7 +57,7 @@ const BasicDetailsStep = ({
   const { data: villageData } = useFrappeGetDocList("Village Master", {
     fields: ["name1"],
     filters: watchedDistrict && watchedTaluka ? [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]] : undefined,
-    limit: 1000, // Increased limit to handle talukas with many villages
+    limit: 1000,
   });
 
   const uploadFile = async (file: File, fieldName: string): Promise<string | null> => {
@@ -218,7 +218,31 @@ const BasicDetailsStep = ({
       </div>
       <div className="space-y-2">
         <Label htmlFor="mobile">{t('mobile_no')} *</Label>
-        <Controller name="mobile" control={control} rules={{ required: t('mobile_required') }} render={({ field }) => <Input {...field} id="mobile" type="tel" data-testid="input-mobile" />} />
+        <Controller 
+          name="mobile" 
+          control={control} 
+          rules={{ 
+            required: t('mobile_required'),
+            pattern: {
+              value: /^\d{10}$/,
+              message: 'Mobile number must be exactly 10 digits'
+            }
+          }} 
+          render={({ field }) => (
+            <Input 
+              {...field} 
+              id="mobile" 
+              type="tel" 
+              data-testid="input-mobile"
+              inputMode="numeric"
+              maxLength={10}
+              onChange={e => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                field.onChange(value);
+              }}
+            />
+          )} 
+        />
         {errors.mobile && <span className="text-red-500 text-xs">{errors.mobile.message}</span>}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -58,6 +58,7 @@ async function getApplications(page: number = 1, limit: number = 20): Promise<Ap
         status?: string;
         date?: string;
         creation?: string;
+        approver?: string;
     };
 
     const mappedApplications = (response.message?.applications || []).map((app: FrappeApp) => {
@@ -83,7 +84,7 @@ async function getApplications(page: number = 1, limit: number = 20): Promise<Ap
             status: app.status,
             submittedDate: app.date ?? app.creation ?? '',
             animalCount: undefined,
-            approver: '',
+            approver: app.approver,
             gender: '',
             caste: '',
             aadharNumber: '',

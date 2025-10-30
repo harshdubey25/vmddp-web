@@ -1,6 +1,8 @@
 "use client";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Target, Eye, Award } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Target, Eye, Award, ArrowRight, FileText } from "lucide-react";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { useTranslation } from 'react-i18next';
@@ -28,12 +30,42 @@ export default function AboutSection() {
             transition={{ duration: 0.8 }}
             className="text-center text-white max-w-4xl"
           >
-            <h2 className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mb-4" data-testid="text-about-title">
+            <h2 className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mb-6" data-testid="text-about-title">
               {t('about_title')}
             </h2>
-            <p className="text-lg sm:text-xl text-white/90 max-w-3xl mx-auto">
-              {t('about_subtitle')}
-            </p>
+            
+            {/* Action Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+            >
+              <Link href="/register">
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="w-full sm:w-auto"
+                  data-testid="button-about-register"
+                >
+                  {t("register_now")}
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+
+              <Link href="/track">
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="w-full sm:w-auto"
+                  data-testid="button-about-track"
+                >
+                  <FileText className="mr-2 w-5 h-5" />
+                  {t("track_application")}
+                </Button>
+              </Link>
+            </motion.div>
           </motion.div>
         </div>
       </div>
@@ -122,13 +154,19 @@ export default function AboutSection() {
           transition={{ duration: 0.6, delay: 0.6 }}
           className="bg-primary/5 rounded-lg p-6 sm:p-8"
         >
-          <h3 className="font-display font-semibold text-xl mb-6">{t('about_highlights_title')}</h3>
+          <h3 className="font-display font-semibold text-xl mb-6 text-center">{t('about_highlights_title')}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {(Array.isArray(t('about_highlights', { returnObjects: true }))
               ? t('about_highlights', { returnObjects: true }) as string[]
               : [])
               .map((highlight: string, index: number) => (
-                <div key={index} className="flex items-start gap-3">
+                <div 
+                  key={index} 
+                  className="flex items-start gap-3"
+                  style={{ 
+                    order: Math.floor(index / 3) + (index % 3) * Math.ceil(9 / 3)
+                  }}
+                >
                   <div className="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0"></div>
                   <p className="text-sm text-muted-foreground">{highlight}</p>
                 </div>

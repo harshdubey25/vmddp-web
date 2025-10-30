@@ -105,19 +105,54 @@ export default function SchemeComponentPage({ params }: { params: Promise<{ id: 
           ))}
         </ul>
       </section>
-      <section className="mb-8">
-        <h2 className="font-semibold text-xl mb-2">{t('application_guidelines')}</h2>
-        <ul className="list-disc pl-6 space-y-1">
-          {(t(`schemes.${component.id}.applicationGuidelines`, { returnObjects: true }) as string[]).map((guide: string, i: number) => (
-            <li key={i}>{guide}</li>
-          ))}
-        </ul>
-      </section>
+      {(() => {
+        const guidelines = t(`schemes.${component.id}.applicationGuidelines`, { returnObjects: true });
+        return Array.isArray(guidelines) && guidelines.length > 0;
+      })() && (
+        <section className="mb-8">
+          <h2 className="font-semibold text-xl mb-2">{t('application_guidelines')}</h2>
+          <ul className="list-disc pl-6 space-y-1">
+            {(t(`schemes.${component.id}.applicationGuidelines`, { returnObjects: true }) as string[]).map((guide: string, i: number) => (
+              <li key={i}>{guide}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {(() => {
+        try {
+          const availability = t(`schemes.${component.id}.availability`);
+          return availability && availability.trim() !== '' && availability !== `schemes.${component.id}.availability`;
+        } catch {
+          return false;
+        }
+      })() && (
+        <section className="mb-8">
+          <h2 className="font-semibold text-xl mb-2">{t('availability')}</h2>
+          <p className="text-muted-foreground">{t(`schemes.${component.id}.availability`)}</p>
+        </section>
+      )}
       {component.targetBeneficiaries && (
         <p className="mb-2"><strong>{t('target_beneficiaries')}:</strong> {t(`schemes.${component.id}.targetBeneficiaries`)}</p>
       )}
-      {component.coverage && (
+      {(() => {
+        try {
+          const coverage = t(`schemes.${component.id}.coverage`);
+          return coverage && coverage.trim() !== '' && coverage !== `schemes.${component.id}.coverage`;
+        } catch {
+          return false;
+        }
+      })() && (
         <p className="mb-2"><strong>{t('coverage')}:</strong> {t(`schemes.${component.id}.coverage`)}</p>
+      )}
+      {(() => {
+        try {
+          const projectArea = t(`schemes.${component.id}.projectArea`);
+          return projectArea && projectArea.trim() !== '' && projectArea !== `schemes.${component.id}.projectArea`;
+        } catch {
+          return false;
+        }
+      })() && (
+        <p className="mb-2"><strong>{t('project_area')}:</strong> {t(`schemes.${component.id}.projectArea`)}</p>
       )}
     </main>
   );
@@ -329,7 +364,7 @@ export async function SchemeDetailPage({ params }: { params: Promise<{ id: strin
             {scheme.procedure.map((item, i) => <li key={i}>{item}</li>)}
           </ul>
         </div>
-      )}
+    )}
       {scheme.instructions && (
         <div className="mb-6">
           <h2 className="font-semibold text-lg mb-2">General Instructions</h2>
