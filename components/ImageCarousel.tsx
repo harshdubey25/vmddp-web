@@ -13,6 +13,15 @@ export default function ImageCarousel({ images, alt }: ImageCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [selectedIndex, setSelectedIndex] = useState(0);
 
+  useEffect(() => {
+    if (!emblaApi) return;
+    const interval = setInterval(() => {
+      emblaApi.scrollNext();
+    }, 9000);
+    return () => clearInterval(interval);
+  }, [emblaApi]);
+
+
   const scrollPrev = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();
   }, [emblaApi]);
@@ -51,6 +60,7 @@ export default function ImageCarousel({ images, alt }: ImageCarouselProps) {
 
   return (
     <div className="relative">
+
       <div className="overflow-hidden rounded-lg" ref={emblaRef}>
         <div className="flex">
           {images.map((image, index) => (
@@ -68,25 +78,26 @@ export default function ImageCarousel({ images, alt }: ImageCarouselProps) {
         </div>
       </div>
 
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm border-border/50"
+      {/* Left/Right Arrows */}
+      <button
+        type="button"
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm border border-border/50 rounded-full p-2"
         onClick={scrollPrev}
-        data-testid="carousel-prev"
+        aria-label="Previous image"
+        style={{outline: 'none'}}
       >
-        <ChevronLeft className="w-5 h-5" />
-      </Button>
-
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm border-border/50"
+        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <button
+        type="button"
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm border border-border/50 rounded-full p-2"
         onClick={scrollNext}
-        data-testid="carousel-next"
+        aria-label="Next image"
+        style={{outline: 'none'}}
       >
-        <ChevronRight className="w-5 h-5" />
-      </Button>
+        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+
 
       <div className="absolute bottom-4 right-4 z-10 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-medium border border-border/50" data-testid="carousel-counter">
         {selectedIndex + 1} / {images.length}

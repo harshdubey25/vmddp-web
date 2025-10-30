@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, FileText, MapPin, Building, Home, Package } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from 'react-i18next';
+import ImageCarousel from "@/components/ImageCarousel";
 
 
 export default function HeroSection() {
@@ -17,19 +18,23 @@ export default function HeroSection() {
   ];
 
 
-  const heroBackground = "/hero.jpg";
+  // Multi-image hero background slider
+  const heroImages = [
+    "/hero.jpg",
+    "/cow-heroimage1.jpg",
+    "/cow-heroimage2.jpg",
+    "/cow-heroimage3.jpeg"
+  ];
 
   return (
     <section className="relative bg-gradient-to-br from-primary/95 to-primary text-primary-foreground overflow-hidden">
-      {/* Background Image with Dark Overlay */}
-      <div className="absolute inset-0 bg-black bg-opacity-40" />
-      <div
-        className="absolute inset-0 bg-cover bg-center blur-sm"
-        style={{ backgroundImage: `url(${heroBackground})` }}
-      />
-      {/* <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1zbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE2YzAgNC40MTgtMy41ODIgOC04IDhzLTgtMy41ODItOC04IDMuNTgyLTggOC04IDggMy41ODIgOCA4em0wIDI0YzAgNC40MTgtMy41ODIgOC04IDhzLTgtMy41ODItOC04IDMuNTgyLTggOC04IDggMy41ODIgOCA4eiIvPjwvZz48L2c+PC9zdmc+')] opacity-20"></div> */}
+      {/* Background Image Slider with Dark Overlay */}
+  <div className="absolute inset-0 z-0">
+        <ImageCarousel images={heroImages} alt="Hero Background" />
+        <div className="absolute inset-0 bg-black bg-opacity-40" />
+      </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 z-10">
         {/* Side by Side Layout: Content on Left, Stats on Right */}
         <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-12">
 
