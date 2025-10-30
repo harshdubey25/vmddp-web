@@ -74,7 +74,7 @@ export default async function SubAdminApplications({
     // Map to lightweight list items only
     const applications: ApplicationListItem[] = (response || []).message.applications.map((app: any): ApplicationListItem => {
         const component_list = Array.isArray(app.component_list) ? app.component_list.join(', ') : 'N/A';
-        const submittedDate = app.date || new Date().toISOString().split('T')[0];
+        const submittedDate = app.created_at || app.date || new Date().toISOString().split('T')[0];
 
         return {
             id: app.name,
