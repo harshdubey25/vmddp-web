@@ -56,7 +56,7 @@ export const useAadhaarVerification = () => {
       setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: errorMessage,
+        error: "Failed to send OTP",
       }));
       return { success: false, error: errorMessage };
     }
