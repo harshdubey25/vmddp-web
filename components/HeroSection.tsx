@@ -21,7 +21,7 @@ export default function HeroSection() {
   // Multi-image hero background slider
   const heroImages = [
     "/hero.jpg",
-    "/cow-heroimage1.jpg",
+    "/cow-heroimage1.JPG",
     "/cow-heroimage2.jpg",
     "/cow-heroimage3.jpeg"
   ];
