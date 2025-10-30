@@ -38,6 +38,7 @@ export default function Beneficiaries() {
     const { data: frappeComponents, isLoading: componentsLoading } = useFrappeGetDocList("Component", {
         fields: ["component_name"],
         limit: 100,
+        filters: [["dont_show_in_website", "=", 0]]
     });
     const districts = ["all", ...(frappeDistricts ? frappeDistricts.map((d: any) => d.name1) : [])];
     const components = ["all", ...(frappeComponents ? frappeComponents.map((c: any) => c.component_name) : [])];
