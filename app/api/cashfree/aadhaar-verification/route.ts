@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const CASHFREE_BASE_URL = `${process.env.CASHFREE_BASE_URL}/verification/offline-aadhaar/otp`;
+// Frappe API endpoint for Aadhaar verification
+const FRAPPE_AADHAAR_API =
+  "http://localhost:8001/api/method/vmddp_app.api.cashfree.aadhar.aadhaar_verification";
 
 export async function POST(request: NextRequest) {
   console.log("=== Cashfree Aadhaar Verification Started ===");
@@ -25,68 +27,41 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    const FRAPPE_AADHAAR_API = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/vmddp_app.api.cashfree.aadhar.aadhaar_verification`;
 
-    // Log environment variables (masked)
-    console.log("Environment check:", {
-      hasClientId: !!process.env.CASHFREE_CLIENT_ID,
-      hasClientSecret: !!process.env.CASHFREE_CLIENT_SECRET,
-      clientIdLength: process.env.CASHFREE_CLIENT_ID?.length,
-      clientSecretLength: process.env.CASHFREE_CLIENT_SECRET?.length,
-      baseUrl: CASHFREE_BASE_URL,
-    });
+    // Frappe API endpoint for Aadhaar verification using env variable
 
-    const requestPayload = {
-      aadhaar_number: aadhaar,
-    };
-    console.log("Request payload:", {
-      aadhaar_number: `${aadhaar.substring(0, 4)}********`,
-    });
+    // No longer using Cashfree env vars or baseUrl
+    console.log("Environment check: Using Frappe API, not Cashfree env vars");
 
-    const response = await fetch(CASHFREE_BASE_URL, {
+    // Call the Frappe API instead of Cashfree directly
+    const frappeResponse = await fetch(FRAPPE_AADHAAR_API, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Client-Id": process.env.CASHFREE_CLIENT_ID!,
-        "X-Client-Secret": process.env.CASHFREE_CLIENT_SECRET!,
       },
-      body: JSON.stringify(requestPayload),
+      body: JSON.stringify({ aadhaar }),
     });
 
-    console.log("Cashfree API Response:", {
-      status: response.status,
-      statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries()),
-    });
+    const frappeData = await frappeResponse.json();
+    console.log("Frappe API Response Data:", frappeData);
 
-    const data = await response.json();
-    console.log("Cashfree API Response Data:", {
-      success: !!data.success,
-      hasVerificationId: !!data.verification_id,
-      hasMessage: !!data.message,
-      verificationIdLength: data.verification_id?.length,
-      fullResponse: data, // Log full response to see the exact structure
-    });
-
-    if (!response.ok) {
-      console.log("❌ Cashfree API Error:", {
-        status: response.status,
-        statusText: response.statusText,
-        errorData: data,
-      });
+    if (!frappeResponse.ok || !frappeData.message.success) {
       return NextResponse.json(
-        { error: data.message || "Verification failed" },
-        { status: response.status }
+        {
+          error:
+            frappeData.message || frappeData.error || "Verification failed",
+        },
+        { status: frappeResponse.status }
       );
     }
 
-    console.log(
-      "✅ Aadhaar verification successful, verification_id generated"
-    );
+    // Return verification_id and message from Frappe response
     return NextResponse.json({
       success: true,
       data: {
-        verification_id: data.ref_id,
-        message: data.message || "OTP sent successfully",
+        verification_id: frappeData.message.data?.verification_id,
+        message: frappeData.message.data?.message || "OTP sent successfully",
       },
     });
   } catch (error) {
