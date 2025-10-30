@@ -1,3 +1,4 @@
+export const runtime = "edge";
 import { NextRequest, NextResponse } from "next/server";
 
 // Frappe API endpoint for Aadhaar OTP verification using env variable
