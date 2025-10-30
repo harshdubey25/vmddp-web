@@ -48,6 +48,7 @@ async function getApplications(page: number = 1, limit: number = 20): Promise<Ap
     console.log('Applications raw data:', response.message?.applications);
 
     type FrappeApp = {
+        created_at: string;
         name: string;
         fullname?: string;
         mobile_number?: string;
@@ -82,7 +83,8 @@ async function getApplications(page: number = 1, limit: number = 20): Promise<Ap
             village: app.village ?? '',
             component: component,
             status: app.status,
-            submittedDate: app.date ?? app.creation ?? '',
+            // Use full creation datetime for submittedDate
+            submittedDate: app.created_at ?? app.date ?? '',
             animalCount: undefined,
             approver: app.approver,
             gender: '',
