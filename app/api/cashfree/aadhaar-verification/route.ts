@@ -47,13 +47,25 @@ export async function POST(request: NextRequest) {
     const frappeData = await frappeResponse.json();
     console.log("Frappe API Response Data:", frappeData);
 
-    if (!frappeResponse.ok || !frappeData.message.success) {
+    // Handle special error case: OTP already generated or other custom status
+    if (
+      !frappeResponse.ok ||
+      (frappeData.message &&
+        ((typeof frappeData.message.status === "number" &&
+          frappeData.message.status !== 200) ||
+          frappeData.message.success === false))
+    ) {
+      // If Frappe returned a custom status, use it; otherwise, use the HTTP status
+      const status = frappeData.message?.status || frappeResponse.status;
       return NextResponse.json(
         {
           error:
-            frappeData.message || frappeData.error || "Verification failed",
+            frappeData.message?.message ||
+            frappeData.message ||
+            frappeData.error ||
+            "Verification failed",
         },
-        { status: frappeResponse.status }
+        { status }
       );
     }
 
