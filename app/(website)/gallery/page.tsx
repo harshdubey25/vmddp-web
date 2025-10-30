@@ -17,9 +17,14 @@ const galleryCategories = [
         titleKey: "gallery_farmer_training_title",
         descriptionKey: "gallery_farmer_training_desc",
         images: [
-            "/06-1_1759736734700.jpg",
+            "/Bhandara2.jpg",
             "/Training.jpg",
-            "/08_1759736734699.jpg",
+            "/Seloo1.jpg",
+            "/Karanja1.jpg",
+            "/Katol2.jpg",
+            "/katol5.jpg",
+            "/Nagpur1.jpg",
+            "/Nagpur4.jpg",
         ],
     },
     {
