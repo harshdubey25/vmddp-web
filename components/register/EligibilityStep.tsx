@@ -297,9 +297,22 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                             {child.extra_validation === "Tag Number" ? (
                               <TagNumberVerification
                                 disabled={false}
+                                showLabel={false}
                                 onVerificationComplete={(verified, data) => {
-                                  if (verified) {
-                                    rhfField.onChange(data?.tag_number || "");
+                                  try {
+                                    if (verified && data?.tag_number) {
+                                      rhfField.onChange(data.tag_number);
+                                    }
+                                    // Store verification status in form state
+                                    if (control && typeof control.setValue === 'function') {
+                                      const verifiedFieldName = `eligibility[${idx}].child[${childIdx}].verified`;
+                                      control.setValue(verifiedFieldName, verified, {
+                                        shouldValidate: false,
+                                        shouldDirty: true
+                                      });
+                                    }
+                                  } catch (error) {
+                                    console.error('Error in verification complete callback:', error);
                                   }
                                 }}
                               />
@@ -362,9 +375,22 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                           {child.extra_validation === "Tag Number" ? (
                             <TagNumberVerification
                               disabled={false}
+                              showLabel={false}
                               onVerificationComplete={(verified, data) => {
-                                if (verified) {
-                                  rhfField.onChange(data?.tag_number || "");
+                                try {
+                                  if (verified && data?.tag_number) {
+                                    rhfField.onChange(data.tag_number);
+                                  }
+                                  // Store verification status in form state
+                                  if (control && typeof control.setValue === 'function') {
+                                    const verifiedFieldName = `eligibility[${idx}].child[${childIdx}].verified`;
+                                    control.setValue(verifiedFieldName, verified, {
+                                      shouldValidate: false,
+                                      shouldDirty: true
+                                    });
+                                  }
+                                } catch (error) {
+                                  console.error('Error in verification complete callback:', error);
                                 }
                               }}
                             />

@@ -9,11 +9,13 @@ import { frappeServer } from '@/lib/frappe';
 interface TagNumberVerificationProps {
     onVerificationComplete: (verified: boolean, data?: any) => void;
     disabled?: boolean;
+    showLabel?: boolean;
 }
 
 const TagNumberVerification: React.FC<TagNumberVerificationProps> = ({
     onVerificationComplete,
     disabled = false,
+    showLabel = true,
 }) => {
     const [tagNumber, setTagNumber] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -31,16 +33,30 @@ const TagNumberVerification: React.FC<TagNumberVerificationProps> = ({
                 tag_number: tagNumber,
             });
             const msg = response?.message;
-            if (msg?.flg && msg?.data) {
+
+            // Check if the response indicates success
+            if (msg?.flg === true && msg?.data) {
                 setIsVerified(true);
                 setVerifiedData(msg.data);
                 onVerificationComplete(true, msg.data);
             } else {
-                setError(msg?.msg?.msgDesc || 'Invalid Tag Number');
+                // Handle error response - check for msg.msg.msgDesc first, then fallback
+                const errorMessage = msg?.msg?.msgDesc || msg?.msgDesc || 'Invalid Tag Number';
+                setError(errorMessage);
                 onVerificationComplete(false);
             }
         } catch (err: any) {
-            setError(err?.message || 'Validation failed');
+            // Handle network or other errors
+            let errorMessage = 'Validation failed';
+
+            // Try to extract error from different possible error structures
+            if (err?.response?.data?.message?.msg?.msgDesc) {
+                errorMessage = err.response.data.message.msg.msgDesc;
+            } else if (err?.message) {
+                errorMessage = err.message;
+            }
+
+            setError(errorMessage);
             onVerificationComplete(false);
         } finally {
             setIsLoading(false);
@@ -93,7 +109,7 @@ const TagNumberVerification: React.FC<TagNumberVerificationProps> = ({
                             </AlertDescription>
                         </Alert>
                     )}
-                    <Label htmlFor="tag-number">Tag Number</Label>
+                    {showLabel && <Label htmlFor="tag-number">Tag Number</Label>}
                     <Input
                         id="tag-number"
                         type="text"

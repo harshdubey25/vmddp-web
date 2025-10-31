@@ -151,6 +151,52 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
             const eligibilityData = getValues('eligibility') || [];
             const eligibilityFieldsToValidate: string[] = [];
 
+            // Check if all tag numbers are verified
+            let hasUnverifiedTagNumber = false;
+            const allFormValues = getValues();
+
+            // Loop through criteriaFields to find tag number fields
+            criteriaFields?.forEach((field, idx) => {
+                if (Array.isArray(field.criteria_fields)) {
+                    field.criteria_fields.forEach((child: any, cidx: number) => {
+                        if (child.extra_validation === "Tag Number") {
+                            const mainFieldValue = allFormValues?.eligibility?.[idx]?.value;
+                            const count = child.condition === "=" ? (Number(mainFieldValue) || 0) : 1;
+
+                            let childIdx = 0;
+                            // Calculate the correct childIdx based on previous child fields
+                            for (let prevCidx = 0; prevCidx < cidx; prevCidx++) {
+                                const prevChild = field.criteria_fields[prevCidx];
+                                if (prevChild.condition === "=") {
+                                    childIdx += Number(mainFieldValue) || 0;
+                                } else {
+                                    childIdx += 1;
+                                }
+                            }
+
+                            for (let i = 0; i < count; i++) {
+                                const currentChildIdx = childIdx + i;
+                                const tagValue = allFormValues?.eligibility?.[idx]?.child?.[currentChildIdx]?.value;
+                                const isVerified = (allFormValues as any)?.eligibility?.[idx]?.child?.[currentChildIdx]?.verified;
+
+                                if (tagValue && !isVerified) {
+                                    hasUnverifiedTagNumber = true;
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+
+            if (hasUnverifiedTagNumber) {
+                toast({
+                    title: t('tag_number_not_verified') || 'Tag Number Not Verified',
+                    description: t('tag_number_verification_required') || 'Please validate all tag numbers before proceeding.',
+                    variant: "destructive"
+                });
+                return;
+            }
+
             eligibilityData.forEach((_, idx) => {
                 // Validate main eligibility field
                 eligibilityFieldsToValidate.push(`eligibility.${idx}.value`);
