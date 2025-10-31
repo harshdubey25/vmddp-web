@@ -73,13 +73,21 @@ const TagNumberVerification: React.FC<TagNumberVerificationProps> = ({
 
     return (
         <div className="space-y-3">
-            {isVerified ? (
+            {error && (
+                <Alert className="border-red-200 bg-red-50">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-800">
+                        {error}
+                    </AlertDescription>
+                </Alert>
+            )}
+            {isVerified && (
                 <Alert className="border-green-200 bg-green-50">
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     <AlertDescription className="text-green-800">
                         Tag number verified successfully!
                         {verifiedData && (
-                            <div className="mt-2 space-y-1">
+                            <div className="mt-2 space-y-1 text-xs">
                                 <div><strong>Farmer Name:</strong> {verifiedData.farmerName}</div>
                                 <div><strong>Farmer Mobile:</strong> {verifiedData.farmerMobileNo}</div>
                                 <div><strong>Animal ID:</strong> {verifiedData.farmerAnimalDetailsResponse?.animalId}</div>
@@ -89,54 +97,36 @@ const TagNumberVerification: React.FC<TagNumberVerificationProps> = ({
                             </div>
                         )}
                     </AlertDescription>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleReset}
-                        className="w-full mt-2"
-                    >
-                        Verify Another Tag
-                    </Button>
                 </Alert>
-            ) : (
-                <>
-                    {error && (
-                        <Alert className="border-red-200 bg-red-50">
-                            <AlertCircle className="h-4 w-4 text-red-600" />
-                            <AlertDescription className="text-red-800">
-                                {error}
-                            </AlertDescription>
-                        </Alert>
-                    )}
-                    {showLabel && <Label htmlFor="tag-number">Tag Number</Label>}
-                    <Input
-                        id="tag-number"
-                        type="text"
-                        placeholder="Enter Tag Number"
-                        value={tagNumber}
-                        onChange={(e) => setTagNumber(e.target.value)}
-                        maxLength={14}
-                        disabled={isLoading || disabled}
-                    />
-                    <Button
-                        type="button"
-                        onClick={handleValidate}
-                        disabled={!tagNumber || isLoading || disabled}
-                        className="w-full"
-                        size="sm"
-                    >
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Validating...
-                            </>
-                        ) : (
-                            'Validate Tag Number'
-                        )}
-                    </Button>
-                </>
             )}
+            {showLabel && <Label htmlFor="tag-number">Tag Number</Label>}
+            <Input
+                id="tag-number"
+                type="text"
+                placeholder="Enter Tag Number"
+                value={tagNumber}
+                onChange={(e) => setTagNumber(e.target.value)}
+                maxLength={14}
+                disabled={isLoading || disabled}
+            />
+            <Button
+                type="button"
+                onClick={isVerified ? handleReset : handleValidate}
+                disabled={!tagNumber || isLoading || disabled}
+                className="w-full"
+                size="sm"
+            >
+                {isLoading ? (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Validating...
+                    </>
+                ) : isVerified ? (
+                    'Verify Another Tag'
+                ) : (
+                    'Validate Tag Number'
+                )}
+            </Button>
         </div>
     );
 };

@@ -105,7 +105,7 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
           let mainInput = null;
           if (type === "checkbox") {
             mainInput = (
-              <div className="space-y-3 p-4 border rounded-lg bg-muted/20" key={mainValueName}>
+              <div className="space-y-3 p-4 border rounded-lg bg-muted/20 h-24" key={mainValueName}>
                 <Controller
                   name={mainNameName}
                   control={control}
