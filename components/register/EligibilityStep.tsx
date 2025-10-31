@@ -1,4 +1,6 @@
 import { Controller, useWatch } from "react-hook-form";
+import dynamic from "next/dynamic";
+const TagNumberVerification = dynamic(() => import("@/components/TagValidation"), { ssr: false });
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -292,41 +294,31 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                         rules={childValidationRules}
                         render={({ field: rhfField }) => (
                           <>
-                            <Input
-                              {...rhfField}
-                              id={childValueName}
-                              type="text"
-                              value={rhfField.value ?? ""}
-                              placeholder={child.placeholder || undefined}
-                              maxLength={maxChars || undefined}
-                              onChange={(e) => {
-                                let value = e.target.value;
-                                if (maxChars) {
-                                  value = value.slice(0, maxChars);
-                                }
-                                rhfField.onChange(value);
-                              }}
-                            />
-
-                            {/* Tag Number validation UI */}
-                            {child.extra_validation === "Tag Number" && (
-                              <div className="mt-2 flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  className="px-2 py-1 border rounded text-sm bg-gray-50"
-                                  onClick={() => handleValidateTag(childValueName, rhfField.value)}
-                                  disabled={!rhfField.value || tagValidation[childValueName]?.loading}
-                                >
-                                  {tagValidation[childValueName]?.loading ? "Validating..." : "Validate Tag"}
-                                </button>
-                                {tagValidation[childValueName] && !tagValidation[childValueName].loading && (
-                                  tagValidation[childValueName].valid ? (
-                                    <span className="text-green-600 text-sm">{tagValidation[childValueName].message || "Valid"}</span>
-                                  ) : (
-                                    <span className="text-red-600 text-sm">{tagValidation[childValueName].message || "Invalid"}</span>
-                                  )
-                                )}
-                              </div>
+                            {child.extra_validation === "Tag Number" ? (
+                              <TagNumberVerification
+                                disabled={false}
+                                onVerificationComplete={(verified, data) => {
+                                  if (verified) {
+                                    rhfField.onChange(data?.tag_number || "");
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <Input
+                                {...rhfField}
+                                id={childValueName}
+                                type="text"
+                                value={rhfField.value ?? ""}
+                                placeholder={child.placeholder || undefined}
+                                maxLength={maxChars || undefined}
+                                onChange={(e) => {
+                                  let value = e.target.value;
+                                  if (maxChars) {
+                                    value = value.slice(0, maxChars);
+                                  }
+                                  rhfField.onChange(value);
+                                }}
+                              />
                             )}
                           </>
                         )}
@@ -367,41 +359,31 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                       rules={childValidationRules}
                       render={({ field: rhfField }) => (
                         <>
-                          <Input
-                            {...rhfField}
-                            id={childValueName}
-                            type="text"
-                            value={rhfField.value ?? ""}
-                            placeholder={child.placeholder || undefined}
-                            maxLength={maxChars || undefined}
-                            onChange={(e) => {
-                              let value = e.target.value;
-                              if (maxChars) {
-                                value = value.slice(0, maxChars);
-                              }
-                              rhfField.onChange(value);
-                            }}
-                          />
-
-                          {/* Tag Number validation UI */}
-                          {child.extra_validation === "Tag Number" && (
-                            <div className="mt-2 flex items-center gap-2">
-                              <button
-                                type="button"
-                                className="px-2 py-1 border rounded text-sm bg-gray-50"
-                                onClick={() => handleValidateTag(childValueName, rhfField.value)}
-                                disabled={!rhfField.value || tagValidation[childValueName]?.loading}
-                              >
-                                {tagValidation[childValueName]?.loading ? "Validating..." : "Validate Tag"}
-                              </button>
-                              {tagValidation[childValueName] && !tagValidation[childValueName].loading && (
-                                tagValidation[childValueName].valid ? (
-                                  <span className="text-green-600 text-sm">{tagValidation[childValueName].message || "Valid"}</span>
-                                ) : (
-                                  <span className="text-red-600 text-sm">{tagValidation[childValueName].message || "Invalid"}</span>
-                                )
-                              )}
-                            </div>
+                          {child.extra_validation === "Tag Number" ? (
+                            <TagNumberVerification
+                              disabled={false}
+                              onVerificationComplete={(verified, data) => {
+                                if (verified) {
+                                  rhfField.onChange(data?.tag_number || "");
+                                }
+                              }}
+                            />
+                          ) : (
+                            <Input
+                              {...rhfField}
+                              id={childValueName}
+                              type="text"
+                              value={rhfField.value ?? ""}
+                              placeholder={child.placeholder || undefined}
+                              maxLength={maxChars || undefined}
+                              onChange={(e) => {
+                                let value = e.target.value;
+                                if (maxChars) {
+                                  value = value.slice(0, maxChars);
+                                }
+                                rhfField.onChange(value);
+                              }}
+                            />
                           )}
                         </>
                       )}
