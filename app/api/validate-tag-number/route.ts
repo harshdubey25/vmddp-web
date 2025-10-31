@@ -1,3 +1,4 @@
+export const runtime = "edge";
 import { frappeServer } from "@/lib/frappe";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -18,7 +19,10 @@ async function validateTagNumber(
 
   // If the payload contains an error field, treat it as invalid
   if (payload?.error || payload?.status === "error") {
-    return { valid: false, message: payload?.message || payload?.error || "Validation failed" };
+    return {
+      valid: false,
+      message: payload?.message || payload?.error || "Validation failed",
+    };
   }
 
   // Otherwise return the payload to the caller
