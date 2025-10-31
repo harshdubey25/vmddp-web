@@ -26,6 +26,32 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
   const mainFieldValues = useWatch({ control, name: mainFieldNames });
 
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
+  const [tagValidation, setTagValidation] = useState<{
+    [key: string]: { loading: boolean; valid?: boolean; message?: string };
+  }>({});
+
+  const handleValidateTag = async (fieldKey: string, value: string) => {
+    setTagValidation((p) => ({ ...p, [fieldKey]: { loading: true } }));
+    try {
+      const res = await fetch("/api/validate-tag-number", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tagNumber: value }),
+      });
+      const data = await res.json();
+      console.log("Tag validation response data:", data);
+      setTagValidation((p) => ({
+        ...p,
+        [fieldKey]: { loading: false, valid: !!data.valid, message: data.message },
+      }));
+    } catch (err) {
+
+      setTagValidation((p) => ({
+        ...p,
+        [fieldKey]: { loading: false, valid: false, message: "Validation failed" },
+      }));
+    }
+  };
 
   const uploadFile = async (file: File, fieldName: string): Promise<string | null> => {
     setUploading(prev => ({ ...prev, [fieldName]: true }));
@@ -265,21 +291,44 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                         control={control}
                         rules={childValidationRules}
                         render={({ field: rhfField }) => (
-                          <Input
-                            {...rhfField}
-                            id={childValueName}
-                            type="text"
-                            value={rhfField.value ?? ""}
-                            placeholder={child.placeholder || undefined}
-                            maxLength={maxChars || undefined}
-                            onChange={(e) => {
-                              let value = e.target.value;
-                              if (maxChars) {
-                                value = value.slice(0, maxChars);
-                              }
-                              rhfField.onChange(value);
-                            }}
-                          />
+                          <>
+                            <Input
+                              {...rhfField}
+                              id={childValueName}
+                              type="text"
+                              value={rhfField.value ?? ""}
+                              placeholder={child.placeholder || undefined}
+                              maxLength={maxChars || undefined}
+                              onChange={(e) => {
+                                let value = e.target.value;
+                                if (maxChars) {
+                                  value = value.slice(0, maxChars);
+                                }
+                                rhfField.onChange(value);
+                              }}
+                            />
+
+                            {/* Tag Number validation UI */}
+                            {child.extra_validation === "Tag Number" && (
+                              <div className="mt-2 flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  className="px-2 py-1 border rounded text-sm bg-gray-50"
+                                  onClick={() => handleValidateTag(childValueName, rhfField.value)}
+                                  disabled={!rhfField.value || tagValidation[childValueName]?.loading}
+                                >
+                                  {tagValidation[childValueName]?.loading ? "Validating..." : "Validate Tag"}
+                                </button>
+                                {tagValidation[childValueName] && !tagValidation[childValueName].loading && (
+                                  tagValidation[childValueName].valid ? (
+                                    <span className="text-green-600 text-sm">{tagValidation[childValueName].message || "Valid"}</span>
+                                  ) : (
+                                    <span className="text-red-600 text-sm">{tagValidation[childValueName].message || "Invalid"}</span>
+                                  )
+                                )}
+                              </div>
+                            )}
+                          </>
                         )}
                       />
                       {errors?.eligibility?.[idx]?.child?.[childIdx]?.value && <span className="text-red-500 text-xs">{errors.eligibility[idx].child[childIdx].value.message}</span>}
@@ -317,21 +366,44 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                       control={control}
                       rules={childValidationRules}
                       render={({ field: rhfField }) => (
-                        <Input
-                          {...rhfField}
-                          id={childValueName}
-                          type="text"
-                          value={rhfField.value ?? ""}
-                          placeholder={child.placeholder || undefined}
-                          maxLength={maxChars || undefined}
-                          onChange={(e) => {
-                            let value = e.target.value;
-                            if (maxChars) {
-                              value = value.slice(0, maxChars);
-                            }
-                            rhfField.onChange(value);
-                          }}
-                        />
+                        <>
+                          <Input
+                            {...rhfField}
+                            id={childValueName}
+                            type="text"
+                            value={rhfField.value ?? ""}
+                            placeholder={child.placeholder || undefined}
+                            maxLength={maxChars || undefined}
+                            onChange={(e) => {
+                              let value = e.target.value;
+                              if (maxChars) {
+                                value = value.slice(0, maxChars);
+                              }
+                              rhfField.onChange(value);
+                            }}
+                          />
+
+                          {/* Tag Number validation UI */}
+                          {child.extra_validation === "Tag Number" && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <button
+                                type="button"
+                                className="px-2 py-1 border rounded text-sm bg-gray-50"
+                                onClick={() => handleValidateTag(childValueName, rhfField.value)}
+                                disabled={!rhfField.value || tagValidation[childValueName]?.loading}
+                              >
+                                {tagValidation[childValueName]?.loading ? "Validating..." : "Validate Tag"}
+                              </button>
+                              {tagValidation[childValueName] && !tagValidation[childValueName].loading && (
+                                tagValidation[childValueName].valid ? (
+                                  <span className="text-green-600 text-sm">{tagValidation[childValueName].message || "Valid"}</span>
+                                ) : (
+                                  <span className="text-red-600 text-sm">{tagValidation[childValueName].message || "Invalid"}</span>
+                                )
+                              )}
+                            </div>
+                          )}
+                        </>
                       )}
                     />
                     {errors?.eligibility?.[idx]?.child?.[childIdx]?.value && <span className="text-red-500 text-xs">{errors.eligibility[idx].child[childIdx].value.message}</span>}
