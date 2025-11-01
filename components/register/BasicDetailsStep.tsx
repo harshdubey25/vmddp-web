@@ -50,14 +50,18 @@ const BasicDetailsStep = ({
 
   const { data: talukaData } = useFrappeGetDocList("Taluka Master", {
     fields: ["name"],
-    filters: watchedDistrict ? [['district', '=', watchedDistrict]] : undefined,
+    filters: watchedDistrict ? [['district', '=', watchedDistrict]] : [['name', '=', '__no_match__']],
     limit: 100,
+  }, {
+    enabled: !!watchedDistrict
   });
 
   const { data: villageData } = useFrappeGetDocList("Village Master", {
     fields: ["name1"],
-    filters: watchedDistrict && watchedTaluka ? [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]] : undefined,
+    filters: watchedDistrict && watchedTaluka ? [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]] : [['name1', '=', '__no_match__']],
     limit: 1000,
+  }, {
+    enabled: !!(watchedDistrict && watchedTaluka)
   });
 
   const uploadFile = async (file: File, fieldName: string): Promise<string | null> => {
@@ -218,21 +222,21 @@ const BasicDetailsStep = ({
       </div>
       <div className="space-y-2">
         <Label htmlFor="mobile">{t('mobile_no')} *</Label>
-        <Controller 
-          name="mobile" 
-          control={control} 
-          rules={{ 
+        <Controller
+          name="mobile"
+          control={control}
+          rules={{
             required: t('mobile_required'),
             pattern: {
               value: /^\d{10}$/,
               message: 'Mobile number must be exactly 10 digits'
             }
-          }} 
+          }}
           render={({ field }) => (
-            <Input 
-              {...field} 
-              id="mobile" 
-              type="tel" 
+            <Input
+              {...field}
+              id="mobile"
+              type="tel"
               data-testid="input-mobile"
               inputMode="numeric"
               maxLength={10}
@@ -241,7 +245,7 @@ const BasicDetailsStep = ({
                 field.onChange(value);
               }}
             />
-          )} 
+          )}
         />
         {errors.mobile && <span className="text-red-500 text-xs">{errors.mobile.message}</span>}
       </div>
