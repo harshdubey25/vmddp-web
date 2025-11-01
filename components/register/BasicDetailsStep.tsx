@@ -61,7 +61,15 @@ const BasicDetailsStep = ({
     filters: watchedDistrict && watchedTaluka ? [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]] : [['name1', '=', '__no_match__']],
     limit: 1000,
   }, {
-    enabled: !!(watchedDistrict && watchedTaluka)
+    // enabled: Boolean(watchedDistrict && watchedTaluka)
+  });
+
+  // Debug logging
+  console.log('Village query state:', {
+    watchedDistrict,
+    watchedTaluka,
+    enabled: Boolean(watchedDistrict && watchedTaluka),
+    villageDataLength: villageData?.length
   });
 
   const uploadFile = async (file: File, fieldName: string): Promise<string | null> => {
