@@ -22,30 +22,11 @@ export const metadata: Metadata = {
   description: "Vidharbha Marathwada Dairy Development Programe",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Fetch splash screen config from our API route
-  let showSplash = false;
-  let inaugurationDate = null;
-
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/site-config`, {
-      cache: 'no-store' // Always fetch fresh data
-    });
-    if (response.ok) {
-      const data = await response.json();
-      showSplash = data.showSplash;
-      inaugurationDate = data.inaugurationDate;
-    }
-  } catch (error) {
-    console.error('Error fetching splash config:', error);
-    // Default to false if there's an error
-  }
-
   return (
     <html lang="en">
       <body
@@ -55,10 +36,7 @@ export default async function RootLayout({
           <FrappeClientProvider>
             <AuthProvider>
               <ThemeProvider>
-                <SplashWrapper
-                  initialShowSplash={showSplash}
-                  inaugurationDate={inaugurationDate}
-                >
+                <SplashWrapper>
                   {children}
                 </SplashWrapper>
                 <Toaster />

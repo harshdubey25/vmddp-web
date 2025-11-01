@@ -6,22 +6,40 @@ import SplashScreen from "@/components/SplashScreen";
 
 interface SplashWrapperProps {
   children: React.ReactNode;
-  initialShowSplash: boolean;
-  inaugurationDate?: string | null;
 }
 
-export default function SplashWrapper({ children, initialShowSplash, inaugurationDate }: SplashWrapperProps) {
+export default function SplashWrapper({ children }: SplashWrapperProps) {
   const [showSplash, setShowSplash] = useState(false);
   const [hasEntered, setHasEntered] = useState(false);
+  const [inaugurationDate, setInaugurationDate] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Show splash only if backend flag is true
-    if (initialShowSplash) {
-      setShowSplash(true);
-    } else {
-      setHasEntered(true);
+    // Fetch splash config from API on client side
+    async function fetchSplashConfig() {
+      try {
+        const response = await fetch('/api/site-config');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.showSplash) {
+            setShowSplash(true);
+            setInaugurationDate(data.inaugurationDate);
+          } else {
+            setHasEntered(true);
+          }
+        } else {
+          setHasEntered(true);
+        }
+      } catch (error) {
+        console.error('Error fetching splash config:', error);
+        setHasEntered(true);
+      } finally {
+        setIsLoading(false);
+      }
     }
-  }, [initialShowSplash]);
+
+    fetchSplashConfig();
+  }, []);
 
   const handleEnter = async () => {
     setHasEntered(true);
@@ -41,6 +59,11 @@ export default function SplashWrapper({ children, initialShowSplash, inauguratio
     }, 1200); // Animation duration
   };
 
+  // Don't render children until we've checked the splash config
+  if (isLoading) {
+    return null;
+  }
+
   return (
     <>
       <AnimatePresence mode="wait">
@@ -52,7 +75,7 @@ export default function SplashWrapper({ children, initialShowSplash, inauguratio
           />
         )}
       </AnimatePresence>
-      {(hasEntered || !initialShowSplash) && children}
+      {hasEntered && children}
     </>
   );
 }
