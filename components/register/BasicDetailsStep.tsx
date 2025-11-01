@@ -58,7 +58,7 @@ const BasicDetailsStep = ({
 
   const { data: villageData } = useFrappeGetDocList("Village Master", {
     fields: ["name1"],
-    filters: watchedDistrict && watchedTaluka ? [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]] : [['name1', '=', '__no_match__']],
+    filters: [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]],
     limit: 1000,
   }, {
     // enabled: Boolean(watchedDistrict && watchedTaluka)
