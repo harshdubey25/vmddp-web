@@ -6,6 +6,7 @@ import { FrappeClientProvider } from "@/providers/FrappeClientProvider";
 import AuthProvider from "@/context/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 import I18nProvider from "@/components/I18nProvider";
+import SplashWrapper from "@/components/SplashWrapper";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -35,7 +36,9 @@ export default function RootLayout({
           <FrappeClientProvider>
             <AuthProvider>
               <ThemeProvider>
-                {children}
+                <SplashWrapper>
+                  {children}
+                </SplashWrapper>
                 <Toaster />
               </ThemeProvider>
             </AuthProvider>
