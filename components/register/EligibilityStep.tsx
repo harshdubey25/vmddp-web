@@ -67,6 +67,7 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
           const fieldKey = field.fieldname || field.name || `criteria_${idx}`;
           const mainValueName = `eligibility[${idx}].value`;
           const mainNameName = `eligibility[${idx}].name`;
+          const mainTypeName = `eligibility[${idx}].type`;
           const label = (i18n.language === 'mr' && field.name_in_local_language)
             ? field.name_in_local_language
             : (field.label || field.name1 || fieldKey);
@@ -82,6 +83,12 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                   name={mainNameName}
                   control={control}
                   defaultValue={fieldKey}
+                  render={({ field }) => <input type="hidden" {...field} />}
+                />
+                <Controller
+                  name={mainTypeName}
+                  control={control}
+                  defaultValue="checkbox"
                   render={({ field }) => <input type="hidden" {...field} />}
                 />
                 <div className="flex items-center justify-between">
@@ -148,6 +155,12 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                   defaultValue={fieldKey}
                   render={({ field }) => <input type="hidden" {...field} />}
                 />
+                <Controller
+                  name={mainTypeName}
+                  control={control}
+                  defaultValue={type}
+                  render={({ field }) => <input type="hidden" {...field} />}
+                />
                 <Label htmlFor={mainValueName}>{label}{required ? " *" : ""}</Label>
                 <Controller
                   name={mainValueName}
@@ -175,6 +188,12 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                   name={mainNameName}
                   control={control}
                   defaultValue={fieldKey}
+                  render={({ field }) => <input type="hidden" {...field} />}
+                />
+                <Controller
+                  name={mainTypeName}
+                  control={control}
+                  defaultValue="file"
                   render={({ field }) => <input type="hidden" {...field} />}
                 />
                 <Label htmlFor={mainValueName}>{label}{required ? " *" : ""}</Label>
@@ -209,6 +228,12 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                   defaultValue={fieldKey}
                   render={({ field }) => <input type="hidden" {...field} />}
                 />
+                <Controller
+                  name={mainTypeName}
+                  control={control}
+                  defaultValue="text"
+                  render={({ field }) => <input type="hidden" {...field} />}
+                />
                 <Label htmlFor={mainValueName}>{label}{required ? " *" : ""}</Label>
                 <Controller
                   name={mainValueName}
@@ -238,6 +263,7 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                 for (let i = 0; i < count; i++) {
                   const childValueName = `eligibility[${idx}].child[${childIdx}].value`;
                   const childNameName = `eligibility[${idx}].child[${childIdx}].name`;
+                  const childTypeName = `eligibility[${idx}].child[${childIdx}].type`;
 
                   // Build validation rules for child fields
                   const childValidationRules: any = {};
@@ -257,6 +283,12 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                         name={childNameName}
                         control={control}
                         defaultValue={child.field}
+                        render={({ field }) => <input type="hidden" {...field} />}
+                      />
+                      <Controller
+                        name={childTypeName}
+                        control={control}
+                        defaultValue="text"
                         render={({ field }) => <input type="hidden" {...field} />}
                       />
                       <Label htmlFor={childValueName}>{child.field} (#{i + 1}){childRequired ? " *" : ""}</Label>
@@ -290,6 +322,7 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
               } else {
                 const childValueName = `eligibility[${idx}].child[${childIdx}].value`;
                 const childNameName = `eligibility[${idx}].child[${childIdx}].name`;
+                const childTypeName = `eligibility[${idx}].child[${childIdx}].type`;
 
                 // Build validation rules for child fields
                 const childValidationRules: any = {};
@@ -309,6 +342,12 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                       name={childNameName}
                       control={control}
                       defaultValue={child.field}
+                      render={({ field }) => <input type="hidden" {...field} />}
+                    />
+                    <Controller
+                      name={childTypeName}
+                      control={control}
+                      defaultValue="text"
                       render={({ field }) => <input type="hidden" {...field} />}
                     />
                     <Label htmlFor={childValueName}>{child.field} ({child.condition}){childRequired ? " *" : ""}</Label>

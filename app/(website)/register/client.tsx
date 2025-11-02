@@ -44,9 +44,11 @@ type RegisterFormValues = {
     eligibility?: Array<{
         name: string;
         value: any;
+        type: string;
         child: Array<{
             name: string;
             value: any;
+            type: string;
         }>;
     }>;
     components: { component_name: string; questions: { question: string; type: string; options: string[] | null; value: string }[] }[];
@@ -119,7 +121,8 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
         const eligibilityArr = values.eligibility || [];
         return eligibilityArr.map((item: any) => ({
             criteria: item.name,
-            value: item.value || null
+            value: item.value || null,
+
         }));
     };
 
