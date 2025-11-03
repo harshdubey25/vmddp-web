@@ -13,6 +13,7 @@ export default function SplashWrapper({ children }: SplashWrapperProps) {
   const [hasEntered, setHasEntered] = useState(false);
   const [inaugurationDate, setInaugurationDate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [splashEnabled, setSplashEnabled] = useState(false);
 
   useEffect(() => {
     // Fetch splash config from API on client side
@@ -22,9 +23,13 @@ export default function SplashWrapper({ children }: SplashWrapperProps) {
         if (response.ok) {
           const data = await response.json();
           if (data.showSplash) {
+            // Splash is enabled - show on every refresh
+            setSplashEnabled(true);
             setShowSplash(true);
             setInaugurationDate(data.inaugurationDate);
           } else {
+            // Splash is disabled - skip it entirely
+            setSplashEnabled(false);
             setHasEntered(true);
           }
         } else {
@@ -43,15 +48,6 @@ export default function SplashWrapper({ children }: SplashWrapperProps) {
 
   const handleEnter = async () => {
     setHasEntered(true);
-
-    // Save to backend that user has entered
-    try {
-      await fetch('/api/mark-entered', {
-        method: 'POST',
-      });
-    } catch (error) {
-      console.error('Error saving entered status:', error);
-    }
 
     // Animate out the splash screen
     setTimeout(() => {
