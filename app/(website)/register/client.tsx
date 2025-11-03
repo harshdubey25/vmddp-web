@@ -328,6 +328,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
 
                             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t print:hidden">
                                 <Button
+                                    type="button"
                                     variant="outline"
                                     onClick={handleBack}
                                     disabled={currentStep === 1}
@@ -337,7 +338,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                                     {t('back')}
                                 </Button>
                                 {currentStep < steps.length ? (
-                                    <Button onClick={handleNext} data-testid="button-next" className="w-full order-1 sm:order-2">
+                                    <Button type="button" onClick={handleNext} data-testid="button-next" className="w-full order-1 sm:order-2">
                                         {t('next')}
                                     </Button>
                                 ) : (

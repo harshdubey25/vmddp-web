@@ -202,7 +202,7 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
                         // Display child value based on type
                         let childDisplayValue = child.value;
                         if (child.type === 'checkbox') {
-                          childDisplayValue = child.value ? 'true' : 'false';
+                          childDisplayValue = child.value ? 'yes' : 'no';
                         } else if (child.value && typeof child.value === 'string' && (child.value.startsWith('http') || child.value.includes('/files/'))) {
                           childDisplayValue = getFileName(child.value);
                         }

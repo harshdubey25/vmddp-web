@@ -82,15 +82,6 @@ const AadhaarVerification: React.FC<AadhaarVerificationProps> = ({
                         )}
                     </AlertDescription>
                 </Alert>
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleReset}
-                    className="w-full"
-                >
-                    Verify Different Aadhaar
-                </Button>
             </div>
         );
     }
