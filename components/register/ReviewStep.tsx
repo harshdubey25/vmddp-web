@@ -183,22 +183,42 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
             {t('eligibility_criteria')}
           </h3>
           <div className="space-y-3 text-sm">
-            {Array.isArray(values.eligibility) && values.eligibility.map((item: any, idx: number) => (
-              <div key={idx}>
-                <Label className="text-muted-foreground">{getCriteriaName(item.name)}</Label>
-                <p className="font-medium">{item.value && typeof item.value === 'string' && (item.value.startsWith('http') || item.value.includes('/files/')) ? getFileName(item.value) : item.value}</p>
-                {Array.isArray(item.child) && item.child.length > 0 && (
-                  <div className="ml-4 space-y-1">
-                    {item.child.map((child: any, cidx: number) => (
-                      <div key={cidx}>
-                        <Label className="text-xs text-muted-foreground">{getCriteriaName(child.name)}</Label>
-                        <p className="text-xs font-mono">{child.value && typeof child.value === 'string' && (child.value.startsWith('http') || child.value.includes('/files/')) ? getFileName(child.value) : child.value}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+            {Array.isArray(values.eligibility) && values.eligibility.map((item: any, idx: number) => {
+              // Display value based on type
+              let displayValue = item.value;
+              if (item.type === 'checkbox') {
+                displayValue = item.value ? 'true' : 'false';
+              } else if (item.value && typeof item.value === 'string' && (item.value.startsWith('http') || item.value.includes('/files/'))) {
+                displayValue = getFileName(item.value);
+              }
+
+              return (
+                <div key={idx}>
+                  <Label className="text-muted-foreground">{getCriteriaName(item.name)}</Label>
+                  <p className="font-medium">{displayValue}</p>
+                  {Array.isArray(item.child) && item.child.length > 0 && (
+                    <div className="ml-4 space-y-1">
+                      {item.child.map((child: any, cidx: number) => {
+                        // Display child value based on type
+                        let childDisplayValue = child.value;
+                        if (child.type === 'checkbox') {
+                          childDisplayValue = child.value ? 'true' : 'false';
+                        } else if (child.value && typeof child.value === 'string' && (child.value.startsWith('http') || child.value.includes('/files/'))) {
+                          childDisplayValue = getFileName(child.value);
+                        }
+
+                        return (
+                          <div key={cidx}>
+                            <Label className="text-xs text-muted-foreground">{getCriteriaName(child.name)}</Label>
+                            <p className="text-xs font-mono">{childDisplayValue}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
