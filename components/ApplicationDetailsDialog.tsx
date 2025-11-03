@@ -47,6 +47,12 @@ export default function ApplicationDetailsDialog({
     const [remarks, setRemarks] = useState("");
     const [villageName, setVillageName] = useState<string>("");
 
+    // Fetch full application details including criteria child table
+    const { data: fullAppDoc, isLoading: isLoadingFullApp } = useFrappeGetDoc(
+        "App Form",
+        application?.id || null
+    );
+
     // Fetch village details to get the actual village name (name1 field)
     const { data: villageDoc } = useFrappeGetDoc(
         "Village Master",
@@ -187,35 +193,21 @@ export default function ApplicationDetailsDialog({
                             <div className="space-y-4">
                                 <h3 className="font-semibold flex items-center gap-2">
                                     <Leaf className="w-4 h-4" />
-                                    Eligibility & Livestock
+                                    Eligibility Criteria
                                 </h3>
                                 <div className="space-y-3 text-sm">
-                                    <div>
-                                        <Label className="text-muted-foreground">Animal Count</Label>
-                                        <p className="font-medium">{application.animalCount ?? "N/A"}</p>
-                                    </div>
-                                    {application.animalTagNumber && (
-                                        <div>
-                                            <Label className="text-muted-foreground">Animal Tag Number</Label>
-                                            <p className="font-medium font-mono">{application.animalTagNumber}</p>
-                                        </div>
+                                    {isLoadingFullApp ? (
+                                        <p className="text-muted-foreground">Loading criteria...</p>
+                                    ) : fullAppDoc?.criteria && Array.isArray(fullAppDoc.criteria) && fullAppDoc.criteria.length > 0 ? (
+                                        fullAppDoc.criteria.map((criterion: any, idx: number) => (
+                                            <div key={idx}>
+                                                <Label className="text-muted-foreground">{criterion.criteria}</Label>
+                                                <p className="font-medium">{criterion.value || "N/A"}</p>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-muted-foreground">No criteria data available</p>
                                     )}
-                                    <div>
-                                        <Label className="text-muted-foreground">Land Holding (acres)</Label>
-                                        <p className="font-medium">{application.landHolding}</p>
-                                    </div>
-                                    <div>
-                                        <Label className="text-muted-foreground">Khasra Number</Label>
-                                        <p className="font-medium">{application.khasraNumber}</p>
-                                    </div>
-                                    <div>
-                                        <Label className="text-muted-foreground">Milk Pouring Point</Label>
-                                        <p className="font-medium">{application.milkPouringPoint}</p>
-                                    </div>
-                                    <div>
-                                        <Label className="text-muted-foreground">Farmer Pourer Code</Label>
-                                        <p className="font-medium font-mono">{application.farmerPourerCode}</p>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -226,31 +218,27 @@ export default function ApplicationDetailsDialog({
                                 Component Details
                             </h3>
                             <div className="p-4 bg-primary/5 rounded-lg space-y-4">
-                                <div>
-                                    <Label className="text-muted-foreground">Selected Component</Label>
-                                    <p className="font-medium text-base mt-1">{application.component}</p>
-                                </div>
-                                {application.componentDetails?.benefits && (
-                                    <div>
-                                        <Label className="text-muted-foreground">Benefits</Label>
-                                        <ul className="list-disc list-inside mt-2 space-y-1">
-                                            {application.componentDetails.benefits.map((benefit: string, idx: number) => (
-                                                <li key={idx} className="text-sm">{benefit}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                                {application.componentDetails?.customQuestions?.length > 0 && (
-                                    <div>
-                                        <Label className="text-muted-foreground">Component-Specific Information</Label>
-                                        <div className="mt-2 space-y-2">
-                                            {application.componentDetails.customQuestions.map((q: { label: string; answer: string }, idx: number) => (
-                                                <div key={idx} className="flex justify-between items-start">
-                                                    <span className="text-sm text-muted-foreground">{q.label}:</span>
-                                                    <span className="text-sm font-medium">{q.answer}</span>
+                                {isLoadingFullApp ? (
+                                    <p className="text-muted-foreground">Loading components...</p>
+                                ) : fullAppDoc?.components && Array.isArray(fullAppDoc.components) && fullAppDoc.components.length > 0 ? (
+                                    fullAppDoc.components.map((comp: any, idx: number) => (
+                                        <div key={idx} className="mb-3 last:mb-0">
+                                            <Label className="text-muted-foreground">Component {idx + 1}</Label>
+                                            <p className="font-medium text-base mt-1">{comp.component}</p>
+                                            {comp.response && comp.response !== '{}' && (
+                                                <div className="mt-2">
+                                                    <Label className="text-muted-foreground text-xs">Response Data</Label>
+                                                    <pre className="text-xs bg-muted/50 p-2 rounded mt-1 overflow-x-auto">
+                                                        {JSON.stringify(JSON.parse(comp.response), null, 2)}
+                                                    </pre>
                                                 </div>
-                                            ))}
+                                            )}
                                         </div>
+                                    ))
+                                ) : (
+                                    <div>
+                                        <Label className="text-muted-foreground">Selected Component</Label>
+                                        <p className="font-medium text-base mt-1">{application.component}</p>
                                     </div>
                                 )}
                             </div>

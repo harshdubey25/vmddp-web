@@ -37,6 +37,12 @@ export interface Application {
         uploaded: boolean;
         url?: string;
     }[];
+    criteria?: Array<{
+        name: string;
+        criteria: string;
+        value: string;
+        type?: string;
+    }>;
 }
 
 async function getApplications(page: number = 1, limit: number = 20): Promise<Application[]> {
