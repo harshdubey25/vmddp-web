@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,17 +39,24 @@ interface AdminApplicationsClientProps {
     applications: Application[];
     currentPage: number;
     pageSize: number;
+    initialFilters?: {
+        status: string;
+        search: string;
+        district: string;
+        component: string;
+    };
 }
 
-export default function AdminApplicationsClient({ applications, currentPage, pageSize }: AdminApplicationsClientProps) {
+export default function AdminApplicationsClient({ applications, currentPage, pageSize, initialFilters }: AdminApplicationsClientProps) {
     console.log('AdminApplicationsClient received applications:', applications);
 
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [searchQuery, setSearchQuery] = useState("");
-    const [statusFilter, setStatusFilter] = useState("all");
-    const [districtFilter, setDistrictFilter] = useState("all");
-    const [componentFilter, setComponentFilter] = useState("all");
+    const pathname = usePathname();
+    const [searchQuery, setSearchQuery] = useState(initialFilters?.search || "");
+    const [statusFilter, setStatusFilter] = useState(initialFilters?.status || "all");
+    const [districtFilter, setDistrictFilter] = useState(initialFilters?.district || "all");
+    const [componentFilter, setComponentFilter] = useState(initialFilters?.component || "all");
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
     // Fetch districts from Frappe
@@ -59,15 +67,37 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
 
     const districts = frappeDistricts ? frappeDistricts.map((d: any) => d.name1) : [];
 
-    const filteredApplications = applications.filter((app) => {
-        const matchesSearch =
-            app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            app.applicantName.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = statusFilter === "all" || app.status === statusFilter;
-        const matchesDistrict = districtFilter === "all" || app.district === districtFilter;
-        const matchesComponent = componentFilter === "all" || app.component === componentFilter;
-        return matchesSearch && matchesStatus && matchesDistrict && matchesComponent;
+    // Fetch components from Frappe
+    const { data: frappeComponents, isLoading: componentsLoading } = useFrappeGetDocList("Component", {
+        fields: ["component_name"],
+        limit: 100,
     });
+
+    const components = frappeComponents ? frappeComponents.map((c: any) => c.component_name) : [];
+
+    // Debounce search query
+    const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
+    // Update URL with filters
+    const updateFilters = useCallback(() => {
+        const params = new URLSearchParams();
+
+        if (statusFilter !== 'all') params.set('status', statusFilter);
+        if (districtFilter !== 'all') params.set('district', districtFilter);
+        if (componentFilter !== 'all') params.set('component', componentFilter);
+        if (debouncedSearchQuery) params.set('search', debouncedSearchQuery);
+
+        // Reset to first page on filter change
+        params.set('page', '1');
+        params.set('limit', pageSize.toString());
+
+        router.push(pathname + '?' + params.toString());
+    }, [statusFilter, districtFilter, componentFilter, debouncedSearchQuery, pathname, router, pageSize]);
+
+    // Update URL when filters change
+    useEffect(() => {
+        updateFilters();
+    }, [updateFilters]);
 
     const handleViewDetails = (app: Application) => {
         setSelectedApp(app);
@@ -104,7 +134,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                     <div>
                                         <CardTitle>All Applications</CardTitle>
                                         <CardDescription>
-                                            {filteredApplications.length} applications found
+                                            {applications.length} applications found
                                         </CardDescription>
                                     </div>
                                 </div>
@@ -156,10 +186,15 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">All Components</SelectItem>
-                                            <SelectItem value="Animal Induction (Calved Cow)">Animal Induction</SelectItem>
-                                            <SelectItem value="HGM Purchase">HGM Purchase</SelectItem>
-                                            <SelectItem value="Fertility Feed">Fertility Feed</SelectItem>
-                                            <SelectItem value="Supply Chaff Cutter">Chaff Cutter</SelectItem>
+                                            {componentsLoading ? (
+                                                <SelectItem value="loading" disabled>Loading...</SelectItem>
+                                            ) : (
+                                                components.map((component: string) => (
+                                                    <SelectItem key={component} value={component}>
+                                                        {component}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -179,7 +214,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {filteredApplications.map((app, index) => (
+                                                {applications.map((app, index) => (
                                                     <tr
                                                         key={app.id}
                                                         className="border-b hover:bg-muted/30 transition-colors"
@@ -237,7 +272,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                         <PaginationContent>
                                             <PaginationItem>
                                                 <PaginationPrevious
-                                                    href={currentPage > 1 ? `?page=${currentPage - 1}&limit=${pageSize}` : '#'}
+                                                    href={currentPage > 1 ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage - 1).toString() }).toString()}` : '#'}
                                                     onClick={(e) => {
                                                         if (currentPage <= 1) {
                                                             e.preventDefault();
@@ -253,7 +288,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                                 return (
                                                     <PaginationItem key={pageNum}>
                                                         <PaginationLink
-                                                            href={`?page=${pageNum}&limit=${pageSize}`}
+                                                            href={`${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: pageNum.toString() }).toString()}`}
                                                             isActive={pageNum === currentPage}
                                                         >
                                                             {pageNum}
@@ -272,13 +307,13 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
 
                                             <PaginationItem>
                                                 <PaginationNext
-                                                    href={filteredApplications.length === pageSize ? `?page=${currentPage + 1}&limit=${pageSize}` : '#'}
+                                                    href={applications.length === pageSize ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage + 1).toString() }).toString()}` : '#'}
                                                     onClick={(e) => {
-                                                        if (filteredApplications.length < pageSize) {
+                                                        if (applications.length < pageSize) {
                                                             e.preventDefault();
                                                         }
                                                     }}
-                                                    className={filteredApplications.length < pageSize ? 'pointer-events-none opacity-50' : ''}
+                                                    className={applications.length < pageSize ? 'pointer-events-none opacity-50' : ''}
                                                 />
                                             </PaginationItem>
                                         </PaginationContent>
