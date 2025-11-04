@@ -69,7 +69,12 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
 
     // Fetch components from Frappe
     const { data: frappeComponents, isLoading: componentsLoading } = useFrappeGetDocList("Component", {
+        filters: [['dont_show_in_website', '=', 0]],
         fields: ["component_name"],
+        orderBy: {
+            field: 'component_name',
+            order: 'asc'
+        },
         limit: 100,
     });
 
