@@ -130,6 +130,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                             <SelectItem value="Pending">Pending</SelectItem>
                                             <SelectItem value="Approved">Approved</SelectItem>
                                             <SelectItem value="Rejected">Rejected</SelectItem>
+                                            <SelectItem value="Selected">Selected</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <Select value={districtFilter} onValueChange={setDistrictFilter}>
@@ -204,7 +205,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                                         </td>
                                                         <td className="p-4">{getStatusBadge(app.status)}</td>
                                                         <td className="p-4">
-                                                            <p className="text-sm">{app.approver || "-"}</p>
+                                                            <p className="text-sm">{app.approver || "no approver"}</p>
                                                         </td>
                                                         <td className="p-4">
                                                             <p className="text-sm">{app.submittedDate}</p>
