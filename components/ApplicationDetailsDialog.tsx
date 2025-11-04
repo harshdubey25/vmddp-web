@@ -351,10 +351,8 @@ export default function ApplicationDetailsDialog({
                                                     // Fallback: pretty-print the JSON
                                                     return (
                                                         <div className="mt-2">
-                                                            <Label className="text-muted-foreground text-xs">Response Data</Label>
-                                                            <pre className="text-xs bg-muted/50 p-2 rounded mt-1 overflow-x-auto">
-                                                                {JSON.stringify(parsed, null, 2)}
-                                                            </pre>
+                                                            <Label className="text-muted-foreground text-xs">No Response Data Found</Label>
+
                                                         </div>
                                                     );
                                                 } catch (err) {
