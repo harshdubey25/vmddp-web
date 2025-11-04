@@ -232,7 +232,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                                         <td className="p-4">
                                                             <div>
                                                                 <p className="text-sm">{app.district || 'N/A'}</p>
-                                                                <p className="text-xs text-muted-foreground">{app.taluka || 'N/A'}</p>
+
                                                             </div>
                                                         </td>
                                                         <td className="p-4">
@@ -240,7 +240,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                                         </td>
                                                         <td className="p-4">{getStatusBadge(app.status)}</td>
                                                         <td className="p-4">
-                                                            <p className="text-sm">{app.approver || "no approver"}</p>
+                                                            <p className="text-sm">{app.approver || ""}</p>
                                                         </td>
                                                         <td className="p-4">
                                                             <p className="text-sm">{app.submittedDate}</p>
