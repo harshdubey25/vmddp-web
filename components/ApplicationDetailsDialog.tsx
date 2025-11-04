@@ -86,7 +86,7 @@ export default function ApplicationDetailsDialog({
         setRemarks("");
         onClose();
     };
-
+    console.log("full app doc", fullAppDoc)
     return (
         <>
             <Dialog open={isOpen} onOpenChange={onClose}>
@@ -119,10 +119,6 @@ export default function ApplicationDetailsDialog({
                                     <div>
                                         <Label className="text-muted-foreground">Applicant Name</Label>
                                         <p className="font-medium">{application.applicantName}</p>
-                                    </div>
-                                    <div>
-                                        <Label className="text-muted-foreground">Father&apos;s Name</Label>
-                                        <p className="font-medium">{application.fatherName}</p>
                                     </div>
                                     <div>
                                         <Label className="text-muted-foreground">Gender</Label>
@@ -199,12 +195,40 @@ export default function ApplicationDetailsDialog({
                                     {isLoadingFullApp ? (
                                         <p className="text-muted-foreground">Loading criteria...</p>
                                     ) : fullAppDoc?.criteria && Array.isArray(fullAppDoc.criteria) && fullAppDoc.criteria.length > 0 ? (
-                                        fullAppDoc.criteria.map((criterion: any, idx: number) => (
-                                            <div key={idx}>
-                                                <Label className="text-muted-foreground">{criterion.criteria}</Label>
-                                                <p className="font-medium">{criterion.value || "N/A"}</p>
-                                            </div>
-                                        ))
+                                        fullAppDoc.criteria.map((criterion: any, idx: number) => {
+                                            // Check for both 'value' and 'file' keys
+                                            const displayValue = criterion.file || criterion.value;
+                                            const valueStr = String(displayValue || '');
+                                            const isDocumentLink = valueStr && (
+                                                valueStr.startsWith('http') ||
+                                                valueStr.includes('/files/') ||
+                                                valueStr.includes('/private/files/')
+                                            );
+
+                                            return (
+                                                <div key={idx}>
+                                                    <Label className="text-muted-foreground">{criterion.criteria}</Label>
+                                                    {isDocumentLink ? (
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className="text-sm font-medium text-muted-foreground">
+                                                                {valueStr.split('/').pop() || 'Document'}
+                                                            </span>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => window.open(valueStr, '_blank')}
+                                                                className="h-7 text-xs"
+                                                            >
+                                                                <Eye className="w-3 h-3 mr-1" />
+                                                                View
+                                                            </Button>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="font-medium">{displayValue || "N/A"}</p>
+                                                    )}
+                                                </div>
+                                            );
+                                        })
                                     ) : (
                                         <p className="text-muted-foreground">No criteria data available</p>
                                     )}
@@ -225,14 +249,126 @@ export default function ApplicationDetailsDialog({
                                         <div key={idx} className="mb-3 last:mb-0">
                                             <Label className="text-muted-foreground">Component {idx + 1}</Label>
                                             <p className="font-medium text-base mt-1">{comp.component}</p>
-                                            {comp.response && comp.response !== '{}' && (
-                                                <div className="mt-2">
-                                                    <Label className="text-muted-foreground text-xs">Response Data</Label>
-                                                    <pre className="text-xs bg-muted/50 p-2 rounded mt-1 overflow-x-auto">
-                                                        {JSON.stringify(JSON.parse(comp.response), null, 2)}
-                                                    </pre>
-                                                </div>
-                                            )}
+                                            {comp.response && comp.response !== '{}' && (() => {
+                                                try {
+                                                    const parsed = JSON.parse(comp.response);
+                                                    // If response is an array of question/value objects, render in readable form
+                                                    if (Array.isArray(parsed) && parsed.length > 0 && parsed.every((r: any) => r && (r.question !== undefined || r.value !== undefined))) {
+                                                        return (
+                                                            <div className="mt-2">
+                                                                <Label className="text-muted-foreground text-xs">Response Data</Label>
+                                                                <div className="mt-1 space-y-2 text-sm">
+                                                                    {parsed.map((item: any, ridx: number) => {
+                                                                        const valueStr = String(item.value || '');
+                                                                        const isDocumentLink = valueStr && (
+                                                                            valueStr.startsWith('http') ||
+                                                                            valueStr.includes('/files/') ||
+                                                                            valueStr.includes('/private/files/')
+                                                                        );
+
+                                                                        return (
+                                                                            <div key={ridx} className="p-2 bg-muted/10 rounded">
+                                                                                <div>
+                                                                                    <Label className="text-muted-foreground text-xs">Question</Label>
+                                                                                    <p className="font-medium">{item.question ?? 'N/A'}</p>
+                                                                                </div>
+                                                                                <div className="mt-1">
+                                                                                    <Label className="text-muted-foreground text-xs">Value</Label>
+                                                                                    {isDocumentLink ? (
+                                                                                        <div className="flex items-center gap-2 mt-1">
+                                                                                            <span className="text-sm font-medium text-muted-foreground">
+                                                                                                {valueStr.split('/').pop() || 'Document'}
+                                                                                            </span>
+                                                                                            <Button
+                                                                                                size="sm"
+                                                                                                variant="outline"
+                                                                                                onClick={() => window.open(valueStr, '_blank')}
+                                                                                                className="h-7 text-xs"
+                                                                                            >
+                                                                                                <Eye className="w-3 h-3 mr-1" />
+                                                                                                View
+                                                                                            </Button>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <p className="font-medium">{(item.value !== undefined && item.value !== null && String(item.value) !== '') ? String(item.value) : 'N/A'}</p>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+
+                                                    // If parsed is an object that contains question/value pairs (single item)
+                                                    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                                                        // If it looks like a map of question -> value, render each key
+                                                        const entries = Object.entries(parsed);
+                                                        if (entries.length > 0) {
+                                                            return (
+                                                                <div className="mt-2">
+                                                                    <Label className="text-muted-foreground text-xs">Response Data</Label>
+                                                                    <div className="mt-1 space-y-2 text-sm">
+                                                                        {entries.map(([k, v], eidx) => {
+                                                                            const valueStr = String(v || '');
+                                                                            const isDocumentLink = valueStr && (
+                                                                                valueStr.startsWith('http') ||
+                                                                                valueStr.includes('/files/') ||
+                                                                                valueStr.includes('/private/files/')
+                                                                            );
+
+                                                                            return (
+                                                                                <div key={eidx} className="p-2 bg-muted/10 rounded">
+                                                                                    <Label className="text-muted-foreground text-xs">{k}</Label>
+                                                                                    {isDocumentLink ? (
+                                                                                        <div className="flex items-center gap-2 mt-1">
+                                                                                            <span className="text-sm font-medium text-muted-foreground">
+                                                                                                {valueStr.split('/').pop() || 'Document'}
+                                                                                            </span>
+                                                                                            <Button
+                                                                                                size="sm"
+                                                                                                variant="outline"
+                                                                                                onClick={() => window.open(valueStr, '_blank')}
+                                                                                                className="h-7 text-xs"
+                                                                                            >
+                                                                                                <Eye className="w-3 h-3 mr-1" />
+                                                                                                View
+                                                                                            </Button>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <p className="font-medium">{v === null || v === undefined || String(v) === '' ? 'N/A' : String(v)}</p>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        }
+                                                    }
+
+                                                    // Fallback: pretty-print the JSON
+                                                    return (
+                                                        <div className="mt-2">
+                                                            <Label className="text-muted-foreground text-xs">Response Data</Label>
+                                                            <pre className="text-xs bg-muted/50 p-2 rounded mt-1 overflow-x-auto">
+                                                                {JSON.stringify(parsed, null, 2)}
+                                                            </pre>
+                                                        </div>
+                                                    );
+                                                } catch (err) {
+                                                    // If JSON.parse fails, show raw response
+                                                    return (
+                                                        <div className="mt-2">
+                                                            <Label className="text-muted-foreground text-xs">Response Data</Label>
+                                                            <pre className="text-xs bg-muted/50 p-2 rounded mt-1 overflow-x-auto">
+                                                                {String(comp.response)}
+                                                            </pre>
+                                                        </div>
+                                                    );
+                                                }
+                                            })()}
                                         </div>
                                     ))
                                 ) : (
