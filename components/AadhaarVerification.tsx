@@ -74,10 +74,11 @@ const AadhaarVerification: React.FC<AadhaarVerificationProps> = ({
                 <Alert className="border-green-200 bg-green-50">
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     <AlertDescription className="text-green-800">
-                        OTP verified successfully! You can move to the next step.
+                        <div className="font-semibold">Aadhaar Verified Successfully!</div>
+                        <div className="mt-1 text-sm">Your Aadhaar has been verified. You can proceed to the next step.</div>
                         {verifiedData?.name && (
                             <div className="mt-2">
-                                <strong>Name:</strong> {verifiedData.name}
+                                <strong>Verified Name:</strong> {verifiedData.name}
                             </div>
                         )}
                     </AlertDescription>
