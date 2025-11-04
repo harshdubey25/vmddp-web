@@ -141,6 +141,8 @@
   "main_office_address": "Project Directorate\nVidarbha and Marathwada Dairy Development Project\n Mother Dairy Campus, Telankhedi Road,\nCivil lines Nagpur 400001",
   "phone": "Phone",
   "email": "Email",
+  "toll_free_no": "Toll-Free Number",
+  "toll_free_no_value": "1962",
   "office_hours": "Office Hours",
   "office_hours_schedule": "Monday - Friday : 10:00 AM - 6:00 PM\nSaturday - Sunday : Closed",
   "send_us_message": "Send us a Message",
@@ -599,12 +601,12 @@
         "image": "member4_1759739467948.png"
       },
       {
-        "name": "Dr. Ramaswami N.",
+        "name": "Hon. Dr. Ramaswami N.",
         "designation": "Secretary of Animal Husbandry, Dairy Development & Fisheries Maharashtra",
         "image": "member5_1759739467948.png"
       },
       {
-        "name": "Dr. Praveenkumar Parvatibai Pitambar Deore",
+        "name": "Hon. Dr. Praveenkumar Parvatibai Pitambar Deore",
         "designation": "Commissioner Department of Animal Husbandry Maharashtra",
         "image": "member6_1759739467947.png"
       }

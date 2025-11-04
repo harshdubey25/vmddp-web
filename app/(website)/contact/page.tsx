@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, PhoneCall } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
 import { useForm } from "react-hook-form";
@@ -114,6 +114,13 @@ export default function Contact() {
                                         <div>
                                             <p className="font-semibold text-sm mb-1">{t('email')}</p>
                                             <p className="text-sm text-muted-foreground">pdvmddpnagpur@gmail.com</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <PhoneCall className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                                        <div>
+                                            <p className="font-semibold text-sm mb-1">{t('toll_free_no')}</p>
+                                            <p className="text-sm text-muted-foreground">{t('toll_free_no_value')}</p>
                                         </div>
                                     </div>
                                 </div>
