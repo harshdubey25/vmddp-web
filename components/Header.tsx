@@ -29,8 +29,7 @@ export default function Header() {
       <div className="w-full bg-background border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/logo_vmddp.jpg" alt="VMDDP Logo" className="w-18 h-10 rounded-full" />
-            <img src="/logo2.jpg" alt="Logo" className="w-18 h-16 rounded-full" />
+            <img src="/logo2.jpg" alt="Logo" className="w-16 h-16 rounded-full" />
             <div className="hidden sm:block">
               <h1 className="font-display font-semibold text-lg">VMDDP</h1>
               {/* <p className="text-xs text-muted-foreground">{t('dairy_development_programme')}</p> */}
