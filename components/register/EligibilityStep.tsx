@@ -213,6 +213,11 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                         }
                       }} disabled={uploading[mainValueName]} />
                       {uploading[mainValueName] && <span className="text-blue-500 text-xs">{t('uploading')}</span>}
+                      {field.value && !uploading[mainValueName] && (
+                        <span className="text-green-600 text-xs flex items-center gap-1">
+                          ✓ {t('file_uploaded')}: {field.value.split('/').pop()}
+                        </span>
+                      )}
                     </>
                   )}
                 />

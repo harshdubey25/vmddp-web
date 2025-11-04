@@ -309,6 +309,11 @@ const BasicDetailsStep = ({
                 }
               }} data-testid="input-aadhaar-image" disabled={uploading.aadhaarImage} />
               {uploading.aadhaarImage && <span className="text-blue-500 text-xs">{t('uploading')}</span>}
+              {field.value && !uploading.aadhaarImage && (
+                <span className="text-green-600 text-xs flex items-center gap-1">
+                  ✓ {t('file_uploaded')}: {field.value.split('/').pop()}
+                </span>
+              )}
             </>
           )} />
           {errors.aadhaarImage && <span className="text-red-500 text-xs">{errors.aadhaarImage.message}</span>}
@@ -409,6 +414,11 @@ const BasicDetailsStep = ({
                 }
               }} data-testid="input-ration-card-image" disabled={uploading.rationCardImage} />
               {uploading.rationCardImage && <span className="text-blue-500 text-xs">{t('uploading')}</span>}
+              {field.value && !uploading.rationCardImage && (
+                <span className="text-green-600 text-xs flex items-center gap-1">
+                  ✓ {t('file_uploaded')}: {field.value.split('/').pop()}
+                </span>
+              )}
             </>
           )} />
           {errors.rationCardImage && <span className="text-red-500 text-xs">{errors.rationCardImage.message}</span>}
@@ -427,6 +437,11 @@ const BasicDetailsStep = ({
                 }
               }} data-testid="input-family-ration-card-image" disabled={uploading.familyRationCardImage} />
               {uploading.familyRationCardImage && <span className="text-blue-500 text-xs">{t('uploading')}</span>}
+              {field.value && !uploading.familyRationCardImage && (
+                <span className="text-green-600 text-xs flex items-center gap-1">
+                  ✓ {t('file_uploaded')}: {field.value.split('/').pop()}
+                </span>
+              )}
             </>
           )} />
           {errors.familyRationCardImage && <span className="text-red-500 text-xs">{errors.familyRationCardImage.message}</span>}

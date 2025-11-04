@@ -219,6 +219,7 @@
   "aadhar_image": "Aadhar Image",
   "aadhar_image_required": "Aadhar image is required",
   "uploading": "Uploading...",
+  "file_uploaded": "File uploaded",
   "loading": "Loading...",
   "ration_card_members": "Number of members in Ration Card",
   "ration_card_members_required": "Number of members is required",
@@ -628,5 +629,4 @@
   },
   "aadhaar_not_verified": "Aadhaar Not Verified",
   "aadhaar_verification_required": "Please verify your Aadhaar number before proceeding to the next step."
-  
 }
