@@ -20,7 +20,7 @@ interface Application {
 export default async function SubAdminDashboard() {
 
     const frappe = await getFrappeWithUserToken();
-    const response = await frappe.call().get('vmddp_app.api.api.get_applications_summary', { limit: 5 });
+    const response = await frappe.call().get('vmddp_app.api.api.get_applications_summary', { limit: 5, order_by: 'creation desc' });
     console.log("Fetched applications:", response);
 
     // Process applications data
