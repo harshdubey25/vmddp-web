@@ -208,6 +208,7 @@ export default function ApplicationDetailsDialog({
                                             return (
                                                 <div key={idx}>
                                                     <Label className="text-muted-foreground">{criterion.criteria}</Label>
+
                                                     {isDocumentLink ? (
                                                         <div className="flex items-center gap-2 mt-1">
                                                             <span className="text-sm font-medium text-muted-foreground">
@@ -223,7 +224,7 @@ export default function ApplicationDetailsDialog({
                                                                 View
                                                             </Button>
                                                         </div>
-                                                    ) : (
+                                                    ) : criterion.type === 'checkbox' ? <p>{displayValue ? "Yes" : "No"}</p> : (
                                                         <p className="font-medium">{displayValue || "N/A"}</p>
                                                     )}
                                                 </div>
