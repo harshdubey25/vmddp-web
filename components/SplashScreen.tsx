@@ -148,7 +148,7 @@ export default function SplashScreen({ onEnter, inaugurationDate }: SplashScreen
                     </div>
                     <div className="space-y-2 mb-4">
                         <p className="text-xl sm:text-2xl md:text-3xl font-semibold text-amber-50" data-testid="text-splash-minister-name">
-                            Smt. Pankaja Pragya Gopinath Munde
+                            Smt. Pankaja Pradnya Gopinath Munde
                         </p>
                         <p className="text-base sm:text-lg text-amber-100/90 leading-relaxed" data-testid="text-splash-minister-designation">
                             Hon. Minister for Animal Husbandry,<br />

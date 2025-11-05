@@ -45,13 +45,42 @@ export interface Application {
     }>;
 }
 
-async function getApplications(page: number = 1, limit: number = 20): Promise<Application[]> {
-    const response = await frappeServer.call().get('vmddp_app.api.api.get_applications_summary', {
+async function getApplications(
+    page: number = 1,
+    limit: number = 20,
+    status?: string,
+    search?: string,
+    district?: string,
+    component?: string
+): Promise<Application[]> {
+    console.log("status:", status, "search:", search, "district:", district, "component:", component);
+    const apiParams: any = {
         page: page.toString(),
-        limit: limit.toString()
-    });
-    console.log('API Response:', response);
-    console.log('Applications raw data:', response.message?.applications);
+        limit: limit.toString(),
+    };
+
+    // Add status filter if provided and not 'all'
+    if (status && status !== 'all') {
+        apiParams.status = status.charAt(0).toUpperCase() + status.slice(1);
+    }
+
+    // Add search filter if provided
+    if (search && search.trim()) {
+        apiParams.search = search.trim();
+    }
+
+    // Add district filter if provided and not 'all'
+    if (district && district !== 'all') {
+        apiParams.district = district;
+    }
+
+    // Add component filter if provided and not 'all'
+    if (component && component !== 'all') {
+        apiParams.component = component;
+    }
+
+    const response = await frappeServer.call().get('vmddp_app.api.api.get_applications_summary', apiParams);
+
 
     type FrappeApp = {
         created_at: string;
@@ -69,7 +98,7 @@ async function getApplications(page: number = 1, limit: number = 20): Promise<Ap
     };
 
     const mappedApplications = (response.message?.applications || []).map((app: FrappeApp) => {
-        console.log('Mapping application:', app);
+
 
         // Handle component_list - it might be a string or array
         let component = 'N/A';
@@ -109,18 +138,45 @@ async function getApplications(page: number = 1, limit: number = 20): Promise<Ap
             },
             documents: [],
         };
-        console.log('Mapped application:', mapped);
         return mapped;
     });
 
     return mappedApplications;
 }
 
-export default async function Page({ searchParams }: { searchParams: { page?: string; limit?: string } }) {
-    const page = parseInt(searchParams.page || '1');
-    const limit = parseInt(searchParams.limit || '20');
+export default async function Page({
+    searchParams
+}: {
+    searchParams: Promise<{
+        page?: string;
+        limit?: string;
+        status?: string;
+        search?: string;
+        district?: string;
+        component?: string;
+    }>
+}) {
+    const params = await searchParams;
 
-    const applications = await getApplications(page, limit);
-    console.log('Loaded applications:', applications);
-    return <AdminApplicationsClient applications={applications} currentPage={page} pageSize={limit} />;
+    const page = parseInt(params.page || '1');
+    const limit = parseInt(params.limit || '20');
+    const status = params.status || 'all';
+    const search = params.search || '';
+    const district = params.district || 'all';
+    const component = params.component || 'all';
+
+    const applications = await getApplications(page, limit, status, search, district, component);
+
+
+    return <AdminApplicationsClient
+        applications={applications}
+        currentPage={page}
+        pageSize={limit}
+        initialFilters={{
+            status,
+            search,
+            district,
+            component
+        }}
+    />;
 }
