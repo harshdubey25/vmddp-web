@@ -85,24 +85,72 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
 
     // Update URL with filters
     const updateFilters = useCallback(() => {
-        const params = new URLSearchParams();
+        const params = new URLSearchParams(searchParams.toString());
 
-        if (statusFilter !== 'all') params.set('status', statusFilter);
-        if (districtFilter !== 'all') params.set('district', districtFilter);
-        if (componentFilter !== 'all') params.set('component', componentFilter);
-        if (debouncedSearchQuery) params.set('search', debouncedSearchQuery);
+        // Update filter parameters
+        if (statusFilter !== 'all') {
+            params.set('status', statusFilter);
+        } else {
+            params.delete('status');
+        }
 
-        // Reset to first page on filter change
-        params.set('page', '1');
+        if (districtFilter !== 'all') {
+            params.set('district', districtFilter);
+        } else {
+            params.delete('district');
+        }
+
+        if (componentFilter !== 'all') {
+            params.set('component', componentFilter);
+        } else {
+            params.delete('component');
+        }
+
+        if (debouncedSearchQuery) {
+            params.set('search', debouncedSearchQuery);
+        } else {
+            params.delete('search');
+        }
+
+        // Only reset to page 1 if filters actually changed
+        // Check if this is a filter change (not initial load or pagination)
+        const currentStatus = searchParams.get('status') || 'all';
+        const currentDistrict = searchParams.get('district') || 'all';
+        const currentComponent = searchParams.get('component') || 'all';
+        const currentSearch = searchParams.get('search') || '';
+
+        const filtersChanged =
+            currentStatus !== statusFilter ||
+            currentDistrict !== districtFilter ||
+            currentComponent !== componentFilter ||
+            currentSearch !== debouncedSearchQuery;
+
+        if (filtersChanged) {
+            params.set('page', '1');
+        }
+
         params.set('limit', pageSize.toString());
 
         router.push(pathname + '?' + params.toString());
-    }, [statusFilter, districtFilter, componentFilter, debouncedSearchQuery, pathname, router, pageSize]);
+    }, [statusFilter, districtFilter, componentFilter, debouncedSearchQuery, pathname, router, pageSize, searchParams]);
 
     // Update URL when filters change
     useEffect(() => {
-        updateFilters();
-    }, [updateFilters]);
+        // Only update if filters have actually changed from URL params
+        const currentStatus = searchParams.get('status') || 'all';
+        const currentDistrict = searchParams.get('district') || 'all';
+        const currentComponent = searchParams.get('component') || 'all';
+        const currentSearch = searchParams.get('search') || '';
+
+        if (
+            currentStatus !== statusFilter ||
+            currentDistrict !== districtFilter ||
+            currentComponent !== componentFilter ||
+            currentSearch !== debouncedSearchQuery
+        ) {
+            updateFilters();
+        }
+    }, [statusFilter, districtFilter, componentFilter, debouncedSearchQuery, updateFilters, searchParams]);
 
     const handleViewDetails = (app: Application) => {
         setSelectedApp(app);
