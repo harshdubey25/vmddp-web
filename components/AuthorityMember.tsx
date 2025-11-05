@@ -10,9 +10,9 @@ interface AuthorityMemberProps {
 
 export default function AuthorityMember({ name, designation, image, initials }: AuthorityMemberProps) {
   return (
-    <Card className="hover-elevate transition-all duration-300" data-testid={`card-authority-${name.toLowerCase().replace(/\s+/g, '-')}`}>
-      <CardContent className="p-6">
-        <div className="flex flex-col items-center text-center">
+    <Card className="hover-elevate transition-all duration-300 h-full" data-testid={`card-authority-${name.toLowerCase().replace(/\s+/g, '-')}`}>
+      <CardContent className="p-6 h-full">
+        <div className="flex flex-col items-center text-center h-full">
           <Avatar className="w-24 h-24 mb-4">
             {image && <AvatarImage src={image} alt={name} className="object-cover" />}
             <AvatarFallback className="bg-primary text-primary-foreground text-xl font-display">
@@ -20,10 +20,12 @@ export default function AuthorityMember({ name, designation, image, initials }: 
             </AvatarFallback>
           </Avatar>
           
-          <h3 className="font-display font-semibold text-base mb-2" data-testid={`text-authority-name-${name.toLowerCase().replace(/\s+/g, '-')}`}>
-            {name}
-          </h3>
-          <p className="text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: designation }} />
+          <div className="flex-grow flex flex-col justify-center">
+            <h3 className="font-display font-semibold text-base mb-2 min-h-[3rem] flex items-center justify-center" data-testid={`text-authority-name-${name.toLowerCase().replace(/\s+/g, '-')}`}>
+              {name}
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: designation }} />
+          </div>
         </div>
       </CardContent>
     </Card>

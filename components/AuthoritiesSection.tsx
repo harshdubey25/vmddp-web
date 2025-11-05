@@ -28,21 +28,63 @@ import { useTranslation } from 'react-i18next';
             {t('authorities_subtitle')}
           </p>
         </motion.div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {mainAuthorities.map((authority, index) => (
+        <div className="mb-12">
+          {/* First row: 3 members - aligned properly */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-stretch">
+            {mainAuthorities.slice(0, 3).map((authority, index) => (
+              <motion.div
+                key={authority.name}
+                initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 50, scale: 0.95 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="flex justify-center h-full"
+              >
+                <div className="w-full">
+                  <AuthorityMember
+                    name={authority.name}
+                    designation={authority.designation.replace(/\n/g, '<br />')}
+                    image={authority.image}
+                  />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          
+          {/* Second row: 1 member centered */}
+          <div className="flex justify-center mb-8">
             <motion.div
-              key={authority.name}
+              key={mainAuthorities[3]?.name}
               initial={{ opacity: 0, y: 50, scale: 0.95 }}
               animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 50, scale: 0.95 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              transition={{ duration: 0.5, delay: 3 * 0.1 }}
+              className="w-full max-w-sm"
             >
               <AuthorityMember
-                name={authority.name}
-                designation={authority.designation.replace(/\n/g, '<br />')}
-                image={authority.image}
+                name={mainAuthorities[3]?.name}
+                designation={mainAuthorities[3]?.designation.replace(/\n/g, '<br />')}
+                image={mainAuthorities[3]?.image}
               />
             </motion.div>
-          ))}
+          </div>
+          
+          {/* Third row: 2 members at left and right edges */}
+          <div className="flex justify-between items-stretch max-w-6xl mx-auto">
+            {mainAuthorities.slice(4, 6).map((authority, index) => (
+              <motion.div
+                key={authority.name}
+                initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 50, scale: 0.95 }}
+                transition={{ duration: 0.5, delay: (4 + index) * 0.1 }}
+                className="w-full max-w-sm"
+              >
+                <AuthorityMember
+                  name={authority.name}
+                  designation={authority.designation.replace(/\n/g, '<br />')}
+                  image={authority.image}
+                />
+              </motion.div>
+            ))}
+          </div>
         </div>
 
         <motion.div
