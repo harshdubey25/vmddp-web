@@ -58,10 +58,17 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
 
     // Calculate village quotas per component
     const getVillageComponentQuota = (village: string, component: string) => {
-        const selectedCount = applications.filter(
+        // Get unique people (by original application ID) selected for this village and component
+        const selectedApplications = applications.filter(
             app => app.village === village && app.component === component && app.status === "Selected"
-        ).length;
-        return { selected: selectedCount, total: 5 };
+        );
+        
+        // Count unique people by extracting original application IDs
+        const uniqueSelectedPeople = new Set(
+            selectedApplications.map(app => app.id.includes('-') ? app.id.split('-')[0] : app.id)
+        );
+        
+        return { selected: uniqueSelectedPeople.size, total: 5 };
     };
 
     // Group components by village for accordion
@@ -112,6 +119,9 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
         const app = applications.find(a => a.id === appId);
         if (!app) return;
 
+        // Extract original application ID (remove component suffix)
+        const originalAppId = app.id.includes('-') ? app.id.split('-')[0] : app.id;
+
         // Check quota before mutation
         const currentSelected = applications.filter(
             a => a.village === app.village && a.component === app.component && a.status === "Selected"
@@ -127,21 +137,25 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
         }
 
         try {
-            // Update the App Form doctype via API
-            await frappeBrowser.db().updateDoc('App Form', appId, {
+            // Update the App Form doctype via API using original application ID
+            await frappeBrowser.db().updateDoc('App Form', originalAppId, {
                 status: 'Selected',
             });
 
-            // Update local state
+            // Update local state - mark ALL component entries for this applicant as selected
+            // since the application status applies to the whole application
             setApplications(prev =>
-                prev.map(application =>
-                    application.id === appId ? { ...application, status: "Selected" as const } : application
-                )
+                prev.map(application => {
+                    const applicantOriginalId = application.id.includes('-') ? application.id.split('-')[0] : application.id;
+                    return applicantOriginalId === originalAppId 
+                        ? { ...application, status: "Selected" as const } 
+                        : application;
+                })
             );
 
             toast({
                 title: "Application Selected",
-                description: `${app.applicantName} has been selected as a beneficiary`,
+                description: `${app.applicantName} has been selected (all their components)`,
             });
         } catch (error) {
             console.error('Error updating application status:', error);
@@ -155,6 +169,16 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
 
     const canSelect = (app: ApplicationSelectionItem) => {
         if (app.status === "Selected") return false;
+        
+        // Check if this person has already been selected for any component
+        const originalAppId = app.id.includes('-') ? app.id.split('-')[0] : app.id;
+        const alreadySelected = applications.some(a => {
+            const aOriginalId = a.id.includes('-') ? a.id.split('-')[0] : a.id;
+            return aOriginalId === originalAppId && a.status === "Selected";
+        });
+        
+        if (alreadySelected) return false;
+        
         const quota = getVillageComponentQuota(app.village, app.component);
         return quota.selected < quota.total;
     };
@@ -185,25 +209,33 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Card>
                                 <CardHeader className="pb-3">
-                                    <CardDescription>Total Approved</CardDescription>
+                                    <CardDescription>Unique People (Approved)</CardDescription>
                                     <CardTitle className="text-3xl">
-                                        {applications.filter(app => app.status === "Approved").length}
+                                        {new Set(
+                                            applications
+                                                .filter(app => app.status === "Approved")
+                                                .map(app => app.id.includes('-') ? app.id.split('-')[0] : app.id)
+                                        ).size}
                                     </CardTitle>
                                 </CardHeader>
                             </Card>
                             <Card>
                                 <CardHeader className="pb-3">
-                                    <CardDescription>Total Selected</CardDescription>
+                                    <CardDescription>Unique People (Selected)</CardDescription>
                                     <CardTitle className="text-3xl">
-                                        {applications.filter(app => app.status === "Selected").length}
+                                        {new Set(
+                                            applications
+                                                .filter(app => app.status === "Selected")
+                                                .map(app => app.id.includes('-') ? app.id.split('-')[0] : app.id)
+                                        ).size}
                                     </CardTitle>
                                 </CardHeader>
                             </Card>
                             <Card>
                                 <CardHeader className="pb-3">
-                                    <CardDescription>Villages Covered</CardDescription>
+                                    <CardDescription>Total Component Entries</CardDescription>
                                     <CardTitle className="text-3xl">
-                                        {villages.length}
+                                        {applications.length}
                                     </CardTitle>
                                 </CardHeader>
                             </Card>
@@ -356,7 +388,16 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                                                 </div>
                                                             </td>
                                                             <td className="p-4">
-                                                                <span className="font-mono text-sm font-semibold">{app.id}</span>
+                                                                <div className="font-mono text-sm">
+                                                                    <span className="font-semibold">
+                                                                        {app.id.includes('-') ? app.id.split('-')[0] : app.id}
+                                                                    </span>
+                                                                    {app.id.includes('-') && (
+                                                                        <p className="text-xs text-muted-foreground mt-1">
+                                                                            Component entry
+                                                                        </p>
+                                                                    )}
+                                                                </div>
                                                             </td>
                                                             <td className="p-4">
                                                                 <div className="flex items-center gap-2">
@@ -395,6 +436,7 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                                                         onClick={() => handleSelect(app.id)}
                                                                         className="gap-2"
                                                                         data-testid={`button-select-${index}`}
+                                                                        title={!canSelect(app) ? "Already selected or quota reached" : "Select this applicant for all their components"}
                                                                     >
                                                                         <CheckCircle className="w-4 h-4" />
                                                                         Select
