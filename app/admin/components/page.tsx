@@ -23,7 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { frappeBrowser } from "@/lib/frappe";
-import { useFrappeCreateDoc } from "frappe-react-sdk";
+import { useFrappeCreateDoc, useFrappeGetDocCount } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import {
@@ -85,7 +85,7 @@ export default function AdminComponents() {
 
     // Hook for creating new component
     const { createDoc, loading: createLoading, error: createError } = useFrappeCreateDoc();
-
+    const { data: applicationCount, isLoading: countLoading, error: countError } = useFrappeGetDocCount("App Form")
     const [components, setComponents] = useState<Component[]>([
         {
             id: 1,
@@ -457,7 +457,7 @@ export default function AdminComponents() {
                                             <div>
                                                 <p className="text-sm text-muted-foreground mb-1">Total Applications</p>
                                                 <p className="font-display font-bold text-2xl">
-                                                    {components.reduce((sum, c) => sum + c.totalApplications, 0)}
+                                                    {applicationCount}
                                                 </p>
                                             </div>
                                             <div className="w-10 h-10 rounded-lg bg-chart-4/10 flex items-center justify-center">
@@ -855,7 +855,7 @@ export default function AdminComponents() {
                                     <Card>
                                         <CardContent className="p-6">
                                             <p className="text-sm text-muted-foreground mb-1">Total Applications</p>
-                                            <p className="font-display font-bold text-3xl">{editForm.totalApplications}</p>
+                                            <p className="font-display font-bold text-3xl">{applicationCount}</p>
                                         </CardContent>
                                     </Card>
                                     <Card>
