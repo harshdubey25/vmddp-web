@@ -507,19 +507,19 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                         </SelectContent>
                                     </Select>
 
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 min-w-0">
                                         <Input
                                             type="date"
                                             value={dateFrom}
                                             onChange={(e) => setDateFrom(e.target.value)}
-                                            className="flex-1"
+                                            className="flex-1 min-w-0"
                                             placeholder="From date"
                                         />
                                         <Input
                                             type="date"
                                             value={dateTo}
                                             onChange={(e) => setDateTo(e.target.value)}
-                                            className="flex-1"
+                                            className="flex-1 min-w-0"
                                             placeholder="To date"
                                         />
                                     </div>
