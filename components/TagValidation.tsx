@@ -107,26 +107,26 @@ const TagNumberVerification: React.FC<TagNumberVerificationProps> = ({
                 value={tagNumber}
                 onChange={(e) => setTagNumber(e.target.value)}
                 maxLength={14}
-                disabled={isLoading || disabled}
+                disabled={isLoading || disabled || isVerified}
             />
-            <Button
-                type="button"
-                onClick={isVerified ? handleReset : handleValidate}
-                disabled={!tagNumber || isLoading || disabled}
-                className="w-full"
-                size="sm"
-            >
-                {isLoading ? (
-                    <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Validating...
-                    </>
-                ) : isVerified ? (
-                    'Verify Another Tag'
-                ) : (
-                    'Validate Tag Number'
-                )}
-            </Button>
+            {!isVerified && (
+                <Button
+                    type="button"
+                    onClick={handleValidate}
+                    disabled={!tagNumber || isLoading || disabled}
+                    className="w-full"
+                    size="sm"
+                >
+                    {isLoading ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Validating...
+                        </>
+                    ) : (
+                        'Validate Tag Number'
+                    )}
+                </Button>
+            )}
         </div>
     );
 };
