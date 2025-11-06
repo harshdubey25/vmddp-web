@@ -1,4 +1,6 @@
 import { Controller, useWatch } from "react-hook-form";
+import dynamic from "next/dynamic";
+const TagNumberVerification = dynamic(() => import("@/components/TagValidation"), { ssr: false });
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -26,6 +28,32 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
   const mainFieldValues = useWatch({ control, name: mainFieldNames });
 
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
+  const [tagValidation, setTagValidation] = useState<{
+    [key: string]: { loading: boolean; valid?: boolean; message?: string };
+  }>({});
+
+  const handleValidateTag = async (fieldKey: string, value: string) => {
+    setTagValidation((p) => ({ ...p, [fieldKey]: { loading: true } }));
+    try {
+      const res = await fetch("/api/validate-tag-number", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tagNumber: value }),
+      });
+      const data = await res.json();
+      console.log("Tag validation response data:", data);
+      setTagValidation((p) => ({
+        ...p,
+        [fieldKey]: { loading: false, valid: !!data.valid, message: data.message },
+      }));
+    } catch (err) {
+
+      setTagValidation((p) => ({
+        ...p,
+        [fieldKey]: { loading: false, valid: false, message: "Validation failed" },
+      }));
+    }
+  };
 
   const uploadFile = async (file: File, fieldName: string): Promise<string | null> => {
     setUploading(prev => ({ ...prev, [fieldName]: true }));
@@ -78,7 +106,7 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
           let mainInput = null;
           if (type === "checkbox") {
             mainInput = (
-              <div className="space-y-3 p-4 border rounded-lg bg-muted/20" key={mainValueName}>
+              <div className="space-y-3 p-4 border rounded-lg bg-muted/20 h-24" key={mainValueName}>
                 <Controller
                   name={mainNameName}
                   control={control}
@@ -302,21 +330,47 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                         control={control}
                         rules={childValidationRules}
                         render={({ field: rhfField }) => (
-                          <Input
-                            {...rhfField}
-                            id={childValueName}
-                            type="text"
-                            value={rhfField.value ?? ""}
-                            placeholder={child.placeholder || undefined}
-                            maxLength={maxChars || undefined}
-                            onChange={(e) => {
-                              let value = e.target.value;
-                              if (maxChars) {
-                                value = value.slice(0, maxChars);
-                              }
-                              rhfField.onChange(value);
-                            }}
-                          />
+                          <>
+                            {child.extra_validation === "Tag Number" ? (
+                              <TagNumberVerification
+                                disabled={false}
+                                showLabel={false}
+                                onVerificationComplete={(verified, data) => {
+                                  try {
+                                    if (verified && data?.tag_number) {
+                                      rhfField.onChange(data.tag_number);
+                                    }
+                                    // Store verification status in form state
+                                    if (control && typeof control.setValue === 'function') {
+                                      const verifiedFieldName = `eligibility[${idx}].child[${childIdx}].verified`;
+                                      control.setValue(verifiedFieldName, verified, {
+                                        shouldValidate: false,
+                                        shouldDirty: true
+                                      });
+                                    }
+                                  } catch (error) {
+                                    console.error('Error in verification complete callback:', error);
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <Input
+                                {...rhfField}
+                                id={childValueName}
+                                type="text"
+                                value={rhfField.value ?? ""}
+                                placeholder={child.placeholder || undefined}
+                                maxLength={maxChars || undefined}
+                                onChange={(e) => {
+                                  let value = e.target.value;
+                                  if (maxChars) {
+                                    value = value.slice(0, maxChars);
+                                  }
+                                  rhfField.onChange(value);
+                                }}
+                              />
+                            )}
+                          </>
                         )}
                       />
                       {errors?.eligibility?.[idx]?.child?.[childIdx]?.value && <span className="text-red-500 text-xs">{errors.eligibility[idx].child[childIdx].value.message}</span>}
@@ -361,21 +415,47 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                       control={control}
                       rules={childValidationRules}
                       render={({ field: rhfField }) => (
-                        <Input
-                          {...rhfField}
-                          id={childValueName}
-                          type="text"
-                          value={rhfField.value ?? ""}
-                          placeholder={child.placeholder || undefined}
-                          maxLength={maxChars || undefined}
-                          onChange={(e) => {
-                            let value = e.target.value;
-                            if (maxChars) {
-                              value = value.slice(0, maxChars);
-                            }
-                            rhfField.onChange(value);
-                          }}
-                        />
+                        <>
+                          {child.extra_validation === "Tag Number" ? (
+                            <TagNumberVerification
+                              disabled={false}
+                              showLabel={false}
+                              onVerificationComplete={(verified, data) => {
+                                try {
+                                  if (verified && data?.tag_number) {
+                                    rhfField.onChange(data.tag_number);
+                                  }
+                                  // Store verification status in form state
+                                  if (control && typeof control.setValue === 'function') {
+                                    const verifiedFieldName = `eligibility[${idx}].child[${childIdx}].verified`;
+                                    control.setValue(verifiedFieldName, verified, {
+                                      shouldValidate: false,
+                                      shouldDirty: true
+                                    });
+                                  }
+                                } catch (error) {
+                                  console.error('Error in verification complete callback:', error);
+                                }
+                              }}
+                            />
+                          ) : (
+                            <Input
+                              {...rhfField}
+                              id={childValueName}
+                              type="text"
+                              value={rhfField.value ?? ""}
+                              placeholder={child.placeholder || undefined}
+                              maxLength={maxChars || undefined}
+                              onChange={(e) => {
+                                let value = e.target.value;
+                                if (maxChars) {
+                                  value = value.slice(0, maxChars);
+                                }
+                                rhfField.onChange(value);
+                              }}
+                            />
+                          )}
+                        </>
                       )}
                     />
                     {errors?.eligibility?.[idx]?.child?.[childIdx]?.value && <span className="text-red-500 text-xs">{errors.eligibility[idx].child[childIdx].value.message}</span>}
