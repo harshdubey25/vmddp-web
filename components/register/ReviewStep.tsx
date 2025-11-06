@@ -236,7 +236,7 @@ const ReviewStep = ({ values, familyMemberCount, agreed, onAgreedChange, onPrint
                   const option = COMPONENT_OPTIONS.find(o => o.label === comp.component_name);
                   const localizedComponentName = getComponentName(comp.component_name);
                   return (
-                    <div key={idx} className="mb-4 p-3 bg-white rounded border">
+                    <div key={idx} className="mb-4 p-3 bg-background rounded border">
                       <p className="font-medium text-base">{localizedComponentName}</p>
                       {option && <p className="text-sm text-muted-foreground mb-2">{option.description}</p>}
                       {comp.questions && comp.questions.length > 0 && (
