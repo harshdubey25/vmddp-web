@@ -5,6 +5,7 @@ import { getFrappeWithUserToken } from "@/lib/frappeHelper";
 import { getStatusBadge } from "@/lib/status-utils";
 import { Header } from "./header";
 import SubAdminDashboardStats from "./stats";
+import Link from "next/link";
 export const runtime = 'edge';
 
 interface Application {
@@ -68,9 +69,11 @@ export default async function SubAdminDashboard() {
                                         <CardTitle>Recent Applications</CardTitle>
                                         <CardDescription>Latest applications from your zone</CardDescription>
                                     </div>
-                                    <Button variant="outline" size="sm" data-testid="button-view-all">
-                                        View All
-                                    </Button>
+                                    <Link href="/subadmin/applications">
+                                        <Button variant="outline" size="sm" data-testid="button-view-all">
+                                            View All
+                                        </Button>
+                                    </Link>
                                 </div>
                             </CardHeader>
                             <CardContent>

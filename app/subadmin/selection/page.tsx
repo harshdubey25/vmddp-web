@@ -40,20 +40,37 @@ export default async function SubAdminSelection({ searchParams }: {
     filters: JSON.stringify(filters)
   });
 
-  // Map to lightweight selection items
-  const applications: ApplicationSelectionItem[] = (response?.message?.applications || []).map((app: any): ApplicationSelectionItem => {
-    const component_list = Array.isArray(app.component_list) ? app.component_list.map((comp: any) => comp).join(', ') : 'N/A';
+  // Map to lightweight selection items - expand each application by individual components
+  const applications: ApplicationSelectionItem[] = [];
+  
+  (response?.message?.applications || []).forEach((app: any) => {
     const submittedDate = app.creation ? new Date(app.creation).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-
-    return {
-      id: app.name,
-      applicantName: app.fullname,
-      mobile: app.mobile_no || '',
-      village: app.village || 'N/A',
-      component: component_list,
-      status: app.status as "Approved" | "Selected",
-      submittedDate,
-    };
+    
+    if (Array.isArray(app.component_list) && app.component_list.length > 0) {
+      // Create separate entries for each component
+      app.component_list.forEach((component: string) => {
+        applications.push({
+          id: `${app.name}-${component}`, // Unique ID for each component entry
+          applicantName: app.fullname,
+          mobile: app.mobile_no || '',
+          village: app.village || 'N/A',
+          component: component.trim(),
+          status: app.status as "Approved" | "Selected",
+          submittedDate,
+        });
+      });
+    } else {
+      // Fallback for applications without component list
+      applications.push({
+        id: app.name,
+        applicantName: app.fullname,
+        mobile: app.mobile_no || '',
+        village: app.village || 'N/A',
+        component: 'N/A',
+        status: app.status as "Approved" | "Selected",
+        submittedDate,
+      });
+    }
   });
 
   return <SubAdminSelectionClient applications={applications} />;

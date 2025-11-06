@@ -155,9 +155,13 @@ export default function ApplicationDetailsDialog({
                                     <div>
                                         <Label className="text-muted-foreground">Family Aadhar Numbers</Label>
                                         <div className="space-y-1 mt-1">
-                                            {application.familyAadharNumbers?.map((aadhar: string, idx: number) => (
-                                                <p key={idx} className="font-medium text-xs font-mono">{aadhar}</p>
-                                            ))}
+                                            {application.familyAadharNumbers && application.familyAadharNumbers.length > 0 ? (
+                                                application.familyAadharNumbers.map((aadhar: string, idx: number) => (
+                                                    <p key={idx} className="font-medium text-xs font-mono">{aadhar}</p>
+                                                ))
+                                            ) : (
+                                                <p className="font-medium text-muted-foreground">-</p>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
