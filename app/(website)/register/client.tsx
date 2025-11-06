@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import RegistrationStepper from "@/components/RegistrationStepper";
@@ -10,7 +10,7 @@ import EligibilityStep from "@/components/register/EligibilityStep";
 import ComponentStep from "@/components/register/ComponentStep";
 import BankDetailsStep from "@/components/register/BankDetailsStep";
 import ReviewStep from "@/components/register/ReviewStep";
-import { frappePublic, frappeServer } from "../../../lib/frappe";
+import { frappePublic } from "../../../lib/frappe";
 import { useRouter } from "next/navigation";
 import { useTranslation } from 'react-i18next';
 
@@ -63,6 +63,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
     const [components, setComponents] = useState<any[]>([]);
     const [submitLoading, setSubmitLoading] = useState(false);
     const [isAadhaarVerified, setIsAadhaarVerified] = useState(false);
+    const canSubmitRef = useRef(false);
     const { toast } = useToast();
     const router = useRouter();
     const { t } = useTranslation('common');
@@ -215,6 +216,16 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
     };
 
     const onSubmit = (formData: RegisterFormValues) => {
+        // Only allow submission if explicitly triggered by submit button
+        if (!canSubmitRef.current) {
+            return;
+        }
+        canSubmitRef.current = false; // Reset the flag
+
+        // Only allow submission on the final step (step 5)
+        if (currentStep !== 5) {
+            return;
+        }
         if (!agreed) {
             return;
         }
@@ -289,7 +300,12 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
 
                 <Card className="mt-6 sm:mt-12 md:mt-16 shadow-sm">
                     <CardContent className="p-4 xs:p-5 sm:p-6 md:p-8">
-                        <form onSubmit={handleSubmit(onSubmit)} >
+                        <form onSubmit={handleSubmit(onSubmit)} onKeyDown={(e) => {
+                            // Prevent form submission on Enter key unless on final step
+                            if (e.key === 'Enter' && currentStep !== steps.length) {
+                                e.preventDefault();
+                            }
+                        }}>
 
                             {currentStep === 1 && (
                                 <BasicDetailsStep
@@ -342,7 +358,15 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                                         {t('next')}
                                     </Button>
                                 ) : (
-                                    <Button type="submit" data-testid="button-submit" disabled={submitLoading} className="w-full order-1 sm:order-2">
+                                    <Button
+                                        type="submit"
+                                        data-testid="button-submit"
+                                        disabled={submitLoading}
+                                        className="w-full order-1 sm:order-2"
+                                        onClick={() => {
+                                            canSubmitRef.current = true;
+                                        }}
+                                    >
                                         {t('submit_application')}
                                     </Button>
                                 )}
