@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Mail, Phone, MapPin, PhoneCall } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { z } from "zod";
@@ -28,7 +29,7 @@ export default function Contact() {
         message: z.string().min(10, t('message_min_chars')),
     });
 
-    const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm({
+    const { register, handleSubmit, formState: { errors, isSubmitting }, reset, control } = useForm({
         resolver: zodResolver(contactFormSchema),
         defaultValues: {
             name: "",
@@ -172,21 +173,24 @@ export default function Contact() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="contact-district">{t('select_district')}</Label>
-                                            <select
-                                                id="contact-district"
-                                                className="w-full border rounded px-3 py-2 mt-1"
-                                                {...register("districtId")}
-                                                required
-                                            >
-                                                <option value="">{t('select_district')}</option>
-                                                {districtsLoading ? (
-                                                    <option value="" disabled>{t('loading')}</option>
-                                                ) : (
-                                                    districts.map((district: string) => (
-                                                        <option key={district} value={district}>{district}</option>
-                                                    ))
+                                            <Controller
+                                                name="districtId"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <Select onValueChange={field.onChange} value={field.value} disabled={districtsLoading}>
+                                                        <SelectTrigger id="contact-district">
+                                                            <SelectValue placeholder={districtsLoading ? t('loading') : t('select_district')} />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {districts.map((district: string) => (
+                                                                <SelectItem key={district} value={district}>
+                                                                    {district}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
                                                 )}
-                                            </select>
+                                            />
                                             {errors.districtId && <div className="text-red-600 text-sm mt-1">{errors.districtId.message as string}</div>}
                                         </div>
                                     </div>
