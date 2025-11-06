@@ -181,6 +181,8 @@
   "gallery_success_stories_desc": "Beneficiary testimonials and achievements",
   "gallery_infrastructure_title": "Infrastructure",
   "gallery_infrastructure_desc": "Dairy facilities and equipment installations",
+  "gallery_farmer_inauguration_title": "Farmer Inauguration",
+  "gallery_farmer_inauguration_desc": "Inauguration events for farmers",
   "photo": "Photo",
   "photos": "Photos",
   "register_title": "Scheme Registration",
@@ -350,7 +352,7 @@
       "shortDescription": "Heifers made pregnant through IVF embryos using Sex sorted semen",
       "fullDescription": "Heifers made pregnant through IVF embryos using Sex sorted semen. Embryo transfer using In-Vitro Fertilization (IVF) technology produces high-genetic-quality offspring, increasing future high-yielding cows and buffaloes.",
       "benefits": [
-        "75% subsidy up to ₹1,68,750 per heifer",
+        "75% subsidy up to ₹1,57,500 per heifer",
         "High-genetic quality offspring through IVF",
         "7-month pregnant heifers",
         "Parentage certificate Compulsory",
@@ -361,12 +363,12 @@
         "Must have knowledge of scientific feeding practices",
         "Willing to carry out breeding only through artificial insemination",
         "Verification by project veterinarians",
-        "Maximum cost per heifer(7 month pregnant): ₹2,25,000. 75% subsidy or ₹1,68,750 (whichever is less)"
+        "Maximum cost per heifer(7 month pregnant): ₹2,10,000. 75% subsidy or ₹1,57,500 (whichever is less)"
       ],
       "subsidyInfo": {
-        "amount": "₹1,68,750",
+        "amount": "₹1,57,500",
         "percentage": "75%",
-        "details": "75% subsidy or ₹1,68,750 (whichever is less). Average cost per heifer: ₹2,25,000 including IVF process, maintenance, and pregnancy."
+        "details": "75% subsidy or ₹1,57,500 (whichever is less). Average cost per heifer: ₹2,10,000 including IVF process, maintenance, and pregnancy."
       },
       "termsAndConditions": [
         "25% beneficiary contribution required upfront",
