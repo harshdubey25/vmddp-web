@@ -145,24 +145,82 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
 
     // Update URL with filters
     const updateFilters = useCallback(() => {
-        const params = new URLSearchParams();
+        const params = new URLSearchParams(searchParams.toString());
 
-        if (statusFilter !== 'all') params.set('status', statusFilter);
-        if (componentFilter !== 'all') params.set('component', componentFilter);
-        if (debouncedSearchQuery) params.set('search', debouncedSearchQuery);
-        if (dateFrom) params.set('start_date', dateFrom);
-        if (dateTo) params.set('end_date', dateTo);
+        // Update filter parameters
+        if (statusFilter !== 'all') {
+            params.set('status', statusFilter);
+        } else {
+            params.delete('status');
+        }
 
-        // Preserve pagination
-        params.set('page', '1'); // Reset to first page on filter change
+        if (componentFilter !== 'all') {
+            params.set('component', componentFilter);
+        } else {
+            params.delete('component');
+        }
+
+        if (debouncedSearchQuery) {
+            params.set('search', debouncedSearchQuery);
+        } else {
+            params.delete('search');
+        }
+
+        if (dateFrom) {
+            params.set('start_date', dateFrom);
+        } else {
+            params.delete('start_date');
+        }
+
+        if (dateTo) {
+            params.set('end_date', dateTo);
+        } else {
+            params.delete('end_date');
+        }
+
+        // Only reset to page 1 if filters actually changed
+        // Check if this is a filter change (not initial load or pagination)
+        const currentStatus = searchParams.get('status') || 'all';
+        const currentComponent = searchParams.get('component') || 'all';
+        const currentSearch = searchParams.get('search') || '';
+        const currentStartDate = searchParams.get('start_date') || '';
+        const currentEndDate = searchParams.get('end_date') || '';
+
+        const filtersChanged =
+            currentStatus !== statusFilter ||
+            currentComponent !== componentFilter ||
+            currentSearch !== debouncedSearchQuery ||
+            currentStartDate !== dateFrom ||
+            currentEndDate !== dateTo;
+
+        if (filtersChanged) {
+            params.set('page', '1');
+        }
+
+        params.set('limit', pageSize.toString());
 
         router.push(pathname + '?' + params.toString());
-    }, [statusFilter, componentFilter, debouncedSearchQuery, dateFrom, dateTo, pathname, router]);
+    }, [statusFilter, componentFilter, debouncedSearchQuery, dateFrom, dateTo, pathname, router, pageSize, searchParams]);
 
     // Update URL when filters change
     useEffect(() => {
-        updateFilters();
-    }, [updateFilters]);
+        // Only update if filters have actually changed from URL params
+        const currentStatus = searchParams.get('status') || 'all';
+        const currentComponent = searchParams.get('component') || 'all';
+        const currentSearch = searchParams.get('search') || '';
+        const currentStartDate = searchParams.get('start_date') || '';
+        const currentEndDate = searchParams.get('end_date') || '';
+
+        if (
+            currentStatus !== statusFilter ||
+            currentComponent !== componentFilter ||
+            currentSearch !== debouncedSearchQuery ||
+            currentStartDate !== dateFrom ||
+            currentEndDate !== dateTo
+        ) {
+            updateFilters();
+        }
+    }, [statusFilter, componentFilter, debouncedSearchQuery, dateFrom, dateTo, updateFilters, searchParams]);
 
 
     // Use Frappe hook to fetch document details
@@ -183,9 +241,6 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
         },
         [searchParams]
     )
-    useEffect(() => {
-        router.push(pathname + '?' + createQueryString('status', statusFilter))
-    }, [statusFilter]);
     // Transform Frappe document to Application interface when doc changes
     useEffect(() => {
         if (doc && selectedAppId) {
@@ -585,13 +640,14 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                 {/* Pagination */}
                                 <div className="flex items-center justify-between pt-4">
                                     <p className="text-sm text-muted-foreground">
-                                        Showing page {currentPage} ({pageSize} items per page)
+                                        Showing {applications.length} items on page {currentPage} 
+                                        {applications.length < pageSize && currentPage > 1 ? ' (last page)' : ''}
                                     </p>
                                     <Pagination>
                                         <PaginationContent>
                                             <PaginationItem>
                                                 <PaginationPrevious
-                                                    href={currentPage > 1 ? `?page=${currentPage - 1}&limit=${pageSize}` : '#'}
+                                                    href={currentPage > 1 ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage - 1).toString() }).toString()}` : '#'}
                                                     onClick={(e) => {
                                                         if (currentPage <= 1) {
                                                             e.preventDefault();
@@ -602,21 +658,28 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                             </PaginationItem>
 
                                             {/* Page numbers */}
-                                            {[...Array(Math.min(5, Math.max(1, currentPage + 2)))].map((_, i) => {
-                                                const pageNum = Math.max(1, currentPage - 2) + i;
-                                                return (
-                                                    <PaginationItem key={pageNum}>
-                                                        <PaginationLink
-                                                            href={`?page=${pageNum}&limit=${pageSize}`}
-                                                            isActive={pageNum === currentPage}
-                                                        >
-                                                            {pageNum}
-                                                        </PaginationLink>
-                                                    </PaginationItem>
-                                                );
-                                            })}
+                                            {(() => {
+                                                const hasNextPage = applications.length === pageSize;
+                                                const maxVisiblePages = hasNextPage ? currentPage + 2 : currentPage;
+                                                const startPage = Math.max(1, currentPage - 2);
+                                                const endPage = Math.min(maxVisiblePages, startPage + 4);
+                                                
+                                                return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
+                                                    const pageNum = startPage + i;
+                                                    return (
+                                                        <PaginationItem key={pageNum}>
+                                                            <PaginationLink
+                                                                href={`${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: pageNum.toString() }).toString()}`}
+                                                                isActive={pageNum === currentPage}
+                                                            >
+                                                                {pageNum}
+                                                            </PaginationLink>
+                                                        </PaginationItem>
+                                                    );
+                                                });
+                                            })()}
 
-                                            {currentPage < 10 && (
+                                            {applications.length === pageSize && currentPage > 3 && (
                                                 <>
                                                     <PaginationItem>
                                                         <PaginationEllipsis />
@@ -626,7 +689,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
 
                                             <PaginationItem>
                                                 <PaginationNext
-                                                    href={applications.length === pageSize ? `?page=${currentPage + 1}&limit=${pageSize}` : '#'}
+                                                    href={applications.length === pageSize ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage + 1).toString() }).toString()}` : '#'}
                                                     onClick={(e) => {
                                                         if (applications.length < pageSize) {
                                                             e.preventDefault();
