@@ -10,18 +10,32 @@ interface TagNumberVerificationProps {
     onVerificationComplete: (verified: boolean, data?: any) => void;
     disabled?: boolean;
     showLabel?: boolean;
+    value?: string;
+    onChange?: (value: string) => void;
 }
 
 const TagNumberVerification: React.FC<TagNumberVerificationProps> = ({
     onVerificationComplete,
     disabled = false,
     showLabel = true,
+    value: externalValue,
+    onChange: externalOnChange,
 }) => {
     const [tagNumber, setTagNumber] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isVerified, setIsVerified] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [verifiedData, setVerifiedData] = useState<any>(null);
+
+    // Use external value if provided, otherwise use internal state
+    const currentValue = externalValue !== undefined ? externalValue : tagNumber;
+    const handleValueChange = (newValue: string) => {
+        if (externalOnChange) {
+            externalOnChange(newValue);
+        } else {
+            setTagNumber(newValue);
+        }
+    };
 
     const handleValidate = async () => {
         setIsLoading(true);
@@ -30,7 +44,7 @@ const TagNumberVerification: React.FC<TagNumberVerificationProps> = ({
         try {
             // Call Frappe API using frappeServer
             const response = await frappeServer.call().post('vmddp_app.api.epashudhan.tag_number.validate_animal_tag', {
-                tag_number: tagNumber,
+                tag_number: currentValue,
             });
             const msg = response?.message;
 
@@ -38,7 +52,8 @@ const TagNumberVerification: React.FC<TagNumberVerificationProps> = ({
             if (msg?.flg === true && msg?.data) {
                 setIsVerified(true);
                 setVerifiedData(msg.data);
-                onVerificationComplete(true, msg.data);
+                // Include the tag_number in the data passed to the callback
+                onVerificationComplete(true, { ...msg.data, tag_number: currentValue });
             } else {
                 // Handle error response - check for msg.msg.msgDesc first, then fallback
                 const errorMessage = msg?.msg?.msgDesc || msg?.msgDesc || 'Invalid Tag Number';
@@ -64,7 +79,7 @@ const TagNumberVerification: React.FC<TagNumberVerificationProps> = ({
     };
 
     const handleReset = () => {
-        setTagNumber('');
+        handleValueChange('');
         setIsVerified(false);
         setError(null);
         setVerifiedData(null);
@@ -104,8 +119,8 @@ const TagNumberVerification: React.FC<TagNumberVerificationProps> = ({
                 id="tag-number"
                 type="text"
                 placeholder="Enter Tag Number"
-                value={tagNumber}
-                onChange={(e) => setTagNumber(e.target.value)}
+                value={currentValue}
+                onChange={(e) => handleValueChange(e.target.value)}
                 maxLength={14}
                 disabled={isLoading || disabled || isVerified}
             />
@@ -113,7 +128,7 @@ const TagNumberVerification: React.FC<TagNumberVerificationProps> = ({
                 <Button
                     type="button"
                     onClick={handleValidate}
-                    disabled={!tagNumber || isLoading || disabled}
+                    disabled={!currentValue || isLoading || disabled}
                     className="w-full"
                     size="sm"
                 >
