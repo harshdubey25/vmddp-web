@@ -268,7 +268,7 @@ export default function SuccessPage() {
                                 </h3>
                                 <div className="space-y-3 print:space-y-2">
                                     {applicationData.components.map((comp, idx) => (
-                                        <div key={idx} className="border rounded-lg p-3 bg-gray-50 print:p-2 print:bg-white print:border-gray-400">
+                                        <div key={idx} className="border rounded-lg p-3 bg-muted/50 print:p-2 print:bg-white print:border-gray-400">
                                             <p className="font-medium text-base mb-2 print:text-sm print:mb-1">{comp.component_name}</p>
                                             {comp.questions && comp.questions.length > 0 && (
                                                 <div className="space-y-1 print:space-y-0">
