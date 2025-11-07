@@ -159,34 +159,35 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
             let hasUnverifiedTagNumber = false;
             const allFormValues = getValues();
 
+            console.log('All form values:', JSON.stringify(allFormValues.eligibility, null, 2));
+
             // Loop through criteriaFields to find tag number fields
             criteriaFields?.forEach((field, idx) => {
                 if (Array.isArray(field.criteria_fields)) {
+                    const mainFieldValue = allFormValues?.eligibility?.[idx]?.value;
+                    let childIdx = 0; // Track the actual child index as we iterate through ALL children
+
                     field.criteria_fields.forEach((child: any, cidx: number) => {
                         if (child.extra_validation === "Tag Number") {
-                            const mainFieldValue = allFormValues?.eligibility?.[idx]?.value;
                             const count = child.condition === "=" ? (Number(mainFieldValue) || 0) : 1;
-
-                            let childIdx = 0;
-                            // Calculate the correct childIdx based on previous child fields
-                            for (let prevCidx = 0; prevCidx < cidx; prevCidx++) {
-                                const prevChild = field.criteria_fields[prevCidx];
-                                if (prevChild.condition === "=") {
-                                    childIdx += Number(mainFieldValue) || 0;
-                                } else {
-                                    childIdx += 1;
-                                }
-                            }
 
                             for (let i = 0; i < count; i++) {
                                 const currentChildIdx = childIdx + i;
                                 const tagValue = allFormValues?.eligibility?.[idx]?.child?.[currentChildIdx]?.value;
                                 const isVerified = (allFormValues as any)?.eligibility?.[idx]?.child?.[currentChildIdx]?.verified;
+                                console.log(`Tag check - idx: ${idx}, childIdx: ${currentChildIdx}, tagValue: ${tagValue}, isVerified: ${isVerified}`);
 
                                 if (tagValue && !isVerified) {
                                     hasUnverifiedTagNumber = true;
                                 }
                             }
+                        }
+
+                        // Increment childIdx for ALL children (same logic as EligibilityStep)
+                        if (child.condition === "=") {
+                            childIdx += Number(mainFieldValue) || 0;
+                        } else {
+                            childIdx += 1;
                         }
                     });
                 }
@@ -365,7 +366,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                             )}
 
                             {currentStep === 2 && (
-                                <EligibilityStep control={control} errors={errors} criteriaFields={criteriaFields} values={getValues()} />
+                                <EligibilityStep control={control} errors={errors} criteriaFields={criteriaFields} values={getValues()} setValue={setValue} />
 
                             )}
 

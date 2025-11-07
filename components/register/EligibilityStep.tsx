@@ -12,9 +12,10 @@ interface Props {
   errors: any;
   criteriaFields: any[];
   values: any;
+  setValue?: any;
 }
 
-const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => {
+const EligibilityStep = ({ values, control, errors, criteriaFields, setValue }: Props) => {
 
   const { t, i18n } = useTranslation('common');
   console.log(values)
@@ -297,6 +298,7 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                   const childValueName = `eligibility[${idx}].child[${childIdx}].value`;
                   const childNameName = `eligibility[${idx}].child[${childIdx}].name`;
                   const childTypeName = `eligibility[${idx}].child[${childIdx}].type`;
+                  const childVerifiedName = `eligibility[${idx}].child[${childIdx}].verified`;
 
                   // Build validation rules for child fields
                   const childValidationRules: any = {};
@@ -324,6 +326,12 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                         defaultValue="text"
                         render={({ field }) => <input type="hidden" {...field} />}
                       />
+                      <Controller
+                        name={childVerifiedName}
+                        control={control}
+                        defaultValue={false}
+                        render={({ field }) => <input type="hidden" {...field} />}
+                      />
                       <Label htmlFor={childValueName}>{child.field} (#{i + 1}){childRequired ? " *" : ""}</Label>
                       <Controller
                         name={childValueName}
@@ -335,15 +343,14 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                               <TagNumberVerification
                                 disabled={false}
                                 showLabel={false}
+                                value={rhfField.value ?? ""}
+                                onChange={(value) => rhfField.onChange(value)}
                                 onVerificationComplete={(verified, data) => {
                                   try {
-                                    if (verified && data?.tag_number) {
-                                      rhfField.onChange(data.tag_number);
-                                    }
-                                    // Store verification status in form state
-                                    if (control && typeof control.setValue === 'function') {
-                                      const verifiedFieldName = `eligibility[${idx}].child[${childIdx}].verified`;
-                                      control.setValue(verifiedFieldName, verified, {
+                                    // Store verification status using setValue
+                                    const setValueFunc = setValue || control?.setValue;
+                                    if (setValueFunc && typeof setValueFunc === 'function') {
+                                      setValueFunc(childVerifiedName, verified, {
                                         shouldValidate: false,
                                         shouldDirty: true
                                       });
@@ -382,6 +389,7 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                 const childValueName = `eligibility[${idx}].child[${childIdx}].value`;
                 const childNameName = `eligibility[${idx}].child[${childIdx}].name`;
                 const childTypeName = `eligibility[${idx}].child[${childIdx}].type`;
+                const childVerifiedName = `eligibility[${idx}].child[${childIdx}].verified`;
 
                 // Build validation rules for child fields
                 const childValidationRules: any = {};
@@ -409,6 +417,12 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                       defaultValue="text"
                       render={({ field }) => <input type="hidden" {...field} />}
                     />
+                    <Controller
+                      name={childVerifiedName}
+                      control={control}
+                      defaultValue={false}
+                      render={({ field }) => <input type="hidden" {...field} />}
+                    />
                     <Label htmlFor={childValueName}>{child.field} ({child.condition}){childRequired ? " *" : ""}</Label>
                     <Controller
                       name={childValueName}
@@ -420,15 +434,14 @@ const EligibilityStep = ({ values, control, errors, criteriaFields }: Props) => 
                             <TagNumberVerification
                               disabled={false}
                               showLabel={false}
+                              value={rhfField.value ?? ""}
+                              onChange={(value) => rhfField.onChange(value)}
                               onVerificationComplete={(verified, data) => {
                                 try {
-                                  if (verified && data?.tag_number) {
-                                    rhfField.onChange(data.tag_number);
-                                  }
-                                  // Store verification status in form state
-                                  if (control && typeof control.setValue === 'function') {
-                                    const verifiedFieldName = `eligibility[${idx}].child[${childIdx}].verified`;
-                                    control.setValue(verifiedFieldName, verified, {
+                                  // Store verification status using setValue
+                                  const setValueFunc = setValue || control?.setValue;
+                                  if (setValueFunc && typeof setValueFunc === 'function') {
+                                    setValueFunc(childVerifiedName, verified, {
                                       shouldValidate: false,
                                       shouldDirty: true
                                     });
