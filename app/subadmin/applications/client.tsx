@@ -434,6 +434,63 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
         };
     }, []);
 
+    // Export current applications list as CSV
+    const handleExport = useCallback(() => {
+        if (!applications || applications.length === 0) {
+            toast({
+                title: "No data",
+                description: "There are no applications to export.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const headers = ['Application ID', 'Applicant', 'Village', 'Component', 'Status', 'Submitted Date'];
+
+        const escapeCell = (value: any) => {
+            if (value === null || value === undefined) return '';
+            const str = String(value);
+            if (/["\n,]/.test(str)) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const rows = applications.map((a) => [
+            a.id,
+            a.applicantName,
+            a.village,
+            a.component,
+            a.status,
+            a.submittedDate,
+        ]);
+
+        const csvContent = [headers.map(escapeCell).join(','), ...rows.map(r => r.map(escapeCell).join(','))].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+
+        const date = new Date().toISOString().split('T')[0];
+        const parts: string[] = [];
+        if (statusFilter && statusFilter !== 'all') parts.push(statusFilter);
+        if (componentFilter && componentFilter !== 'all') parts.push(componentFilter.replace(/\s+/g, '_'));
+        if (debouncedSearchQuery) parts.push(`q-${debouncedSearchQuery.replace(/\s+/g, '_')}`);
+        const suffix = parts.length ? `-${parts.join('-')}` : '';
+
+        link.href = url;
+        link.download = `applications${suffix}-${date}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+
+        toast({
+            title: "Export started",
+            description: `Exported ${applications.length} applications.`,
+        });
+    }, [applications, statusFilter, componentFilter, debouncedSearchQuery, toast]);
+
     return (
         <div className="flex h-screen w-full overflow-hidden bg-background">
             <AdminSidebar userRole="subadmin" />
@@ -448,7 +505,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                             Review and manage applications
                         </p>
                     </div>
-                    <Button variant="outline" className="gap-2" data-testid="button-export">
+                    <Button variant="outline" className="gap-2" data-testid="button-export" onClick={handleExport}>
                         <Download className="w-4 h-4" />
                         Export
                     </Button>
