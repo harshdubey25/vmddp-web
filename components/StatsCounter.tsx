@@ -71,7 +71,7 @@ function StatCard({ icon, value, label, color, testId, index }: StatCardProps) {
   );
 }
 
-export default function StatsCounter() {
+export default function StatsCounter({ data }: { data: { approved: number; rejected: number; pending: number; total: number } }) {
   const { t } = useTranslation('common');
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -96,7 +96,7 @@ export default function StatsCounter() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
             icon={<Users className="w-6 h-6 text-chart-2" />}
-            value={1247}
+            value={data.total}
             label={t('total_applications')}
             color="hsl(var(--chart-2))"
             testId="stat-card-total"
@@ -104,7 +104,7 @@ export default function StatsCounter() {
           />
           <StatCard
             icon={<CheckCircle className="w-6 h-6 text-chart-3" />}
-            value={856}
+            value={data.approved}
             label={t('approved')}
             color="hsl(var(--chart-3))"
             testId="stat-card-approved"
@@ -112,7 +112,7 @@ export default function StatsCounter() {
           />
           <StatCard
             icon={<Clock className="w-6 h-6 text-chart-4" />}
-            value={312}
+            value={data.pending}
             label={t('pending_review')}
             color="hsl(var(--chart-4))"
             testId="stat-card-pending"
@@ -120,7 +120,7 @@ export default function StatsCounter() {
           />
           <StatCard
             icon={<XCircle className="w-6 h-6 text-chart-5" />}
-            value={79}
+            value={data.rejected}
             label={t('rejected')}
             color="hsl(var(--chart-5))"
             testId="stat-card-rejected"
