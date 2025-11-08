@@ -29,6 +29,7 @@ import {
     Download,
     Eye,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { getStatusBadge } from "@/lib/status-utils";
 import ApplicationDetailsDialog from "@/components/ApplicationDetailsDialog";
 import { useFrappeGetDocList } from "frappe-react-sdk";
@@ -82,6 +83,8 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
 
     // Debounce search query
     const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
+    const { toast } = useToast();
 
     // Update URL with filters
     const updateFilters = useCallback(() => {
@@ -161,6 +164,67 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
         setSelectedApp(null);
     };
 
+    // Export current applications list as CSV
+    const handleExport = useCallback(() => {
+        if (!applications || applications.length === 0) {
+            toast({
+                title: "No data",
+                description: "There are no applications to export.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const headers = ['Application ID', 'Applicant', 'Mobile', 'District', 'Component', 'Status', 'Approver', 'Submitted Date'];
+
+        const escapeCell = (value: any) => {
+            if (value === null || value === undefined) return '';
+            const str = String(value);
+            if (/["\n,]/.test(str)) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const rows = applications.map((a) => [
+            a.id,
+            a.applicantName,
+            // mobile may be mobile or mobile_no depending on source
+            (a as any).mobile || (a as any).mobile_no || '',
+            a.district || '',
+            a.component || '',
+            a.status || '',
+            a.approver || '',
+            a.submittedDate || '',
+        ]);
+
+        const csvContent = [headers.map(escapeCell).join(','), ...rows.map(r => r.map(escapeCell).join(','))].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+
+        const date = new Date().toISOString().split('T')[0];
+        const parts: string[] = [];
+        if (statusFilter && statusFilter !== 'all') parts.push(statusFilter.replace(/\s+/g, '_'));
+        if (districtFilter && districtFilter !== 'all') parts.push(districtFilter.replace(/\s+/g, '_'));
+        if (componentFilter && componentFilter !== 'all') parts.push(componentFilter.replace(/\s+/g, '_'));
+        if (debouncedSearchQuery) parts.push(`q-${debouncedSearchQuery.replace(/\s+/g, '_')}`);
+        const suffix = parts.length ? `-${parts.join('-')}` : '';
+
+        link.href = url;
+        link.download = `applications${suffix}-${date}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+
+        toast({
+            title: "Export started",
+            description: `Exported ${applications.length} applications.`,
+        });
+    }, [applications, statusFilter, districtFilter, componentFilter, debouncedSearchQuery, toast]);
+
     return (
         <div className="flex h-screen overflow-hidden">
             <AdminSidebar userRole="admin" />
@@ -174,7 +238,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                             Review and manage farmer applications
                         </p>
                     </div>
-                    <Button variant="outline" className="gap-2" data-testid="button-export">
+                    <Button variant="outline" className="gap-2" data-testid="button-export" onClick={handleExport}>
                         <Download className="w-4 h-4" />
                         Export
                     </Button>
