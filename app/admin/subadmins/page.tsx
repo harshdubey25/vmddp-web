@@ -93,7 +93,8 @@ export default function AdminSubAdmins() {
     const { call: createDPO, loading: createLoading } = useFrappePostCall('vmddp_app.api.v1.admin.create_dpo');
 
     // Hook for updating DPO password
-    const { call: updateDPOPassword, loading: passwordLoading } = useFrappePostCall('vmddp_app.api.v1.admin.update_dpo_password'); const [formData, setFormData] = useState({
+    const { call: updateDPOPassword, loading: passwordLoading } = useFrappePostCall('vmddp_app.api.v1.admin.update_dpo_password');
+    const initialFormState = {
         first_name: "",
         last_name: "",
         username: "",
@@ -102,7 +103,8 @@ export default function AdminSubAdmins() {
         password: "",
         districts: [] as string[],
         talukas: [] as string[],
-    });
+    };
+ const [formData, setFormData] = useState(initialFormState);
 
     const filteredDPOs = dpos.filter((dpo) => {
         const matchesSearch =
@@ -358,7 +360,11 @@ export default function AdminSubAdmins() {
                     </div>
                     <Button
                         className="gap-2"
-                        onClick={() => setShowAddDialog(true)}
+                        onClick={() => {
+                            setSelectedDPO(null);
+                            setFormData(initialFormState);
+                            setShowAddDialog(true);
+                        }}
                         data-testid="button-add-subadmin"
                     >
                         <UserPlus className="w-4 h-4" />
@@ -450,7 +456,7 @@ export default function AdminSubAdmins() {
                                                     data-testid="input-search"
                                                 />
                                             </div>
-
+                                            {/* 
                                             <Select value={statusFilter} onValueChange={setStatusFilter}>
                                                 <SelectTrigger className="w-48" data-testid="select-status-filter">
                                                     <SelectValue placeholder="Filter by status" />
@@ -460,7 +466,7 @@ export default function AdminSubAdmins() {
                                                     <SelectItem value="active">Active</SelectItem>
                                                     <SelectItem value="inactive">Inactive</SelectItem>
                                                 </SelectContent>
-                                            </Select>
+                                            </Select> */}
                                         </div>
 
                                         <div className="space-y-4">
@@ -485,7 +491,7 @@ export default function AdminSubAdmins() {
                                                                             </Badge>
                                                                         </div>
                                                                         <p className="text-sm text-muted-foreground">
-                                                                            ID: {dpo.dpo_id} 
+                                                                            ID: {dpo.dpo_id}
                                                                             {/* • @{dpo.user_id} */}
                                                                         </p>
                                                                     </div>
@@ -543,7 +549,13 @@ export default function AdminSubAdmins() {
                 </main>
             </div>
 
-            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <Dialog open={showAddDialog} onOpenChange={(open) => {
+                setShowAddDialog(open);
+                if (open) {
+                    setSelectedDPO(null);
+                    setFormData(initialFormState);
+                }
+            }}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Add New Sub-Administrator</DialogTitle>
@@ -660,7 +672,10 @@ export default function AdminSubAdmins() {
                             <Button
                                 variant="outline"
                                 className="flex-1"
-                                onClick={() => setShowAddDialog(false)}
+                                onClick={() => {
+                                    setShowAddDialog(false);
+                                    setFormData(initialFormState);
+                                }}
                             >
                                 Cancel
                             </Button>

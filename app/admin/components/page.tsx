@@ -1,6 +1,7 @@
 "use client";
 import AdminSidebar from "@/components/AdminSidebar";
 import { Badge } from "@/components/ui/badge";
+import StatusToggleBadge from "@/components/StatusToggleBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -82,6 +83,7 @@ export default function AdminComponents() {
     const [activeTab, setActiveTab] = useState("config");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [toggling, setToggling] = useState<Record<string, boolean>>({});
 
     // Hook for creating new component
     const { createDoc, loading: createLoading, error: createError } = useFrappeCreateDoc();
@@ -480,12 +482,21 @@ export default function AdminComponents() {
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-3 mb-2">
                                                         <CardTitle className="text-lg">{component.name}</CardTitle>
-                                                        <Badge
-                                                            variant={component.isActive ? "default" : "secondary"}
-                                                            className={component.isActive ? "bg-chart-3" : ""}
-                                                        >
-                                                            {component.isActive ? "Active" : "Inactive"}
-                                                        </Badge>
+                                                        <StatusToggleBadge
+                                                            docname={component.name}
+                                                            label={component.component_name || component.name}
+                                                            isActive={component.isActive}
+                                                            onStatusChange={(next) =>
+                                                                setComponents((prev) =>
+                                                                    prev.map((c) =>
+                                                                        c.name === component.name
+                                                                            ? { ...c, isActive: next }
+                                                                            : c
+                                                                    )
+                                                                )
+                                                            }
+                                                            testId={`badge-status-${index}`}
+                                                        />
                                                     </div>
                                                     <CardDescription>{component.description}</CardDescription>
                                                 </div>

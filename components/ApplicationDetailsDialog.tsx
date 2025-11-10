@@ -26,6 +26,8 @@ import {
 } from "lucide-react";
 import { getStatusBadge } from "@/lib/status-utils";
 import { useFrappeGetDoc } from "frappe-react-sdk";
+import { useAuth } from "@/context/AuthContext";
+import { UserRole } from "@/enums/roles";
 
 interface ApplicationDetailsDialogProps {
     application: any | null;
@@ -42,6 +44,8 @@ export default function ApplicationDetailsDialog({
     onReview,
     showReviewActions = true
 }: ApplicationDetailsDialogProps) {
+    const { user, loading } = useAuth();
+    const isAdmin = !!user?.roles?.includes(UserRole.VMDDP_ADMIN);
     const [showReviewDialog, setShowReviewDialog] = useState(false);
     const [reviewAction, setReviewAction] = useState<"approve" | "reject" | null>(null);
     const [remarks, setRemarks] = useState("");
@@ -88,7 +92,6 @@ export default function ApplicationDetailsDialog({
         onClose();
     };
     console.log("full app doc", fullAppDoc)
-    // Inline document extraction logic (exactly like subadmin implementation)
     const documents: { name: string; uploaded: boolean; url?: string }[] = [];
     if (fullAppDoc) {
         if (fullAppDoc.self_ration_card_image) {
@@ -476,7 +479,7 @@ export default function ApplicationDetailsDialog({
                             </div>
                         </div>
 
-                        {showReviewActions && application.status === "Pending" && (
+                        {showReviewActions && application.status === "Pending" && !loading && !isAdmin && (
                             <div className="flex gap-3 pt-4 border-t">
                                 <Button
                                     className="flex-1 bg-chart-3 hover:bg-chart-3/90"
