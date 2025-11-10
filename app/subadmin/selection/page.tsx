@@ -2,9 +2,9 @@ import { getFrappeWithUserToken } from "@/lib/frappeHelper";
 import SubAdminSelectionClient from "./client";
 export const runtime = 'edge';
 
-// Lightweight interface for selection list view
 interface ApplicationSelectionItem {
   id: string;
+  realApplicationId: string; 
   applicantName: string;
   mobile: string;
   village: string;
@@ -33,24 +33,30 @@ export default async function SubAdminSelection({ searchParams }: {
   if (searchParams.village) filters.village = searchParams.village;
   if (searchParams.component) filters.component = searchParams.component;
 
-  // Fetch applications with Approved or Selected status
   const response = await frappe.call().get('vmddp_app.api.api.get_applications_summary', {
     page: '1',
-    limit: '1000', // Get all approved/selected for selection process
+    limit: '1000', 
     filters: JSON.stringify(filters)
   });
 
-  // Map to lightweight selection items - expand each application by individual components
   const applications: ApplicationSelectionItem[] = [];
   
   (response?.message?.applications || []).forEach((app: any) => {
-    const submittedDate = app.creation ? new Date(app.creation).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+    let submittedDate = 'Unknown';
+    if (app.creation) {
+      submittedDate = new Date(app.creation).toISOString().split('T')[0];
+    } else if (app.date) {
+      submittedDate = new Date(app.date).toISOString().split('T')[0];
+    } else if (app.modified) {
+      submittedDate = new Date(app.modified).toISOString().split('T')[0];
+    }
     
     if (Array.isArray(app.component_list) && app.component_list.length > 0) {
       // Create separate entries for each component
       app.component_list.forEach((component: string) => {
         applications.push({
-          id: `${app.name}-${component}`, // Unique ID for each component entry
+          id: `${app.name}-${component}`, 
+          realApplicationId: app.name, 
           applicantName: app.fullname,
           mobile: app.mobile_no || '',
           village: app.village || 'N/A',
@@ -60,9 +66,9 @@ export default async function SubAdminSelection({ searchParams }: {
         });
       });
     } else {
-      // Fallback for applications without component list
       applications.push({
         id: app.name,
+        realApplicationId: app.name,
         applicantName: app.fullname,
         mobile: app.mobile_no || '',
         village: app.village || 'N/A',

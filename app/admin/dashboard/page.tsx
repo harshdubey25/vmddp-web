@@ -26,7 +26,7 @@ export default async function AdminDashboard() {
 
         applicationsResponse = await frappeServer.call().get('vmddp_app.api.api.get_applications_summary', {
             page: '1',
-            limit: '4',
+            limit: '5',
             order_by: 'creation desc'
         });
     } catch (error) {

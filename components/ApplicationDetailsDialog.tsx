@@ -52,11 +52,12 @@ export default function ApplicationDetailsDialog({
         "App Form",
         application?.id || null
     );
+    console.log('fullAppDoc', fullAppDoc)
 
     // Fetch village details to get the actual village name (name1 field)
     const { data: villageDoc } = useFrappeGetDoc(
         "Village Master",
-        application?.village && application.village !== 'N/A' ? application.village : null
+        application?.village && application.village !== '--' ? application.village : null
     );
 
     // Update village name when village document is fetched
@@ -87,6 +88,38 @@ export default function ApplicationDetailsDialog({
         onClose();
     };
     console.log("full app doc", fullAppDoc)
+    // Inline document extraction logic (exactly like subadmin implementation)
+    const documents: { name: string; uploaded: boolean; url?: string }[] = [];
+    if (fullAppDoc) {
+        if (fullAppDoc.self_ration_card_image) {
+            documents.push({ name: 'Self Ration Card', uploaded: true, url: fullAppDoc.self_ration_card_image });
+        }
+        if (fullAppDoc.family_ration_card_image) {
+            documents.push({ name: 'Family Ration Card', uploaded: true, url: fullAppDoc.family_ration_card_image });
+        }
+        if (fullAppDoc.aadhar_image && typeof fullAppDoc.aadhar_image === 'string' && fullAppDoc.aadhar_image.startsWith('http')) {
+            documents.push({ name: 'Aadhaar Card', uploaded: true, url: fullAppDoc.aadhar_image });
+        }
+
+        if (Array.isArray(fullAppDoc.components)) {
+            fullAppDoc.components.forEach((component: any) => {
+                if (component?.response && typeof component.response === 'string') {
+                    try {
+                        const responseData = JSON.parse(component.response);
+                        if (responseData && typeof responseData === 'object') {
+                            if (responseData.aadhar_image && typeof responseData.aadhar_image === 'string') {
+                                documents.push({
+                                    name: `${component.component} - Aadhaar Card`,
+                                    uploaded: true,
+                                    url: responseData.aadhar_image
+                                });
+                            }
+                        }
+                    } catch (e) { }
+                }
+            });
+        }
+    }
     return (
         <>
             <Dialog open={isOpen} onOpenChange={onClose}>
@@ -118,26 +151,28 @@ export default function ApplicationDetailsDialog({
                                 <div className="space-y-3 text-sm">
                                     <div>
                                         <Label className="text-muted-foreground">Applicant Name</Label>
-                                        <p className="font-medium">{application.applicantName}</p>
+                                        <p className="font-medium">
+                                            {fullAppDoc?.first_name || application.firstName || ''} {fullAppDoc?.middle_name || application.middleName || ''} {fullAppDoc?.last_name || application.lastName || ''}
+                                        </p>
                                     </div>
                                     <div>
                                         <Label className="text-muted-foreground">Gender</Label>
-                                        <p className="font-medium">{application.gender}</p>
+                                        <p className="font-medium">{fullAppDoc?.gender || application.gender || '--'}</p>
                                     </div>
                                     <div>
                                         <Label className="text-muted-foreground">Caste/Category</Label>
-                                        <p className="font-medium">{application.caste}</p>
+                                        <p className="font-medium">{fullAppDoc?.category || application.caste || application.category || '--'}</p>
                                     </div>
                                     <div>
                                         <Label className="text-muted-foreground">Mobile Number</Label>
                                         <p className="font-medium flex items-center gap-2">
                                             <Phone className="w-3 h-3" />
-                                            {application.mobile}
+                                            {fullAppDoc?.mobile || application.mobile || '--'}
                                         </p>
                                     </div>
                                     <div>
-                                        <Label className="text-muted-foreground">Aadhar Number</Label>
-                                        <p className="font-medium">{application.aadharNumber}</p>
+                                        <Label className="text-muted-foreground">Aadhaar Number</Label>
+                                        <p className="font-medium font-mono">{fullAppDoc?.aadhar_number || application.aadharNumber || application.aadhar_number || '--'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -150,18 +185,41 @@ export default function ApplicationDetailsDialog({
                                 <div className="space-y-3 text-sm">
                                     <div>
                                         <Label className="text-muted-foreground">Ration Card Members</Label>
-                                        <p className="font-medium">{application.rationCardMembers}</p>
+                                        <p className="font-medium">
+                                            {(() => {
+                                                const v = fullAppDoc?.number_of_members_in_ration_card ?? application.rationCardMembers;
+                                                const n = typeof v === 'string' ? parseInt(v as string) : (typeof v === 'number' ? v : 0);
+                                                return Number.isFinite(n) && n > 0 ? n : 0;
+                                            })()}
+                                        </p>
                                     </div>
                                     <div>
                                         <Label className="text-muted-foreground">Family Aadhar Numbers</Label>
                                         <div className="space-y-1 mt-1">
-                                            {application.familyAadharNumbers && application.familyAadharNumbers.length > 0 ? (
-                                                application.familyAadharNumbers.map((aadhar: string, idx: number) => (
-                                                    <p key={idx} className="font-medium text-xs font-mono">{aadhar}</p>
-                                                ))
-                                            ) : (
-                                                <p className="font-medium text-muted-foreground">-</p>
-                                            )}
+                                            {(() => {
+                                                const possible = [
+                                                    fullAppDoc?.family_member_aadhar_number,
+                                                ];
+                                                let list: string[] = [];
+                                                for (const field of possible) {
+                                                    if (!field) continue;
+                                                    if (Array.isArray(field)) {
+                                                        list = field.filter(Boolean).map((x: any) => String(x));
+                                                        break;
+                                                    }
+                                                    if (typeof field === 'string') {
+                                                        list = field.split(',').map((s) => s.trim()).filter(Boolean);
+                                                        break;
+                                                    }
+                                                }
+                                                return list && list.length > 0 ? (
+                                                    list.map((aadhar: string, idx: number) => (
+                                                        <p key={idx} className="font-medium text-xs font-mono">{aadhar}</p>
+                                                    ))
+                                                ) : (
+                                                    <p className="font-medium text-muted-foreground">-</p>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                 </div>
@@ -177,11 +235,11 @@ export default function ApplicationDetailsDialog({
                                 <div className="space-y-3 text-sm">
                                     <div>
                                         <Label className="text-muted-foreground">District</Label>
-                                        <p className="font-medium">{application.district}</p>
+                                        <p className="font-medium">{fullAppDoc?.district || application.district || '--'}</p>
                                     </div>
                                     <div>
                                         <Label className="text-muted-foreground">Taluka</Label>
-                                        <p className="font-medium">{application.taluka}</p>
+                                        <p className="font-medium">{fullAppDoc?.taluka || application.taluka || '--'}</p>
                                     </div>
                                     <div>
                                         <Label className="text-muted-foreground">Village</Label>
@@ -353,13 +411,8 @@ export default function ApplicationDetailsDialog({
                                                         }
                                                     }
 
-                                                    // Fallback: pretty-print the JSON
-                                                    return (
-                                                        <div className="mt-2">
-                                                            <Label className="text-muted-foreground text-xs">No Response Data Found</Label>
-
-                                                        </div>
-                                                    );
+                                                    // Fallback: hide if no valid response data
+                                                    return null;
                                                 } catch (err) {
                                                     // If JSON.parse fails, show raw response
                                                     return (
@@ -389,43 +442,37 @@ export default function ApplicationDetailsDialog({
                                 Documents Uploaded
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {application.documents?.map((doc: { name: string; uploaded: boolean; url?: string }, idx: number) => (
-                                    <div
-                                        key={idx}
-                                        className="flex items-center justify-between p-3 border rounded-lg"
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <FileText className="w-4 h-4 text-muted-foreground" />
-                                            <span className="text-sm font-medium">{doc.name}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            {doc.uploaded ? (
-                                                <>
-                                                    <Badge variant="outline" className="bg-chart-3/10 text-chart-3 border-chart-3/20">
-                                                        Uploaded
-                                                    </Badge>
+                                {documents.length > 0 ? (
+                                    documents.map((doc, idx) => (
+                                        <div
+                                            key={doc.url || idx}
+                                            className="flex items-center justify-between p-3 border rounded-lg"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <FileText className="w-4 h-4 text-muted-foreground" />
+                                                <span className="text-sm font-medium">{doc.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant="outline" className="bg-chart-3/10 text-chart-3 border-chart-3/20">
+                                                    Uploaded
+                                                </Badge>
+                                                {doc.url && (
                                                     <Button
                                                         size="sm"
                                                         variant="ghost"
-                                                        onClick={() => {
-                                                            if (doc.url) {
-                                                                window.open(doc.url, '_blank');
-                                                            }
-                                                        }}
+                                                        onClick={() => window.open(doc.url!, '_blank')}
                                                         data-testid={`button-view-document-${doc.name.toLowerCase().replace(/\s+/g, '-')}`}
                                                     >
                                                         <Eye className="w-3 h-3 mr-1" />
                                                         View
                                                     </Button>
-                                                </>
-                                            ) : (
-                                                <Badge variant="outline" className="bg-chart-1/10 text-chart-1 border-chart-1/20">
-                                                    Missing
-                                                </Badge>
-                                            )}
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">No documents uploaded</p>
+                                )}
                             </div>
                         </div>
 

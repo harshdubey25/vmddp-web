@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 import {
     Accordion,
     AccordionContent,
@@ -31,16 +40,15 @@ import { frappeBrowser } from "@/lib/frappe";
 import { getStatusBadge } from "@/lib/status-utils";
 
 interface ApplicationSelectionItem {
-    id: string;
-    applicantName: string;
-    mobile: string;
-    village: string;
-    component: string;
-    status: "Approved" | "Selected";
-    submittedDate: string;
-}
-
-interface SubAdminSelectionClientProps {
+  id: string;
+  realApplicationId: string;
+  applicantName: string;
+  mobile: string;
+  village: string;
+  component: string;
+  status: "Approved" | "Selected";
+  submittedDate: string;
+}interface SubAdminSelectionClientProps {
     applications: ApplicationSelectionItem[];
 }
 
@@ -49,6 +57,8 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
     const [searchQuery, setSearchQuery] = useState("");
     const [villageFilter, setVillageFilter] = useState("all");
     const [applications, setApplications] = useState<ApplicationSelectionItem[]>(initialApplications);
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 20;
 
     // Debug: Log application statuses
     console.log('Applications loaded:', applications.length);
@@ -65,7 +75,7 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
         
         // Count unique people by extracting original application IDs
         const uniqueSelectedPeople = new Set(
-            selectedApplications.map(app => app.id.includes('-') ? app.id.split('-')[0] : app.id)
+            selectedApplications.map(app => app.realApplicationId)
         );
         
         return { selected: uniqueSelectedPeople.size, total: 5 };
@@ -103,10 +113,10 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
         return Array.from(groups.values()).sort((a, b) => a.village.localeCompare(b.village));
     };
 
-    const filteredApplications = applications
+    const allFilteredApplications = applications
         .filter((app) => {
             const matchesSearch =
-                app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                app.realApplicationId.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 app.applicantName.toLowerCase().includes(searchQuery.toLowerCase());
 
             const matchesVillage = villageFilter === "all" || app.village === villageFilter;
@@ -115,14 +125,22 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
         })
         .sort((a, b) => new Date(a.submittedDate).getTime() - new Date(b.submittedDate).getTime());
 
+    const totalItems = allFilteredApplications.length;
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const filteredApplications = allFilteredApplications.slice(startIndex, endIndex);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, villageFilter]);
+
     const handleSelect = async (appId: string) => {
         const app = applications.find(a => a.id === appId);
         if (!app) return;
 
-        // Extract original application ID (remove component suffix)
-        const originalAppId = app.id.includes('-') ? app.id.split('-')[0] : app.id;
+        const originalAppId = app.realApplicationId;
 
-        // Check quota before mutation
         const currentSelected = applications.filter(
             a => a.village === app.village && a.component === app.component && a.status === "Selected"
         ).length;
@@ -142,11 +160,9 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                 status: 'Selected',
             });
 
-            // Update local state - mark ALL component entries for this applicant as selected
-            // since the application status applies to the whole application
             setApplications(prev =>
                 prev.map(application => {
-                    const applicantOriginalId = application.id.includes('-') ? application.id.split('-')[0] : application.id;
+                    const applicantOriginalId = application.realApplicationId;
                     return applicantOriginalId === originalAppId 
                         ? { ...application, status: "Selected" as const } 
                         : application;
@@ -171,7 +187,7 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
         if (app.status === "Selected") return false;
         
         // Check if this person has already been selected for any component
-        const originalAppId = app.id.includes('-') ? app.id.split('-')[0] : app.id;
+        const originalAppId = app.realApplicationId;
         const alreadySelected = applications.some(a => {
             const aOriginalId = a.id.includes('-') ? a.id.split('-')[0] : a.id;
             return aOriginalId === originalAppId && a.status === "Selected";
@@ -209,24 +225,24 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Card>
                                 <CardHeader className="pb-3">
-                                    <CardDescription>Unique People (Approved)</CardDescription>
+                                    <CardDescription>Approved</CardDescription>
                                     <CardTitle className="text-3xl">
                                         {new Set(
                                             applications
                                                 .filter(app => app.status === "Approved")
-                                                .map(app => app.id.includes('-') ? app.id.split('-')[0] : app.id)
+                                                .map(app => app.realApplicationId)
                                         ).size}
                                     </CardTitle>
                                 </CardHeader>
                             </Card>
                             <Card>
                                 <CardHeader className="pb-3">
-                                    <CardDescription>Unique People (Selected)</CardDescription>
+                                    <CardDescription>Selected</CardDescription>
                                     <CardTitle className="text-3xl">
                                         {new Set(
                                             applications
                                                 .filter(app => app.status === "Selected")
-                                                .map(app => app.id.includes('-') ? app.id.split('-')[0] : app.id)
+                                                .map(app => app.realApplicationId)
                                         ).size}
                                     </CardTitle>
                                 </CardHeader>
@@ -326,7 +342,7 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                     <div>
                                         <CardTitle>Approved Applications (FIFO Order)</CardTitle>
                                         <CardDescription>
-                                            {filteredApplications.length} applications • Sorted by submission date
+                                            {totalItems} applications found • Page {currentPage} of {totalPages} • Sorted by submission date
                                         </CardDescription>
                                     </div>
                                 </div>
@@ -384,19 +400,22 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                                             <td className="p-4">
                                                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                                                     <Calendar className="w-3 h-3" />
-                                                                    {new Date(app.submittedDate).toLocaleDateString()}
+                                                                    {app.submittedDate === 'Unknown' 
+                                                                        ? 'Unknown' 
+                                                                        : new Date(app.submittedDate).toLocaleDateString()
+                                                                    }
                                                                 </div>
                                                             </td>
                                                             <td className="p-4">
                                                                 <div className="font-mono text-sm">
                                                                     <span className="font-semibold">
-                                                                        {app.id.includes('-') ? app.id.split('-')[0] : app.id}
+                                                                        {app.realApplicationId}
                                                                     </span>
-                                                                    {app.id.includes('-') && (
+                                                                    {/* {app.id.includes('-') && (
                                                                         <p className="text-xs text-muted-foreground mt-1">
-                                                                            Component entry
+                                                                            Component: {app.component}
                                                                         </p>
-                                                                    )}
+                                                                    )} */}
                                                                 </div>
                                                             </td>
                                                             <td className="p-4">
@@ -456,6 +475,79 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                         </table>
                                     </div>
                                 </div>
+
+                                {/* Pagination */}
+                                {totalPages > 1 && (
+                                    <div className="flex items-center justify-between pt-4">
+                                        <p className="text-sm text-muted-foreground">
+                                            Showing {filteredApplications.length} items on page {currentPage} 
+                                            {filteredApplications.length < pageSize && currentPage > 1 ? ' (last page)' : ''}
+                                        </p>
+                                        <Pagination>
+                                            <PaginationContent>
+                                                <PaginationItem>
+                                                    <PaginationPrevious
+                                                        href="#"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            if (currentPage > 1) {
+                                                                setCurrentPage(currentPage - 1);
+                                                            }
+                                                        }}
+                                                        className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
+                                                    />
+                                                </PaginationItem>
+
+                                                {/* Page numbers */}
+                                                {(() => {
+                                                    const hasNextPage = filteredApplications.length === pageSize && currentPage < totalPages;
+                                                    const maxVisiblePages = hasNextPage ? currentPage + 2 : currentPage;
+                                                    const startPage = Math.max(1, currentPage - 2);
+                                                    const endPage = Math.min(totalPages, Math.min(maxVisiblePages, startPage + 4));
+                                                    
+                                                    return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
+                                                        const pageNum = startPage + i;
+                                                        return (
+                                                            <PaginationItem key={pageNum}>
+                                                                <PaginationLink
+                                                                    href="#"
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        setCurrentPage(pageNum);
+                                                                    }}
+                                                                    isActive={pageNum === currentPage}
+                                                                >
+                                                                    {pageNum}
+                                                                </PaginationLink>
+                                                            </PaginationItem>
+                                                        );
+                                                    });
+                                                })()}
+
+                                                {filteredApplications.length === pageSize && currentPage < totalPages && currentPage > 3 && (
+                                                    <>
+                                                        <PaginationItem>
+                                                            <PaginationEllipsis />
+                                                        </PaginationItem>
+                                                    </>
+                                                )}
+
+                                                <PaginationItem>
+                                                    <PaginationNext
+                                                        href="#"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            if (currentPage < totalPages) {
+                                                                setCurrentPage(currentPage + 1);
+                                                            }
+                                                        }}
+                                                        className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}
+                                                    />
+                                                </PaginationItem>
+                                            </PaginationContent>
+                                        </Pagination>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

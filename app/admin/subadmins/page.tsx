@@ -485,7 +485,8 @@ export default function AdminSubAdmins() {
                                                                             </Badge>
                                                                         </div>
                                                                         <p className="text-sm text-muted-foreground">
-                                                                            ID: {dpo.dpo_id} • @{dpo.user_id}
+                                                                            ID: {dpo.dpo_id} 
+                                                                            {/* • @{dpo.user_id} */}
                                                                         </p>
                                                                     </div>
                                                                     <div className="flex gap-2">
@@ -517,7 +518,7 @@ export default function AdminSubAdmins() {
                                                                     </div>
                                                                     <div className="flex items-center gap-2 text-muted-foreground">
                                                                         <Phone className="w-4 h-4" />
-                                                                        <span>{dpo.mobile_number}</span>
+                                                                        <span>{dpo.mobile_number || "Not provided"}</span>
                                                                     </div>
                                                                     <div className="flex items-center gap-2 text-muted-foreground">
                                                                         <MapPin className="w-4 h-4" />

@@ -383,7 +383,8 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                 {/* Pagination */}
                                 <div className="flex items-center justify-between pt-4">
                                     <p className="text-sm text-muted-foreground">
-                                        Showing page {currentPage} ({pageSize} items per page)
+                                        Showing {applications.length} items on page {currentPage} 
+                                        {applications.length < pageSize && currentPage > 1 ? ' (last page)' : ''}
                                     </p>
                                     <Pagination>
                                         <PaginationContent>
@@ -400,21 +401,28 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                             </PaginationItem>
 
                                             {/* Page numbers */}
-                                            {[...Array(Math.min(5, Math.max(1, currentPage + 2)))].map((_, i) => {
-                                                const pageNum = Math.max(1, currentPage - 2) + i;
-                                                return (
-                                                    <PaginationItem key={pageNum}>
-                                                        <PaginationLink
-                                                            href={`${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: pageNum.toString() }).toString()}`}
-                                                            isActive={pageNum === currentPage}
-                                                        >
-                                                            {pageNum}
-                                                        </PaginationLink>
-                                                    </PaginationItem>
-                                                );
-                                            })}
+                                            {(() => {
+                                                const hasNextPage = applications.length === pageSize;
+                                                const maxVisiblePages = hasNextPage ? currentPage + 2 : currentPage;
+                                                const startPage = Math.max(1, currentPage - 2);
+                                                const endPage = Math.min(maxVisiblePages, startPage + 4);
+                                                
+                                                return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
+                                                    const pageNum = startPage + i;
+                                                    return (
+                                                        <PaginationItem key={pageNum}>
+                                                            <PaginationLink
+                                                                href={`${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: pageNum.toString() }).toString()}`}
+                                                                isActive={pageNum === currentPage}
+                                                            >
+                                                                {pageNum}
+                                                            </PaginationLink>
+                                                        </PaginationItem>
+                                                    );
+                                                });
+                                            })()}
 
-                                            {currentPage < 10 && (
+                                            {applications.length === pageSize && currentPage > 3 && (
                                                 <>
                                                     <PaginationItem>
                                                         <PaginationEllipsis />
