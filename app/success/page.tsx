@@ -67,7 +67,7 @@ export default function SuccessPage() {
         document.head.appendChild(style);
 
         // Get application ID from URL params
-        const urlParams = new URLSearchParams(window.location.search);
+        const urlParams = new URLSearchParams(window.location.search); 
         const id = urlParams.get('applicationId');
         if (id) {
             setApplicationId(id);

@@ -230,7 +230,7 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                         {new Set(
                                             applications
                                                 .filter(app => app.status === "Approved")
-                                                .map(app => app.id.includes('-') ? app.id.split('-')[0] : app.id)
+                                                .map(app => app.realApplicationId)
                                         ).size}
                                     </CardTitle>
                                 </CardHeader>
@@ -242,7 +242,7 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                         {new Set(
                                             applications
                                                 .filter(app => app.status === "Selected")
-                                                .map(app => app.id.includes('-') ? app.id.split('-')[0] : app.id)
+                                                .map(app => app.realApplicationId)
                                         ).size}
                                     </CardTitle>
                                 </CardHeader>
