@@ -33,7 +33,7 @@ export default function SubAdminMessages() {
   const { data: messages, isLoading: messagesLoading } = useFrappeGetDocList("Contact Us", {
     fields: ["name", "district", "full_name", "mobile_number", "message", "creation"],
     filters: userDistrict ? [["district", "=", userDistrict]] : [],
-    orderBy: { field: "creation", order: "desc" },
+    orderBy: { field: "creation", order: "asc" },
     limit_start: (currentPage - 1) * itemsPerPage,
     limit: itemsPerPage,
   });
