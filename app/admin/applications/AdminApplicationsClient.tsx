@@ -357,7 +357,11 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                                         </td>
                                                         <td className="p-4">{getStatusBadge(app.status)}</td>
                                                         <td className="p-4">
-                                                            <p className="text-sm">{app.approver || ""}</p>
+                                                            {app.approver ? (
+                                                                <p className="text-sm">{app.approver}</p>
+                                                            ) : (
+                                                                <Badge variant="secondary" className="text-xs" data-testid={`badge-approver-unassigned-${index}`}>Not Assigned</Badge>
+                                                            )}
                                                         </td>
                                                         <td className="p-4">
                                                             <p className="text-sm">{app.submittedDate}</p>

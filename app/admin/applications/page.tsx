@@ -14,7 +14,7 @@ export interface Application {
     taluka: string;
     village: string;
     component: string;
-    status: "Pending" | "Approved" | "Rejected" | "Selected";
+    status: "Pending" | "Approved" | "Rejected" | "Selected" | "Not Assigned";
     submittedDate: string;
     animalCount?: number;
     approver?: string;
