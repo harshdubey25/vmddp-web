@@ -108,17 +108,26 @@ export default function SuccessPage() {
             const response = await fetch(`/api/digilocker/verification-status?verification_id=${verificationId}`);
             const data = await response.json();
 
-            if (response.ok && data.success) {
-                const status = data.data?.status;
-                if (status === "AUTHENTICATED") {
+            if (response.ok) {
+                // Check if verification was successful
+                if (data.success && data.data?.status === "AUTHENTICATED") {
                     setIsVerified(true);
                     toast({
                         title: "DigiLocker Verification Successful",
                         description: "Your documents have been verified successfully.",
                     });
                 } else {
+                    // Handle failed verification or invalid details
                     setIsVerified(false);
-                    setVerificationError(`Verification status: ${status || "Not Authenticated"}`);
+                    const status = data.data?.status;
+                    const message = data.data?.message;
+
+                    // Provide specific error message based on status
+                    if (status === "INVALID_DETAILS") {
+                        setVerificationError(message || "Name and mobile number does not match as in application form");
+                    } else {
+                        setVerificationError(message || `Verification status: ${status || "Not Authenticated"}`);
+                    }
                 }
             } else {
                 setIsVerified(false);

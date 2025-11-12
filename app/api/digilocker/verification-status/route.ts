@@ -37,8 +37,8 @@ export async function GET(request: NextRequest) {
 
     console.log("Frappe API Response:", frappeData);
 
-    // Check if response has an error status (not 200)
-    if (!frappeData || frappeData.message?.success === false || (frappeData.message?.status && frappeData.message?.status !== 200)) {
+    // Check if response has an error status (not 200) - but not if it's just success: false with data
+    if (!frappeData || (frappeData.message?.status && frappeData.message?.status !== 200)) {
       return NextResponse.json(
         {
           error:
@@ -51,7 +51,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Return verification status and details
+    // Handle case where success is false but we have data (e.g., INVALID_DETAILS)
+    if (frappeData.message?.success === false && frappeData.message?.data) {
+      return NextResponse.json({
+        success: false,
+        data: {
+          verification_id: frappeData.message.data?.verification_id,
+          reference_id: frappeData.message.data?.reference_id,
+          status: frappeData.message.data?.status,
+          user_details: frappeData.message.data?.user_details || {},
+          document_requested: frappeData.message.data?.document_requested || [],
+          document_consent: frappeData.message.data?.document_consent || [],
+          message: frappeData.message.data?.message || "Verification failed",
+        },
+      });
+    }
+
+    // Return verification status and details for successful case
     return NextResponse.json({
       success: true,
       data: {
