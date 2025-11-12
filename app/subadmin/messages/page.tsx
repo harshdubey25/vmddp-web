@@ -2,9 +2,10 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import AdminSidebar from "@/components/AdminSidebar";
-import { MessageSquare, User, Phone, MapPin, Calendar } from "lucide-react";
+import { MessageSquare, User, Phone, MapPin, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 interface ContactMessage {
@@ -19,6 +20,8 @@ interface ContactMessage {
 export default function SubAdminMessages() {
   const { user } = useAuth();
   const [userDistrict, setUserDistrict] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Get user's district from auth context
   useEffect(() => {
@@ -30,9 +33,28 @@ export default function SubAdminMessages() {
   const { data: messages, isLoading: messagesLoading } = useFrappeGetDocList("Contact Us", {
     fields: ["name", "district", "full_name", "mobile_number", "message", "creation"],
     filters: userDistrict ? [["district", "=", userDistrict]] : [],
-    orderBy: { field: "creation", order: "desc" },
-    limit: 100,
+    orderBy: { field: "creation", order: "asc" },
+    limit_start: (currentPage - 1) * itemsPerPage,
+    limit: itemsPerPage,
   });
+
+  // Get total count for pagination
+  const { data: totalCountData } = useFrappeGetDocList("Contact Us", {
+    fields: ["name"],
+    filters: userDistrict ? [["district", "=", userDistrict]] : [],
+    limit: 1000, // Get all to count
+  });
+
+  const totalMessages = totalCountData?.length || 0;
+  const totalPages = Math.ceil(totalMessages / itemsPerPage);
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -59,11 +81,36 @@ export default function SubAdminMessages() {
             </div>
           ) : messages && messages.length > 0 ? (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-6">
-                <MessageSquare className="w-5 h-5 text-primary" />
-                <span className="text-sm text-muted-foreground">
-                  {messages.length} message{messages.length !== 1 ? 's' : ''}
-                </span>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-primary" />
+                  <span className="text-sm text-muted-foreground">
+                    Showing {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, totalMessages)} of {totalMessages} message{totalMessages !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground px-2">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
               {messages.map((msg: ContactMessage) => (
                 <Card key={msg.name} className="hover:shadow-md transition-shadow">
@@ -101,6 +148,33 @@ export default function SubAdminMessages() {
                   </CardContent>
                 </Card>
               ))}
+
+              {/* Pagination at bottom */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-6">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground px-4">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex items-center justify-center h-full">
