@@ -78,12 +78,14 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
                 }
             }
 
-
-            if (validated?.roles.includes(UserRole.VMDDP_ADMIN)) {
-                router.push('/admin/dashboard');
-            } else if (validated?.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {
-                router.push('/subadmin/dashboard');
-            }
+            if (validated?.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
+                router.push('/accountant');
+            } else
+                if (validated?.roles.includes(UserRole.VMDDP_ADMIN)) {
+                    router.push('/admin/dashboard');
+                } else if (validated?.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {
+                    router.push('/subadmin/dashboard');
+                }
 
             return true;
         } catch (err) {
