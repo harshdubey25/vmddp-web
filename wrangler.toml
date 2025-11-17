@@ -15,6 +15,7 @@ compatibility_flags = ["nodejs_compat"]
 [env.production.vars]
 NEXT_PUBLIC_FRAPPE_BASE_URL = "https://portal.vmddp.com"
 NEXT_PUBLIC_BASE_URL = "https://vmddp.com"
+NEXT_GOOGLE_TAG_MANAGER="GTM-5KQ84FVB"
 
 [env.preview]
 compatibility_flags = ["nodejs_compat"]
@@ -23,6 +24,4 @@ compatibility_flags = ["nodejs_compat"]
 NEXT_PUBLIC_FRAPPE_BASE_URL = "https://gov-vmddp.klaimify.in"
 NEXT_PUBLIC_BASE_URL = "https://main.vmddp-web.pages.dev"
 
-[env.production.vars]
-NEXT_GOOGLE_TAG_MANAGER="GTM-5KQ84FVB"
 
