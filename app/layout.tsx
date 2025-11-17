@@ -7,6 +7,7 @@ import AuthProvider from "@/context/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 import I18nProvider from "@/components/I18nProvider";
 import SplashWrapper from "@/components/SplashWrapper";
+import { GoogleTagManager } from "@next/third-parties/google"
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -29,6 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      {process.env.NEXT_GOOGLE_TAG_MANAGER && <GoogleTagManager gtmId={process.env.NEXT_GOOGLE_TAG_MANAGER} />}
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
