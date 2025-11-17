@@ -62,6 +62,8 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
     const [familyMemberCount, setFamilyMemberCount] = useState<number>(0);
     const [components, setComponents] = useState<any[]>([]);
     const [submitLoading, setSubmitLoading] = useState(false);
+    const [submittedApplicationId, setSubmittedApplicationId] = useState<string>("");
+    const [isFormSubmitted, setIsFormSubmitted] = useState(false);
     const canSubmitRef = useRef(false);
     const { toast } = useToast();
     const router = useRouter();
@@ -278,48 +280,57 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
         setSubmitLoading(true);
 
         try {
-            // Extract family member Aadhar numbers
-            const familyAadharNumbers: string[] = [];
-            const familyMemberCount = parseInt(String(formData.rationCardMembers)) || 0;
+            let applicationId = submittedApplicationId;
 
-            if (familyMemberCount > 1) {
-                for (let i = 1; i < familyMemberCount; i++) {
-                    const fieldName = `familyAadhaar${i}` as keyof RegisterFormValues;
-                    const aadharValue = formData[fieldName];
-                    if (aadharValue && typeof aadharValue === 'string' && aadharValue.trim()) {
-                        familyAadharNumbers.push(aadharValue.trim());
+            // Only submit the form if it hasn't been submitted yet
+            if (!isFormSubmitted) {
+                // Extract family member Aadhar numbers
+                const familyAadharNumbers: string[] = [];
+                const familyMemberCount = parseInt(String(formData.rationCardMembers)) || 0;
+
+                if (familyMemberCount > 1) {
+                    for (let i = 1; i < familyMemberCount; i++) {
+                        const fieldName = `familyAadhaar${i}` as keyof RegisterFormValues;
+                        const aadharValue = formData[fieldName];
+                        if (aadharValue && typeof aadharValue === 'string' && aadharValue.trim()) {
+                            familyAadharNumbers.push(aadharValue.trim());
+                        }
                     }
                 }
+
+                const submissionData = {
+                    ...formData,
+                    family_member_aadhar_number: familyAadharNumbers.join(','),
+                    components: formData.components
+                };
+
+                // Submit the form first
+                const res = await frappePublic.call().post('vmddp_app.api.app_form.create_app_form', {
+                    data: submissionData
+                });
+
+                applicationId = res?.message?.name || res?.data?.name || '';
+
+                if (!applicationId) {
+                    throw new Error('Application ID not received');
+                }
+
+                // Mark form as submitted and store application ID
+                setIsFormSubmitted(true);
+                setSubmittedApplicationId(applicationId);
+
+                // toast({
+                //     title: t('application_submitted'),
+                //     description: t('application_submitted_desc'),
+                // });
+
+                // Store form data in localStorage
+                localStorage.setItem('submittedApplicationData', JSON.stringify({
+                    ...formData,
+                    applicationId,
+                    submittedAt: new Date().toISOString()
+                }));
             }
-
-            const submissionData = {
-                ...formData,
-                family_member_aadhar_number: familyAadharNumbers.join(','),
-                components: formData.components
-            };
-
-            // Submit the form first
-            const res = await frappePublic.call().post('vmddp_app.api.app_form.create_app_form', {
-                data: submissionData
-            });
-
-            const applicationId = res?.message?.name || res?.data?.name || '';
-
-            if (!applicationId) {
-                throw new Error('Application ID not received');
-            }
-
-            toast({
-                title: t('application_submitted'),
-                description: t('application_submitted_desc'),
-            });
-
-            // Store form data in localStorage
-            localStorage.setItem('submittedApplicationData', JSON.stringify({
-                ...formData,
-                applicationId,
-                submittedAt: new Date().toISOString()
-            }));
 
             // Call DigiLocker API to get the verification URL
             const digilockerResponse = await fetch('/api/digilocker/create-url', {
