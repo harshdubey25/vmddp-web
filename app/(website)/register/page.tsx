@@ -8,7 +8,7 @@ export default async function RegisterPage() {
     // Fetch criteria with child table data from custom API
     let criteriaFieldsData: any[] = [];
     try {
-        const res = await frappeServer.call().get('vmddp_app.api.api.get_all_docs_with_children', { doctype: 'Criteria' });
+        const res = await frappeServer.call().get('vmddp_app.api.api.get_criteria_details');
         console.log("Fetched criteria fields with children:", res);
         criteriaFieldsData = res?.message ?? [];
     } catch (error) {
