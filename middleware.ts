@@ -8,29 +8,6 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get("frappe_access_token")?.value;
 
 
-  if (url.pathname.startsWith("/accountant")) {
-    if (!token) {
-      url.pathname = "/login";
-      return NextResponse.redirect(url);
-    }
-    const data = await validateUserToken(token);
-    if (!data || !data.roles) {
-      url.pathname = "/login";
-      return NextResponse.redirect(url);
-    }
-    // Block subadmin from accessing admin routes
-    if (data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
-      url.pathname = "/accountant/dashboard";
-      return NextResponse.redirect(url);
-    }
-    // Only allow admin
-    // if (!data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
-    //   url.pathname = "/login";
-    //   return NextResponse.redirect(url);
-    // }
-  }
-
-
   // 🔹 Protect /admin and /subadmin routes and block cross-access
   if (url.pathname.startsWith("/admin")) {
     if (!token) {
@@ -45,6 +22,11 @@ export async function middleware(req: NextRequest) {
     // Block subadmin from accessing admin routes
     if (data.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {
       url.pathname = "/subadmin/dashboard";
+      return NextResponse.redirect(url);
+    }
+    // Block accountant from accessing admin routes
+    if (data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
+      url.pathname = "/accountant/dashboard";
       return NextResponse.redirect(url);
     }
     // Only allow admin
@@ -68,8 +50,40 @@ export async function middleware(req: NextRequest) {
       url.pathname = "/admin/dashboard";
       return NextResponse.redirect(url);
     }
+    // Block accountant from accessing subadmin routes
+    if (data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
+      url.pathname = "/accountant/dashboard";
+      return NextResponse.redirect(url);
+    }
     // Only allow subadmin
     if (!data.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  if (url.pathname.startsWith("/accountant")) {
+    if (!token) {
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+    const data = await validateUserToken(token);
+    if (!data || !data.roles) {
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+    // Block admin from accessing accountant routes
+    if (data.roles.includes(UserRole.VMDDP_ADMIN)) {
+      url.pathname = "/admin/dashboard";
+      return NextResponse.redirect(url);
+    }
+    // Block subadmin from accessing accountant routes
+    if (data.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {
+      url.pathname = "/subadmin/dashboard";
+      return NextResponse.redirect(url);
+    }
+    // Only allow accountant
+    if (!data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
       url.pathname = "/login";
       return NextResponse.redirect(url);
     }
@@ -97,5 +111,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/admin/:path*", "/subadmin/:path*"],
+  matcher: ["/login", "/admin/:path*", "/subadmin/:path*", "/accountant/:path*"],
 };
