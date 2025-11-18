@@ -16,11 +16,14 @@ interface Props {
 }
 
 const EligibilityStep = ({ values, control, errors, criteriaFields, setValue }: Props) => {
-
   const { t, i18n } = useTranslation('common');
   console.log(values)
-  // Collect all mainFieldNames for useWatch
-  const mainFieldNames = criteriaFields?.map((field, idx) => {
+
+  const sortedCriteriaFields = Array.isArray(criteriaFields)
+    ? criteriaFields
+    : [];
+
+  const mainFieldNames = sortedCriteriaFields?.map((field, idx) => {
     const fieldKey = field.fieldname || field.name || `criteria_${idx}`;
     return `eligibility[${idx}].value`;
   }) || [];
@@ -48,7 +51,6 @@ const EligibilityStep = ({ values, control, errors, criteriaFields, setValue }: 
         [fieldKey]: { loading: false, valid: !!data.valid, message: data.message },
       }));
     } catch (err) {
-
       setTagValidation((p) => ({
         ...p,
         [fieldKey]: { loading: false, valid: false, message: "Validation failed" },
@@ -91,7 +93,7 @@ const EligibilityStep = ({ values, control, errors, criteriaFields, setValue }: 
     <div className="space-y-6">
       <h2 className="font-display font-semibold text-xl mb-4">{t('eligibility_details_title')}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {criteriaFields?.map((field, idx) => {
+        {sortedCriteriaFields?.map((field, idx) => {
           // ...existing code...
           const fieldKey = field.fieldname || field.name || `criteria_${idx}`;
           const mainValueName = `eligibility[${idx}].value`;

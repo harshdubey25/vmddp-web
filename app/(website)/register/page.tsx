@@ -11,6 +11,14 @@ export default async function RegisterPage() {
         const res = await frappeServer.call().get('vmddp_app.api.api.get_criteria_details');
         console.log("Fetched criteria fields with children:", res);
         criteriaFieldsData = res?.message ?? [];
+        criteriaFieldsData = Array.isArray(criteriaFieldsData)
+            ? [...criteriaFieldsData].sort((a, b) => {
+                const orderA = typeof a.order === 'number' ? a.order : Infinity;
+                const orderB = typeof b.order === 'number' ? b.order : Infinity;
+                return orderA - orderB;
+            })
+            .reverse()
+            : [];
     } catch (error) {
         console.error("Failed to fetch criteria fields:", error);
         // Let Next.js error boundary handle the error
