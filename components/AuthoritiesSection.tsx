@@ -68,7 +68,7 @@ import { useTranslation } from 'react-i18next';
           </div>
           
           {/* Third row: 2 members at left and right edges */}
-          <div className="flex justify-center items-stretch gap-8 max-w-3xl mx-auto">
+          <div className="flex justify-center items-stretch gap-7 max-w-3xl mx-auto">
             {mainAuthorities.slice(4, 6).map((authority, index) => (
               <motion.div
                 key={authority.name}
