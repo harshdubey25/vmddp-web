@@ -550,50 +550,50 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
         <div className="flex h-screen w-full overflow-hidden bg-background">
             <AdminSidebar userRole="subadmin" />
             <div className="flex flex-col flex-1 overflow-hidden">
-                <header className="flex items-center justify-between p-6 border-b bg-card">
+                 <header className="flex items-center justify-between pl-12 pr-3 py-4 md:p-6 border-b bg-card">
                     <div>
-                        <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-applications-title">
-                            <FileText className="w-6 h-6" />
+                        <h1 className="text-lg sm:text-xl md:text-2xl font-bold flex items-center gap-2" data-testid="text-applications-title">
+                            <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
                             Applications
                         </h1>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                             Review and manage applications
                         </p>
                     </div>
-                    <Button variant="outline" className="gap-2" data-testid="button-export" onClick={handleExport}>
-                        <Download className="w-4 h-4" />
-                        Export
+                    <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-10" data-testid="button-export" onClick={handleExport}>
+                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden xs:inline">Export</span>
                     </Button>
                 </header>
 
-                <main className="flex-1 overflow-auto p-6 bg-muted/30">
-                    <div className="space-y-6 max-w-7xl">
+                <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 bg-muted/30">
+                    <div className="space-y-4 sm:space-y-6 max-w-7xl">
                         <Card>
-                            <CardHeader>
-                                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                            <CardHeader className="p-3 sm:p-4 md:p-6">
+                                <div className="flex flex-col md:flex-row gap-2 sm:gap-4 items-start md:items-center justify-between">
                                     <div>
-                                        <CardTitle>All Applications</CardTitle>
-                                        <CardDescription>
+                                        <CardTitle className="text-base sm:text-lg md:text-xl">All Applications</CardTitle>
+                                        <CardDescription className="text-xs sm:text-sm">
                                             {applications.length} applications found in your zone
                                         </CardDescription>
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
                                     <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                        <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
                                         <Input
                                             placeholder="Search by ID or name..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="pl-10"
+                                            className="pl-8 sm:pl-10 text-xs sm:text-sm h-8 sm:h-10"
                                             data-testid="input-search"
                                         />
                                     </div>
 
                                     <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                        <SelectTrigger data-testid="select-status-filter">
+                                        <SelectTrigger data-testid="select-status-filter" className="text-xs sm:text-sm h-8 sm:h-10">
                                             <SelectValue placeholder="Filter by status" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -606,7 +606,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                     </Select>
 
                                     <Select value={componentFilter} onValueChange={setComponentFilter}>
-                                        <SelectTrigger data-testid="select-component-filter">
+                                        <SelectTrigger data-testid="select-component-filter" className="text-xs sm:text-sm h-8 sm:h-10">
                                             <SelectValue placeholder="Filter by component" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -619,19 +619,19 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                         </SelectContent>
                                     </Select>
 
-                                    <div className="flex gap-2 min-w-0">
+                                    <div className="flex gap-1 sm:gap-2 min-w-0 sm:col-span-2 lg:col-span-1">
                                         <Input
                                             type="date"
                                             value={dateFrom}
                                             onChange={(e) => setDateFrom(e.target.value)}
-                                            className="flex-1 min-w-0"
+                                            className="flex-1 min-w-0 text-xs sm:text-sm h-8 sm:h-10"
                                             placeholder="From date"
                                         />
                                         <Input
                                             type="date"
                                             value={dateTo}
                                             onChange={(e) => setDateTo(e.target.value)}
-                                            className="flex-1 min-w-0"
+                                            className="flex-1 min-w-0 text-xs sm:text-sm h-8 sm:h-10"
                                             placeholder="To date"
                                         />
                                     </div>
@@ -639,16 +639,16 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
 
                                 <div className="border rounded-lg overflow-hidden">
                                     <div className="overflow-x-auto">
-                                        <table className="w-full">
+                                        <table className="w-full min-w-[640px]">
                                             <thead className="bg-muted/50 border-b">
                                                 <tr>
-                                                    <th className="text-left p-4 font-semibold text-sm">Application ID</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Applicant</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Village</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Component</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Status</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Date</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Actions</th>
+                                                    <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Application ID</th>
+                                                    <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Applicant</th>
+                                                    <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Village</th>
+                                                    <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Component</th>
+                                                    <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Status</th>
+                                                    <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Date</th>
+                                                    <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -658,33 +658,34 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                                         className="border-b hover:bg-muted/30 transition-colors"
                                                         data-testid={`application-row-${index}`}
                                                     >
-                                                        <td className="p-4">
-                                                            <span className="font-mono text-sm font-semibold">{app.id}</span>
+                                                        <td className="p-2 sm:p-3 md:p-4">
+                                                            <span className="font-mono text-xs sm:text-sm font-semibold">{app.id}</span>
                                                         </td>
-                                                        <td className="p-4">
+                                                        <td className="p-2 sm:p-3 md:p-4">
                                                             <div>
-                                                                <p className="font-medium text-sm">{app.applicantName}</p>
+                                                                <p className="font-medium text-xs sm:text-sm">{app.applicantName}</p>
                                                             </div>
                                                         </td>
-                                                        <td className="p-4">
-                                                            <p className="text-sm">{app.village}</p>
+                                                        <td className="p-2 sm:p-3 md:p-4">
+                                                            <p className="text-xs sm:text-sm">{app.village}</p>
                                                         </td>
-                                                        <td className="p-4 max-w-[200px]">
-                                                            <p className="text-sm break-words">{app.component}</p>
+                                                        <td className="p-2 sm:p-3 md:p-4 max-w-[150px] sm:max-w-[200px]">
+                                                            <p className="text-xs sm:text-sm break-words">{app.component}</p>
                                                         </td>
-                                                        <td className="p-4">{getStatusBadge(app.status)}</td>
-                                                        <td className="p-4">
-                                                            <p className="text-sm">{app.submittedDate}</p>
+                                                        <td className="p-2 sm:p-3 md:p-4">{getStatusBadge(app.status)}</td>
+                                                        <td className="p-2 sm:p-3 md:p-4">
+                                                            <p className="text-xs sm:text-sm">{app.submittedDate}</p>
                                                         </td>
-                                                        <td className="p-4">
+                                                        <td className="p-2 sm:p-3 md:p-4">
                                                             <Button
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 onClick={() => handleViewDetails(app)}
                                                                 data-testid={`button-view-${index}`}
+                                                                className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3"
                                                             >
-                                                                <Eye className="w-4 h-4 mr-1" />
-                                                                View
+                                                                <Eye className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                                                                <span className="hidden sm:inline">View</span>
                                                             </Button>
                                                         </td>
                                                     </tr>
@@ -695,8 +696,8 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                 </div>
 
                                 {/* Pagination */}
-                                <div className="flex items-center justify-between pt-4">
-                                    <p className="text-sm text-muted-foreground">
+                                <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-0 pt-3 sm:pt-4">
+                                    <p className="text-xs sm:text-sm text-muted-foreground">
                                         Showing {applications.length} items on page {currentPage} 
                                         {applications.length < pageSize && currentPage > 1 ? ' (last page)' : ''}
                                     </p>

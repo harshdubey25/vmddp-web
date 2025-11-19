@@ -44,13 +44,13 @@ export default function VillageWiseApplications() {
     if (isLoading) {
         return (
             <Card>
-                <CardHeader>
-                    <CardTitle>{t('villageWiseApplications')}</CardTitle>
-                    <CardDescription>{t('applicationStatusByVillage')}</CardDescription>
+                <CardHeader className="p-3 sm:p-4 md:p-6">
+                    <CardTitle className="text-base sm:text-lg md:text-xl">{t('villageWiseApplications')}</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">{t('applicationStatusByVillage')}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="flex items-center justify-center h-[300px]">
-                        <div className="text-muted-foreground">{t('loading')}</div>
+                <CardContent className="p-3 sm:p-4 md:p-6">
+                    <div className="flex items-center justify-center h-[200px] sm:h-[250px] md:h-[300px]">
+                        <div className="text-muted-foreground text-xs sm:text-sm">{t('loading')}</div>
                     </div>
                 </CardContent>
             </Card>
@@ -60,13 +60,13 @@ export default function VillageWiseApplications() {
     if (error) {
         return (
             <Card>
-                <CardHeader>
-                    <CardTitle>{t('villageWiseApplications')}</CardTitle>
-                    <CardDescription>{t('applicationStatusByVillage')}</CardDescription>
+                <CardHeader className="p-3 sm:p-4 md:p-6">
+                    <CardTitle className="text-base sm:text-lg md:text-xl">{t('villageWiseApplications')}</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">{t('applicationStatusByVillage')}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="flex items-center justify-center h-[300px]">
-                        <div className="text-destructive">{t('error_loading_data')}</div>
+                <CardContent className="p-3 sm:p-4 md:p-6">
+                    <div className="flex items-center justify-center h-[200px] sm:h-[250px] md:h-[300px]">
+                        <div className="text-destructive text-xs sm:text-sm">{t('error_loading_data')}</div>
                     </div>
                 </CardContent>
             </Card>
@@ -91,24 +91,25 @@ export default function VillageWiseApplications() {
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>{t('villageWiseApplications')}</CardTitle>
-                <CardDescription>{t('applicationStatusByVillage')}</CardDescription>
+            <CardHeader className="p-3 sm:p-4 md:p-6">
+                <CardTitle className="text-base sm:text-lg md:text-xl">{t('villageWiseApplications')}</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">{t('applicationStatusByVillage')}</CardDescription>
             </CardHeader>
-            <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
+            <CardContent className="p-3 sm:p-4 md:p-6">
+                <ResponsiveContainer width="100%" height={200} className="sm:!h-[250px] md:!h-[300px]">
                     <BarChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis
                             dataKey="village"
-                            tick={{ fontSize: 12 }}
+                            tick={{ fontSize: 10 }}
+                            className="sm:!text-xs"
                             angle={-45}
                             textAnchor="end"
-                            height={80}
+                            height={60}
                         />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
+                        <YAxis tick={{ fontSize: 10 }} className="sm:!text-xs" />
+                        <Tooltip contentStyle={{ fontSize: '12px' }} />
+                        <Legend wrapperStyle={{ fontSize: '11px' }} className="sm:!text-xs" />
                         <Bar dataKey="total" fill="hsl(var(--chart-1))" name={t('total')} />
                         <Bar dataKey="pending" fill="hsl(var(--chart-2))" name={t('pending')} />
                         <Bar dataKey="approved" fill="hsl(var(--chart-3))" name={t('approved')} />

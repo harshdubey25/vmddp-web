@@ -12,9 +12,12 @@ import {
   Package,
   BarChart3,
   Settings,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 interface AdminSidebarProps {
   userRole: "admin" | "subadmin";
@@ -39,54 +42,87 @@ const subAdminMenuItems = [
 // { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },;
 export default function AdminSidebar({ userRole }: AdminSidebarProps) {
   const { logout } = useAuth()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuItems = userRole === "admin" ? adminMenuItems : subAdminMenuItems;
   const location = usePathname();
   return (
-    <div className="flex h-screen w-64 flex-col border-r bg-muted/30">
-      <div className="flex h-16 items-center gap-3 border-b px-6">
-        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Shield className="w-5 h-5 text-primary" />
+    <>
+      {/* Toggle Arrow Button - Always visible on mobile */}
+      <button
+        className="md:hidden fixed left-0 top-3 z-50 bg-primary text-primary-foreground p-2 rounded-r-lg shadow-lg hover:bg-primary/90 transition-all"
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+      >
+        {mobileMenuOpen ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+      </button>
+
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - Desktop always visible, Mobile slide-out */}
+      <div className={`
+        fixed md:relative
+        h-screen w-72 sm:w-80 md:w-56 lg:w-64 flex flex-col border-r bg-background shadow-2xl md:shadow-none
+        z-50 transition-transform duration-300 ease-in-out
+        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0
+      `}>
+        <div className="flex h-16 md:h-14 lg:h-16 items-center gap-3 md:gap-2 lg:gap-3 border-b px-5 md:px-4 lg:px-6 pt-1">
+          <div className="w-10 h-10 md:w-8 md:h-8 lg:w-10 lg:h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Shield className="w-5 h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="font-display font-semibold text-sm md:text-xs lg:text-sm truncate">VMDDP</h2>
+            <p className="text-xs md:text-[10px] lg:text-xs text-muted-foreground truncate">
+              {userRole === "admin" ? "Administrator" : "Sub-Admin"}
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className="font-display font-semibold text-sm">VMDDP</h2>
-          <p className="text-xs text-muted-foreground">
-            {userRole === "admin" ? "Administrator" : "Sub-Admin"}
-          </p>
+
+        <ScrollArea className="flex-1 px-3 md:px-2 lg:px-3 py-4 md:py-3 lg:py-4">
+          <nav className="space-y-1">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location === item.path;
+
+              return (
+                <Link key={item.path} href={item.path}>
+                  <Button
+                    variant={isActive ? "secondary" : "ghost"}
+                    className="w-full justify-start gap-3 md:gap-2 lg:gap-3 text-sm md:text-xs lg:text-sm px-3 md:px-2 lg:px-3 h-10 md:h-9"
+                    data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Icon className="w-5 h-5 md:w-4 md:h-4 flex-shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </Button>
+                </Link>
+              );
+            })}
+          </nav>
+        </ScrollArea>
+
+        <Separator />
+
+        <div className="p-3 md:p-2 lg:p-3">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start gap-3 md:gap-2 lg:gap-3 text-sm md:text-xs lg:text-sm px-3 md:px-2 lg:px-3 h-10 md:h-9 text-destructive hover:text-destructive hover:bg-destructive/10" 
+            data-testid="button-logout" 
+            onClick={() => {
+              setMobileMenuOpen(false);
+              logout();
+            }}
+          >
+            <LogOut className="w-5 h-5 md:w-4 md:h-4 flex-shrink-0" />
+            <span>Logout</span>
+          </Button>
         </div>
       </div>
-
-      <ScrollArea className="flex-1 px-3 py-4">
-        <nav className="space-y-1">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location === item.path;
-
-            return (
-              <Link key={item.path} href={item.path}>
-                <Button
-                  variant={isActive ? "secondary" : "ghost"}
-                  className="w-full justify-start gap-3"
-                  data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </Button>
-              </Link>
-            );
-          })}
-        </nav>
-      </ScrollArea>
-
-      <Separator />
-
-      <div className="p-3">
-
-        <Button variant="ghost" className="w-full justify-start gap-3" data-testid="button-logout" onClick={logout}>
-          <LogOut className="w-4 h-4" />
-          <span>Logout</span>
-        </Button>
-
-      </div>
-    </div>
+    </>
   );
 }

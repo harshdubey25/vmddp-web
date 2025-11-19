@@ -59,37 +59,37 @@ export default async function SubAdminDashboard() {
 
             <div className="flex-1 flex flex-col overflow-hidden">
                 <Header />
-                <main className="flex-1 overflow-auto p-6 bg-muted/30">
-                    <div className="space-y-6 max-w-7xl">
+                <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 bg-muted/30">
+                    <div className="space-y-4 sm:space-y-5 lg:space-y-6 max-w-7xl">
                         <SubAdminDashboardStats />
                         <Card>
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <CardTitle>Recent Applications</CardTitle>
-                                        <CardDescription>Latest applications from your zone</CardDescription>
+                            <CardHeader className="p-4 sm:p-5 lg:p-6">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                                    <div className="min-w-0">
+                                        <CardTitle className="text-base sm:text-lg lg:text-xl">Recent Applications</CardTitle>
+                                        <CardDescription className="text-xs sm:text-sm">Latest applications from your zone</CardDescription>
                                     </div>
-                                    <Link href="/subadmin/applications">
-                                        <Button variant="outline" size="sm" data-testid="button-view-all">
+                                    <Link href="/subadmin/applications" className="w-full sm:w-auto">
+                                        <Button variant="outline" size="sm" data-testid="button-view-all" className="w-full sm:w-auto text-xs sm:text-sm">
                                             View All
                                         </Button>
                                     </Link>
                                 </div>
                             </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
+                            <CardContent className="p-3 sm:p-4 lg:p-6">
+                                <div className="space-y-3 sm:space-y-4">
                                     {recentApplications.map((app) => (
                                         <div
                                             key={app.id}
-                                            className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors"
+                                            className="flex flex-col p-3 sm:p-4 border rounded-lg hover:bg-muted/30 transition-colors"
                                             data-testid={`application-${app.id}`}
                                         >
                                             <div className="flex-1">
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <p className="font-mono text-sm font-semibold">{app.id}</p>
+                                                <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-3 mb-2 sm:mb-3">
+                                                    <p className="font-mono text-xs sm:text-sm font-semibold truncate">{app.id}</p>
                                                     {getStatusBadge(app.status)}
                                                 </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs sm:text-sm">
                                                     <div>
                                                         <span className="text-muted-foreground">Applicant: </span>
                                                         <span className="font-medium">{app.applicant}</span>

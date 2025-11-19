@@ -157,43 +157,45 @@ export default function DetailApplicationReport() {
     }
     return (
         <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
+            <CardHeader className="p-3 sm:p-4 md:p-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg md:text-xl">
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                     Detailed Application Report
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs sm:text-sm">
                     Filter and search applications in your zone
                 </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <div>
-                        <Label htmlFor="dateFrom">From Date</Label>
+                        <Label htmlFor="dateFrom" className="text-xs sm:text-sm">From Date</Label>
                         <Input
                             id="dateFrom"
                             type="date"
                             value={dateFrom}
                             onChange={(e) => setDateFrom(e.target.value)}
                             data-testid="input-date-from"
+                            className="text-xs sm:text-sm h-8 sm:h-10"
                         />
                     </div>
 
                     <div>
-                        <Label htmlFor="dateTo">To Date</Label>
+                        <Label htmlFor="dateTo" className="text-xs sm:text-sm">To Date</Label>
                         <Input
                             id="dateTo"
                             type="date"
                             value={dateTo}
                             onChange={(e) => setDateTo(e.target.value)}
                             data-testid="input-date-to"
+                            className="text-xs sm:text-sm h-8 sm:h-10"
                         />
                     </div>
 
                     <div>
-                        <Label>Component</Label>
+                        <Label className="text-xs sm:text-sm">Component</Label>
                         <Select value={selectedComponent} onValueChange={setSelectedComponent}>
-                            <SelectTrigger data-testid="select-component">
+                            <SelectTrigger data-testid="select-component" className="text-xs sm:text-sm h-8 sm:h-10">
                                 <SelectValue placeholder="All Components" />
                             </SelectTrigger>
                             <SelectContent>
@@ -208,9 +210,9 @@ export default function DetailApplicationReport() {
                     </div>
 
                     <div>
-                        <Label>Status</Label>
+                        <Label className="text-xs sm:text-sm">Status</Label>
                         <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                            <SelectTrigger data-testid="select-status">
+                            <SelectTrigger data-testid="select-status" className="text-xs sm:text-sm h-8 sm:h-10">
                                 <SelectValue placeholder="All Status" />
                             </SelectTrigger>
                             <SelectContent>
@@ -225,12 +227,12 @@ export default function DetailApplicationReport() {
                 </div>
 
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
                     <Input
                         placeholder="Search by ID or applicant name..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10"
+                        className="pl-8 sm:pl-10 text-xs sm:text-sm h-8 sm:h-10"
                         data-testid="input-search"
                     />
                 </div>
@@ -243,16 +245,16 @@ export default function DetailApplicationReport() {
                     <>
                         <div className="border rounded-lg overflow-hidden">
                             <div className="overflow-x-auto">
-                                <table className="w-full">
+                                <table className="w-full min-w-[800px]">
                                     <thead className="bg-muted/50 border-b">
                                         <tr>
-                                            <th className="text-left p-4 font-semibold text-sm">Application ID</th>
-                                            <th className="text-left p-4 font-semibold text-sm">Applicant Name</th>
-                                            <th className="text-left p-4 font-semibold text-sm">Mobile Number</th>
-                                            <th className="text-left p-4 font-semibold text-sm">Village</th>
-                                            <th className="text-left p-4 font-semibold text-sm">Components</th>
-                                            <th className="text-left p-4 font-semibold text-sm">Applied Date</th>
-                                            <th className="text-left p-4 font-semibold text-sm">Status</th>
+                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Application ID</th>
+                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Applicant Name</th>
+                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Mobile Number</th>
+                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Village</th>
+                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Components</th>
+                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Applied Date</th>
+                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -263,30 +265,30 @@ export default function DetailApplicationReport() {
                                                     className="border-b hover:bg-muted/30 transition-colors"
                                                     data-testid={`application-row-${index}`}
                                                 >
-                                                    <td className="p-4">
-                                                        <span className="font-mono text-sm font-semibold">{app.name}</span>
+                                                    <td className="p-2 sm:p-3 md:p-4">
+                                                        <span className="font-mono text-xs sm:text-sm font-semibold">{app.name}</span>
                                                     </td>
-                                                    <td className="p-4">
-                                                        <span className="text-sm font-medium">{app.fullname}</span>
+                                                    <td className="p-2 sm:p-3 md:p-4">
+                                                        <span className="text-xs sm:text-sm font-medium">{app.fullname}</span>
                                                     </td>
-                                                    <td className="p-4">
-                                                        <span className="text-sm">{app.mobile_number}</span>
+                                                    <td className="p-2 sm:p-3 md:p-4">
+                                                        <span className="text-xs sm:text-sm">{app.mobile_number}</span>
                                                     </td>
-                                                    <td className="p-4">
-                                                        <span className="text-sm">{app.village}</span>
+                                                    <td className="p-2 sm:p-3 md:p-4">
+                                                        <span className="text-xs sm:text-sm">{app.village}</span>
                                                     </td>
-                                                    <td className="p-4">
-                                                        <span className="text-sm">{app.component_list.join(", ")}</span>
+                                                    <td className="p-2 sm:p-3 md:p-4">
+                                                        <span className="text-xs sm:text-sm">{app.component_list.join(", ")}</span>
                                                     </td>
-                                                    <td className="p-4">
-                                                        <span className="text-sm">{app.date}</span>
+                                                    <td className="p-2 sm:p-3 md:p-4">
+                                                        <span className="text-xs sm:text-sm">{app.date}</span>
                                                     </td>
-                                                    <td className="p-4">{getStatusBadge(app.status)}</td>
+                                                    <td className="p-2 sm:p-3 md:p-4">{getStatusBadge(app.status)}</td>
                                                 </tr>
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                                                <td colSpan={7} className="p-6 sm:p-8 text-center text-muted-foreground text-xs sm:text-sm">
                                                     No applications found matching your criteria
                                                 </td>
                                             </tr>
@@ -296,22 +298,23 @@ export default function DetailApplicationReport() {
                             </div>
                         </div>
 
-                        <div className="flex justify-between items-center pt-4">
-                            <div className="flex items-center gap-4">
-                                <p className="text-sm text-muted-foreground">
-                                    Showing {applications.length} applications on page {currentPage}
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 pt-3 sm:pt-4">
+                            <div className="flex flex-col xs:flex-row items-start xs:items-center gap-2 xs:gap-4 w-full sm:w-auto">
+                                <p className="text-xs sm:text-sm text-muted-foreground">
+                                    Showing {applications.length} on page {currentPage}
                                 </p>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1 sm:gap-2">
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                                         disabled={currentPage === 1}
+                                        className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3"
                                     >
-                                        <ChevronLeft className="w-4 h-4" />
-                                        Previous
+                                        <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                                        <span className="hidden xs:inline">Previous</span>
                                     </Button>
-                                    <span className="text-sm px-3 py-1 bg-muted rounded">
+                                    <span className="text-xs sm:text-sm px-2 sm:px-3 py-1 bg-muted rounded">
                                         Page {currentPage}
                                     </span>
                                     <Button
@@ -319,14 +322,15 @@ export default function DetailApplicationReport() {
                                         size="sm"
                                         onClick={() => setCurrentPage(prev => prev + 1)}
                                         disabled={applications.length < pageSize}
+                                        className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3"
                                     >
-                                        Next
-                                        <ChevronRight className="w-4 h-4" />
+                                        <span className="hidden xs:inline">Next</span>
+                                        <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
                                     </Button>
                                 </div>
                             </div>
-                            <Button variant="outline" onClick={handleExport} data-testid="button-export">
-                                <Download className="w-4 h-4 mr-2" />
+                            <Button variant="outline" onClick={handleExport} data-testid="button-export" className="text-xs sm:text-sm h-7 sm:h-9 w-full sm:w-auto">
+                                <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                                 Export Report
                             </Button>
                         </div>
