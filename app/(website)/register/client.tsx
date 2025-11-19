@@ -333,15 +333,19 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
             }
 
             // Call DigiLocker API to get the verification URL
+            // Create unique verification ID with timestamp
+            const timestamp = Date.now();
+            const uniqueVerificationId = `${applicationId}_${timestamp}`;
+
             const digilockerResponse = await fetch('/api/digilocker/create-url', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    verification_id: applicationId,
+                    verification_id: uniqueVerificationId,
                     document_requested: ['AADHAAR'],
-                    redirect_url: `${window.location.origin}/success?applicationId=${applicationId}`,
+                    redirect_url: `${window.location.origin}/success?applicationId=${applicationId}&verification_id=${uniqueVerificationId}`,
                     user_flow: 'signup',
                 }),
             });

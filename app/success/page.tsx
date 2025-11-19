@@ -45,6 +45,7 @@ type ApplicationData = {
 
 export default function SuccessPage() {
     const [applicationId, setApplicationId] = useState<string>("");
+    const [verificationId, setVerificationId] = useState<string>("");
     const [applicationData, setApplicationData] = useState<ApplicationData | null>(null);
     const [isVerified, setIsVerified] = useState<boolean | null>(null);
     const [isCheckingVerification, setIsCheckingVerification] = useState<boolean>(true);
@@ -73,11 +74,19 @@ export default function SuccessPage() {
 
         // Get application ID from URL params
         const urlParams = new URLSearchParams(window.location.search);
-        const id = urlParams.get('applicationId') || urlParams.get('verification_id');
-        if (id) {
-            setApplicationId(id);
-            // Check DigiLocker verification status
-            checkVerificationStatus(id);
+        const appId = urlParams.get('applicationId');
+        const verificationIdParam = urlParams.get('verification_id');
+
+        if (verificationIdParam) {
+            setVerificationId(verificationIdParam);
+            // Extract clean applicationId by splitting on underscore (format: applicationId_timestamp)
+            const cleanAppId = verificationIdParam.split('_')[0];
+            setApplicationId(cleanAppId);
+            // Check DigiLocker verification status with full verification_id
+            checkVerificationStatus(verificationIdParam);
+        } else if (appId) {
+            setApplicationId(appId);
+            setIsCheckingVerification(false);
         } else {
             setIsCheckingVerification(false);
         }
