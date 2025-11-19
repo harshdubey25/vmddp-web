@@ -32,9 +32,9 @@ export default function HeroSection() {
         <div className="absolute inset-0 bg-black bg-opacity-40" />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 z-10">
+      <div className="relative max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 z-10">
         {/* Side by Side Layout: Content on Left, Stats on Right */}
-        <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-12">
+        <div className="flex flex-col lg:flex-row items-center lg:items-start gap-6 sm:gap-8 lg:gap-12">
 
           {/* Left Side: Content */}
           <div className="flex-1 text-center lg:text-left max-w-2xl">
@@ -42,7 +42,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mb-6 drop-shadow-2xl text-blue-500"
+              className="font-display font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-4 sm:mb-6 drop-shadow-2xl text-blue-500 leading-tight"
               style={{ textShadow: '3px 3px 8px rgba(0, 0, 0, 0.8), 1px 1px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.6)' }}
               data-testid="text-hero-title"
             >
@@ -59,7 +59,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg sm:text-xl mb-8 text-primary-foreground/80 drop-shadow-xl "
+              className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-primary-foreground/80 drop-shadow-xl leading-relaxed"
               style={{ textShadow: '2px 2px 6px rgba(0, 0, 0, 0.7), 1px 1px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5)' }}
               data-testid="text-hero-subtitle"
             >
@@ -70,28 +70,28 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start"
             >
-              <Link href="/register">
+              <Link href="/register" className="w-full sm:w-auto">
                 <Button
                   size="lg"
                   variant="secondary"
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto text-sm sm:text-base"
                   data-testid="button-hero-register"
                 >
                   {t("register_now")}
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
               </Link>
 
-              <Link href="/track">
+              <Link href="/track" className="w-full sm:w-auto">
                 <Button
                   size="lg"
                   variant="secondary"
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto text-sm sm:text-base"
                   data-testid="button-hero-track"
                 >
-                  <FileText className="mr-2 w-5 h-5" />
+                  <FileText className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
                   {t("track_application")}
                 </Button>
               </Link>
@@ -103,9 +103,9 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="w-full lg:w-auto lg:min-w-[400px]"
+            className="w-full lg:w-auto lg:min-w-[380px] xl:min-w-[400px]"
           >
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {stats.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
@@ -116,13 +116,13 @@ export default function HeroSection() {
                     transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
                     data-testid={`stat-${stat.label.toLowerCase()}`}
                   >
-                    <Card className={`${stat.color} border-white/30 backdrop-blur-md p-4 sm:p-6 hover-elevate shadow-lg hover:shadow-xl transition-all duration-300`}>
-                      <div className="flex flex-col items-center text-center gap-2">
-                        <div className="w-10 h-10 rounded-full bg-white/25 flex items-center justify-center mb-2 shadow-md">
-                          <Icon className="w-5 h-5 text-white drop-shadow-sm" />
+                    <Card className={`${stat.color} border-white/30 backdrop-blur-md p-3 sm:p-4 lg:p-6 hover-elevate shadow-lg hover:shadow-xl transition-all duration-300`}>
+                      <div className="flex flex-col items-center text-center gap-1.5 sm:gap-2">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/25 flex items-center justify-center mb-1 sm:mb-2 shadow-md">
+                          <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white drop-shadow-sm" />
                         </div>
-                        <div className="font-display font-bold text-2xl sm:text-3xl text-white drop-shadow-md">{stat.value}</div>
-                        <div className="text-sm sm:text-base text-white/90 font-medium drop-shadow-sm">{stat.label}</div>
+                        <div className="font-display font-bold text-xl sm:text-2xl lg:text-3xl text-white drop-shadow-md">{stat.value}</div>
+                        <div className="text-xs sm:text-sm lg:text-base text-white/90 font-medium drop-shadow-sm leading-tight">{stat.label}</div>
                       </div>
                     </Card>
                   </motion.div>

@@ -24,7 +24,7 @@ export default function SchemeCard({ icon: Icon, title, description, benefits, c
     >
   <Card 
         className="hover-elevate transition-all duration-300 h-full flex flex-col relative overflow-hidden" 
-        style={{ height: '420px' }} 
+        style={{ height: '400px' }} 
         data-testid={`card-scheme-${componentId}`}
       >
         {/* Background Image */}
@@ -39,28 +39,28 @@ export default function SchemeCard({ icon: Icon, title, description, benefits, c
         )}
         {/* Content Overlay */}
         <div className="relative z-10 flex flex-col h-full">
-        <CardHeader>
+        <CardHeader className="p-4 sm:p-6">
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
             animate={isInView ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -180 }}
             transition={{ duration: 0.6, delay: index * 0.1 + 0.2 }}
-            className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-3 sm:mb-4"
           >
-            <Icon className="w-6 h-6 text-primary" />
+            <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
           </motion.div>
-          <CardTitle className="font-display" data-testid={`text-scheme-title-${componentId}`}>{title}</CardTitle>
-          <CardDescription data-testid={`text-scheme-description-${componentId}`}>{description}</CardDescription>
+          <CardTitle className="font-display text-base sm:text-lg" data-testid={`text-scheme-title-${componentId}`}>{title}</CardTitle>
+          <CardDescription className="text-xs sm:text-sm" data-testid={`text-scheme-description-${componentId}`}>{description}</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col flex-1 justify-between">
+        <CardContent className="flex flex-col flex-1 justify-between p-4 sm:p-6 pt-0">
           <div>
-            <ul className="space-y-2 mb-6">
+            <ul className="space-y-1.5 sm:space-y-2 mb-4 sm:mb-6">
               {benefits.map((benefit, benefitIndex) => (
                 <motion.li
                   key={benefitIndex}
                   initial={{ opacity: 0, x: -20 }}
                   animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
                   transition={{ duration: 0.4, delay: index * 0.1 + 0.4 + benefitIndex * 0.1 }}
-                  className="flex items-start gap-2 text-sm"
+                  className="flex items-start gap-2 text-xs sm:text-sm"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0"></span>
                   <span className="text-muted-foreground">{benefit}</span>
@@ -70,9 +70,9 @@ export default function SchemeCard({ icon: Icon, title, description, benefits, c
           </div>
           <div className="flex justify-center">
             <Link href={`/schemes/${componentId}`}>
-              <Button variant="outline" className="w-40 group" data-testid={`button-learn-more-${componentId}`}>
+              <Button variant="outline" className="w-36 sm:w-40 text-xs sm:text-sm group" data-testid={`button-learn-more-${componentId}`}>
                 Read More
-                <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+                <ArrowRight className="ml-2 w-3 h-3 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
           </div>

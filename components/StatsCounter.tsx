@@ -48,11 +48,11 @@ function StatCard({ icon, value, label, color, testId, index }: StatCardProps) {
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
-      <Card className="p-6 border-l-4" style={{ borderLeftColor: color }} data-testid={testId}>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground mb-1">{label}</p>
-            <p className="font-display font-bold text-3xl" data-testid={`${testId}-value`}>
+      <Card className="p-4 sm:p-5 lg:p-6 border-l-4" style={{ borderLeftColor: color }} data-testid={testId}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs sm:text-sm text-muted-foreground mb-1">{label}</p>
+            <p className="font-display font-bold text-2xl sm:text-3xl lg:text-3xl truncate" data-testid={`${testId}-value`}>
               {count.toLocaleString()}
             </p>
           </div>
@@ -60,7 +60,7 @@ function StatCard({ icon, value, label, color, testId, index }: StatCardProps) {
             initial={{ scale: 0 }}
             animate={isInView ? { scale: 1 } : { scale: 0 }}
             transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
-            className="w-12 h-12 rounded-full flex items-center justify-center"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor: color + '20' }}
           >
             {icon}
@@ -77,23 +77,23 @@ export default function StatsCounter({ data }: { data: { approved: number; rejec
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section className="py-12 sm:py-16 bg-muted/30" ref={ref}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-8 sm:py-12 lg:py-16 bg-muted/30" ref={ref}>
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-10"
+          className="text-center mb-6 sm:mb-8 lg:mb-10"
         >
-          <h2 className="font-display font-semibold text-2xl sm:text-3xl mb-3" data-testid="text-stats-title">
+          <h2 className="font-display font-semibold text-xl sm:text-2xl lg:text-3xl mb-2 sm:mb-3" data-testid="text-stats-title">
             {t('stats_title')}
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto px-4">
             {t('stats_subtitle')}
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
           <StatCard
             icon={<Users className="w-6 h-6 text-chart-2" />}
             value={data.total}
