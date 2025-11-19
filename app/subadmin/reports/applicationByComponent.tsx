@@ -33,13 +33,13 @@ export default function ApplicationByComponent() {
     if (isLoading) {
         return (
             <Card>
-                <CardHeader>
-                    <CardTitle>Applications by Component</CardTitle>
-                    <CardDescription>Distribution across different schemes</CardDescription>
+                <CardHeader className="p-3 sm:p-4 md:p-6">
+                    <CardTitle className="text-base sm:text-lg md:text-xl">Applications by Component</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Distribution across different schemes</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="h-[300px] flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+                <CardContent className="p-3 sm:p-4 md:p-6">
+                    <div className="h-[200px] sm:h-[250px] md:h-[300px] flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-24 w-24 sm:h-32 sm:w-32 border-b-2 border-primary"></div>
                     </div>
                 </CardContent>
             </Card>
@@ -49,12 +49,12 @@ export default function ApplicationByComponent() {
     if (error || !componentData.length) {
         return (
             <Card>
-                <CardHeader>
-                    <CardTitle>Applications by Component</CardTitle>
-                    <CardDescription>Distribution across different schemes</CardDescription>
+                <CardHeader className="p-3 sm:p-4 md:p-6">
+                    <CardTitle className="text-base sm:text-lg md:text-xl">Applications by Component</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Distribution across different schemes</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                <CardContent className="p-3 sm:p-4 md:p-6">
+                    <div className="h-[200px] sm:h-[250px] md:h-[300px] flex items-center justify-center text-muted-foreground text-xs sm:text-sm">
                         {error ? 'Error loading data' : 'No data available'}
                     </div>
                 </CardContent>
@@ -64,12 +64,12 @@ export default function ApplicationByComponent() {
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Applications by Component</CardTitle>
-                <CardDescription>Distribution across different schemes</CardDescription>
+            <CardHeader className="p-3 sm:p-4 md:p-6">
+                <CardTitle className="text-base sm:text-lg md:text-xl">Applications by Component</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">Distribution across different schemes</CardDescription>
             </CardHeader>
-            <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
+            <CardContent className="p-3 sm:p-4 md:p-6">
+                <ResponsiveContainer width="100%" height={200} className="sm:!h-[250px] md:!h-[300px]">
                     <RechartsPieChart>
                         <Pie
                             data={componentData}
@@ -77,7 +77,8 @@ export default function ApplicationByComponent() {
                             cy="50%"
                             labelLine={false}
                             label={({ name, value }) => `${name}: ${value}`}
-                            outerRadius={80}
+                            outerRadius={60}
+                            className="sm:!outerRadius-70 md:!outerRadius-80"
                             fill="#8884d8"
                             dataKey="value"
                         >

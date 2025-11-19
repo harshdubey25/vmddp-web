@@ -204,29 +204,29 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
             <AdminSidebar userRole="subadmin" />
 
             <div className="flex-1 flex flex-col overflow-hidden">
-                <header className="flex h-16 items-center justify-between border-b px-6 bg-background">
+                <header className="flex h-14 sm:h-16 items-center justify-between border-b pl-12 pr-3 py-3 md:px-6 bg-background">
                     <div>
-                        <h1 className="font-display font-semibold text-xl" data-testid="text-selection-title">
+                        <h1 className="font-display font-semibold text-base sm:text-lg md:text-xl" data-testid="text-selection-title">
                             Beneficiary Selection
                         </h1>
-                        <p className="text-sm text-muted-foreground">
-                            Select up to 5 beneficiaries per village per component
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                            Select up to 5 per village/component
                         </p>
                     </div>
-                    <Button variant="outline" className="gap-2" data-testid="button-export">
-                        <Download className="w-4 h-4" />
-                        Export
+                    <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-10" data-testid="button-export">
+                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden xs:inline">Export</span>
                     </Button>
                 </header>
 
-                <main className="flex-1 overflow-auto p-6 bg-muted/30">
-                    <div className="space-y-6 max-w-7xl">
+                <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 bg-muted/30">
+                    <div className="space-y-4 sm:space-y-6 max-w-7xl">
                         {/* Summary Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                             <Card>
-                                <CardHeader className="pb-3">
-                                    <CardDescription>Approved</CardDescription>
-                                    <CardTitle className="text-3xl">
+                                <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6">
+                                    <CardDescription className="text-xs sm:text-sm">Approved</CardDescription>
+                                    <CardTitle className="text-2xl sm:text-3xl">
                                         {new Set(
                                             applications
                                                 .filter(app => app.status === "Approved")
@@ -236,9 +236,9 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                 </CardHeader>
                             </Card>
                             <Card>
-                                <CardHeader className="pb-3">
-                                    <CardDescription>Selected</CardDescription>
-                                    <CardTitle className="text-3xl">
+                                <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6">
+                                    <CardDescription className="text-xs sm:text-sm">Selected</CardDescription>
+                                    <CardTitle className="text-2xl sm:text-3xl">
                                         {new Set(
                                             applications
                                                 .filter(app => app.status === "Selected")
@@ -247,10 +247,10 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                     </CardTitle>
                                 </CardHeader>
                             </Card>
-                            <Card>
-                                <CardHeader className="pb-3">
-                                    <CardDescription>Total Component Entries</CardDescription>
-                                    <CardTitle className="text-3xl">
+                            <Card className="sm:col-span-2 md:col-span-1">
+                                <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6">
+                                    <CardDescription className="text-xs sm:text-sm">Total Component Entries</CardDescription>
+                                    <CardTitle className="text-2xl sm:text-3xl">
                                         {applications.length}
                                     </CardTitle>
                                 </CardHeader>
@@ -259,58 +259,58 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
 
                         {/* Village-Grouped Quota Accordion */}
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Selection Quota Status</CardTitle>
-                                <CardDescription>Selection progress grouped by village (5 per component per village)</CardDescription>
+                            <CardHeader className="p-3 sm:p-4 md:p-6">
+                                <CardTitle className="text-base sm:text-lg md:text-xl">Selection Quota Status</CardTitle>
+                                <CardDescription className="text-xs sm:text-sm">Selection progress grouped by village (5 per component per village)</CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-3 sm:p-4 md:p-6">
                                 <Accordion type="multiple" className="w-full">
                                     {getVillageGroups().map((villageGroup) => {
                                         const isVillageComplete = villageGroup.components.every(c => c.selected >= c.total);
 
                                         return (
                                             <AccordionItem key={villageGroup.village} value={villageGroup.village}>
-                                                <AccordionTrigger className="hover:no-underline">
-                                                    <div className="flex items-center justify-between w-full pr-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <MapPin className="w-5 h-5 text-primary" />
+                                                <AccordionTrigger className="hover:no-underline py-3">
+                                                    <div className="flex items-center justify-between w-full pr-2 sm:pr-4">
+                                                        <div className="flex items-center gap-2 sm:gap-3">
+                                                            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
                                                             <div className="text-left">
-                                                                <h3 className="font-semibold">{villageGroup.village}</h3>
+                                                                <h3 className="font-semibold text-sm sm:text-base">{villageGroup.village}</h3>
                                                                 <p className="text-xs text-muted-foreground">
                                                                     {villageGroup.components.length} component{villageGroup.components.length !== 1 ? 's' : ''}
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-3">
+                                                        <div className="flex items-center gap-2 sm:gap-3">
                                                             <div className="text-right">
-                                                                <p className="text-sm font-semibold">
+                                                                <p className="text-xs sm:text-sm font-semibold">
                                                                     {villageGroup.totalSelected} / {villageGroup.totalQuota}
                                                                 </p>
-                                                                <p className="text-xs text-muted-foreground">total selected</p>
+                                                                <p className="text-xs text-muted-foreground hidden xs:block">total selected</p>
                                                             </div>
                                                             {isVillageComplete && (
-                                                                <CheckCircle className="w-5 h-5 text-chart-3" />
+                                                                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-chart-3 flex-shrink-0" />
                                                             )}
                                                         </div>
                                                     </div>
                                                 </AccordionTrigger>
                                                 <AccordionContent>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 pt-2">
                                                         {villageGroup.components.map((comp) => {
                                                             const percentage = (comp.selected / comp.total) * 100;
                                                             const isComplete = comp.selected >= comp.total;
 
                                                             return (
-                                                                <div key={comp.component} className="p-3 border rounded-lg space-y-2 bg-muted/30">
+                                                                <div key={comp.component} className="p-2 sm:p-3 border rounded-lg space-y-2 bg-muted/30">
                                                                     <div className="flex items-center justify-between">
-                                                                        <div className="flex-1">
-                                                                            <p className="text-sm font-medium truncate">{comp.component}</p>
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="text-xs sm:text-sm font-medium truncate">{comp.component}</p>
                                                                         </div>
                                                                         {isComplete && (
-                                                                            <CheckCircle className="w-4 h-4 text-chart-3 flex-shrink-0 ml-2" />
+                                                                            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-chart-3 flex-shrink-0 ml-2" />
                                                                         )}
                                                                     </div>
-                                                                    <div className="flex items-center justify-between text-sm">
+                                                                    <div className="flex items-center justify-between text-xs sm:text-sm">
                                                                         <span className="text-muted-foreground">Selected</span>
                                                                         <span className="font-semibold">
                                                                             {comp.selected} / {comp.total}
@@ -337,31 +337,31 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
 
                         {/* Applications List */}
                         <Card>
-                            <CardHeader>
-                                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                            <CardHeader className="p-3 sm:p-4 md:p-6">
+                                <div className="flex flex-col md:flex-row gap-2 sm:gap-4 items-start md:items-center justify-between">
                                     <div>
-                                        <CardTitle>Approved Applications (FIFO Order)</CardTitle>
-                                        <CardDescription>
-                                            {totalItems} applications found • Page {currentPage} of {totalPages} • Sorted by submission date
+                                        <CardTitle className="text-base sm:text-lg md:text-xl">Approved Applications (FIFO Order)</CardTitle>
+                                        <CardDescription className="text-xs sm:text-sm">
+                                            {totalItems} applications • Page {currentPage} of {totalPages}
                                         </CardDescription>
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
                                     <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                        <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
                                         <Input
                                             placeholder="Search by ID or name..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="pl-10"
+                                            className="pl-8 sm:pl-10 text-xs sm:text-sm h-8 sm:h-10"
                                             data-testid="input-search"
                                         />
                                     </div>
 
                                     <Select value={villageFilter} onValueChange={setVillageFilter}>
-                                        <SelectTrigger data-testid="select-village-filter">
+                                        <SelectTrigger data-testid="select-village-filter" className="text-xs sm:text-sm h-8 sm:h-10">
                                             <SelectValue placeholder="Filter by village" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -375,16 +375,16 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
 
                                 <div className="border rounded-lg overflow-hidden">
                                     <div className="overflow-x-auto">
-                                        <table className="w-full">
+                                        <table className="w-full min-w-[720px]">
                                             <thead className="bg-muted/50 border-b">
                                                 <tr>
-                                                    <th className="text-left p-4 font-semibold text-sm">Date</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Application ID</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Applicant</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Village</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Component</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Status</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Actions</th>
+                                                    <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Date</th>
+                                                    <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Application ID</th>
+                                                    <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Applicant</th>
+                                                    <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Village</th>
+                                                    <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Component</th>
+                                                    <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Status</th>
+                                                    <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -397,17 +397,25 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                                             className="border-b hover:bg-muted/30 transition-colors"
                                                             data-testid={`application-row-${index}`}
                                                         >
-                                                            <td className="p-4">
-                                                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                                    <Calendar className="w-3 h-3" />
-                                                                    {app.submittedDate === 'Unknown' 
-                                                                        ? 'Unknown' 
-                                                                        : new Date(app.submittedDate).toLocaleDateString()
-                                                                    }
+                                                            <td className="p-2 sm:p-3 md:p-4">
+                                                                <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                                                                    <Calendar className="w-3 h-3 flex-shrink-0" />
+                                                                    <span className="hidden xs:inline">
+                                                                        {app.submittedDate === 'Unknown' 
+                                                                            ? 'Unknown' 
+                                                                            : new Date(app.submittedDate).toLocaleDateString()
+                                                                        }
+                                                                    </span>
+                                                                    <span className="xs:hidden">
+                                                                        {app.submittedDate === 'Unknown' 
+                                                                            ? 'N/A' 
+                                                                            : new Date(app.submittedDate).toLocaleDateString('en', { month: 'short', day: 'numeric' })
+                                                                        }
+                                                                    </span>
                                                                 </div>
                                                             </td>
-                                                            <td className="p-4">
-                                                                <div className="font-mono text-sm">
+                                                            <td className="p-2 sm:p-3 md:p-4">
+                                                                <div className="font-mono text-xs sm:text-sm">
                                                                     <span className="font-semibold">
                                                                         {app.realApplicationId}
                                                                     </span>
@@ -418,53 +426,53 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                                                     )} */}
                                                                 </div>
                                                             </td>
-                                                            <td className="p-4">
-                                                                <div className="flex items-center gap-2">
-                                                                    <User className="w-4 h-4 text-muted-foreground" />
-                                                                    <div>
-                                                                        <p className="font-medium text-sm">{app.applicantName}</p>
+                                                            <td className="p-2 sm:p-3 md:p-4">
+                                                                <div className="flex items-center gap-1 sm:gap-2">
+                                                                    <User className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
+                                                                    <div className="min-w-0">
+                                                                        <p className="font-medium text-xs sm:text-sm truncate">{app.applicantName}</p>
                                                                         <p className="text-xs text-muted-foreground">{app.mobile}</p>
                                                                     </div>
                                                                 </div>
                                                             </td>
-                                                            <td className="p-4">
-                                                                <div className="flex items-center gap-2">
-                                                                    <MapPin className="w-4 h-4 text-muted-foreground" />
-                                                                    <div>
-                                                                        <p className="text-sm">{app.village}</p>
+                                                            <td className="p-2 sm:p-3 md:p-4">
+                                                                <div className="flex items-center gap-1 sm:gap-2">
+                                                                    <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-xs sm:text-sm truncate">{app.village}</p>
                                                                         <p className="text-xs text-muted-foreground">
-                                                                            {quota.selected}/{quota.total} selected for this component
+                                                                            {quota.selected}/{quota.total} selected
                                                                         </p>
                                                                     </div>
                                                                 </div>
                                                             </td>
-                                                            <td className="p-4">
-                                                                <div className="flex items-center gap-2">
-                                                                    <Package className="w-4 h-4 text-muted-foreground" />
-                                                                    <p className="text-sm">{app.component}</p>
+                                                            <td className="p-2 sm:p-3 md:p-4">
+                                                                <div className="flex items-center gap-1 sm:gap-2">
+                                                                    <Package className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
+                                                                    <p className="text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{app.component}</p>
                                                                 </div>
                                                             </td>
-                                                            <td className="p-4">
+                                                            <td className="p-2 sm:p-3 md:p-4">
                                                                 {getStatusBadge(app.status)}
                                                             </td>
-                                                            <td className="p-4">
+                                                            <td className="p-2 sm:p-3 md:p-4">
                                                                 {app.status === "Approved" && (
                                                                     <Button
                                                                         size="sm"
                                                                         disabled={!canSelect(app)}
                                                                         onClick={() => handleSelect(app.id)}
-                                                                        className="gap-2"
+                                                                        className="gap-1 sm:gap-2 h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3"
                                                                         data-testid={`button-select-${index}`}
                                                                         title={!canSelect(app) ? "Already selected or quota reached" : "Select this applicant for all their components"}
                                                                     >
-                                                                        <CheckCircle className="w-4 h-4" />
-                                                                        Select
+                                                                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                                        <span className="hidden xs:inline">Select</span>
                                                                     </Button>
                                                                 )}
                                                                 {app.status === "Selected" && (
-                                                                    <div className="flex items-center gap-2 text-sm text-chart-3">
-                                                                        <CheckCircle className="w-4 h-4" />
-                                                                        Selected
+                                                                    <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-chart-3">
+                                                                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                                        <span className="hidden xs:inline">Selected</span>
                                                                     </div>
                                                                 )}
                                                             </td>
@@ -478,8 +486,8 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
 
                                 {/* Pagination */}
                                 {totalPages > 1 && (
-                                    <div className="flex items-center justify-between pt-4">
-                                        <p className="text-sm text-muted-foreground">
+                                    <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-0 pt-3 sm:pt-4">
+                                        <p className="text-xs sm:text-sm text-muted-foreground">
                                             Showing {filteredApplications.length} items on page {currentPage} 
                                             {filteredApplications.length < pageSize && currentPage > 1 ? ' (last page)' : ''}
                                         </p>
