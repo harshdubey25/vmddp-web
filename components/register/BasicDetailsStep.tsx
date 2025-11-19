@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react";
-import { Controller, useWatch } from "react-hook-form";
+import { Controller, useWatch, UseFormSetValue } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,6 +14,7 @@ interface Props {
   setFamilyMemberCount: (n: number) => void;
   isAadhaarVerified?: boolean;
   setIsAadhaarVerified?: (verified: boolean) => void;
+  setValue: UseFormSetValue<any>;
 }
 
 const BasicDetailsStep = ({
@@ -22,7 +23,8 @@ const BasicDetailsStep = ({
   familyMemberCount,
   setFamilyMemberCount,
   isAadhaarVerified = false,
-  setIsAadhaarVerified = () => { }
+  setIsAadhaarVerified = () => { },
+  setValue
 }: Props) => {
 
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
@@ -46,25 +48,30 @@ const BasicDetailsStep = ({
     limit: 100,
   });
 
-  const { data: talukaData } = useFrappeGetDocList("Taluka Master", {
+  const { data: talukaData, mutate: mutateTaluka } = useFrappeGetDocList("Taluka Master", {
     fields: ["name"],
     filters: watchedDistrict ? [['district', '=', watchedDistrict]] : [['name', '=', '__no_match__']],
     limit: 100,
   }, {
-    enabled: !!watchedDistrict
+    enabled: !!watchedDistrict,
+    revalidateOnFocus: false,
+    revalidateIfStale: true,
   });
 
-  const { data: villageData } = useFrappeGetDocList("Village Master", {
+  const { data: villageData, mutate: mutateVillage } = useFrappeGetDocList("Village Master", {
     fields: ["name1"],
     filters: watchedDistrict && watchedTaluka ? [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]] : [['name1', '=', '__no_match__']],
     limit: 1000,
+  }, {
+    revalidateOnFocus: false,
+    revalidateIfStale: true,
   });
 
   // Debug logging
-  console.log('Village query state:', {
+  console.log('Query state:', {
     watchedDistrict,
     watchedTaluka,
-    enabled: Boolean(watchedDistrict && watchedTaluka),
+    talukaDataLength: talukaData?.length,
     villageDataLength: villageData?.length
   });
 
@@ -467,7 +474,17 @@ const BasicDetailsStep = ({
         <div className="space-y-2">
           <Label htmlFor="district">{t('district')} *</Label>
           <Controller name="district" control={control} rules={{ required: t('district_required') }} render={({ field }) => (
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select
+              onValueChange={(value) => {
+                field.onChange(value);
+                // Clear dependent fields immediately
+                setValue('taluka', undefined);
+                setValue('village', undefined);
+                // Trigger refetch of taluka data for new district
+                setTimeout(() => mutateTaluka(), 0);
+              }}
+              value={field.value}
+            >
               <SelectTrigger>
                 <SelectValue placeholder={t('select_district')} />
               </SelectTrigger>
@@ -483,7 +500,18 @@ const BasicDetailsStep = ({
         <div className="space-y-2">
           <Label htmlFor="taluka">{t('taluka')} *</Label>
           <Controller name="taluka" control={control} rules={{ required: t('taluka_required') }} render={({ field }) => (
-            <Select onValueChange={field.onChange} value={field.value} disabled={!watchedDistrict}>
+            <Select
+              key={`taluka-${watchedDistrict || 'none'}`}
+              onValueChange={(value) => {
+                field.onChange(value);
+                // Clear village when taluka changes
+                setValue('village', undefined);
+                // Trigger refetch of village data for new taluka
+                setTimeout(() => mutateVillage(), 0);
+              }}
+              value={field.value}
+              disabled={!watchedDistrict}
+            >
               <SelectTrigger>
                 <SelectValue placeholder={t('select_taluka')} />
               </SelectTrigger>
@@ -501,7 +529,7 @@ const BasicDetailsStep = ({
         <div className="space-y-2">
           <Label htmlFor="village">{t('village')} *</Label>
           <Controller name="village" control={control} rules={{ required: t('village_required') }} render={({ field }) => (
-            <Select onValueChange={field.onChange} value={field.value} disabled={!watchedDistrict || !watchedTaluka}>
+            <Select key={`village-${watchedDistrict || 'none'}-${watchedTaluka || 'none'}`} onValueChange={field.onChange} value={field.value} disabled={!watchedDistrict || !watchedTaluka}>
               <SelectTrigger>
                 <SelectValue placeholder={t('select_village')} />
               </SelectTrigger>

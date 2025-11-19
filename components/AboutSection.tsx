@@ -14,7 +14,7 @@ export default function AboutSection() {
   const heroImage = "/dairy_farm_cows_milk_3b68e1d2.jpg";
   return (
     <section className="py-0">
-      <div className="relative h-[300px] overflow-hidden">
+      <div className="relative h-[200px] sm:h-[250px] lg:h-[300px] overflow-hidden">
         <img
           src={heroImage}
           alt={t('about_hero_alt')}
@@ -22,7 +22,7 @@ export default function AboutSection() {
           data-testid="img-hero"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80"></div>
-        <div className="relative h-full flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="relative h-full flex items-center justify-center px-3 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -30,7 +30,7 @@ export default function AboutSection() {
             transition={{ duration: 0.8 }}
             className="text-center text-white max-w-4xl"
           >
-            <h2 className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mb-6" data-testid="text-about-title">
+            <h2 className="font-display font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-4 sm:mb-6" data-testid="text-about-title">
               {t('about_title')}
             </h2>
             
@@ -40,28 +40,28 @@ export default function AboutSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center"
             >
-              <Link href="/register">
+              <Link href="/register" className="w-full sm:w-auto">
                 <Button
                   size="lg"
                   variant="secondary"
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto text-sm sm:text-base"
                   data-testid="button-about-register"
                 >
                   {t("register_now")}
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
               </Link>
 
-              <Link href="/track">
+              <Link href="/track" className="w-full sm:w-auto">
                 <Button
                   size="lg"
                   variant="secondary"
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto text-sm sm:text-base"
                   data-testid="button-about-track"
                 >
-                  <FileText className="mr-2 w-5 h-5" />
+                  <FileText className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
                   {t("track_application")}
                 </Button>
               </Link>
@@ -70,9 +70,9 @@ export default function AboutSection() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16" ref={ref}>
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16" ref={ref}>
         {/* Bento Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 lg:gap-6 mb-8 sm:mb-10 lg:mb-12">
           {/* Mission Card - Spans 2 rows on desktop */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -81,17 +81,17 @@ export default function AboutSection() {
             className="md:row-span-2"
           >
             <Card data-testid="card-mission" className="h-full">
-              <CardContent className="p-8 h-full flex flex-col">
+              <CardContent className="p-5 sm:p-6 lg:p-8 h-full flex flex-col">
                 <motion.div
                   initial={{ scale: 0, rotate: -180 }}
                   animate={isInView ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -180 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
-                  className="w-16 h-16 rounded-lg bg-chart-1/10 flex items-center justify-center mb-6"
+                  className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-lg bg-chart-1/10 flex items-center justify-center mb-4 sm:mb-5 lg:mb-6"
                 >
-                  <Target className="w-8 h-8 text-chart-1" />
+                  <Target className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-chart-1" />
                 </motion.div>
-                <h3 className="font-display font-semibold text-2xl mb-4">{t('about_mission_title')}</h3>
-                <p className="text-base text-muted-foreground leading-relaxed">
+                <h3 className="font-display font-semibold text-xl sm:text-2xl mb-3 sm:mb-4">{t('about_mission_title')}</h3>
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                   {t('about_mission_desc')}
                 </p>
               </CardContent>

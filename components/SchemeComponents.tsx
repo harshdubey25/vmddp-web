@@ -78,23 +78,23 @@ export default function SchemeComponents() {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section className="py-12 sm:py-16" ref={ref}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-8 sm:py-12 lg:py-16" ref={ref}>
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-10"
+          className="text-center mb-6 sm:mb-8 lg:mb-10"
         >
-          <h2 className="font-display font-semibold text-2xl sm:text-3xl mb-3" data-testid="text-schemes-title">
+          <h2 className="font-display font-semibold text-xl sm:text-2xl lg:text-3xl mb-2 sm:mb-3" data-testid="text-schemes-title">
             {t('scheme_components_title')}
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto px-4">
             {t('scheme_components_subtitle')}
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
           {schemes.map((scheme, index) => {
             const componentDetail = getComponentById(scheme.id);
             return (
