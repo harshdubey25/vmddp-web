@@ -203,6 +203,8 @@
   "back": "Back",
   "next": "Next",
   "submit_application": "Submit Application",
+  "verify_with_digilocker": "Verify with DigiLocker",
+  "submitting": "Submitting...",
   "basic_details_title": "Basic Details",
   "first_name": "First Name",
   "first_name_required": "First Name is required",

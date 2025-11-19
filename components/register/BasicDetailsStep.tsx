@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from 'react-i18next';
 import { useFrappeGetDocList } from "frappe-react-sdk";
-import AadhaarVerification from "@/components/AadhaarVerification";
+
 interface Props {
   control: any;
   errors: any;
@@ -28,12 +28,10 @@ const BasicDetailsStep = ({
 }: Props) => {
 
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
-  const [aadhaarVerificationData, setAadhaarVerificationData] = useState<any>(null);
   const { t } = useTranslation('common');
 
   const watchedDistrict = useWatch({ control, name: 'district' });
   const watchedTaluka = useWatch({ control, name: 'taluka' });
-  const watchedAadhaar = useWatch({ control, name: 'aadhar_number' });
 
   const { data: genderData } = useFrappeGetDocList("Gender Master", {
     fields: ["name"],
@@ -105,15 +103,6 @@ const BasicDetailsStep = ({
       return null;
     } finally {
       setUploading(prev => ({ ...prev, [fieldName]: false }));
-    }
-  };
-
-  const handleAadhaarVerificationComplete = (verified: boolean, data?: any) => {
-    setIsAadhaarVerified(verified);
-    if (verified && data) {
-      setAadhaarVerificationData(data);
-    } else {
-      setAadhaarVerificationData(null);
     }
   };
 
@@ -260,6 +249,7 @@ const BasicDetailsStep = ({
             />
           )}
         />
+        <span className="text-xs text-muted-foreground">Note: This mobile number should be registered with your Aadhaar</span>
         {errors.mobile && <span className="text-red-500 text-xs">{errors.mobile.message}</span>}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -290,17 +280,6 @@ const BasicDetailsStep = ({
             )}
           />
           {errors.aadhar_number && <span className="text-red-500 text-xs">{errors.aadhar_number.message}</span>}
-
-          {/* Aadhaar Verification Section */}
-          {watchedAadhaar && watchedAadhaar.length === 12 && (
-            <div className="mt-3">
-              <AadhaarVerification
-                aadhaar={watchedAadhaar}
-                onVerificationComplete={handleAadhaarVerificationComplete}
-                disabled={uploading.aadhaarImage}
-              />
-            </div>
-          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="aadhaarImage">{t('aadhar_image')} *</Label>

@@ -62,7 +62,8 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
     const [familyMemberCount, setFamilyMemberCount] = useState<number>(0);
     const [components, setComponents] = useState<any[]>([]);
     const [submitLoading, setSubmitLoading] = useState(false);
-    const [isAadhaarVerified, setIsAadhaarVerified] = useState(false);
+    const [submittedApplicationId, setSubmittedApplicationId] = useState<string>("");
+    const [isFormSubmitted, setIsFormSubmitted] = useState(false);
     const canSubmitRef = useRef(false);
     const { toast } = useToast();
     const router = useRouter();
@@ -133,14 +134,14 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
         let fieldsToValidate: (keyof RegisterFormValues)[] = [];
         if (currentStep === 1) {
             // Check if Aadhaar is verified before proceeding
-            if (!isAadhaarVerified) {
-                toast({
-                    title: t('aadhaar_not_verified'),
-                    description: t('aadhaar_verification_required'),
-                    variant: "destructive"
-                });
-                return;
-            }
+            // if (!isAadhaarVerified) {
+            //     toast({
+            //         title: t('aadhaar_not_verified'),
+            //         description: t('aadhaar_verification_required'),
+            //         variant: "destructive"
+            //     });
+            //     return;
+            // }
 
             fieldsToValidate = ['firstName', 'lastName', 'gender', 'category', 'mobile', 'aadhar_number', 'aadhaarImage', 'rationCardMembers', 'rationCardImage', 'district', 'taluka', 'village'];
             // Add family aadhaar fields if applicable
@@ -262,7 +263,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
         }
     };
 
-    const onSubmit = (formData: RegisterFormValues) => {
+    const onSubmit = async (formData: RegisterFormValues) => {
         // Only allow submission if explicitly triggered by submit button
         if (!canSubmitRef.current) {
             return;
@@ -278,53 +279,100 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
         }
         setSubmitLoading(true);
 
-        // Extract family member Aadhar numbers
-        const familyAadharNumbers: string[] = [];
-        const familyMemberCount = parseInt(String(formData.rationCardMembers)) || 0;
+        try {
+            let applicationId = submittedApplicationId;
 
-        if (familyMemberCount > 1) {
-            for (let i = 1; i < familyMemberCount; i++) {
-                const fieldName = `familyAadhaar${i}` as keyof RegisterFormValues;
-                const aadharValue = formData[fieldName];
-                if (aadharValue && typeof aadharValue === 'string' && aadharValue.trim()) {
-                    familyAadharNumbers.push(aadharValue.trim());
+            // Only submit the form if it hasn't been submitted yet
+            if (!isFormSubmitted) {
+                // Extract family member Aadhar numbers
+                const familyAadharNumbers: string[] = [];
+                const familyMemberCount = parseInt(String(formData.rationCardMembers)) || 0;
+
+                if (familyMemberCount > 1) {
+                    for (let i = 1; i < familyMemberCount; i++) {
+                        const fieldName = `familyAadhaar${i}` as keyof RegisterFormValues;
+                        const aadharValue = formData[fieldName];
+                        if (aadharValue && typeof aadharValue === 'string' && aadharValue.trim()) {
+                            familyAadharNumbers.push(aadharValue.trim());
+                        }
+                    }
                 }
+
+                const submissionData = {
+                    ...formData,
+                    family_member_aadhar_number: familyAadharNumbers.join(','),
+                    components: formData.components
+                };
+
+                // Submit the form first
+                const res = await frappePublic.call().post('vmddp_app.api.app_form.create_app_form', {
+                    data: submissionData
+                });
+
+                applicationId = res?.message?.name || res?.data?.name || '';
+
+                if (!applicationId) {
+                    throw new Error('Application ID not received');
+                }
+
+                // Mark form as submitted and store application ID
+                setIsFormSubmitted(true);
+                setSubmittedApplicationId(applicationId);
+
+                // toast({
+                //     title: t('application_submitted'),
+                //     description: t('application_submitted_desc'),
+                // });
+
+                // Store form data in localStorage
+                localStorage.setItem('submittedApplicationData', JSON.stringify({
+                    ...formData,
+                    applicationId,
+                    submittedAt: new Date().toISOString()
+                }));
             }
-        }
 
-        const submissionData = {
-            ...formData,
-            family_member_aadhar_number: familyAadharNumbers.join(','),
-            components: formData.components
-        };
+            // Call DigiLocker API to get the verification URL
+            // Create unique verification ID with timestamp
+            const timestamp = Date.now();
+            const uniqueVerificationId = `${applicationId}_${timestamp}`;
 
-
-        frappePublic.call().post('vmddp_app.api.app_form.create_app_form', {
-            data: submissionData
-        }).then((res: any) => {
-            toast({
-                title: t('application_submitted'),
-                description: t('application_submitted_desc'),
+            const digilockerResponse = await fetch('/api/digilocker/create-url', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    verification_id: uniqueVerificationId,
+                    document_requested: ['AADHAAR'],
+                    redirect_url: `${window.location.origin}/success?applicationId=${applicationId}&verification_id=${uniqueVerificationId}`,
+                    user_flow: 'signup',
+                }),
             });
 
-            const applicationId = res?.message?.name || res?.data?.name || '';
+            const digilockerData = await digilockerResponse.json();
 
-            // Store form data in localStorage for success page
-            localStorage.setItem('submittedApplicationData', JSON.stringify({
-                ...formData,
-                applicationId,
-                submittedAt: new Date().toISOString()
-            }));
+            if (!digilockerResponse.ok || !digilockerData.success) {
+                throw new Error(digilockerData.error || 'Failed to create DigiLocker URL');
+            }
 
-            // Redirect to success page with application ID
-            router.push(`/success?applicationId=${applicationId}`);
-        }).catch((err: any) => {
+            const digilockerUrl = digilockerData.data?.url;
+
+            if (digilockerUrl) {
+                // Redirect to DigiLocker external URL
+                window.location.href = digilockerUrl;
+            } else {
+                throw new Error('DigiLocker URL not received');
+            }
+        } catch (err: any) {
+            console.error('Submission error:', err);
             toast({
                 title: t('submission_error'),
-                description: t('submission_error_desc'),
+                description: err.message || t('submission_error_desc'),
                 variant: "destructive"
             });
-        }).finally(() => setSubmitLoading(false));
+            setSubmitLoading(false);
+        }
     }
 
     const handlePrint = () => {
@@ -356,13 +404,11 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
 
                             {currentStep === 1 && (
                                 <BasicDetailsStep
+                                    setValue={setValue}
                                     control={control}
                                     errors={errors}
                                     familyMemberCount={familyMemberCount}
                                     setFamilyMemberCount={setFamilyMemberCount}
-                                    isAadhaarVerified={isAadhaarVerified}
-                                    setIsAadhaarVerified={setIsAadhaarVerified}
-                                    setValue={setValue}
                                 />
                             )}
 
@@ -415,7 +461,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                                             canSubmitRef.current = true;
                                         }}
                                     >
-                                        {t('submit_application')}
+                                        {submitLoading ? t('submitting') : t('verify_with_digilocker')}
                                     </Button>
                                 )}
                             </div>
