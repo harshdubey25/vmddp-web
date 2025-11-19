@@ -404,6 +404,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
 
                             {currentStep === 1 && (
                                 <BasicDetailsStep
+                                    setValue={setValue}
                                     control={control}
                                     errors={errors}
                                     familyMemberCount={familyMemberCount}
