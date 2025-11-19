@@ -16,23 +16,23 @@ export default function Footer() {
       />
       {/* Overlay for readability */}
       <div className="absolute inset-0 bg-black/70 z-10" aria-hidden="true" />
-      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="relative z-20 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <img src="/logo_vmddp.jpg" alt="VMDDP Logo" className="w-10 h-10 rounded-full" />
+            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+              <img src="/logo_vmddp.jpg" alt="VMDDP Logo" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full" />
               <div>
-                <h3 className="font-display font-semibold text-lg">VMDDP</h3>
+                <h3 className="font-display font-semibold text-base sm:text-lg">VMDDP</h3>
               </div>
             </div>
-            <p className="text-sm text-white">
+            <p className="text-xs sm:text-sm text-white leading-relaxed">
               {t('footer_description')}
             </p>
           </div>
 
           <div>
-            <h4 className="font-display font-semibold mb-4">{t('footer_quick_links')}</h4>
-            <ul className="space-y-2">
+            <h4 className="font-display font-semibold mb-3 sm:mb-4 text-base sm:text-base">{t('footer_quick_links')}</h4>
+            <ul className="space-y-1.5 sm:space-y-2">
               {[
                 { labelKey: "home" as const, path: "/" },
                 { labelKey: "about_us" as const, path: "/about" },
@@ -42,7 +42,7 @@ export default function Footer() {
                 { labelKey: "contact_us" as const, path: "/contact" },
               ].map((link) => (
                 <li key={link.path}>
-                  <Link href={link.path} className="text-sm text-white hover:text-primary transition-colors" data-testid={`link-footer-${link.labelKey.replace(/_/g, '-')}`}>
+                  <Link href={link.path} className="text-xs sm:text-sm text-white hover:text-primary transition-colors" data-testid={`link-footer-${link.labelKey.replace(/_/g, '-')}`}>
                     {t(link.labelKey)}
                   </Link>
                 </li>
@@ -51,10 +51,10 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-display font-semibold mb-4">{t('footer_contact_info')}</h4>
-            <div className="flex items-start gap-3 text-sm">
-              <MapPin className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-              <p className="text-white">
+            <h4 className="font-display font-semibold mb-3 sm:mb-4 text-base sm:text-base">{t('footer_contact_info')}</h4>
+            <div className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm">
+              <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+              <p className="text-white leading-relaxed">
                 {t('footer_address').split('\n').map((line, idx) => (
                   <span key={idx}>
                     {line}
@@ -66,9 +66,9 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t mt-8 pt-8 text-center text-sm text-white">
+        <div className="border-t mt-6 sm:mt-8 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-white">
           <p>{t('footer_copyright')}</p>
-          <p className="mt-2">{t('footer_developed_by')}</p>
+          <p className="mt-1.5 sm:mt-2">{t('footer_developed_by')}</p>
         </div>
       </div>
     </footer>
