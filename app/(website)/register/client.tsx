@@ -362,6 +362,7 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
                                     setFamilyMemberCount={setFamilyMemberCount}
                                     isAadhaarVerified={isAadhaarVerified}
                                     setIsAadhaarVerified={setIsAadhaarVerified}
+                                    setValue={setValue}
                                 />
                             )}
 
