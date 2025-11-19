@@ -65,16 +65,15 @@ const BasicDetailsStep = ({
     filters: watchedDistrict && watchedTaluka ? [['district', '=', watchedDistrict], ['taluka', '=', watchedTaluka]] : [['name1', '=', '__no_match__']],
     limit: 1000,
   }, {
-    enabled: !!(watchedDistrict && watchedTaluka),
     revalidateOnFocus: false,
     revalidateIfStale: true,
   });
 
   // Debug logging
-  console.log('Village query state:', {
+  console.log('Query state:', {
     watchedDistrict,
     watchedTaluka,
-    enabled: Boolean(watchedDistrict && watchedTaluka),
+    talukaDataLength: talukaData?.length,
     villageDataLength: villageData?.length
   });
 
