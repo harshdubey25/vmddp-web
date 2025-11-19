@@ -97,7 +97,7 @@ const BasicDetailsStep = ({
       const result = await response.json();
       const fileUrl = result.message?.data?.file_url;
       if (fileUrl) {
-        return `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${fileUrl}`;
+        return `${fileUrl}`;
       }
       return null;
     } catch (error) {
