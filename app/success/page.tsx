@@ -77,15 +77,19 @@ export default function SuccessPage() {
         const appId = urlParams.get('applicationId');
         const verificationIdParam = urlParams.get('verification_id');
 
+        let finalAppId = '';
+
         if (verificationIdParam) {
             setVerificationId(verificationIdParam);
             // Extract clean applicationId by splitting on underscore (format: applicationId_timestamp)
             const cleanAppId = verificationIdParam.split('_')[0];
             setApplicationId(cleanAppId);
+            finalAppId = cleanAppId;
             // Check DigiLocker verification status with full verification_id
             checkVerificationStatus(verificationIdParam);
         } else if (appId) {
             setApplicationId(appId);
+            finalAppId = appId;
             setIsCheckingVerification(false);
         } else {
             setIsCheckingVerification(false);
@@ -97,8 +101,6 @@ export default function SuccessPage() {
             try {
                 const data = JSON.parse(storedData);
                 setApplicationData(data);
-                // Clear the data after reading it
-                localStorage.removeItem('submittedApplicationData');
             } catch (error) {
                 console.error('Error parsing application data:', error);
             }
