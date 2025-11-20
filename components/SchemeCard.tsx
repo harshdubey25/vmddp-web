@@ -24,7 +24,7 @@ export default function SchemeCard({ icon: Icon, title, description, benefits, c
     >
   <Card 
         className="hover-elevate transition-all duration-300 h-full flex flex-col relative overflow-hidden" 
-        style={{ height: '400px' }} 
+        style={{ height: '380px' }} 
         data-testid={`card-scheme-${componentId}`}
       >
         {/* Background Image */}
@@ -39,21 +39,21 @@ export default function SchemeCard({ icon: Icon, title, description, benefits, c
         )}
         {/* Content Overlay */}
         <div className="relative z-10 flex flex-col h-full">
-        <CardHeader className="p-4 sm:p-6">
+        <CardHeader className="p-3 sm:p-5">
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
             animate={isInView ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -180 }}
             transition={{ duration: 0.6, delay: index * 0.1 + 0.2 }}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-3 sm:mb-4"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-2 sm:mb-3"
           >
             <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
           </motion.div>
-          <CardTitle className="font-display text-base sm:text-lg" data-testid={`text-scheme-title-${componentId}`}>{title}</CardTitle>
-          <CardDescription className="text-xs sm:text-sm" data-testid={`text-scheme-description-${componentId}`}>{description}</CardDescription>
+          <CardTitle className="font-display text-sm sm:text-base line-clamp-2" data-testid={`text-scheme-title-${componentId}`}>{title}</CardTitle>
+          <CardDescription className="text-xs sm:text-sm line-clamp-2" data-testid={`text-scheme-description-${componentId}`}>{description}</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col flex-1 justify-between p-4 sm:p-6 pt-0">
-          <div>
-            <ul className="space-y-1.5 sm:space-y-2 mb-4 sm:mb-6">
+        <CardContent className="flex flex-col flex-1 p-3 sm:p-5 pt-0">
+          <div className="flex-1">
+            <ul className="space-y-0.5 sm:space-y-1 mb-2 sm:mb-3">
               {benefits.map((benefit, benefitIndex) => (
                 <motion.li
                   key={benefitIndex}
@@ -68,7 +68,7 @@ export default function SchemeCard({ icon: Icon, title, description, benefits, c
               ))}
             </ul>
           </div>
-          <div className="flex justify-center">
+          <div className="flex justify-center pb-2">
             <Link href={`/schemes/${componentId}`}>
               <Button variant="outline" className="w-36 sm:w-40 text-xs sm:text-sm group" data-testid={`button-learn-more-${componentId}`}>
                 Read More
