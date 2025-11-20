@@ -78,7 +78,12 @@ const EligibilityStep = ({ values, control, errors, criteriaFields, setValue }: 
       const result = await response.json();
       const fileUrl = result.message?.data?.file_url;
       if (fileUrl) {
-        return `${fileUrl}`;
+        // If URL already starts with https/http, return as is
+        if (fileUrl.startsWith('https://') || fileUrl.startsWith('http://')) {
+          return fileUrl;
+        }
+        // Otherwise, prepend the base URL
+        return `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${fileUrl}`;
       }
       return null;
     } catch (error) {
