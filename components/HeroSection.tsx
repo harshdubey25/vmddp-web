@@ -28,7 +28,7 @@ export default function HeroSection() {
     <section className="relative bg-gradient-to-br from-primary/95 to-primary text-primary-foreground overflow-hidden">
       {/* Background Image Slider with Dark Overlay */}
       <div className="absolute inset-0 z-0">
-        <ImageCarousel images={heroImages} alt="Hero Background" hideArrows={true} />
+        <ImageCarousel images={heroImages} alt="Hero Background" hideArrows={true} hideNumbering={true} />
         <div className="absolute inset-0 bg-black bg-opacity-40" />
       </div>
 
@@ -37,19 +37,19 @@ export default function HeroSection() {
         <div className="flex flex-col lg:flex-row items-center lg:items-start gap-6 sm:gap-8 lg:gap-12">
 
           {/* Left Side: Content */}
-          <div className="flex-1 text-center lg:text-left max-w-2xl">
+          <div className="flex-1 text-center lg:text-left max-w-2xl w-full">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="font-display font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-4 sm:mb-6 drop-shadow-2xl text-blue-500 leading-tight"
+              className="font-display font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl mb-4 sm:mb-6 drop-shadow-2xl text-blue-500 leading-tight break-words"
               style={{ textShadow: '3px 3px 8px rgba(0, 0, 0, 0.8), 1px 1px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.6)' }}
               data-testid="text-hero-title"
             >
               {t("hero_title")
                 .split('\n')
                 .map((line, idx, arr) => (
-                  <span key={idx}>
+                  <span key={idx} className="block">
                     {line}
                     {idx < arr.length - 1 && <br />}
                   </span>
@@ -59,7 +59,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-primary-foreground/80 drop-shadow-xl leading-relaxed"
+              className="text-sm sm:text-base md:text-lg lg:text-xl mb-6 sm:mb-8 text-primary-foreground/80 drop-shadow-xl leading-relaxed break-words"
               style={{ textShadow: '2px 2px 6px rgba(0, 0, 0, 0.7), 1px 1px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5)' }}
               data-testid="text-hero-subtitle"
             >
