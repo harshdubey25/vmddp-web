@@ -8,9 +8,10 @@ interface ImageCarouselProps {
   images: string[];
   alt: string;
   hideArrows?: boolean;
+  hideNumbering?: boolean;
 }
 
-export default function ImageCarousel({ images, alt, hideArrows }: ImageCarouselProps) {
+export default function ImageCarousel({ images, alt, hideArrows, hideNumbering }: ImageCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -92,7 +93,7 @@ export default function ImageCarousel({ images, alt, hideArrows }: ImageCarousel
             <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" /></svg>
           </button>
           <button
-            type="button"
+          type="button"
             className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm border border-border/50 rounded-full p-2 text-black"
             onClick={scrollNext}
             aria-label="Next image"
@@ -103,9 +104,11 @@ export default function ImageCarousel({ images, alt, hideArrows }: ImageCarousel
         </div>
       )
       }
-      <div className="absolute bottom-4 right-4 z-10 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-medium border border-border/50" data-testid="carousel-counter">
-        {selectedIndex + 1} / {images.length}
-      </div>
+      {!hideNumbering && (
+        <div className="absolute bottom-4 right-4 z-10 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-medium border border-border/50" data-testid="carousel-counter">
+          {selectedIndex + 1} / {images.length}
+        </div>
+      )}
     </div>
   );
 }
