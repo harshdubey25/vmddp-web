@@ -55,24 +55,24 @@ export default async function AdminDashboardStats() {
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {stats.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
                     <Card key={index} data-testid={`stat-card-${index}`}>
-                        <CardContent className="p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
-                                    <Icon className={`w-5 h-5 ${stat.color}`} />
+                        <CardContent className="p-3 sm:p-4 lg:p-6">
+                            <div className="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
+                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
+                                    <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.color}`} />
                                 </div>
-                                <span className="text-xs font-medium text-chart-3 flex items-center gap-1">
-                                    <TrendingUp className="w-3 h-3" />
+                                <span className="text-[10px] sm:text-xs font-medium text-chart-3 flex items-center gap-0.5 sm:gap-1">
+                                    <TrendingUp className="w-2 h-2 sm:w-3 sm:h-3" />
                                     {stat.change}
                                 </span>
                             </div>
                             <div>
-                                <p className="text-2xl font-bold">{stat.value}</p>
-                                <p className="text-sm text-muted-foreground mt-1">{stat.title}</p>
+                                <p className="text-lg sm:text-xl lg:text-2xl font-bold">{stat.value}</p>
+                                <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground mt-0.5 sm:mt-1 line-clamp-2">{stat.title}</p>
                             </div>
                         </CardContent>
                     </Card>

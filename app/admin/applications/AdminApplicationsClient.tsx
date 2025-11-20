@@ -229,35 +229,35 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
         <div className="flex h-screen overflow-hidden">
             <AdminSidebar userRole="admin" />
             <div className="flex-1 flex flex-col overflow-hidden">
-                <header className="flex h-16 items-center justify-between border-b px-6 bg-background">
+                <header className="flex h-14 sm:h-16 items-center justify-between border-b pl-12 pr-3 sm:pl-6 sm:pr-6 bg-background">
                     <div>
-                        <h1 className="font-display font-semibold text-xl" data-testid="text-applications-title">
+                        <h1 className="font-display font-semibold text-base sm:text-xl" data-testid="text-applications-title">
                             Applications Management
                         </h1>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
                             Review and manage farmer applications
                         </p>
                     </div>
-                    <Button variant="outline" className="gap-2" data-testid="button-export" onClick={handleExport}>
-                        <Download className="w-4 h-4" />
-                        Export
+                    <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm" data-testid="button-export" onClick={handleExport}>
+                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden sm:inline">Export</span>
                     </Button>
                 </header>
-                <main className="flex-1 overflow-auto p-6 bg-muted/30">
-                    <div className="space-y-6 max-w-7xl">
+                <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30">
+                    <div className="space-y-4 sm:space-y-6 max-w-7xl">
                         <Card>
-                            <CardHeader>
-                                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                            <CardHeader className="p-4 sm:p-6">
+                                <div className="flex flex-col md:flex-row gap-3 sm:gap-4 items-start md:items-center justify-between">
                                     <div>
-                                        <CardTitle>All Applications</CardTitle>
-                                        <CardDescription>
+                                        <CardTitle className="text-base sm:text-lg">All Applications</CardTitle>
+                                        <CardDescription className="text-xs sm:text-sm">
                                             {applications.length} applications found
                                         </CardDescription>
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                                     <div className="relative">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                         <Input
@@ -320,14 +320,14 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                         <table className="w-full">
                                             <thead className="bg-muted/50 border-b">
                                                 <tr>
-                                                    <th className="text-left p-4 font-semibold text-sm">Application ID</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Applicant</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">District</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Component</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Status</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Approver</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Date</th>
-                                                    <th className="text-left p-4 font-semibold text-sm">Actions</th>
+                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">ID</th>
+                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Applicant</th>
+                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden md:table-cell">District</th>
+                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden lg:table-cell">Component</th>
+                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Status</th>
+                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden xl:table-cell">Approver</th>
+                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden sm:table-cell">Date</th>
+                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -337,44 +337,45 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                                         className="border-b hover:bg-muted/30 transition-colors"
                                                         data-testid={`application-row-${index}`}
                                                     >
-                                                        <td className="p-4">
-                                                            <span className="font-mono text-sm font-semibold">{app.id}</span>
+                                                        <td className="p-2 sm:p-4">
+                                                            <span className="font-mono text-xs sm:text-sm font-semibold">{app.id}</span>
                                                         </td>
-                                                        <td className="p-4">
+                                                        <td className="p-2 sm:p-4">
                                                             <div>
-                                                                <p className="font-medium text-sm">{app.applicantName}</p>
-                                                                <p className="text-xs text-muted-foreground">{app.mobile}</p>
+                                                                <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{app.applicantName}</p>
+                                                                <p className="text-[10px] sm:text-xs text-muted-foreground">{app.mobile}</p>
                                                             </div>
                                                         </td>
-                                                        <td className="p-4">
+                                                        <td className="p-2 sm:p-4 hidden md:table-cell">
                                                             <div>
-                                                                <p className="text-sm">{app.district || 'N/A'}</p>
+                                                                <p className="text-xs sm:text-sm">{app.district || 'N/A'}</p>
 
                                                             </div>
                                                         </td>
-                                                        <td className="p-4">
-                                                            <p className="text-sm">{app.component || 'N/A'}</p>
+                                                        <td className="p-2 sm:p-4 hidden lg:table-cell">
+                                                            <p className="text-xs sm:text-sm truncate max-w-[150px]">{app.component || 'N/A'}</p>
                                                         </td>
-                                                        <td className="p-4">{getStatusBadge(app.status)}</td>
-                                                        <td className="p-4">
+                                                        <td className="p-2 sm:p-4">{getStatusBadge(app.status)}</td>
+                                                        <td className="p-2 sm:p-4 hidden xl:table-cell">
                                                             {app.approver ? (
-                                                                <p className="text-sm">{app.approver}</p>
+                                                                <p className="text-xs sm:text-sm truncate max-w-[120px]">{app.approver}</p>
                                                             ) : (
                                                                 <Badge variant="secondary" className="text-xs" data-testid={`badge-approver-unassigned-${index}`}>Not Assigned</Badge>
                                                             )}
                                                         </td>
-                                                        <td className="p-4">
-                                                            <p className="text-sm">{app.submittedDate}</p>
+                                                        <td className="p-2 sm:p-4 hidden sm:table-cell">
+                                                            <p className="text-xs sm:text-sm">{app.submittedDate}</p>
                                                         </td>
-                                                        <td className="p-4">
+                                                        <td className="p-2 sm:p-4">
                                                             <Button
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 onClick={() => handleViewDetails(app)}
                                                                 data-testid={`button-view-${index}`}
+                                                                className="text-xs sm:text-sm px-2 sm:px-3"
                                                             >
-                                                                <Eye className="w-4 h-4 mr-1" />
-                                                                View
+                                                                <Eye className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                                                                <span className="hidden sm:inline">View</span>
                                                             </Button>
                                                         </td>
                                                     </tr>
@@ -385,8 +386,8 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                 </div>
 
                                 {/* Pagination */}
-                                <div className="flex items-center justify-between pt-4">
-                                    <p className="text-sm text-muted-foreground">
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 pt-3 sm:pt-4">
+                                    <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
                                         Showing {applications.length} items on page {currentPage} 
                                         {applications.length < pageSize && currentPage > 1 ? ' (last page)' : ''}
                                     </p>
