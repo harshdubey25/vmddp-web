@@ -349,17 +349,17 @@ export default function AdminSubAdmins() {
             <AdminSidebar userRole="admin" />
 
             <div className="flex-1 flex flex-col overflow-hidden">
-                <header className="flex h-16 items-center justify-between border-b px-6 bg-background">
+                <header className="flex h-14 sm:h-16 items-center justify-between border-b pl-12 pr-3 sm:pl-6 sm:pr-6 bg-background">
                     <div>
-                        <h1 className="font-display font-semibold text-xl" data-testid="text-subadmins-title">
+                        <h1 className="font-display font-semibold text-base sm:text-xl" data-testid="text-subadmins-title">
                             Sub-Admin Management
                         </h1>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
                             Manage District Programme Officers (DPOs)
                         </p>
                     </div>
                     <Button
-                        className="gap-2"
+                        className="gap-1 sm:gap-2 text-xs sm:text-sm"
                         onClick={() => {
                             setSelectedDPO(null);
                             setFormData(initialFormState);
@@ -367,13 +367,14 @@ export default function AdminSubAdmins() {
                         }}
                         data-testid="button-add-subadmin"
                     >
-                        <UserPlus className="w-4 h-4" />
-                        Add Sub-Admin
+                        <UserPlus className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden sm:inline">Add Sub-Admin</span>
+                        <span className="sm:hidden">Add</span>
                     </Button>
                 </header>
 
-                <main className="flex-1 overflow-auto p-6 bg-muted/30">
-                    <div className="space-y-6 max-w-7xl">
+                <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30">
+                    <div className="space-y-4 sm:space-y-6 max-w-7xl">
                         {isLoading ? (
                             <div className="flex items-center justify-center p-8">
                                 <Loader2 className="w-8 h-8 animate-spin" />
@@ -385,48 +386,48 @@ export default function AdminSubAdmins() {
                             </div>
                         ) : (
                             <>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                                     <Card>
-                                        <CardContent className="p-6">
+                                        <CardContent className="p-4 sm:p-6">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="text-sm text-muted-foreground mb-1">Total Sub-Admins</p>
-                                                    <p className="font-display font-bold text-2xl">{dpos.length}</p>
+                                                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Sub-Admins</p>
+                                                    <p className="font-display font-bold text-xl sm:text-2xl">{dpos.length}</p>
                                                 </div>
-                                                <div className="w-10 h-10 rounded-lg bg-chart-2/10 flex items-center justify-center">
-                                                    <Shield className="w-5 h-5 text-chart-2" />
+                                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-chart-2/10 flex items-center justify-center">
+                                                    <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-chart-2" />
                                                 </div>
                                             </div>
                                         </CardContent>
                                     </Card>
 
                                     <Card>
-                                        <CardContent className="p-6">
+                                        <CardContent className="p-4 sm:p-6">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="text-sm text-muted-foreground mb-1">Active Users</p>
-                                                    <p className="font-display font-bold text-2xl">
+                                                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">Active Users</p>
+                                                    <p className="font-display font-bold text-xl sm:text-2xl">
                                                         {dpos.filter((dpo) => dpo.enabled).length}
                                                     </p>
                                                 </div>
-                                                <div className="w-10 h-10 rounded-lg bg-chart-3/10 flex items-center justify-center">
-                                                    <CheckCircle className="w-5 h-5 text-chart-3" />
+                                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-chart-3/10 flex items-center justify-center">
+                                                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-chart-3" />
                                                 </div>
                                             </div>
                                         </CardContent>
                                     </Card>
 
                                     <Card>
-                                        <CardContent className="p-6">
+                                        <CardContent className="p-4 sm:p-6">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="text-sm text-muted-foreground mb-1">Districts Covered</p>
-                                                    <p className="font-display font-bold text-2xl">
+                                                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">Districts Covered</p>
+                                                    <p className="font-display font-bold text-xl sm:text-2xl">
                                                         {new Set(dpos.map((dpo) => dpo.district).filter(Boolean)).size}
                                                     </p>
                                                 </div>
-                                                <div className="w-10 h-10 rounded-lg bg-chart-4/10 flex items-center justify-center">
-                                                    <MapPin className="w-5 h-5 text-chart-4" />
+                                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-chart-4/10 flex items-center justify-center">
+                                                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-chart-4" />
                                                 </div>
                                             </div>
                                         </CardContent>
@@ -434,18 +435,18 @@ export default function AdminSubAdmins() {
                                 </div>
 
                                 <Card>
-                                    <CardHeader>
-                                        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                                    <CardHeader className="p-4 sm:p-6">
+                                        <div className="flex flex-col md:flex-row gap-3 sm:gap-4 items-start md:items-center justify-between">
                                             <div>
-                                                <CardTitle>All Sub-Administrators</CardTitle>
-                                                <CardDescription>
+                                                <CardTitle className="text-base sm:text-lg">All Sub-Administrators</CardTitle>
+                                                <CardDescription className="text-xs sm:text-sm">
                                                     {filteredDPOs.length} DPOs registered
                                                 </CardDescription>
                                             </div>
                                         </div>
                                     </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        <div className="flex gap-4">
+                                    <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
+                                        <div className="flex gap-3 sm:gap-4">
                                             <div className="relative flex-1">
                                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                                 <Input
@@ -469,40 +470,40 @@ export default function AdminSubAdmins() {
                                             </Select> */}
                                         </div>
 
-                                        <div className="space-y-4">
+                                        <div className="space-y-3 sm:space-y-4">
                                             {filteredDPOs.map((dpo, index) => (
                                                 <Card
                                                     key={dpo.dpo_id}
                                                     className="hover-elevate transition-all"
                                                     data-testid={`subadmin-card-${index}`}
                                                 >
-                                                    <CardContent className="p-6">
-                                                        <div className="flex flex-col lg:flex-row gap-6">
-                                                            <div className="flex-1 space-y-4">
-                                                                <div className="flex items-start justify-between">
+                                                    <CardContent className="p-4 sm:p-6">
+                                                        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+                                                            <div className="flex-1 space-y-3 sm:space-y-4">
+                                                                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                                                                     <div>
-                                                                        <div className="flex items-center gap-3 mb-1">
-                                                                            <h3 className="font-semibold text-lg">{dpo.name}</h3>
+                                                                        <div className="flex items-center gap-2 sm:gap-3 mb-1 flex-wrap">
+                                                                            <h3 className="font-semibold text-base sm:text-lg">{dpo.name}</h3>
                                                                             <Badge
                                                                                 variant={dpo.enabled ? "default" : "secondary"}
-                                                                                className={dpo.enabled ? "bg-chart-3" : ""}
+                                                                                className={`text-xs ${dpo.enabled ? "bg-chart-3" : ""}`}
                                                                             >
                                                                                 {dpo.enabled ? "active" : "inactive"}
                                                                             </Badge>
                                                                         </div>
-                                                                        <p className="text-sm text-muted-foreground">
+                                                                        <p className="text-xs sm:text-sm text-muted-foreground">
                                                                             ID: {dpo.dpo_id}
-                                                                            {/* • @{dpo.user_id} */}
                                                                         </p>
                                                                     </div>
-                                                                    <div className="flex gap-2">
+                                                                    <div className="flex gap-2 flex-wrap">
                                                                         <Button
                                                                             variant="outline"
                                                                             size="sm"
                                                                             onClick={() => handleEditDPO(dpo)}
                                                                             data-testid={`button-edit-${index}`}
+                                                                            className="text-xs sm:text-sm"
                                                                         >
-                                                                            <Edit className="w-4 h-4 mr-1" />
+                                                                            <Edit className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                                                                             Edit
                                                                         </Button>
                                                                         <Button
@@ -510,28 +511,30 @@ export default function AdminSubAdmins() {
                                                                             size="sm"
                                                                             onClick={() => handleOpenPasswordDialog(dpo)}
                                                                             data-testid={`button-reset-password-${index}`}
+                                                                            className="text-xs sm:text-sm"
                                                                         >
-                                                                            <Shield className="w-4 h-4 mr-1" />
-                                                                            Reset Password
+                                                                            <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                                                            <span className="hidden sm:inline">Reset Password</span>
+                                                                            <span className="sm:hidden">Reset</span>
                                                                         </Button>
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
                                                                     <div className="flex items-center gap-2 text-muted-foreground">
-                                                                        <Mail className="w-4 h-4" />
-                                                                        <span>{dpo.email}</span>
+                                                                        <Mail className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                                                                        <span className="truncate">{dpo.email}</span>
                                                                     </div>
                                                                     <div className="flex items-center gap-2 text-muted-foreground">
-                                                                        <Phone className="w-4 h-4" />
+                                                                        <Phone className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                                                                         <span>{dpo.mobile_number || "Not provided"}</span>
                                                                     </div>
                                                                     <div className="flex items-center gap-2 text-muted-foreground">
-                                                                        <MapPin className="w-4 h-4" />
-                                                                        <span>District: {dpo.district}</span>
+                                                                        <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                                                                        <span className="truncate">District: {dpo.district}</span>
                                                                     </div>
                                                                     <div className="flex items-center gap-2 text-muted-foreground">
-                                                                        <BarChart3 className="w-4 h-4" />
+                                                                        <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                                                                         <span>User Type: {dpo.user_type}</span>
                                                                     </div>
                                                                 </div>
