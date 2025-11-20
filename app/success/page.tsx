@@ -120,12 +120,16 @@ export default function SuccessPage() {
             const data = await response.json();
 
             if (response.ok) {
-                // Check if verification was successful
-                if (data.success && data.data?.status === "AUTHENTICATED") {
+                // Check if verification was successful (AUTHENTICATED or VERIFIED for already verified users)
+                const verificationStatus = data.data?.status;
+                if (data.success && (verificationStatus === "AUTHENTICATED" || verificationStatus === "VERIFIED")) {
                     setIsVerified(true);
+                    const message = verificationStatus === "VERIFIED"
+                        ? "User is already verified"
+                        : "Your documents have been verified successfully.";
                     toast({
                         title: "DigiLocker Verification Successful",
-                        description: "Your documents have been verified successfully.",
+                        description: message,
                     });
                 } else {
                     // Handle failed verification or invalid details
