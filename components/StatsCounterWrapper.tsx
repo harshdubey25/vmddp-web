@@ -1,5 +1,10 @@
 import { frappeServer } from "@/lib/frappe";
 import StatsCounter from "./StatsCounter";
+
+// Disable caching - fetch fresh data on every request
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function StatsCounterWrapper() {
     try {
         const [approvedApplicationsCount, rejectedApplicationsCount, pendingApplicationsCount, totalApplicationsCount] = await Promise.all([
