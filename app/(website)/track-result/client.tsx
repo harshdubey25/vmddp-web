@@ -99,9 +99,10 @@ export default function TrackResultPage() {
       approved: { label: t("approved"), variant: "default" as const, icon: CheckCircle, iconColor: "text-green-600" },
       selected: { label: t("selected"), variant: "default" as const, icon: CheckCircle, iconColor: "text-green-600" },
       rejected: { label: t("rejected"), variant: "destructive" as const, icon: XCircle, iconColor: "text-red-600" },
+      unverified: { label: "Unverified", variant: "destructive" as const, icon: AlertCircle, iconColor: "text-red-600" },
     };
 
-    const config = statusConfig[status] || { label: status || "Unknown", variant: "outline" as const, icon: AlertCircle, iconColor: "text-gray-600" };
+    const config = statusConfig[status] || { label: status || "Unknown", variant: "destructive" as const, icon: AlertCircle, iconColor: "text-red-600" };
     const Icon = config.icon;
 
     return (
