@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 
-export type ApplicationStatus = "Approved" | "Pending" | "Rejected" | "Selected" | "Not Assigned";
+export type ApplicationStatus = "Approved" | "Pending" | "Rejected" | "Selected" | "Not Assigned" | "Unverified";
 
 export const getStatusBadge = (status: ApplicationStatus) => {
     const variants: Record<ApplicationStatus, { variant: string; className: string }> = {
@@ -9,6 +9,7 @@ export const getStatusBadge = (status: ApplicationStatus) => {
         Rejected: { variant: "outline", className: "bg-chart-5/10 text-chart-5 border-chart-5/20" },
         Selected: { variant: "outline", className: "bg-chart-1/10 text-chart-1 border-chart-1/20" },
         "Not Assigned": { variant: "outline", className: "bg-muted/30 text-muted-foreground border-muted/50" },
+        Unverified: { variant: "outline", className: "bg-red-50 text-red-600 border-red-200" },
     };
 
     return (
