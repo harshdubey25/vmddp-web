@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Home, FileText, Download, User, Users, MapPin, Leaf, Award, XCircle, AlertCircle } from "lucide-react";
+import { CheckCircle, Home, FileText, Download, User, Users, MapPin, Leaf, Award } from "lucide-react";
 import Link from "next/link";
-import { useToast } from "@/hooks/use-toast";
 
 type ApplicationData = {
     firstName: string;
@@ -45,12 +44,8 @@ type ApplicationData = {
 
 export default function SuccessPage() {
     const [applicationId, setApplicationId] = useState<string>("");
-    const [verificationId, setVerificationId] = useState<string>("");
     const [applicationData, setApplicationData] = useState<ApplicationData | null>(null);
-    const [isVerified, setIsVerified] = useState<boolean | null>(null);
-    const [isCheckingVerification, setIsCheckingVerification] = useState<boolean>(true);
-    const [verificationError, setVerificationError] = useState<string>("");
-    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
         // Add basic print styles
@@ -75,24 +70,9 @@ export default function SuccessPage() {
         // Get application ID from URL params
         const urlParams = new URLSearchParams(window.location.search);
         const appId = urlParams.get('applicationId');
-        const verificationIdParam = urlParams.get('verification_id');
 
-        let finalAppId = '';
-
-        if (verificationIdParam) {
-            setVerificationId(verificationIdParam);
-            // Extract clean applicationId by splitting on underscore (format: applicationId_timestamp)
-            const cleanAppId = verificationIdParam.split('_')[0];
-            setApplicationId(cleanAppId);
-            finalAppId = cleanAppId;
-            // Check DigiLocker verification status with full verification_id
-            checkVerificationStatus(verificationIdParam);
-        } else if (appId) {
+        if (appId) {
             setApplicationId(appId);
-            finalAppId = appId;
-            setIsCheckingVerification(false);
-        } else {
-            setIsCheckingVerification(false);
         }
 
         // Get application data from localStorage
@@ -106,56 +86,14 @@ export default function SuccessPage() {
             }
         }
 
+        setIsLoading(false);
+
         return () => {
             if (style.parentNode) {
                 style.parentNode.removeChild(style);
             }
         };
     }, []);
-
-    const checkVerificationStatus = async (verificationId: string) => {
-        try {
-            setIsCheckingVerification(true);
-            const response = await fetch(`/api/digilocker/verification-status?verification_id=${verificationId}`);
-            const data = await response.json();
-
-            if (response.ok) {
-                // Check if verification was successful (AUTHENTICATED or VERIFIED for already verified users)
-                const verificationStatus = data.data?.status;
-                if (data.success && (verificationStatus === "AUTHENTICATED" || verificationStatus === "VERIFIED")) {
-                    setIsVerified(true);
-                    const message = verificationStatus === "VERIFIED"
-                        ? "User is already verified"
-                        : "Your documents have been verified successfully.";
-                    toast({
-                        title: "DigiLocker Verification Successful",
-                        description: message,
-                    });
-                } else {
-                    // Handle failed verification or invalid details
-                    setIsVerified(false);
-                    const status = data.data?.status;
-                    const message = data.data?.message;
-
-                    // Provide specific error message based on status
-                    if (status === "INVALID_DETAILS") {
-                        setVerificationError(message || "Name and mobile number does not match as in application form");
-                    } else {
-                        setVerificationError(message || `Verification status: ${status || "Not Authenticated"}`);
-                    }
-                }
-            } else {
-                setIsVerified(false);
-                setVerificationError(data.error || "Failed to verify with DigiLocker");
-            }
-        } catch (error) {
-            console.error('Error checking verification status:', error);
-            setIsVerified(false);
-            setVerificationError("Failed to check verification status");
-        } finally {
-            setIsCheckingVerification(false);
-        }
-    };
 
     const getFileName = (url: any) => {
         if (!url || typeof url !== 'string') return "Uploaded";
@@ -184,7 +122,7 @@ export default function SuccessPage() {
         return value.toString();
     };
 
-    if (!applicationData || isCheckingVerification) {
+    if (isLoading || !applicationData) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12 sm:py-16">
                 <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -192,82 +130,8 @@ export default function SuccessPage() {
                         <CardContent className="p-8 text-center">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
                             <p className="text-muted-foreground">
-                                {isCheckingVerification ? "Verifying with DigiLocker..." : "Loading application details..."}
+                                Loading application details...
                             </p>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-        );
-    }
-
-    // Show error if verification failed
-    if (isVerified === false) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 py-12 sm:py-16">
-                <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <Card className="shadow-xl border-0">
-                        <CardHeader className="text-center pb-8">
-                            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                                <XCircle className="w-8 h-8 text-red-600" />
-                            </div>
-                            <CardTitle className="text-2xl sm:text-3xl font-display font-semibold text-red-800 mb-2">
-                                DigiLocker Verification Failed
-                            </CardTitle>
-                            <p className="text-muted-foreground">
-                                Your application was submitted, but DigiLocker verification could not be completed.
-                            </p>
-                        </CardHeader>
-
-                        <CardContent className="space-y-6">
-                            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                                <div className="flex items-start gap-3">
-                                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                                    <div>
-                                        <h3 className="font-semibold text-red-800 mb-1">Verification Status</h3>
-                                        <p className="text-sm text-red-700">{verificationError}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {applicationId && (
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <FileText className="w-5 h-5 text-blue-600" />
-                                        <h3 className="font-semibold text-blue-800">Application Details</h3>
-                                    </div>
-                                    <p className="text-sm text-blue-700">
-                                        <strong>Application ID:</strong> <span className="font-mono">{applicationId}</span>
-                                    </p>
-                                    <p className="text-xs text-blue-600 mt-2">
-                                        Your application has been submitted but requires DigiLocker verification to proceed.
-                                    </p>
-                                </div>
-                            )}
-
-                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                <h3 className="font-semibold text-yellow-800 mb-2">What should you do?</h3>
-                                <ul className="text-sm text-yellow-700 space-y-1">
-                                    <li>• Please complete the DigiLocker verification process</li>
-                                    <li>• Contact support if you continue to face issues</li>
-                                    <li>• Keep your application ID safe for reference</li>
-                                    <li>• You may need to retry the verification</li>
-                                </ul>
-                            </div>
-
-                            <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                                <Link href="/" className="flex-1">
-                                    <Button variant="outline" className="w-full gap-2">
-                                        <Home className="w-4 h-4" />
-                                        Back to Home
-                                    </Button>
-                                </Link>
-                                <Link href="/contact" className="flex-1">
-                                    <Button className="w-full gap-2">
-                                        Contact Support
-                                    </Button>
-                                </Link>
-                            </div>
                         </CardContent>
                     </Card>
                 </div>

@@ -249,7 +249,6 @@ const BasicDetailsStep = ({
             />
           )}
         />
-        <span className="text-xs text-muted-foreground">Note: This mobile number should be registered with your Aadhaar</span>
         {errors.mobile && <span className="text-red-500 text-xs">{errors.mobile.message}</span>}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
