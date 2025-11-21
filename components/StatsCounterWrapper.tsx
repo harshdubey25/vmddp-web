@@ -1,33 +1,50 @@
-import { frappeServer } from "@/lib/frappe";
+"use client"
+import { useEffect, useState } from "react";
+import { frappePublic } from "@/lib/frappe";
 import StatsCounter from "./StatsCounter";
 
-// Disable caching - fetch fresh data on every request
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export default function StatsCounterWrapper() {
+    const [data, setData] = useState({
+        approved: 0,
+        rejected: 0,
+        pending: 0,
+        total: 0,
+        fetchError: false,
+    });
+    const [isLoading, setIsLoading] = useState(true);
 
-export default async function StatsCounterWrapper() {
-    try {
-        const response = await frappeServer.call().get('vmddp_app.vmddp.doctype.app_form.app_form.get_applications_by_district_component');
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const response = await frappePublic.call().get('vmddp_app.vmddp.doctype.app_form.app_form.get_applications_by_district_component');
 
-        const data = {
-            approved: response.message?.approved ?? 0,
-            rejected: response.message?.rejected ?? 0,
-            pending: response.message?.pending ?? 0,
-            total: response.message?.total ?? 0,
+                setData({
+                    approved: response?.message?.approved ?? 0,
+                    rejected: response?.message?.rejected ?? 0,
+                    pending: response?.message?.pending ?? 0,
+                    total: response?.message?.total ?? 0,
+                    fetchError: false,
+                });
+            } catch (error) {
+                console.error("Failed to fetch application counts for AboutSection:", error);
+                setData({
+                    approved: 0,
+                    rejected: 0,
+                    pending: 0,
+                    total: 0,
+                    fetchError: true,
+                });
+            } finally {
+                setIsLoading(false);
+            }
         };
-        console.log(response, data)
-        return <StatsCounter data={data} />;
-    } catch (error) {
-        console.error("Failed to fetch application counts for AboutSection:", error);
 
-        const data = {
-            approved: 0,
-            rejected: 0,
-            pending: 0,
-            total: 0,
-            fetchError: true,
-        };
+        fetchStats();
+    }, []);
 
-        return <StatsCounter data={data} />;
+    if (isLoading) {
+        return <StatsCounter data={{ approved: 0, rejected: 0, pending: 0, total: 0 }} />;
     }
+
+    return <StatsCounter data={data} />;
 }
