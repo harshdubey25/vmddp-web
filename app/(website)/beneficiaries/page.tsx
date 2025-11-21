@@ -48,9 +48,9 @@ export default function Beneficiaries() {
         ? [{
             district: selectedDistrict === 'all' ? 'All' : selectedDistrict,
             component: selectedComponent === 'all' ? 'All' : selectedComponent,
-            pending: (liveData.total ?? 0) - (liveData.approved ?? 0) - (liveData.rejected ?? 0),
+            pending: liveData.pending ?? 0,
             approved: liveData.approved ?? 0,
-            selected: liveData.submitted ?? 0,
+            selected: liveData.selected ?? 0,
             rejected: liveData.rejected ?? 0,
         }]
         : [];
