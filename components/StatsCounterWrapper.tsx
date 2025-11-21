@@ -6,7 +6,7 @@ export default async function StatsCounterWrapper() {
             frappeServer.db().getCount("App Form", [["status", "=", "Approved"]]),
             frappeServer.db().getCount("App Form", [["status", "=", "Rejected"]]),
             frappeServer.db().getCount("App Form", [["status", "=", "Pending"]]),
-            frappeServer.db().getCount("App Form", []),
+            frappeServer.db().getCount("App Form", [["status", "!=", "UnVerified"]]),
         ]);
 
         const data = {
