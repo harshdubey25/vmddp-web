@@ -33,6 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getStatusBadge } from "@/lib/status-utils";
 import ApplicationDetailsDialog from "@/components/ApplicationDetailsDialog";
 import { useFrappeGetDocList } from "frappe-react-sdk";
+import { frappeBrowser } from "@/lib/frappe";
 
 import { Application } from "./page";
 
@@ -175,7 +176,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
             return;
         }
 
-        const headers = ['Application ID', 'Applicant', 'Mobile', 'District', 'Component', 'Status', 'Approver', 'Submitted Date'];
+        const headers = ['Application ID', 'Applicant', 'Mobile', 'District', 'Village', 'Component', 'Status', 'Approver', 'Submitted Date'];
 
         const escapeCell = (value: any) => {
             if (value === null || value === undefined) return '';
@@ -189,9 +190,9 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
         const rows = applications.map((a) => [
             a.id,
             a.applicantName,
-            // mobile may be mobile or mobile_no depending on source
             (a as any).mobile || (a as any).mobile_no || '',
             a.district || '',
+            a.village || '',
             a.component || '',
             a.status || '',
             a.approver || '',
@@ -221,9 +222,101 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
 
         toast({
             title: "Export started",
-            description: `Exported ${applications.length} applications.`,
+            description: `Exported ${applications.length} applications from current page.`,
         });
     }, [applications, statusFilter, districtFilter, componentFilter, debouncedSearchQuery, toast]);
+
+    // Export ALL applications (without filters) as CSV
+    const handleExportAll = useCallback(async () => {
+        toast({
+            title: "Export started",
+            description: "Fetching all applications...",
+        });
+
+        try {
+            // Fetch directly from Frappe without any filters
+            const response = await frappeBrowser.call().get('vmddp_app.api.api.get_applications_summary', { export: true });
+
+            const allApplications = (response.message?.applications || []).map((app: any) => {
+                let component = 'N/A';
+                if (Array.isArray(app.component_list)) {
+                    component = app.component_list.join(', ');
+                } else if (typeof app.component_list === 'string') {
+                    component = app.component_list;
+                }
+
+                return {
+                    id: app.name,
+                    applicantName: app.fullname ?? 'Unknown',
+                    mobile: app.mobile_number ?? app.mobile_no ?? '',
+                    district: app.district ?? 'N/A',
+                    village: app.village ?? '',
+                    component: component,
+                    status: app.status ?? '',
+                    approver: app.approver ?? '',
+                    submittedDate: app.created_at ?? app.date ?? '',
+                };
+            });
+
+            if (!allApplications || allApplications.length === 0) {
+                toast({
+                    title: "No data",
+                    description: "There are no applications to export.",
+                    variant: "destructive",
+                });
+                return;
+            }
+
+            const headers = ['Application ID', 'Applicant', 'Mobile', 'District', 'Village', 'Component', 'Status', 'Approver', 'Submitted Date'];
+
+            const escapeCell = (value: any) => {
+                if (value === null || value === undefined) return '';
+                const str = String(value);
+                if (/["\n,]/.test(str)) {
+                    return `"${str.replace(/"/g, '""')}"`;
+                }
+                return str;
+            };
+
+            const rows = allApplications.map((a: any) => [
+                a.id,
+                a.applicantName,
+                a.mobile || '',
+                a.district || '',
+                a.village || '',
+                a.component || '',
+                a.status || '',
+                a.approver || '',
+                a.submittedDate || '',
+            ]);
+
+            const csvContent = [headers.map(escapeCell).join(','), ...rows.map((r: any) => r.map(escapeCell).join(','))].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+
+            const date = new Date().toISOString().split('T')[0];
+            link.href = url;
+            link.download = `all-applications-${date}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+
+            toast({
+                title: "Export completed",
+                description: `Successfully exported ${allApplications.length} applications.`,
+            });
+        } catch (error) {
+            console.error('Export error:', error);
+            toast({
+                title: "Export failed",
+                description: "Failed to export applications. Please try again.",
+                variant: "destructive",
+            });
+        }
+    }, [toast]);
 
     return (
         <div className="flex h-screen overflow-hidden">
@@ -238,10 +331,18 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                             Review and manage farmer applications
                         </p>
                     </div>
-                    <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm" data-testid="button-export" onClick={handleExport}>
-                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="hidden sm:inline">Export</span>
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm" data-testid="button-export" onClick={handleExport}>
+                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">Export Page</span>
+                            <span className="sm:hidden">Page</span>
+                        </Button>
+                        <Button variant="default" className="gap-1 sm:gap-2 text-xs sm:text-sm" data-testid="button-export-all" onClick={handleExportAll}>
+                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">Export All</span>
+                            <span className="sm:hidden">All</span>
+                        </Button>
+                    </div>
                 </header>
                 <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30">
                     <div className="space-y-4 sm:space-y-6 max-w-7xl">
@@ -388,7 +489,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                 {/* Pagination */}
                                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 pt-3 sm:pt-4">
                                     <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-                                        Showing {applications.length} items on page {currentPage} 
+                                        Showing {applications.length} items on page {currentPage}
                                         {applications.length < pageSize && currentPage > 1 ? ' (last page)' : ''}
                                     </p>
                                     <Pagination>
@@ -411,7 +512,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                                 const maxVisiblePages = hasNextPage ? currentPage + 2 : currentPage;
                                                 const startPage = Math.max(1, currentPage - 2);
                                                 const endPage = Math.min(maxVisiblePages, startPage + 4);
-                                                
+
                                                 return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
                                                     const pageNum = startPage + i;
                                                     return (

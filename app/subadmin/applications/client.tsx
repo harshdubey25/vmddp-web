@@ -32,6 +32,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetDoc, useFrappeUpdateDoc, useFrappeGetDocList, useFrappeAuth } from "frappe-react-sdk";
 import { getStatusBadge } from "@/lib/status-utils";
+import { frappeBrowser } from "@/lib/frappe";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useDebounce } from "@/hooks/use-debounce";
 // Lightweight interface for list view
@@ -542,15 +543,101 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
 
         toast({
             title: "Export started",
-            description: `Exported ${applications.length} applications.`,
+            description: `Exported ${applications.length} applications from current page.`,
         });
     }, [applications, statusFilter, componentFilter, debouncedSearchQuery, toast]);
+
+    // Export ALL applications (without filters) as CSV
+    const handleExportAll = useCallback(async () => {
+        toast({
+            title: "Export started",
+            description: "Fetching all applications...",
+        });
+
+        try {
+            // Fetch directly from Frappe without any filters
+            const response = await frappeBrowser.call().get('vmddp_app.api.api.get_applications_summary', {});
+
+            const allApplications = (response.message?.applications || []).map((app: any) => {
+                let component = 'N/A';
+                if (Array.isArray(app.component_list)) {
+                    component = app.component_list.join(', ');
+                } else if (typeof app.component_list === 'string') {
+                    component = app.component_list;
+                }
+
+                return {
+                    id: app.name,
+                    applicantName: app.fullname ?? 'Unknown',
+                    village: app.village ?? 'N/A',
+                    component: component,
+                    status: app.status ?? '',
+                    submittedDate: app.created_at ?? app.date ?? '',
+                };
+            });
+
+            if (!allApplications || allApplications.length === 0) {
+                toast({
+                    title: "No data",
+                    description: "There are no applications to export.",
+                    variant: "destructive",
+                });
+                return;
+            }
+
+            const headers = ['Application ID', 'Applicant', 'Village', 'Component', 'Status', 'Submitted Date'];
+
+            const escapeCell = (value: any) => {
+                if (value === null || value === undefined) return '';
+                const str = String(value);
+                if (/["\n,]/.test(str)) {
+                    return `"${str.replace(/"/g, '""')}"`;
+                }
+                return str;
+            };
+
+            const rows = allApplications.map((a: any) => [
+                a.id,
+                a.applicantName,
+                a.village,
+                a.component,
+                a.status,
+                a.submittedDate,
+            ]);
+
+            const csvContent = [headers.map(escapeCell).join(','), ...rows.map((r: any) => r.map(escapeCell).join(','))].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+
+            const date = new Date().toISOString().split('T')[0];
+            link.href = url;
+            link.download = `all-applications-${date}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+
+            toast({
+                title: "Export completed",
+                description: `Successfully exported ${allApplications.length} applications.`,
+            });
+        } catch (error) {
+            console.error('Export error:', error);
+            toast({
+                title: "Export failed",
+                description: "Failed to export applications. Please try again.",
+                variant: "destructive",
+            });
+        }
+    }, [toast]);
 
     return (
         <div className="flex h-screen w-full overflow-hidden bg-background">
             <AdminSidebar userRole="subadmin" />
             <div className="flex flex-col flex-1 overflow-hidden">
-                 <header className="flex items-center justify-between pl-12 pr-3 py-4 md:p-6 border-b bg-card">
+                <header className="flex items-center justify-between pl-12 pr-3 py-4 md:p-6 border-b bg-card">
                     <div>
                         <h1 className="text-lg sm:text-xl md:text-2xl font-bold flex items-center gap-2" data-testid="text-applications-title">
                             <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -560,10 +647,18 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                             Review and manage applications
                         </p>
                     </div>
-                    <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-10" data-testid="button-export" onClick={handleExport}>
-                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="hidden xs:inline">Export</span>
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-10" data-testid="button-export" onClick={handleExport}>
+                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="hidden xs:inline">Export Page</span>
+                            <span className="xs:hidden">Page</span>
+                        </Button>
+                        <Button variant="default" className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-10" data-testid="button-export-all" onClick={handleExportAll}>
+                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="hidden xs:inline">Export All</span>
+                            <span className="xs:hidden">All</span>
+                        </Button>
+                    </div>
                 </header>
 
                 <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 bg-muted/30">
@@ -698,7 +793,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                 {/* Pagination */}
                                 <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-0 pt-3 sm:pt-4">
                                     <p className="text-xs sm:text-sm text-muted-foreground">
-                                        Showing {applications.length} items on page {currentPage} 
+                                        Showing {applications.length} items on page {currentPage}
                                         {applications.length < pageSize && currentPage > 1 ? ' (last page)' : ''}
                                     </p>
                                     <Pagination>
@@ -721,7 +816,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                                 const maxVisiblePages = hasNextPage ? currentPage + 2 : currentPage;
                                                 const startPage = Math.max(1, currentPage - 2);
                                                 const endPage = Math.min(maxVisiblePages, startPage + 4);
-                                                
+
                                                 return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
                                                     const pageNum = startPage + i;
                                                     return (

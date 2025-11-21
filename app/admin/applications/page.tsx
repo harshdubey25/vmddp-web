@@ -45,6 +45,7 @@ export interface Application {
     }>;
 }
 
+
 async function getApplications(
     page: number = 1,
     limit: number = 20,
