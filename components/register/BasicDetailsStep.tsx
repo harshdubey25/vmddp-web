@@ -83,7 +83,7 @@ const BasicDetailsStep = ({
       formData.append('is_private', '0');
       formData.append('folder', 'Home'); // or appropriate folder
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/vmddp_app.api.api.file_upload`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/upload_file`, {
         method: 'POST',
         body: formData,
       });
@@ -95,6 +95,11 @@ const BasicDetailsStep = ({
       const result = await response.json();
       const fileUrl = result.message?.data?.file_url;
       if (fileUrl) {
+        // If URL already starts with https/http, return as is
+        if (fileUrl.startsWith('https://') || fileUrl.startsWith('http://')) {
+          return fileUrl;
+        }
+        // Otherwise, prepend the base URL
         return `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${fileUrl}`;
       }
       return null;
