@@ -93,7 +93,7 @@ const BasicDetailsStep = ({
       }
 
       const result = await response.json();
-      const fileUrl = result.message?.data?.file_url;
+      const fileUrl = result.message?.file_url;
       if (fileUrl) {
         // If URL already starts with https/http, return as is
         if (fileUrl.startsWith('https://') || fileUrl.startsWith('http://')) {
