@@ -66,7 +66,7 @@ const EligibilityStep = ({ values, control, errors, criteriaFields, setValue }: 
       formData.append('is_private', '0');
       formData.append('folder', 'Home');
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/vmddp_app.api.api.file_upload`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/upload_file`, {
         method: 'POST',
         body: formData,
       });
