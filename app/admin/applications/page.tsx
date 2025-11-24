@@ -52,7 +52,9 @@ async function getApplications(
     status?: string,
     search?: string,
     district?: string,
-    component?: string
+    component?: string,
+    startDate?: string,
+    endDate?: string
 ): Promise<Application[]> {
     console.log("status:", status, "search:", search, "district:", district, "component:", component);
     const apiParams: any = {
@@ -78,6 +80,15 @@ async function getApplications(
     // Add component filter if provided and not 'all'
     if (component && component !== 'all') {
         apiParams.component = component;
+    }
+
+    // Add date filters if provided
+    if (startDate) {
+        apiParams.start_date = startDate;
+    }
+
+    if (endDate) {
+        apiParams.end_date = endDate;
     }
 
     const response = await frappeServer.call().get('vmddp_app.api.api.get_applications_summary', apiParams);
@@ -155,6 +166,8 @@ export default async function Page({
         search?: string;
         district?: string;
         component?: string;
+        start_date?: string;
+        end_date?: string;
     }>
 }) {
     const params = await searchParams;
@@ -165,8 +178,10 @@ export default async function Page({
     const search = params.search || '';
     const district = params.district || 'all';
     const component = params.component || 'all';
+    const startDate = params.start_date || '';
+    const endDate = params.end_date || '';
 
-    const applications = await getApplications(page, limit, status, search, district, component);
+    const applications = await getApplications(page, limit, status, search, district, component, startDate, endDate);
 
 
     return <AdminApplicationsClient
@@ -177,7 +192,9 @@ export default async function Page({
             status,
             search,
             district,
-            component
+            component,
+            start_date: startDate,
+            end_date: endDate
         }}
     />;
 }

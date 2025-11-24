@@ -46,6 +46,8 @@ interface AdminApplicationsClientProps {
         search: string;
         district: string;
         component: string;
+        start_date: string;
+        end_date: string;
     };
 }
 
@@ -59,6 +61,8 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
     const [statusFilter, setStatusFilter] = useState(initialFilters?.status || "all");
     const [districtFilter, setDistrictFilter] = useState(initialFilters?.district || "all");
     const [componentFilter, setComponentFilter] = useState(initialFilters?.component || "all");
+    const [dateFrom, setDateFrom] = useState(initialFilters?.start_date || "");
+    const [dateTo, setDateTo] = useState(initialFilters?.end_date || "");
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
     // Fetch districts from Frappe
@@ -116,18 +120,34 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
             params.delete('search');
         }
 
+        if (dateFrom) {
+            params.set('start_date', dateFrom);
+        } else {
+            params.delete('start_date');
+        }
+
+        if (dateTo) {
+            params.set('end_date', dateTo);
+        } else {
+            params.delete('end_date');
+        }
+
         // Only reset to page 1 if filters actually changed
         // Check if this is a filter change (not initial load or pagination)
         const currentStatus = searchParams.get('status') || 'all';
         const currentDistrict = searchParams.get('district') || 'all';
         const currentComponent = searchParams.get('component') || 'all';
         const currentSearch = searchParams.get('search') || '';
+        const currentStartDate = searchParams.get('start_date') || '';
+        const currentEndDate = searchParams.get('end_date') || '';
 
         const filtersChanged =
             currentStatus !== statusFilter ||
             currentDistrict !== districtFilter ||
             currentComponent !== componentFilter ||
-            currentSearch !== debouncedSearchQuery;
+            currentSearch !== debouncedSearchQuery ||
+            currentStartDate !== dateFrom ||
+            currentEndDate !== dateTo;
 
         if (filtersChanged) {
             params.set('page', '1');
@@ -136,7 +156,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
         params.set('limit', pageSize.toString());
 
         router.push(pathname + '?' + params.toString());
-    }, [statusFilter, districtFilter, componentFilter, debouncedSearchQuery, pathname, router, pageSize, searchParams]);
+    }, [statusFilter, districtFilter, componentFilter, debouncedSearchQuery, dateFrom, dateTo, pathname, router, pageSize, searchParams]);
 
     // Update URL when filters change
     useEffect(() => {
@@ -145,16 +165,20 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
         const currentDistrict = searchParams.get('district') || 'all';
         const currentComponent = searchParams.get('component') || 'all';
         const currentSearch = searchParams.get('search') || '';
+        const currentStartDate = searchParams.get('start_date') || '';
+        const currentEndDate = searchParams.get('end_date') || '';
 
         if (
             currentStatus !== statusFilter ||
             currentDistrict !== districtFilter ||
             currentComponent !== componentFilter ||
-            currentSearch !== debouncedSearchQuery
+            currentSearch !== debouncedSearchQuery ||
+            currentStartDate !== dateFrom ||
+            currentEndDate !== dateTo
         ) {
             updateFilters();
         }
-    }, [statusFilter, districtFilter, componentFilter, debouncedSearchQuery, updateFilters, searchParams]);
+    }, [statusFilter, districtFilter, componentFilter, debouncedSearchQuery, dateFrom, dateTo, updateFilters, searchParams]);
 
     const handleViewDetails = (app: Application) => {
         setSelectedApp(app);
@@ -226,16 +250,50 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
         });
     }, [applications, statusFilter, districtFilter, componentFilter, debouncedSearchQuery, toast]);
 
-    // Export ALL applications (without filters) as CSV
+    // Export ALL applications (with current filters) as CSV
     const handleExportAll = useCallback(async () => {
         toast({
             title: "Export started",
-            description: "Fetching all applications...",
+            description: "Fetching all applications with current filters...",
         });
 
         try {
-            // Fetch directly from Frappe without any filters
-            const response = await frappeBrowser.call().get('vmddp_app.api.api.get_applications_summary', { export: true });
+            // Build API parameters matching current filters
+            const apiParams: any = {
+                export: true
+            };
+
+            // Add status filter if provided and not 'all'
+            if (statusFilter && statusFilter !== 'all') {
+                apiParams.status = statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1);
+            }
+
+            // Add search filter if provided
+            if (debouncedSearchQuery && debouncedSearchQuery.trim()) {
+                apiParams.search = debouncedSearchQuery.trim();
+            }
+
+            // Add district filter if provided and not 'all'
+            if (districtFilter && districtFilter !== 'all') {
+                apiParams.district = districtFilter;
+            }
+
+            // Add component filter if provided and not 'all'
+            if (componentFilter && componentFilter !== 'all') {
+                apiParams.component = componentFilter;
+            }
+
+            // Add date filters if provided
+            if (dateFrom) {
+                apiParams.start_date = dateFrom;
+            }
+
+            if (dateTo) {
+                apiParams.end_date = dateTo;
+            }
+
+            // Fetch from Frappe with current filters
+            const response = await frappeBrowser.call().get('vmddp_app.api.api.get_applications_summary', apiParams);
 
             const allApplications = (response.message?.applications || []).map((app: any) => {
                 let component = 'N/A';
@@ -316,7 +374,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                 variant: "destructive",
             });
         }
-    }, [toast]);
+    }, [toast, statusFilter, componentFilter, debouncedSearchQuery, districtFilter, dateFrom, dateTo]);
 
     return (
         <div className="flex h-screen overflow-hidden">
@@ -358,7 +416,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                                     <div className="relative">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                         <Input
@@ -415,6 +473,22 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                             )}
                                         </SelectContent>
                                     </Select>
+                                    <div className="flex gap-2 sm:col-span-2 lg:col-span-1">
+                                        <Input
+                                            type="date"
+                                            value={dateFrom}
+                                            onChange={(e) => setDateFrom(e.target.value)}
+                                            className="flex-1"
+                                            placeholder="From date"
+                                        />
+                                        <Input
+                                            type="date"
+                                            value={dateTo}
+                                            onChange={(e) => setDateTo(e.target.value)}
+                                            className="flex-1"
+                                            placeholder="To date"
+                                        />
+                                    </div>
                                 </div>
                                 <div className="border rounded-lg overflow-hidden">
                                     <div className="overflow-x-auto">

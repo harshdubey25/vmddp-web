@@ -547,16 +547,45 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
         });
     }, [applications, statusFilter, componentFilter, debouncedSearchQuery, toast]);
 
-    // Export ALL applications (without filters) as CSV
+    // Export ALL applications (with current filters) as CSV
     const handleExportAll = useCallback(async () => {
         toast({
             title: "Export started",
-            description: "Fetching all applications...",
+            description: "Fetching all applications with current filters...",
         });
 
         try {
-            // Fetch directly from Frappe without any filters
-            const response = await frappeBrowser.call().get('vmddp_app.api.api.get_applications_summary', {});
+            // Build API parameters matching current filters
+            const apiParams: any = {
+                export: true
+            };
+
+            // Add status filter if provided and not 'all'
+            if (statusFilter && statusFilter !== 'all') {
+                apiParams.status = statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1);
+            }
+
+            // Add search filter if provided
+            if (debouncedSearchQuery && debouncedSearchQuery.trim()) {
+                apiParams.search = debouncedSearchQuery.trim();
+            }
+            console.log('Component Filter:', componentFilter);
+            // Add component filter if provided and not 'all'
+            if (componentFilter && componentFilter !== 'all') {
+                apiParams.component = componentFilter;
+            }
+
+            // Add date filters if provided
+            if (dateFrom) {
+                apiParams.start_date = dateFrom;
+            }
+
+            if (dateTo) {
+                apiParams.end_date = dateTo;
+            }
+
+            // Fetch from Frappe with current filters
+            const response = await frappeBrowser.call().get('vmddp_app.api.api.get_applications_summary', apiParams);
 
             const allApplications = (response.message?.applications || []).map((app: any) => {
                 let component = 'N/A';
@@ -631,7 +660,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                 variant: "destructive",
             });
         }
-    }, [toast]);
+    }, [toast, statusFilter, componentFilter, debouncedSearchQuery, dateFrom, dateTo]);
 
     return (
         <div className="flex h-screen w-full overflow-hidden bg-background">
