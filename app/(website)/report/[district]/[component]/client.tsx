@@ -70,7 +70,7 @@ export default function Report({
             }
         };
         fetchApplications();
-    }, [district, component, page]);
+    }, [district, component, page, status]);
     useEffect(() => {
 
         const fetchApplicationCount = async () => {
@@ -124,6 +124,7 @@ export default function Report({
         params.set('status', newStatus);
         params.set('page', '1'); // Reset to first page when status changes
         router.push(`?${params.toString()}`);
+
     };
 
     return (
