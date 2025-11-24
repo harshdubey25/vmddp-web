@@ -104,7 +104,7 @@ export default function AdminSubAdmins() {
         districts: [] as string[],
         talukas: [] as string[],
     };
- const [formData, setFormData] = useState(initialFormState);
+    const [formData, setFormData] = useState(initialFormState);
 
     const filteredDPOs = dpos.filter((dpo) => {
         const matchesSearch =
@@ -491,9 +491,7 @@ export default function AdminSubAdmins() {
                                                                                 {dpo.enabled ? "active" : "inactive"}
                                                                             </Badge>
                                                                         </div>
-                                                                        <p className="text-xs sm:text-sm text-muted-foreground">
-                                                                            ID: {dpo.dpo_id}
-                                                                        </p>
+
                                                                     </div>
                                                                     <div className="flex gap-2 flex-wrap">
                                                                         <Button
