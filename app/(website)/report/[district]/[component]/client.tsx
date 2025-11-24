@@ -195,7 +195,7 @@ export default function Report({
                                     <SelectValue placeholder="Filter by status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Statuses ({counts.all})</SelectItem>
+                                    <SelectItem value="All">All Statuses ({counts.all})</SelectItem>
                                     <SelectItem value="pending">Pending ({counts.pending})</SelectItem>
                                     <SelectItem value="approved">Approved ({counts.approved})</SelectItem>
                                     <SelectItem value="selected">Selected ({counts.selected})</SelectItem>
