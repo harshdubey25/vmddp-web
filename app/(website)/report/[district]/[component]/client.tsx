@@ -14,7 +14,9 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, MapPin, User, Calendar, FileText } from "lucide-react";
 import Link from 'next/link';
-
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { frappePublic } from "@/lib/frappe";
+import { useRouter, useSearchParams } from "next/navigation";
 interface Application {
     id: string;
     applicantName: string;
@@ -32,17 +34,20 @@ export default function Report({
     district: string;
     component: string;
 }) {
-    const [statusFilter, setStatusFilter] = useState("all");
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
+    const [counts, setCounts] = useState({ all: 0, pending: 0, approved: 0, selected: 0, rejected: 0 });
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const status = searchParams.get('status') || 'All';
     useEffect(() => {
         const fetchApplications = async () => {
             setLoading(true);
             setError(null);
             try {
-                const res = await axios.get(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/vmddp_app.vmddp.doctype.app_form.app_form.get_applications_list?district=${district}&component=${component}&limit=100&page=1`, {
+                const res = await axios.get(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/vmddp_app.vmddp.doctype.app_form.app_form.get_applications_list?district=${district}&component=${component}&limit=10&page=${page}&status=${status}`, {
                     withCredentials: true
                 });
                 console.log('API response:', res.data);
@@ -65,12 +70,23 @@ export default function Report({
             }
         };
         fetchApplications();
-    }, [district, component]);
+    }, [district, component, page]);
+    useEffect(() => {
 
-    const filteredApplications = applications.filter((app) => {
-        if (statusFilter === "all") return true;
-        return app.status === statusFilter;
-    });
+        const fetchApplicationCount = async () => {
+            const response = await frappePublic.call().get(`vmddp_app.vmddp.doctype.app_form.app_form.get_applications_by_district_component?district=${district}&component=${component}`)
+
+            setCounts({
+                approved: response?.message?.approved ?? 0,
+                rejected: response?.message?.rejected ?? 0,
+                pending: response?.message?.pending ?? 0,
+                all: response?.message?.total ?? 0,
+                selected: response?.message?.selected ?? 0
+            });
+        }
+        fetchApplicationCount();
+    }, [applications]);
+
 
     const getStatusBadge = (status: string) => {
         const variants: Record<string, { className: string; label: string }> = {
@@ -87,12 +103,27 @@ export default function Report({
         );
     };
 
-    const statusCounts = {
-        all: applications.length,
-        pending: applications.filter(a => a.status === "pending").length,
-        approved: applications.filter(a => a.status === "approved").length,
-        selected: applications.filter(a => a.status === "selected").length,
-        rejected: applications.filter(a => a.status === "rejected").length,
+    const updatePage = (newPage: number) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('page', newPage.toString());
+        router.push(`?${params.toString()}`);
+    };
+
+    const handleNextPage = () => {
+        updatePage(page + 1);
+    }
+
+    const handlePreviousPage = () => {
+        if (page > 1) {
+            updatePage(page - 1);
+        }
+    }
+
+    const handleStatusChange = (newStatus: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('status', newStatus);
+        params.set('page', '1'); // Reset to first page when status changes
+        router.push(`?${params.toString()}`);
     };
 
     return (
@@ -123,31 +154,31 @@ export default function Report({
                     <Card>
                         <CardContent className="p-4">
                             <p className="text-xs text-muted-foreground mb-1">Total</p>
-                            <p className="text-2xl font-bold">{statusCounts.all}</p>
+                            <p className="text-2xl font-bold">{counts.all}</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent className="p-4">
                             <p className="text-xs text-muted-foreground mb-1">Pending</p>
-                            <p className="text-2xl font-bold text-chart-4">{statusCounts.pending}</p>
+                            <p className="text-2xl font-bold text-chart-4">{counts.pending}</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent className="p-4">
                             <p className="text-xs text-muted-foreground mb-1">Approved</p>
-                            <p className="text-2xl font-bold text-chart-3">{statusCounts.approved}</p>
+                            <p className="text-2xl font-bold text-chart-3">{counts.approved}</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent className="p-4">
                             <p className="text-xs text-muted-foreground mb-1">Selected</p>
-                            <p className="text-2xl font-bold text-chart-1">{statusCounts.selected}</p>
+                            <p className="text-2xl font-bold text-chart-1">{counts.selected}</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent className="p-4">
                             <p className="text-xs text-muted-foreground mb-1">Rejected</p>
-                            <p className="text-2xl font-bold text-chart-5">{statusCounts.rejected}</p>
+                            <p className="text-2xl font-bold text-chart-5">{counts.rejected}</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -158,20 +189,17 @@ export default function Report({
                         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
                             <div>
                                 <CardTitle>Applications List</CardTitle>
-                                <CardDescription>
-                                    {loading ? "Loading..." : `${filteredApplications.length} applications found`}
-                                </CardDescription>
                             </div>
-                            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <Select value={status} onValueChange={handleStatusChange}>
                                 <SelectTrigger className="w-[180px]" data-testid="select-status-filter">
                                     <SelectValue placeholder="Filter by status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Statuses ({statusCounts.all})</SelectItem>
-                                    <SelectItem value="pending">Pending ({statusCounts.pending})</SelectItem>
-                                    <SelectItem value="approved">Approved ({statusCounts.approved})</SelectItem>
-                                    <SelectItem value="selected">Selected ({statusCounts.selected})</SelectItem>
-                                    <SelectItem value="rejected">Rejected ({statusCounts.rejected})</SelectItem>
+                                    <SelectItem value="all">All Statuses ({counts.all})</SelectItem>
+                                    <SelectItem value="pending">Pending ({counts.pending})</SelectItem>
+                                    <SelectItem value="approved">Approved ({counts.approved})</SelectItem>
+                                    <SelectItem value="selected">Selected ({counts.selected})</SelectItem>
+                                    <SelectItem value="rejected">Rejected ({counts.rejected})</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -203,14 +231,14 @@ export default function Report({
                                                     {error}
                                                 </td>
                                             </tr>
-                                        ) : filteredApplications.length === 0 ? (
+                                        ) : applications.length === 0 ? (
                                             <tr>
                                                 <td colSpan={6} className="p-8 text-center text-muted-foreground">
                                                     No applications found
                                                 </td>
                                             </tr>
                                         ) : (
-                                            filteredApplications.map((app, index) => (
+                                            applications.map((app, index) => (
                                                 <tr
                                                     key={app.id}
                                                     className="border-b hover:bg-muted/30 transition-colors"
@@ -254,6 +282,31 @@ export default function Report({
                     </CardContent>
                 </Card>
             </div>
+            <Pagination className="justify-center my-8">
+                <PaginationContent>
+                    <PaginationItem>
+                        <Button
+                            variant="outline"
+                            onClick={handlePreviousPage}
+                            disabled={page === 1}
+                        >
+                            Previous
+                        </Button>
+                    </PaginationItem>
+                    <PaginationItem>
+                        <span className="px-4 py-2">Page {page}</span>
+                    </PaginationItem>
+                    <PaginationItem>
+                        <Button
+                            variant="outline"
+                            onClick={handleNextPage}
+                            disabled={applications.length < 10}
+                        >
+                            Next
+                        </Button>
+                    </PaginationItem>
+                </PaginationContent>
+            </Pagination>
         </div>
     );
 }
