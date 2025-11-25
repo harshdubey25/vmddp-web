@@ -26,7 +26,11 @@ export default function StatsCounterWrapper() {
                     fetchError: false,
                 });
             } catch (error) {
-                console.error("Failed to fetch application counts for AboutSection:", error);
+                console.error("Failed to fetch application counts for AboutSection:", {
+                    message: error instanceof Error ? error.message : 'Unknown error',
+                    stack: error instanceof Error ? error.stack : undefined,
+                    error: error
+                });
                 setData({
                     approved: 0,
                     rejected: 0,
