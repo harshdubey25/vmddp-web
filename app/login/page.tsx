@@ -52,7 +52,7 @@ export default function Login() {
                                 Portal Login
                             </CardTitle>
                             <CardDescription className="mt-2">
-                                Vidarbha Marathwada Dairy Development Programme
+                                Vidarbha & Marathwada Dairy Development Project
                             </CardDescription>
                         </div>
                     </CardHeader>
