@@ -13,6 +13,7 @@ import ReviewStep from "@/components/register/ReviewStep";
 import { frappePublic } from "../../../lib/frappe";
 import { useRouter } from "next/navigation";
 import { useTranslation } from 'react-i18next';
+import { parseFrappeError } from "@/lib/frappe-error-parser";
 
 type RegisterFormValues = {
     firstName: string;
@@ -328,9 +329,17 @@ export default function RegisterClient({ criteriaFields }: { criteriaFields: any
 
         } catch (err: any) {
             console.error('Submission error:', err);
+
+            // Parse Frappe error using utility function
+            const { title, message } = parseFrappeError(
+                err,
+                t('submission_error'),
+                t('submission_error_desc')
+            );
+
             toast({
-                title: t('submission_error'),
-                description: err.message || t('submission_error_desc'),
+                title,
+                description: message,
                 variant: "destructive"
             });
             setSubmitLoading(false);
