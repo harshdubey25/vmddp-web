@@ -30,6 +30,12 @@ export default function Login() {
                 description: "Invalid username or password. Please try again.",
                 variant: "destructive",
             });
+        } else if (success) {
+            toast({
+                title: "Login Successful",
+                description: "You have been logged in successfully.",
+                variant: "default",
+            })
         }
 
         setIsLoading(false);
