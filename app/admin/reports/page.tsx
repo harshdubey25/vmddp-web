@@ -42,6 +42,7 @@ import {
     Legend,
     ResponsiveContainer,
 } from "recharts";
+import { frappeBrowser } from "@/lib/frappe";
 
 export default function AdminReports() {
     const [dateFrom, setDateFrom] = useState("2025-01-01");
@@ -53,6 +54,7 @@ export default function AdminReports() {
     const [currentPage, setCurrentPage] = useState(1);
     const [sortField, setSortField] = useState<string>("applicationId");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+    const [isDownloadingReport, setIsDownloadingReport] = useState(false);
     const itemsPerPage = 10;
 
     useEffect(() => {
@@ -178,6 +180,72 @@ export default function AdminReports() {
         console.log("Exporting to Excel...");
     };
 
+    const handleExportDistrictWiseReport = async (format: "xlsx" | "csv") => {
+        try {
+            setIsDownloadingReport(true);
+
+            const params = new URLSearchParams();
+            params.append("file_format", format);
+
+            if (selectedDistrict !== "all") {
+                params.append("district", selectedDistrict);
+            }
+            if (selectedComponent !== "all") {
+                params.append("component", selectedComponent);
+            }
+            if (selectedStatus !== "all") {
+                params.append("status", selectedStatus);
+            }
+
+            // Get the authentication token
+            const token = localStorage.getItem("frappe_access_token") ||
+                document.cookie.match(/(?:^|; )frappe_access_token=([^;]*)/)?.[1];
+
+            const baseUrl = process.env.NEXT_PUBLIC_FRAPPE_BASE_URL;
+            const url = `${baseUrl}/api/method/vmddp_app.api.reports.download_district_wise_report?${params.toString()}`;
+
+            // Fetch with authentication
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json, application/octet-stream'
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Get filename from Content-Disposition header or use default
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = `district_wise_report.${format}`;
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="?(.+?)"?$/i);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            // Get the blob and trigger download
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(downloadUrl);
+        } catch (error) {
+            console.error("Error exporting district-wise report:", error);
+            alert("Failed to export report. Please try again.");
+        } finally {
+            setIsDownloadingReport(false);
+        }
+    };
+
     const totalApplications = districtData.reduce((sum, d) => sum + d.applications, 0);
     const totalApproved = districtData.reduce((sum, d) => sum + d.approved, 0);
     const approvalRate = ((totalApproved / totalApplications) * 100).toFixed(1);
@@ -201,6 +269,15 @@ export default function AdminReports() {
                     <Button variant="outline" onClick={handleExportExcel} data-testid="button-export-excel">
                         <Download className="w-4 h-4 mr-2" />
                         Export Excel
+                    </Button>
+                    <Button
+                        variant="default"
+                        onClick={() => handleExportDistrictWiseReport("xlsx")}
+                        data-testid="button-export-district-report"
+                        disabled={isDownloadingReport}
+                    >
+                        <Download className="w-4 h-4 mr-2" />
+                        {isDownloadingReport ? "Downloading..." : "District Report"}
                     </Button>
                 </div>
             </header>

@@ -5,15 +5,18 @@ interface CardSkeletonProps {
     showHeader?: boolean;
     showDescription?: boolean;
     contentLines?: number;
+    loadingText?: string;
 }
 
 export function CardSkeleton({
     showHeader = true,
     showDescription = true,
     contentLines = 3,
+    loadingText = 'Loading...'
 }: CardSkeletonProps) {
     return (
         <Card>
+            {loadingText && <Skeleton className="p-4">{loadingText}</Skeleton>}
             {showHeader && (
                 <CardHeader className="space-y-2">
                     <Skeleton className="h-6 w-1/3" />

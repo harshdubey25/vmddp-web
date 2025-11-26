@@ -11,91 +11,18 @@ import {
     Users,
     Package,
     ArrowUpRight,
-    AlertTriangle,
-    RefreshCw,
+    Download,
 } from "lucide-react";
-import { frappeServer } from "@/lib/frappe";
+
 import AdminDashboardStats from "./stats";
 import TopComponents from "./topComponents";
 import Link from "next/link";
-export default async function AdminDashboard() {
-    // Get recent applications
-    let applicationsResponse: any;
-    try {
+import { Suspense } from "react";
+import { CardSkeleton, ListSkeleton } from "@/components/LoadingSkeletons";
+import RecentApplicationsDashboard from "./recent-applications";
+import ExportReportsDashboard from "./export-reports";
 
-        applicationsResponse = await frappeServer.call().get('vmddp_app.api.api.get_applications_summary', {
-            page: '1',
-            limit: '5',
-            order_by: 'creation desc'
-        });
-    } catch (error) {
-        console.error('Error fetching applications summary:', error);
-
-        // For production: create a detailed error page that shows in browser
-        return (
-            <div className="min-h-screen bg-muted/30 p-4">
-                <div className="max-w-4xl mx-auto space-y-6">
-                    <div className="text-center space-y-4">
-                        <div className="w-16 h-16 mx-auto bg-destructive/10 rounded-full flex items-center justify-center">
-                            <AlertTriangle className="w-8 h-8 text-destructive" />
-                        </div>
-                        <div>
-                            <h1 className="text-3xl font-bold text-destructive mb-2">
-                                Dashboard Loading Error
-                            </h1>
-                            <p className="text-muted-foreground">
-                                Failed to load dashboard data
-                            </p>
-                        </div>
-                    </div>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-destructive">Error Details</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-                                <h3 className="font-semibold text-destructive mb-2">Error Message:</h3>
-                                <p className="text-sm font-mono break-all">
-                                    {error instanceof Error ? error.message : String(error)}
-                                </p>
-                            </div>
-
-                            <div className="bg-gray-900 text-gray-100 p-4 rounded font-mono text-xs overflow-auto max-h-96">
-                                <h4 className="text-white mb-2">Full Error Object:</h4>
-                                <pre className="whitespace-pre-wrap">
-                                    {JSON.stringify(error, null, 2)}
-                                </pre>
-                            </div>
-
-                            <div className="flex gap-2">
-                                <Link href="/admin/dashboard">
-                                    <Button className="gap-2">
-                                        <RefreshCw className="w-4 h-4" />
-                                        Refresh Page
-                                    </Button>
-                                </Link>
-                                <Link href="/admin">
-                                    <Button variant="outline">
-                                        Back to Admin
-                                    </Button>
-                                </Link>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-        );
-    }
-
-    const recentApplications = (applicationsResponse?.message?.applications || []).map((app: any) => ({
-        id: app.name,
-        applicant: app.fullname,
-        component: Array.isArray(app.component_list) ? app.component_list.join(', ') : 'N/A',
-        district: app.district || 'N/A',
-        status: app.status,
-        date: app.date,
-    }));
+export default function AdminDashboard() {
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -106,18 +33,14 @@ export default async function AdminDashboard() {
                     </h1>
                     <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Welcome back, Administrator</p>
                 </div>
-                <div className="flex items-center gap-2 sm:gap-3">
-                    <Badge variant="outline" className="gap-1 sm:gap-2 text-xs">
-                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                        <span className="hidden sm:inline">System Active</span>
-                        <span className="sm:hidden">Active</span>
-                    </Badge>
-                </div>
+                <ExportReportsDashboard />
             </header>
 
             <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30">
                 <div className="space-y-4 sm:space-y-6 max-w-7xl">
-                    <AdminDashboardStats />
+                    <Suspense fallback={<CardSkeleton />}>
+                        <AdminDashboardStats />
+                    </Suspense>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <Card className="lg:col-span-2">
@@ -135,52 +58,16 @@ export default async function AdminDashboard() {
                                 </Link>
                             </CardHeader>
                             <CardContent>
-                                <div className="space-y-3">
-                                    {recentApplications.map((app: {
-                                        id: string;
-                                        applicant: string;
-                                        component: string;
-                                        district: string;
-                                        status: string;
-                                        date: string;
-                                    }, index: number) => (
-                                        <div
-                                            key={index}
-                                            className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 rounded-lg border hover-elevate gap-2 sm:gap-0"
-                                            data-testid={`application-${index}`}
-                                        >
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 sm:gap-3 mb-1 flex-wrap">
-                                                    <p className="font-semibold text-xs sm:text-sm">{app.id}</p>
-                                                    <Badge
-                                                        variant={app.status === "approved" ? "default" : "secondary"}
-                                                        className={`text-xs ${app.status === "approved" ? "bg-chart-3" : ""}`}
-                                                    >
-                                                        {app.status}
-                                                    </Badge>
-                                                </div>
-                                                <p className="text-xs sm:text-sm text-muted-foreground truncate">{app.applicant}</p>
-                                                <div className="flex items-center gap-2 sm:gap-3 mt-1 flex-wrap">
-                                                    <span className="text-xs text-muted-foreground truncate max-w-[150px] sm:max-w-none">{app.component}</span>
-                                                    <span className="text-xs text-muted-foreground">•</span>
-                                                    <span className="text-xs text-muted-foreground">{app.district}</span>
-                                                </div>
-                                            </div>
-                                            <div className="text-left sm:text-right">
-                                                <p className="text-xs text-muted-foreground">{app.date}</p>
-                                                {/* <Button variant="ghost" size="sm" className="mt-2">
-                                                        Review
-                                                    </Button> */}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                                <Suspense fallback={<ListSkeleton />}>
+                                    <RecentApplicationsDashboard />
+                                </Suspense>
                             </CardContent>
                         </Card>
 
                         <div className="space-y-6">
-                            <TopComponents />
-
+                            <Suspense fallback={<CardSkeleton loadingText="Fetching Top Components" />}>
+                                <TopComponents />
+                            </Suspense>
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-base sm:text-lg" data-testid="text-quick-actions">Quick Actions</CardTitle>
