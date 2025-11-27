@@ -14,7 +14,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import AdminSidebar from "@/components/AdminSidebar";
 import {
     Download,
     FileText,
@@ -43,6 +42,7 @@ import {
     Legend,
     ResponsiveContainer,
 } from "recharts";
+import { frappeBrowser } from "@/lib/frappe";
 
 export default function AdminReports() {
     const [dateFrom, setDateFrom] = useState("2025-01-01");
@@ -54,6 +54,7 @@ export default function AdminReports() {
     const [currentPage, setCurrentPage] = useState(1);
     const [sortField, setSortField] = useState<string>("applicationId");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+    const [isDownloadingReport, setIsDownloadingReport] = useState(false);
     const itemsPerPage = 10;
 
     useEffect(() => {
@@ -179,460 +180,531 @@ export default function AdminReports() {
         console.log("Exporting to Excel...");
     };
 
+    const handleExportDistrictWiseReport = async (format: "xlsx" | "csv") => {
+        try {
+            setIsDownloadingReport(true);
+
+            const params = new URLSearchParams();
+            params.append("file_format", format);
+
+            if (selectedDistrict !== "all") {
+                params.append("district", selectedDistrict);
+            }
+            if (selectedComponent !== "all") {
+                params.append("component", selectedComponent);
+            }
+            if (selectedStatus !== "all") {
+                params.append("status", selectedStatus);
+            }
+
+            // Get the authentication token
+            const token = localStorage.getItem("frappe_access_token") ||
+                document.cookie.match(/(?:^|; )frappe_access_token=([^;]*)/)?.[1];
+
+            const baseUrl = process.env.NEXT_PUBLIC_FRAPPE_BASE_URL;
+            const url = `${baseUrl}/api/method/vmddp_app.api.reports.download_district_wise_report?${params.toString()}`;
+
+            // Fetch with authentication
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json, application/octet-stream'
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Get filename from Content-Disposition header or use default
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = `district_wise_report.${format}`;
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="?(.+?)"?$/i);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            // Get the blob and trigger download
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(downloadUrl);
+        } catch (error) {
+            console.error("Error exporting district-wise report:", error);
+            alert("Failed to export report. Please try again.");
+        } finally {
+            setIsDownloadingReport(false);
+        }
+    };
+
     const totalApplications = districtData.reduce((sum, d) => sum + d.applications, 0);
     const totalApproved = districtData.reduce((sum, d) => sum + d.approved, 0);
     const approvalRate = ((totalApproved / totalApplications) * 100).toFixed(1);
 
     return (
-        <div className="flex h-screen overflow-hidden">
-            <AdminSidebar userRole="admin" />
+        <div className="flex-1 flex flex-col overflow-hidden">
+            <header className="flex h-16 items-center justify-between border-b px-6 bg-background">
+                <div>
+                    <h1 className="font-display font-semibold text-xl" data-testid="text-reports-title">
+                        Reports & Analytics
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                        Generate and analyze application reports
+                    </p>
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleExportPDF} data-testid="button-export-pdf">
+                        <Download className="w-4 h-4 mr-2" />
+                        Export PDF
+                    </Button>
+                    <Button variant="outline" onClick={handleExportExcel} data-testid="button-export-excel">
+                        <Download className="w-4 h-4 mr-2" />
+                        Export Excel
+                    </Button>
+                    <Button
+                        variant="default"
+                        onClick={() => handleExportDistrictWiseReport("xlsx")}
+                        data-testid="button-export-district-report"
+                        disabled={isDownloadingReport}
+                    >
+                        <Download className="w-4 h-4 mr-2" />
+                        {isDownloadingReport ? "Downloading..." : "District Report"}
+                    </Button>
+                </div>
+            </header>
 
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <header className="flex h-16 items-center justify-between border-b px-6 bg-background">
-                    <div>
-                        <h1 className="font-display font-semibold text-xl" data-testid="text-reports-title">
-                            Reports & Analytics
-                        </h1>
-                        <p className="text-sm text-muted-foreground">
-                            Generate and analyze application reports
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button variant="outline" onClick={handleExportPDF} data-testid="button-export-pdf">
-                            <Download className="w-4 h-4 mr-2" />
-                            Export PDF
-                        </Button>
-                        <Button variant="outline" onClick={handleExportExcel} data-testid="button-export-excel">
-                            <Download className="w-4 h-4 mr-2" />
-                            Export Excel
-                        </Button>
-                    </div>
-                </header>
-
-                <main className="flex-1 overflow-auto p-6 bg-muted/30">
-                    <div className="space-y-6 max-w-7xl">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <Card>
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="w-10 h-10 rounded-lg bg-chart-2/10 flex items-center justify-center">
-                                            <FileText className="w-5 h-5 text-chart-2" />
-                                        </div>
+            <main className="flex-1 overflow-auto p-6 bg-muted/30">
+                <div className="space-y-6 max-w-7xl">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <Card>
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="w-10 h-10 rounded-lg bg-chart-2/10 flex items-center justify-center">
+                                        <FileText className="w-5 h-5 text-chart-2" />
                                     </div>
-                                    <p className="text-sm text-muted-foreground mb-1">Total Applications</p>
-                                    <p className="font-display font-bold text-2xl">{totalApplications}</p>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="w-10 h-10 rounded-lg bg-chart-3/10 flex items-center justify-center">
-                                            <TrendingUp className="w-5 h-5 text-chart-3" />
-                                        </div>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground mb-1">Approved</p>
-                                    <p className="font-display font-bold text-2xl">{totalApproved}</p>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="w-10 h-10 rounded-lg bg-chart-4/10 flex items-center justify-center">
-                                            <BarChart3 className="w-5 h-5 text-chart-4" />
-                                        </div>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground mb-1">Approval Rate</p>
-                                    <p className="font-display font-bold text-2xl">{approvalRate}%</p>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="w-10 h-10 rounded-lg bg-chart-1/10 flex items-center justify-center">
-                                            <PieChart className="w-5 h-5 text-chart-1" />
-                                        </div>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground mb-1">Components</p>
-                                    <p className="font-display font-bold text-2xl">{componentData.length}</p>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Application Trend</CardTitle>
-                                    <CardDescription>Daily application submissions over time</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                        <LineChart data={applicationTrend}>
-                                            <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis dataKey="date" />
-                                            <YAxis />
-                                            <Tooltip />
-                                            <Legend />
-                                            <Line
-                                                type="monotone"
-                                                dataKey="applications"
-                                                stroke="hsl(var(--primary))"
-                                                strokeWidth={2}
-                                                name="Applications"
-                                            />
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Component Distribution</CardTitle>
-                                    <CardDescription>Applications by scheme component</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                        <RechartsPieChart>
-                                            <Pie
-                                                data={componentData}
-                                                cx="50%"
-                                                cy="50%"
-                                                labelLine={false}
-                                                label={(entry) => entry.name}
-                                                outerRadius={80}
-                                                fill="#8884d8"
-                                                dataKey="value"
-                                            >
-                                                {componentData.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip />
-                                        </RechartsPieChart>
-                                    </ResponsiveContainer>
-                                </CardContent>
-                            </Card>
-                        </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-1">Total Applications</p>
+                                <p className="font-display font-bold text-2xl">{totalApplications}</p>
+                            </CardContent>
+                        </Card>
 
                         <Card>
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="w-10 h-10 rounded-lg bg-chart-3/10 flex items-center justify-center">
+                                        <TrendingUp className="w-5 h-5 text-chart-3" />
+                                    </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-1">Approved</p>
+                                <p className="font-display font-bold text-2xl">{totalApproved}</p>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="w-10 h-10 rounded-lg bg-chart-4/10 flex items-center justify-center">
+                                        <BarChart3 className="w-5 h-5 text-chart-4" />
+                                    </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-1">Approval Rate</p>
+                                <p className="font-display font-bold text-2xl">{approvalRate}%</p>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="w-10 h-10 rounded-lg bg-chart-1/10 flex items-center justify-center">
+                                        <PieChart className="w-5 h-5 text-chart-1" />
+                                    </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-1">Components</p>
+                                <p className="font-display font-bold text-2xl">{componentData.length}</p>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <Card>
                             <CardHeader>
-                                <CardTitle>District-wise Performance</CardTitle>
-                                <CardDescription>Applications and approvals by district</CardDescription>
+                                <CardTitle>Application Trend</CardTitle>
+                                <CardDescription>Daily application submissions over time</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <ResponsiveContainer width="100%" height={300}>
-                                    <BarChart data={districtData}>
+                                    <LineChart data={applicationTrend}>
                                         <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="district" />
+                                        <XAxis dataKey="date" />
                                         <YAxis />
                                         <Tooltip />
                                         <Legend />
-                                        <Bar dataKey="applications" fill="hsl(var(--chart-2))" name="Total Applications" />
-                                        <Bar dataKey="approved" fill="hsl(var(--chart-3))" name="Approved" />
-                                    </BarChart>
+                                        <Line
+                                            type="monotone"
+                                            dataKey="applications"
+                                            stroke="hsl(var(--primary))"
+                                            strokeWidth={2}
+                                            name="Applications"
+                                        />
+                                    </LineChart>
                                 </ResponsiveContainer>
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader>
-                                <CardTitle>Sub-Admin Performance</CardTitle>
-                                <CardDescription>Application processing by DPOs</CardDescription>
+                                <CardTitle>Component Distribution</CardTitle>
+                                <CardDescription>Applications by scheme component</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="space-y-4">
-                                    {subAdminPerformance.map((sa, index) => (
-                                        <div
-                                            key={index}
-                                            className="flex items-center justify-between p-4 border rounded-lg"
-                                            data-testid={`subadmin-performance-${index}`}
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <RechartsPieChart>
+                                        <Pie
+                                            data={componentData}
+                                            cx="50%"
+                                            cy="50%"
+                                            labelLine={false}
+                                            label={(entry) => entry.name}
+                                            outerRadius={80}
+                                            fill="#8884d8"
+                                            dataKey="value"
                                         >
-                                            <div className="flex-1">
-                                                <p className="font-semibold">{sa.name}</p>
-                                                <div className="flex gap-4 mt-2 text-sm">
-                                                    <span className="text-muted-foreground">
-                                                        Total: <strong>{sa.total}</strong>
-                                                    </span>
-                                                    <span className="text-muted-foreground">
-                                                        Pending: <strong>{sa.pending}</strong>
-                                                    </span>
-                                                    <span className="text-muted-foreground">
-                                                        Approved: <strong className="text-chart-3">{sa.approved}</strong>
-                                                    </span>
-                                                    <span className="text-muted-foreground">
-                                                        Rejected: <strong className="text-chart-5">{sa.rejected}</strong>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <Badge className="bg-chart-3">
-                                                    {((sa.approved / sa.total) * 100).toFixed(0)}% approval
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <CardTitle>Detailed Application Report</CardTitle>
-                                            <CardDescription>
-                                                Showing {paginatedApplications.length} of {filteredApplications.length} applications
-                                            </CardDescription>
-                                        </div>
-                                        <div className="relative w-64">
-                                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                            <Input
-                                                placeholder="Search by ID or name..."
-                                                value={searchQuery}
-                                                onChange={(e) => {
-                                                    setSearchQuery(e.target.value);
-                                                    setCurrentPage(1);
-                                                }}
-                                                className="pl-9"
-                                                data-testid="input-search-applications"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 pt-4 border-t">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="date-from">From Date</Label>
-                                            <Input
-                                                id="date-from"
-                                                type="date"
-                                                value={dateFrom}
-                                                onChange={(e) => setDateFrom(e.target.value)}
-                                                data-testid="input-date-from"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="date-to">To Date</Label>
-                                            <Input
-                                                id="date-to"
-                                                type="date"
-                                                value={dateTo}
-                                                onChange={(e) => setDateTo(e.target.value)}
-                                                data-testid="input-date-to"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>District</Label>
-                                            <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
-                                                <SelectTrigger data-testid="select-district">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="all">All Districts</SelectItem>
-                                                    <SelectItem value="nagpur">Nagpur</SelectItem>
-                                                    <SelectItem value="amravati">Amravati</SelectItem>
-                                                    <SelectItem value="akola">Akola</SelectItem>
-                                                    <SelectItem value="yavatmal">Yavatmal</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Component</Label>
-                                            <Select value={selectedComponent} onValueChange={setSelectedComponent}>
-                                                <SelectTrigger data-testid="select-component">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="all">All Components</SelectItem>
-                                                    <SelectItem value="animal">Animal Induction</SelectItem>
-                                                    <SelectItem value="hgm">HGM Purchase</SelectItem>
-                                                    <SelectItem value="feed">Fertility Feed</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Status</Label>
-                                            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                                                <SelectTrigger data-testid="select-status">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="all">All Status</SelectItem>
-                                                    <SelectItem value="pending">Pending</SelectItem>
-                                                    <SelectItem value="approved">Approved</SelectItem>
-                                                    <SelectItem value="rejected">Rejected</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="border rounded-lg overflow-hidden">
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead className="bg-muted/50">
-                                                <tr>
-                                                    <th className="text-left p-3 font-medium text-sm">
-                                                        <button
-                                                            onClick={() => handleSort("applicationId")}
-                                                            className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
-                                                            data-testid="sort-applicationId"
-                                                        >
-                                                            Application ID
-                                                            <ArrowUpDown className="w-3 h-3" />
-                                                        </button>
-                                                    </th>
-                                                    <th className="text-left p-3 font-medium text-sm">
-                                                        <button
-                                                            onClick={() => handleSort("farmerName")}
-                                                            className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
-                                                            data-testid="sort-farmerName"
-                                                        >
-                                                            Farmer Name
-                                                            <ArrowUpDown className="w-3 h-3" />
-                                                        </button>
-                                                    </th>
-                                                    <th className="text-left p-3 font-medium text-sm">
-                                                        <button
-                                                            onClick={() => handleSort("district")}
-                                                            className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
-                                                            data-testid="sort-district"
-                                                        >
-                                                            District
-                                                            <ArrowUpDown className="w-3 h-3" />
-                                                        </button>
-                                                    </th>
-                                                    <th className="text-left p-3 font-medium text-sm">
-                                                        <button
-                                                            onClick={() => handleSort("taluka")}
-                                                            className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
-                                                            data-testid="sort-taluka"
-                                                        >
-                                                            Taluka
-                                                            <ArrowUpDown className="w-3 h-3" />
-                                                        </button>
-                                                    </th>
-                                                    <th className="text-left p-3 font-medium text-sm">
-                                                        <button
-                                                            onClick={() => handleSort("component")}
-                                                            className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
-                                                            data-testid="sort-component"
-                                                        >
-                                                            Component
-                                                            <ArrowUpDown className="w-3 h-3" />
-                                                        </button>
-                                                    </th>
-                                                    <th className="text-left p-3 font-medium text-sm">
-                                                        <button
-                                                            onClick={() => handleSort("appliedDate")}
-                                                            className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
-                                                            data-testid="sort-appliedDate"
-                                                        >
-                                                            Applied Date
-                                                            <ArrowUpDown className="w-3 h-3" />
-                                                        </button>
-                                                    </th>
-                                                    <th className="text-left p-3 font-medium text-sm">
-                                                        <button
-                                                            onClick={() => handleSort("status")}
-                                                            className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
-                                                            data-testid="sort-status"
-                                                        >
-                                                            Status
-                                                            <ArrowUpDown className="w-3 h-3" />
-                                                        </button>
-                                                    </th>
-                                                    <th className="text-left p-3 font-medium text-sm">
-                                                        <button
-                                                            onClick={() => handleSort("approver")}
-                                                            className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
-                                                            data-testid="sort-approver"
-                                                        >
-                                                            Approver
-                                                            <ArrowUpDown className="w-3 h-3" />
-                                                        </button>
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {paginatedApplications.map((app, index) => (
-                                                    <tr
-                                                        key={index}
-                                                        className="border-t hover-elevate"
-                                                        data-testid={`application-row-${index}`}
-                                                    >
-                                                        <td className="p-3 text-sm font-mono">{app.applicationId}</td>
-                                                        <td className="p-3 text-sm">{app.farmerName}</td>
-                                                        <td className="p-3 text-sm">{app.district}</td>
-                                                        <td className="p-3 text-sm">{app.taluka}</td>
-                                                        <td className="p-3 text-sm">{app.component}</td>
-                                                        <td className="p-3 text-sm">
-                                                            {new Date(app.appliedDate).toLocaleDateString("en-IN")}
-                                                        </td>
-                                                        <td className="p-3 text-sm">
-                                                            <Badge
-                                                                className={
-                                                                    app.status === "Approved"
-                                                                        ? "bg-chart-3"
-                                                                        : app.status === "Pending"
-                                                                            ? "bg-chart-4"
-                                                                            : "bg-chart-5"
-                                                                }
-                                                            >
-                                                                {app.status}
-                                                            </Badge>
-                                                        </td>
-                                                        <td className="p-3 text-sm">{app.approver || "-"}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    {paginatedApplications.length === 0 && (
-                                        <div className="text-center py-8 text-muted-foreground">
-                                            No applications found matching the selected filters
-                                        </div>
-                                    )}
-                                </div>
-
-                                {totalPages > 1 && (
-                                    <div className="flex items-center justify-between mt-4">
-                                        <p className="text-sm text-muted-foreground">
-                                            Page {currentPage} of {totalPages}
-                                        </p>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                                                disabled={currentPage === 1}
-                                                data-testid="button-prev-page"
-                                            >
-                                                <ChevronLeft className="w-4 h-4" />
-                                                Previous
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                                                disabled={currentPage === totalPages}
-                                                data-testid="button-next-page"
-                                            >
-                                                Next
-                                                <ChevronRight className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
+                                            {componentData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip />
+                                    </RechartsPieChart>
+                                </ResponsiveContainer>
                             </CardContent>
                         </Card>
                     </div>
-                </main>
-            </div>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>District-wise Performance</CardTitle>
+                            <CardDescription>Applications and approvals by district</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={districtData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="district" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Bar dataKey="applications" fill="hsl(var(--chart-2))" name="Total Applications" />
+                                    <Bar dataKey="approved" fill="hsl(var(--chart-3))" name="Approved" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Sub-Admin Performance</CardTitle>
+                            <CardDescription>Application processing by DPOs</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4">
+                                {subAdminPerformance.map((sa, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center justify-between p-4 border rounded-lg"
+                                        data-testid={`subadmin-performance-${index}`}
+                                    >
+                                        <div className="flex-1">
+                                            <p className="font-semibold">{sa.name}</p>
+                                            <div className="flex gap-4 mt-2 text-sm">
+                                                <span className="text-muted-foreground">
+                                                    Total: <strong>{sa.total}</strong>
+                                                </span>
+                                                <span className="text-muted-foreground">
+                                                    Pending: <strong>{sa.pending}</strong>
+                                                </span>
+                                                <span className="text-muted-foreground">
+                                                    Approved: <strong className="text-chart-3">{sa.approved}</strong>
+                                                </span>
+                                                <span className="text-muted-foreground">
+                                                    Rejected: <strong className="text-chart-5">{sa.rejected}</strong>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <Badge className="bg-chart-3">
+                                                {((sa.approved / sa.total) * 100).toFixed(0)}% approval
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <CardTitle>Detailed Application Report</CardTitle>
+                                        <CardDescription>
+                                            Showing {paginatedApplications.length} of {filteredApplications.length} applications
+                                        </CardDescription>
+                                    </div>
+                                    <div className="relative w-64">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Search by ID or name..."
+                                            value={searchQuery}
+                                            onChange={(e) => {
+                                                setSearchQuery(e.target.value);
+                                                setCurrentPage(1);
+                                            }}
+                                            className="pl-9"
+                                            data-testid="input-search-applications"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 pt-4 border-t">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="date-from">From Date</Label>
+                                        <Input
+                                            id="date-from"
+                                            type="date"
+                                            value={dateFrom}
+                                            onChange={(e) => setDateFrom(e.target.value)}
+                                            data-testid="input-date-from"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="date-to">To Date</Label>
+                                        <Input
+                                            id="date-to"
+                                            type="date"
+                                            value={dateTo}
+                                            onChange={(e) => setDateTo(e.target.value)}
+                                            data-testid="input-date-to"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>District</Label>
+                                        <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
+                                            <SelectTrigger data-testid="select-district">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Districts</SelectItem>
+                                                <SelectItem value="nagpur">Nagpur</SelectItem>
+                                                <SelectItem value="amravati">Amravati</SelectItem>
+                                                <SelectItem value="akola">Akola</SelectItem>
+                                                <SelectItem value="yavatmal">Yavatmal</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Component</Label>
+                                        <Select value={selectedComponent} onValueChange={setSelectedComponent}>
+                                            <SelectTrigger data-testid="select-component">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Components</SelectItem>
+                                                <SelectItem value="animal">Animal Induction</SelectItem>
+                                                <SelectItem value="hgm">HGM Purchase</SelectItem>
+                                                <SelectItem value="feed">Fertility Feed</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Status</Label>
+                                        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                                            <SelectTrigger data-testid="select-status">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Status</SelectItem>
+                                                <SelectItem value="pending">Pending</SelectItem>
+                                                <SelectItem value="approved">Approved</SelectItem>
+                                                <SelectItem value="rejected">Rejected</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="border rounded-lg overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead className="bg-muted/50">
+                                            <tr>
+                                                <th className="text-left p-3 font-medium text-sm">
+                                                    <button
+                                                        onClick={() => handleSort("applicationId")}
+                                                        className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
+                                                        data-testid="sort-applicationId"
+                                                    >
+                                                        Application ID
+                                                        <ArrowUpDown className="w-3 h-3" />
+                                                    </button>
+                                                </th>
+                                                <th className="text-left p-3 font-medium text-sm">
+                                                    <button
+                                                        onClick={() => handleSort("farmerName")}
+                                                        className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
+                                                        data-testid="sort-farmerName"
+                                                    >
+                                                        Farmer Name
+                                                        <ArrowUpDown className="w-3 h-3" />
+                                                    </button>
+                                                </th>
+                                                <th className="text-left p-3 font-medium text-sm">
+                                                    <button
+                                                        onClick={() => handleSort("district")}
+                                                        className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
+                                                        data-testid="sort-district"
+                                                    >
+                                                        District
+                                                        <ArrowUpDown className="w-3 h-3" />
+                                                    </button>
+                                                </th>
+                                                <th className="text-left p-3 font-medium text-sm">
+                                                    <button
+                                                        onClick={() => handleSort("taluka")}
+                                                        className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
+                                                        data-testid="sort-taluka"
+                                                    >
+                                                        Taluka
+                                                        <ArrowUpDown className="w-3 h-3" />
+                                                    </button>
+                                                </th>
+                                                <th className="text-left p-3 font-medium text-sm">
+                                                    <button
+                                                        onClick={() => handleSort("component")}
+                                                        className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
+                                                        data-testid="sort-component"
+                                                    >
+                                                        Component
+                                                        <ArrowUpDown className="w-3 h-3" />
+                                                    </button>
+                                                </th>
+                                                <th className="text-left p-3 font-medium text-sm">
+                                                    <button
+                                                        onClick={() => handleSort("appliedDate")}
+                                                        className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
+                                                        data-testid="sort-appliedDate"
+                                                    >
+                                                        Applied Date
+                                                        <ArrowUpDown className="w-3 h-3" />
+                                                    </button>
+                                                </th>
+                                                <th className="text-left p-3 font-medium text-sm">
+                                                    <button
+                                                        onClick={() => handleSort("status")}
+                                                        className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
+                                                        data-testid="sort-status"
+                                                    >
+                                                        Status
+                                                        <ArrowUpDown className="w-3 h-3" />
+                                                    </button>
+                                                </th>
+                                                <th className="text-left p-3 font-medium text-sm">
+                                                    <button
+                                                        onClick={() => handleSort("approver")}
+                                                        className="flex items-center gap-1 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
+                                                        data-testid="sort-approver"
+                                                    >
+                                                        Approver
+                                                        <ArrowUpDown className="w-3 h-3" />
+                                                    </button>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {paginatedApplications.map((app, index) => (
+                                                <tr
+                                                    key={index}
+                                                    className="border-t hover-elevate"
+                                                    data-testid={`application-row-${index}`}
+                                                >
+                                                    <td className="p-3 text-sm font-mono">{app.applicationId}</td>
+                                                    <td className="p-3 text-sm">{app.farmerName}</td>
+                                                    <td className="p-3 text-sm">{app.district}</td>
+                                                    <td className="p-3 text-sm">{app.taluka}</td>
+                                                    <td className="p-3 text-sm">{app.component}</td>
+                                                    <td className="p-3 text-sm">
+                                                        {new Date(app.appliedDate).toLocaleDateString("en-IN")}
+                                                    </td>
+                                                    <td className="p-3 text-sm">
+                                                        <Badge
+                                                            className={
+                                                                app.status === "Approved"
+                                                                    ? "bg-chart-3"
+                                                                    : app.status === "Pending"
+                                                                        ? "bg-chart-4"
+                                                                        : "bg-chart-5"
+                                                            }
+                                                        >
+                                                            {app.status}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="p-3 text-sm">{app.approver || "-"}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {paginatedApplications.length === 0 && (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        No applications found matching the selected filters
+                                    </div>
+                                )}
+                            </div>
+
+                            {totalPages > 1 && (
+                                <div className="flex items-center justify-between mt-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        Page {currentPage} of {totalPages}
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                            disabled={currentPage === 1}
+                                            data-testid="button-prev-page"
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                            Previous
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                            disabled={currentPage === totalPages}
+                                            data-testid="button-next-page"
+                                        >
+                                            Next
+                                            <ChevronRight className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            </main>
         </div>
     );
 }

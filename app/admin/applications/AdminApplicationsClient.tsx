@@ -22,7 +22,6 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
-import AdminSidebar from "@/components/AdminSidebar";
 import {
     Search,
     Filter,
@@ -377,258 +376,255 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
     }, [toast, statusFilter, componentFilter, debouncedSearchQuery, districtFilter, dateFrom, dateTo]);
 
     return (
-        <div className="flex h-screen overflow-hidden">
-            <AdminSidebar userRole="admin" />
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <header className="flex h-14 sm:h-16 items-center justify-between border-b pl-12 pr-3 sm:pl-6 sm:pr-6 bg-background">
-                    <div>
-                        <h1 className="font-display font-semibold text-base sm:text-xl" data-testid="text-applications-title">
-                            Applications Management
-                        </h1>
-                        <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-                            Review and manage farmer applications
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm" data-testid="button-export" onClick={handleExport}>
-                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                            <span className="hidden sm:inline">Export Page</span>
-                            <span className="sm:hidden">Page</span>
-                        </Button>
-                        <Button variant="default" className="gap-1 sm:gap-2 text-xs sm:text-sm" data-testid="button-export-all" onClick={handleExportAll}>
-                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                            <span className="hidden sm:inline">Export All</span>
-                            <span className="sm:hidden">All</span>
-                        </Button>
-                    </div>
-                </header>
-                <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30">
-                    <div className="space-y-4 sm:space-y-6 max-w-7xl">
-                        <Card>
-                            <CardHeader className="p-4 sm:p-6">
-                                <div className="flex flex-col md:flex-row gap-3 sm:gap-4 items-start md:items-center justify-between">
-                                    <div>
-                                        <CardTitle className="text-base sm:text-lg">All Applications</CardTitle>
-                                        <CardDescription className="text-xs sm:text-sm">
-                                            {applications.length} applications found
-                                        </CardDescription>
-                                    </div>
+        <div className="flex-1 flex flex-col overflow-hidden">
+            <header className="flex h-14 sm:h-16 items-center justify-between border-b pl-12 pr-3 sm:pl-6 sm:pr-6 bg-background">
+                <div>
+                    <h1 className="font-display font-semibold text-base sm:text-xl" data-testid="text-applications-title">
+                        Applications Management
+                    </h1>
+                    <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
+                        Review and manage farmer applications
+                    </p>
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm" data-testid="button-export" onClick={handleExport}>
+                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden sm:inline">Export Page</span>
+                        <span className="sm:hidden">Page</span>
+                    </Button>
+                    <Button variant="default" className="gap-1 sm:gap-2 text-xs sm:text-sm" data-testid="button-export-all" onClick={handleExportAll}>
+                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden sm:inline">Export All</span>
+                        <span className="sm:hidden">All</span>
+                    </Button>
+                </div>
+            </header>
+            <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30">
+                <div className="space-y-4 sm:space-y-6 max-w-7xl">
+                    <Card>
+                        <CardHeader className="p-4 sm:p-6">
+                            <div className="flex flex-col md:flex-row gap-3 sm:gap-4 items-start md:items-center justify-between">
+                                <div>
+                                    <CardTitle className="text-base sm:text-lg">All Applications</CardTitle>
+                                    <CardDescription className="text-xs sm:text-sm">
+                                        {applications.length} applications found
+                                    </CardDescription>
                                 </div>
-                            </CardHeader>
-                            <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-                                    <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Search by ID or name..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="pl-10"
-                                            data-testid="input-search"
-                                        />
-                                    </div>
-                                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                        <SelectTrigger data-testid="select-status-filter">
-                                            <SelectValue placeholder="Filter by status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All Status</SelectItem>
-                                            <SelectItem value="Pending">Pending</SelectItem>
-                                            <SelectItem value="Approved">Approved</SelectItem>
-                                            <SelectItem value="Rejected">Rejected</SelectItem>
-                                            <SelectItem value="Selected">Selected</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <Select value={districtFilter} onValueChange={setDistrictFilter}>
-                                        <SelectTrigger data-testid="select-district-filter">
-                                            <SelectValue placeholder="Filter by district" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All Districts</SelectItem>
-                                            {districtsLoading ? (
-                                                <SelectItem value="loading" disabled>Loading...</SelectItem>
-                                            ) : (
-                                                districts.map((district: string) => (
-                                                    <SelectItem key={district} value={district}>
-                                                        {district}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                    <Select value={componentFilter} onValueChange={setComponentFilter}>
-                                        <SelectTrigger data-testid="select-component-filter">
-                                            <SelectValue placeholder="Filter by component" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All Components</SelectItem>
-                                            {componentsLoading ? (
-                                                <SelectItem value="loading" disabled>Loading...</SelectItem>
-                                            ) : (
-                                                components.map((component: string) => (
-                                                    <SelectItem key={component} value={component}>
-                                                        {component}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                    <div className="flex gap-2 sm:col-span-2 lg:col-span-1">
-                                        <Input
-                                            type="date"
-                                            value={dateFrom}
-                                            onChange={(e) => setDateFrom(e.target.value)}
-                                            className="flex-1"
-                                            placeholder="From date"
-                                        />
-                                        <Input
-                                            type="date"
-                                            value={dateTo}
-                                            onChange={(e) => setDateTo(e.target.value)}
-                                            className="flex-1"
-                                            placeholder="To date"
-                                        />
-                                    </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search by ID or name..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="pl-10"
+                                        data-testid="input-search"
+                                    />
                                 </div>
-                                <div className="border rounded-lg overflow-hidden">
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead className="bg-muted/50 border-b">
-                                                <tr>
-                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">ID</th>
-                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Applicant</th>
-                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden md:table-cell">District</th>
-                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden lg:table-cell">Component</th>
-                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Status</th>
-                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden xl:table-cell">Approver</th>
-                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden sm:table-cell">Date</th>
-                                                    <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Actions</th>
+                                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                    <SelectTrigger data-testid="select-status-filter">
+                                        <SelectValue placeholder="Filter by status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Status</SelectItem>
+                                        <SelectItem value="Pending">Pending</SelectItem>
+                                        <SelectItem value="Approved">Approved</SelectItem>
+                                        <SelectItem value="Rejected">Rejected</SelectItem>
+                                        <SelectItem value="Selected">Selected</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <Select value={districtFilter} onValueChange={setDistrictFilter}>
+                                    <SelectTrigger data-testid="select-district-filter">
+                                        <SelectValue placeholder="Filter by district" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Districts</SelectItem>
+                                        {districtsLoading ? (
+                                            <SelectItem value="loading" disabled>Loading...</SelectItem>
+                                        ) : (
+                                            districts.map((district: string) => (
+                                                <SelectItem key={district} value={district}>
+                                                    {district}
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                                <Select value={componentFilter} onValueChange={setComponentFilter}>
+                                    <SelectTrigger data-testid="select-component-filter">
+                                        <SelectValue placeholder="Filter by component" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Components</SelectItem>
+                                        {componentsLoading ? (
+                                            <SelectItem value="loading" disabled>Loading...</SelectItem>
+                                        ) : (
+                                            components.map((component: string) => (
+                                                <SelectItem key={component} value={component}>
+                                                    {component}
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                                <div className="flex gap-2 sm:col-span-2 lg:col-span-1">
+                                    <Input
+                                        type="date"
+                                        value={dateFrom}
+                                        onChange={(e) => setDateFrom(e.target.value)}
+                                        className="flex-1"
+                                        placeholder="From date"
+                                    />
+                                    <Input
+                                        type="date"
+                                        value={dateTo}
+                                        onChange={(e) => setDateTo(e.target.value)}
+                                        className="flex-1"
+                                        placeholder="To date"
+                                    />
+                                </div>
+                            </div>
+                            <div className="border rounded-lg overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead className="bg-muted/50 border-b">
+                                            <tr>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">ID</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Applicant</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden md:table-cell">District</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden lg:table-cell">Component</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Status</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden xl:table-cell">Approver</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden sm:table-cell">Date</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {applications.map((app, index) => (
+                                                <tr
+                                                    key={app.id}
+                                                    className="border-b hover:bg-muted/30 transition-colors"
+                                                    data-testid={`application-row-${index}`}
+                                                >
+                                                    <td className="p-2 sm:p-4">
+                                                        <span className="font-mono text-xs sm:text-sm font-semibold">{app.id}</span>
+                                                    </td>
+                                                    <td className="p-2 sm:p-4">
+                                                        <div>
+                                                            <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{app.applicantName}</p>
+                                                            <p className="text-[10px] sm:text-xs text-muted-foreground">{app.mobile}</p>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-2 sm:p-4 hidden md:table-cell">
+                                                        <div>
+                                                            <p className="text-xs sm:text-sm">{app.district || 'N/A'}</p>
+
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-2 sm:p-4 hidden lg:table-cell">
+                                                        <p className="text-xs sm:text-sm truncate max-w-[150px]">{app.component || 'N/A'}</p>
+                                                    </td>
+                                                    <td className="p-2 sm:p-4">{getStatusBadge(app.status)}</td>
+                                                    <td className="p-2 sm:p-4 hidden xl:table-cell">
+                                                        {app.approver ? (
+                                                            <p className="text-xs sm:text-sm truncate max-w-[120px]">{app.approver}</p>
+                                                        ) : (
+                                                            <Badge variant="secondary" className="text-xs" data-testid={`badge-approver-unassigned-${index}`}>Not Assigned</Badge>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-2 sm:p-4 hidden sm:table-cell">
+                                                        <p className="text-xs sm:text-sm">{app.submittedDate}</p>
+                                                    </td>
+                                                    <td className="p-2 sm:p-4">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleViewDetails(app)}
+                                                            data-testid={`button-view-${index}`}
+                                                            className="text-xs sm:text-sm px-2 sm:px-3"
+                                                        >
+                                                            <Eye className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                                                            <span className="hidden sm:inline">View</span>
+                                                        </Button>
+                                                    </td>
                                                 </tr>
-                                            </thead>
-                                            <tbody>
-                                                {applications.map((app, index) => (
-                                                    <tr
-                                                        key={app.id}
-                                                        className="border-b hover:bg-muted/30 transition-colors"
-                                                        data-testid={`application-row-${index}`}
-                                                    >
-                                                        <td className="p-2 sm:p-4">
-                                                            <span className="font-mono text-xs sm:text-sm font-semibold">{app.id}</span>
-                                                        </td>
-                                                        <td className="p-2 sm:p-4">
-                                                            <div>
-                                                                <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{app.applicantName}</p>
-                                                                <p className="text-[10px] sm:text-xs text-muted-foreground">{app.mobile}</p>
-                                                            </div>
-                                                        </td>
-                                                        <td className="p-2 sm:p-4 hidden md:table-cell">
-                                                            <div>
-                                                                <p className="text-xs sm:text-sm">{app.district || 'N/A'}</p>
-
-                                                            </div>
-                                                        </td>
-                                                        <td className="p-2 sm:p-4 hidden lg:table-cell">
-                                                            <p className="text-xs sm:text-sm truncate max-w-[150px]">{app.component || 'N/A'}</p>
-                                                        </td>
-                                                        <td className="p-2 sm:p-4">{getStatusBadge(app.status)}</td>
-                                                        <td className="p-2 sm:p-4 hidden xl:table-cell">
-                                                            {app.approver ? (
-                                                                <p className="text-xs sm:text-sm truncate max-w-[120px]">{app.approver}</p>
-                                                            ) : (
-                                                                <Badge variant="secondary" className="text-xs" data-testid={`badge-approver-unassigned-${index}`}>Not Assigned</Badge>
-                                                            )}
-                                                        </td>
-                                                        <td className="p-2 sm:p-4 hidden sm:table-cell">
-                                                            <p className="text-xs sm:text-sm">{app.submittedDate}</p>
-                                                        </td>
-                                                        <td className="p-2 sm:p-4">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => handleViewDetails(app)}
-                                                                data-testid={`button-view-${index}`}
-                                                                className="text-xs sm:text-sm px-2 sm:px-3"
-                                                            >
-                                                                <Eye className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
-                                                                <span className="hidden sm:inline">View</span>
-                                                            </Button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
+                            </div>
 
-                                {/* Pagination */}
-                                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 pt-3 sm:pt-4">
-                                    <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-                                        Showing {applications.length} items on page {currentPage}
-                                        {applications.length < pageSize && currentPage > 1 ? ' (last page)' : ''}
-                                    </p>
-                                    <Pagination>
-                                        <PaginationContent>
-                                            <PaginationItem>
-                                                <PaginationPrevious
-                                                    href={currentPage > 1 ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage - 1).toString() }).toString()}` : '#'}
-                                                    onClick={(e) => {
-                                                        if (currentPage <= 1) {
-                                                            e.preventDefault();
-                                                        }
-                                                    }}
-                                                    className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
-                                                />
-                                            </PaginationItem>
+                            {/* Pagination */}
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 pt-3 sm:pt-4">
+                                <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+                                    Showing {applications.length} items on page {currentPage}
+                                    {applications.length < pageSize && currentPage > 1 ? ' (last page)' : ''}
+                                </p>
+                                <Pagination>
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                href={currentPage > 1 ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage - 1).toString() }).toString()}` : '#'}
+                                                onClick={(e) => {
+                                                    if (currentPage <= 1) {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                                className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
+                                            />
+                                        </PaginationItem>
 
-                                            {/* Page numbers */}
-                                            {(() => {
-                                                const hasNextPage = applications.length === pageSize;
-                                                const maxVisiblePages = hasNextPage ? currentPage + 2 : currentPage;
-                                                const startPage = Math.max(1, currentPage - 2);
-                                                const endPage = Math.min(maxVisiblePages, startPage + 4);
+                                        {/* Page numbers */}
+                                        {(() => {
+                                            const hasNextPage = applications.length === pageSize;
+                                            const maxVisiblePages = hasNextPage ? currentPage + 2 : currentPage;
+                                            const startPage = Math.max(1, currentPage - 2);
+                                            const endPage = Math.min(maxVisiblePages, startPage + 4);
 
-                                                return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
-                                                    const pageNum = startPage + i;
-                                                    return (
-                                                        <PaginationItem key={pageNum}>
-                                                            <PaginationLink
-                                                                href={`${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: pageNum.toString() }).toString()}`}
-                                                                isActive={pageNum === currentPage}
-                                                            >
-                                                                {pageNum}
-                                                            </PaginationLink>
-                                                        </PaginationItem>
-                                                    );
-                                                });
-                                            })()}
-
-                                            {applications.length === pageSize && currentPage > 3 && (
-                                                <>
-                                                    <PaginationItem>
-                                                        <PaginationEllipsis />
+                                            return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
+                                                const pageNum = startPage + i;
+                                                return (
+                                                    <PaginationItem key={pageNum}>
+                                                        <PaginationLink
+                                                            href={`${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: pageNum.toString() }).toString()}`}
+                                                            isActive={pageNum === currentPage}
+                                                        >
+                                                            {pageNum}
+                                                        </PaginationLink>
                                                     </PaginationItem>
-                                                </>
-                                            )}
+                                                );
+                                            });
+                                        })()}
 
-                                            <PaginationItem>
-                                                <PaginationNext
-                                                    href={applications.length === pageSize ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage + 1).toString() }).toString()}` : '#'}
-                                                    onClick={(e) => {
-                                                        if (applications.length < pageSize) {
-                                                            e.preventDefault();
-                                                        }
-                                                    }}
-                                                    className={applications.length < pageSize ? 'pointer-events-none opacity-50' : ''}
-                                                />
-                                            </PaginationItem>
-                                        </PaginationContent>
-                                    </Pagination>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </main>
-            </div>
+                                        {applications.length === pageSize && currentPage > 3 && (
+                                            <>
+                                                <PaginationItem>
+                                                    <PaginationEllipsis />
+                                                </PaginationItem>
+                                            </>
+                                        )}
+
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                href={applications.length === pageSize ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage + 1).toString() }).toString()}` : '#'}
+                                                onClick={(e) => {
+                                                    if (applications.length < pageSize) {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                                className={applications.length < pageSize ? 'pointer-events-none opacity-50' : ''}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </main>
 
             <ApplicationDetailsDialog
                 application={selectedApp}

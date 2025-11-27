@@ -1,5 +1,4 @@
 "use client";
-import AdminSidebar from "@/components/AdminSidebar";
 import { Badge } from "@/components/ui/badge";
 import StatusToggleBadge from "@/components/StatusToggleBadge";
 import { Button } from "@/components/ui/button";
@@ -384,124 +383,121 @@ export default function AdminComponents() {
     };
 
     return (
-        <div className="flex h-screen overflow-hidden">
-            <AdminSidebar userRole="admin" />
+        <div className="flex-1 flex flex-col overflow-hidden">
+            <header className="flex h-14 sm:h-16 items-center justify-between border-b pl-12 pr-3 sm:pl-6 sm:pr-6 bg-background">
+                <div>
+                    <h1 className="font-display font-semibold text-base sm:text-xl" data-testid="text-components-title">
+                        Component Management
+                    </h1>
+                    <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
+                        Manage scheme components and configurations
+                    </p>
+                </div>
+                <Button className="gap-1 sm:gap-2 text-xs sm:text-sm" onClick={handleAddComponent} data-testid="button-add-component">
+                    <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Add Component</span>
+                    <span className="sm:hidden">Add</span>
+                </Button>
+            </header>
 
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <header className="flex h-14 sm:h-16 items-center justify-between border-b pl-12 pr-3 sm:pl-6 sm:pr-6 bg-background">
-                    <div>
-                        <h1 className="font-display font-semibold text-base sm:text-xl" data-testid="text-components-title">
-                            Component Management
-                        </h1>
-                        <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-                            Manage scheme components and configurations
-                        </p>
+            <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30">
+                {loading ? (
+                    <div className="flex items-center justify-center h-64">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                            <p className="text-muted-foreground">Loading components...</p>
+                        </div>
                     </div>
-                    <Button className="gap-1 sm:gap-2 text-xs sm:text-sm" onClick={handleAddComponent} data-testid="button-add-component">
-                        <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="hidden sm:inline">Add Component</span>
-                        <span className="sm:hidden">Add</span>
-                    </Button>
-                </header>
-
-                <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30">
-                    {loading ? (
-                        <div className="flex items-center justify-center h-64">
-                            <div className="text-center">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                                <p className="text-muted-foreground">Loading components...</p>
-                            </div>
+                ) : error ? (
+                    <div className="flex items-center justify-center h-64">
+                        <div className="text-center">
+                            <p className="text-red-600 mb-4">{error}</p>
+                            <Button onClick={() => window.location.reload()}>
+                                Retry
+                            </Button>
                         </div>
-                    ) : error ? (
-                        <div className="flex items-center justify-center h-64">
-                            <div className="text-center">
-                                <p className="text-red-600 mb-4">{error}</p>
-                                <Button onClick={() => window.location.reload()}>
-                                    Retry
-                                </Button>
-                            </div>
+                    </div>
+                ) : (
+                    <div className="space-y-4 sm:space-y-6 max-w-7xl">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                            <Card>
+                                <CardContent className="p-4 sm:p-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Components</p>
+                                            <p className="font-display font-bold text-xl sm:text-2xl">{components.length}</p>
+                                        </div>
+                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-chart-2/10 flex items-center justify-center">
+                                            <Package className="w-4 h-4 sm:w-5 sm:h-5 text-chart-2" />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardContent className="p-4 sm:p-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-xs sm:text-sm text-muted-foreground mb-1">Active Schemes</p>
+                                            <p className="font-display font-bold text-xl sm:text-2xl">
+                                                {components.filter((c) => c.isActive).length}
+                                            </p>
+                                        </div>
+                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-chart-3/10 flex items-center justify-center">
+                                            <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-chart-3" />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardContent className="p-4 sm:p-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Applications</p>
+                                            <p className="font-display font-bold text-xl sm:text-2xl">
+                                                {applicationCount}
+                                            </p>
+                                        </div>
+                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-chart-4/10 flex items-center justify-center">
+                                            <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-chart-4" />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
-                    ) : (
-                        <div className="space-y-4 sm:space-y-6 max-w-7xl">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-                                <Card>
-                                    <CardContent className="p-4 sm:p-6">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Components</p>
-                                                <p className="font-display font-bold text-xl sm:text-2xl">{components.length}</p>
-                                            </div>
-                                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-chart-2/10 flex items-center justify-center">
-                                                <Package className="w-4 h-4 sm:w-5 sm:h-5 text-chart-2" />
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
 
-                                <Card>
-                                    <CardContent className="p-4 sm:p-6">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Active Schemes</p>
-                                                <p className="font-display font-bold text-xl sm:text-2xl">
-                                                    {components.filter((c) => c.isActive).length}
-                                                </p>
-                                            </div>
-                                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-chart-3/10 flex items-center justify-center">
-                                                <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-chart-3" />
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-
-                                <Card>
-                                    <CardContent className="p-4 sm:p-6">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Applications</p>
-                                                <p className="font-display font-bold text-xl sm:text-2xl">
-                                                    {applicationCount}
-                                                </p>
-                                            </div>
-                                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-chart-4/10 flex items-center justify-center">
-                                                <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-chart-4" />
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                                {components.map((component, index) => (
-                                    <Card
-                                        key={component.id}
-                                        className="hover-elevate transition-all"
-                                        data-testid={`component-card-${index}`}
-                                    >
-                                        <CardHeader className="p-4 sm:p-6">
-                                            <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
-                                                <div className="flex-1 w-full">
-                                                    <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
-                                                        <CardTitle className="text-base sm:text-lg">{component.name}</CardTitle>
-                                                        <StatusToggleBadge
-                                                            docname={component.name}
-                                                            label={component.component_name || component.name}
-                                                            isActive={component.isActive}
-                                                            onStatusChange={(next) =>
-                                                                setComponents((prev) =>
-                                                                    prev.map((c) =>
-                                                                        c.name === component.name
-                                                                            ? { ...c, isActive: next }
-                                                                            : c
-                                                                    )
+                        <div className="grid grid-cols-1 gap-4 sm:gap-6">
+                            {components.map((component, index) => (
+                                <Card
+                                    key={component.id}
+                                    className="hover-elevate transition-all"
+                                    data-testid={`component-card-${index}`}
+                                >
+                                    <CardHeader className="p-4 sm:p-6">
+                                        <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                                            <div className="flex-1 w-full">
+                                                <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
+                                                    <CardTitle className="text-base sm:text-lg">{component.name}</CardTitle>
+                                                    <StatusToggleBadge
+                                                        docname={component.name}
+                                                        label={component.component_name || component.name}
+                                                        isActive={component.isActive}
+                                                        onStatusChange={(next) =>
+                                                            setComponents((prev) =>
+                                                                prev.map((c) =>
+                                                                    c.name === component.name
+                                                                        ? { ...c, isActive: next }
+                                                                        : c
                                                                 )
-                                                            }
-                                                            testId={`badge-status-${index}`}
-                                                        />
-                                                    </div>
-                                                    <CardDescription className="text-xs sm:text-sm">{component.description}</CardDescription>
+                                                            )
+                                                        }
+                                                        testId={`badge-status-${index}`}
+                                                    />
                                                 </div>
-                                                {/* <Button
+                                                <CardDescription className="text-xs sm:text-sm">{component.description}</CardDescription>
+                                            </div>
+                                            {/* <Button
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => handleEditComponent(component)}
@@ -510,9 +506,9 @@ export default function AdminComponents() {
                                                     <Edit className="w-4 h-4 mr-1" />
                                                     Edit
                                                 </Button> */}
-                                            </div>
-                                        </CardHeader>
-                                        {/* <CardContent className="space-y-4">
+                                        </div>
+                                    </CardHeader>
+                                    {/* <CardContent className="space-y-4">
                                             <div className="grid grid-cols-2 gap-4 text-sm">
                                                 <div>
                                                     <p className="text-muted-foreground mb-1">Applications</p>
@@ -532,13 +528,12 @@ export default function AdminComponents() {
                                                 </div>
                                             </div>
                                         </CardContent> */}
-                                    </Card>
-                                ))}
-                            </div>
+                                </Card>
+                            ))}
                         </div>
-                    )}
-                </main>
-            </div>
+                    </div>
+                )}
+            </main>
 
             {showEditDialog && editForm && (
                 <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
