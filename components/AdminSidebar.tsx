@@ -29,8 +29,8 @@ const adminMenuItems = [
 
   { icon: Users, label: "Sub-Admins", path: "/admin/subadmins" },
   { icon: Package, label: "Components", path: "/admin/components" },
+  { icon: BarChart3, label: "Reports", path: "/admin/reports" },
 ];
-// { icon: BarChart3, label: "Reports", path: "/admin/reports" },
 // { icon: Settings, label: "Settings", path: "/admin/settings" }
 const subAdminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/subadmin/dashboard" },
@@ -57,7 +57,7 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
 
       {/* Mobile Overlay */}
       {mobileMenuOpen && (
-        <div 
+        <div
           className="md:hidden fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
           onClick={() => setMobileMenuOpen(false)}
         />
@@ -109,10 +109,10 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
         <Separator />
 
         <div className="p-3 md:p-2 lg:p-3">
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start gap-3 md:gap-2 lg:gap-3 text-sm md:text-xs lg:text-sm px-3 md:px-2 lg:px-3 h-10 md:h-9 text-destructive hover:text-destructive hover:bg-destructive/10" 
-            data-testid="button-logout" 
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 md:gap-2 lg:gap-3 text-sm md:text-xs lg:text-sm px-3 md:px-2 lg:px-3 h-10 md:h-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+            data-testid="button-logout"
             onClick={() => {
               setMobileMenuOpen(false);
               logout();

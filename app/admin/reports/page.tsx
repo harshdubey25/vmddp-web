@@ -2,6 +2,7 @@
 // ...existing code...
 // Content from src/pages/admin/Reports.tsx
 import { useState, useEffect } from "react";
+import { useFrappeGetDocList } from "frappe-react-sdk";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,11 +56,164 @@ export default function AdminReports() {
     const [sortField, setSortField] = useState<string>("applicationId");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
     const [isDownloadingReport, setIsDownloadingReport] = useState(false);
+    const [statusCounts, setStatusCounts] = useState({
+        total: 0,
+        pending: 0,
+        approved: 0,
+        selected: 0,
+        rejected: 0,
+    });
+    const [statusCountsLoading, setStatusCountsLoading] = useState(false);
+    const [statusCountsError, setStatusCountsError] = useState<string | null>(null);
+    const [questionStats, setQuestionStats] = useState<Record<string, any>>({});
+    const [questionStatsLoading, setQuestionStatsLoading] = useState(false);
+    const [questionStatsError, setQuestionStatsError] = useState<string | null>(null);
     const itemsPerPage = 10;
 
     useEffect(() => {
         setCurrentPage(1);
     }, [dateFrom, dateTo, selectedDistrict, selectedComponent, selectedStatus]);
+
+    const { data: districtDocs, isLoading: districtsLoading } = useFrappeGetDocList("District Master", {
+        fields: ["name1"],
+        limit: 100,
+    });
+
+    const { data: componentDocs, isLoading: componentsLoading } = useFrappeGetDocList("Component", {
+        fields: ["component_name"],
+        limit: 100,
+        filters: [["dont_show_in_website", "=", 0]],
+    });
+
+    const districtOptions = [
+        "all",
+        ...Array.from(
+            new Set(
+                (districtDocs ?? [])
+                    .map((district: any) => district?.name1)
+                    .filter((name: string | undefined): name is string => Boolean(name)),
+            ),
+        ),
+    ];
+
+    const componentOptions = [
+        "all",
+        ...Array.from(
+            new Set(
+                (componentDocs ?? [])
+                    .map((component: any) => component?.component_name)
+                    .filter((name: string | undefined): name is string => Boolean(name)),
+            ),
+        ),
+    ];
+
+    useEffect(() => {
+        let isCancelled = false;
+
+        const fetchStatusCounts = async () => {
+            setStatusCountsLoading(true);
+            setStatusCountsError(null);
+            try {
+                const params = new URLSearchParams({
+                    district: selectedDistrict,
+                    component: selectedComponent,
+                });
+
+                const response = await frappeBrowser
+                    .call()
+                    .get(
+                        `vmddp_app.vmddp.doctype.app_form.app_form.get_applications_by_district_component?${params.toString()}`,
+                    );
+
+                if (isCancelled) {
+                    return;
+                }
+
+                const payload = response?.message ?? {};
+                setStatusCounts({
+                    total: payload.total ?? 0,
+                    pending: payload.pending ?? 0,
+                    approved: payload.approved ?? 0,
+                    selected: payload.selected ?? 0,
+                    rejected: payload.rejected ?? 0,
+                });
+            } catch (error) {
+                if (isCancelled) {
+                    return;
+                }
+
+                console.error("Failed to fetch application status counts:", error);
+                setStatusCounts({ total: 0, pending: 0, approved: 0, selected: 0, rejected: 0 });
+                setStatusCountsError("Unable to fetch live counts right now.");
+            } finally {
+                if (!isCancelled) {
+                    setStatusCountsLoading(false);
+                }
+            }
+        };
+
+        fetchStatusCounts();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [selectedDistrict, selectedComponent]);
+
+    useEffect(() => {
+        if (!selectedComponent || selectedComponent === "all") {
+            setQuestionStats({});
+            setQuestionStatsError(null);
+            setQuestionStatsLoading(false);
+            return;
+        }
+
+        let isCancelled = false;
+        const fetchQuestionStats = async () => {
+            setQuestionStatsLoading(true);
+            setQuestionStatsError(null);
+
+            try {
+                const params = new URLSearchParams({ component: selectedComponent });
+                if (selectedDistrict && selectedDistrict !== "all") {
+                    params.append("district", selectedDistrict);
+                }
+                if (selectedStatus && selectedStatus !== "all") {
+                    params.append("status", selectedStatus);
+                }
+
+                const response = await frappeBrowser
+                    .call()
+                    .get(
+                        `vmddp_app.vmddp.doctype.app_form.app_form.get_component_question_answers_count?${params.toString()}`,
+                    );
+
+                if (isCancelled) {
+                    return;
+                }
+
+                const payload = response?.message?.message ?? response?.message ?? {};
+                setQuestionStats(payload);
+            } catch (error) {
+                if (isCancelled) {
+                    return;
+                }
+
+                console.error("Failed to fetch component question stats:", error);
+                setQuestionStats({});
+                setQuestionStatsError("Unable to fetch question-wise counts. Please try again.");
+            } finally {
+                if (!isCancelled) {
+                    setQuestionStatsLoading(false);
+                }
+            }
+        };
+
+        fetchQuestionStats();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [selectedComponent, selectedDistrict, selectedStatus]);
 
     const applicationTrend = [
         { date: "Jan 1", applications: 45 },
@@ -249,6 +403,36 @@ export default function AdminReports() {
     const totalApplications = districtData.reduce((sum, d) => sum + d.applications, 0);
     const totalApproved = districtData.reduce((sum, d) => sum + d.approved, 0);
     const approvalRate = ((totalApproved / totalApplications) * 100).toFixed(1);
+    const formatStatusCount = (value: number) => (statusCountsLoading ? "..." : value.toLocaleString());
+    const statusSummaryCards = [
+        { key: "total", label: "Total Applications", value: statusCounts.total, accent: "text-primary" },
+        { key: "pending", label: "Pending", value: statusCounts.pending, accent: "text-chart-4" },
+        { key: "approved", label: "Approved", value: statusCounts.approved, accent: "text-chart-3" },
+        { key: "selected", label: "Selected", value: statusCounts.selected, accent: "text-chart-1" },
+        { key: "rejected", label: "Rejected", value: statusCounts.rejected, accent: "text-chart-5" },
+    ];
+    const getAnswerEntries = (answers: any): Array<[string, number]> => {
+        if (!answers) {
+            return [];
+        }
+
+        const source = Array.isArray(answers)
+            ? answers.reduce((acc, entry) => ({ ...acc, ...entry }), {})
+            : answers;
+
+        const optionMap =
+            source && typeof source === "object" && "options" in source && typeof source.options === "object"
+                ? source.options
+                : source;
+
+        if (!optionMap || typeof optionMap !== "object") {
+            return [] as Array<[string, number]>;
+        }
+
+        return Object.entries(optionMap)
+            .filter(([key, value]) => key !== "total" && (typeof value === "number" || typeof value === "string"))
+            .map(([key, value]) => [key, typeof value === "number" ? value : Number(value) || 0]);
+    };
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -284,7 +468,117 @@ export default function AdminReports() {
 
             <main className="flex-1 overflow-auto p-6 bg-muted/30">
                 <div className="space-y-6 max-w-7xl">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
+                            <div className="space-y-2">
+                                <Label htmlFor="summary-district">District</Label>
+                                <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
+                                    <SelectTrigger id="summary-district" data-testid="summary-select-district">
+                                        <SelectValue placeholder="All Districts" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {districtsLoading ? (
+                                            <SelectItem value="all">Loading districts...</SelectItem>
+                                        ) : (
+                                            districtOptions.map((district) => (
+                                                <SelectItem key={district} value={district}>
+                                                    {district === "all" ? "All Districts" : district}
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="summary-component">Component</Label>
+                                <Select value={selectedComponent} onValueChange={setSelectedComponent}>
+                                    <SelectTrigger id="summary-component" data-testid="summary-select-component">
+                                        <SelectValue placeholder="All Components" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {componentsLoading ? (
+                                            <SelectItem value="all">Loading components...</SelectItem>
+                                        ) : (
+                                            componentOptions.map((component) => (
+                                                <SelectItem key={component} value={component}>
+                                                    {component === "all" ? "All Components" : component}
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                            {statusSummaryCards.map((card) => (
+                                <Card key={card.key}>
+                                    <CardContent className="p-6">
+                                        <p className="text-sm text-muted-foreground mb-1">{card.label}</p>
+                                        <p className={`font-display font-bold text-2xl ${card.accent}`}>
+                                            {formatStatusCount(card.value)}
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                        {statusCountsError && (
+                            <p className="text-sm text-destructive">{statusCountsError}</p>
+                        )}
+                    </div>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Component Question Responses</CardTitle>
+                            <CardDescription>
+                                Option-wise counts for select questions in the chosen component
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {selectedComponent === "all" ? (
+                                <p className="text-sm text-muted-foreground">
+                                    Choose a component to view question-level response counts.
+                                </p>
+                            ) : questionStatsLoading ? (
+                                <p className="text-sm text-muted-foreground">Loading question stats...</p>
+                            ) : questionStatsError ? (
+                                <p className="text-sm text-destructive">{questionStatsError}</p>
+                            ) : Object.keys(questionStats).length === 0 ? (
+                                <p className="text-sm text-muted-foreground">
+                                    No responses available for the selected filters.
+                                </p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {Object.entries(questionStats).map(([question, answers]) => {
+                                        const answerEntries = getAnswerEntries(answers);
+                                        return (
+                                            <div key={question} className="border rounded-lg p-4">
+                                                <p className="font-semibold text-sm mb-3">{question}</p>
+                                                {answerEntries.length === 0 ? (
+                                                    <p className="text-sm text-muted-foreground">
+                                                        No selectable responses recorded yet.
+                                                    </p>
+                                                ) : (
+                                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                                        {answerEntries.map(([option, count]) => (
+                                                            <div
+                                                                key={option}
+                                                                className="flex items-center justify-between text-sm bg-muted/50 rounded-md px-3 py-2"
+                                                            >
+                                                                <span className="text-muted-foreground">{option}</span>
+                                                                <span className="font-medium">{count.toLocaleString()}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <Card>
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between mb-4">
@@ -332,9 +626,9 @@ export default function AdminReports() {
                                 <p className="font-display font-bold text-2xl">{componentData.length}</p>
                             </CardContent>
                         </Card>
-                    </div>
+                    </div> */}
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <Card>
                             <CardHeader>
                                 <CardTitle>Application Trend</CardTitle>
@@ -387,9 +681,9 @@ export default function AdminReports() {
                                 </ResponsiveContainer>
                             </CardContent>
                         </Card>
-                    </div>
+                    </div> */}
 
-                    <Card>
+                    {/* <Card>
                         <CardHeader>
                             <CardTitle>District-wise Performance</CardTitle>
                             <CardDescription>Applications and approvals by district</CardDescription>
@@ -407,9 +701,9 @@ export default function AdminReports() {
                                 </BarChart>
                             </ResponsiveContainer>
                         </CardContent>
-                    </Card>
+                    </Card> */}
 
-                    <Card>
+                    {/* <Card>
                         <CardHeader>
                             <CardTitle>Sub-Admin Performance</CardTitle>
                             <CardDescription>Application processing by DPOs</CardDescription>
@@ -448,9 +742,9 @@ export default function AdminReports() {
                                 ))}
                             </div>
                         </CardContent>
-                    </Card>
+                    </Card> */}
 
-                    <Card>
+                    {/* <Card>
                         <CardHeader>
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
@@ -503,11 +797,15 @@ export default function AdminReports() {
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="all">All Districts</SelectItem>
-                                                <SelectItem value="nagpur">Nagpur</SelectItem>
-                                                <SelectItem value="amravati">Amravati</SelectItem>
-                                                <SelectItem value="akola">Akola</SelectItem>
-                                                <SelectItem value="yavatmal">Yavatmal</SelectItem>
+                                                {districtsLoading ? (
+                                                    <SelectItem value="all">Loading districts...</SelectItem>
+                                                ) : (
+                                                    districtOptions.map((district) => (
+                                                        <SelectItem key={district} value={district}>
+                                                            {district === "all" ? "All Districts" : district}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -518,10 +816,15 @@ export default function AdminReports() {
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="all">All Components</SelectItem>
-                                                <SelectItem value="animal">Animal Induction</SelectItem>
-                                                <SelectItem value="hgm">HGM Purchase</SelectItem>
-                                                <SelectItem value="feed">Fertility Feed</SelectItem>
+                                                {componentsLoading ? (
+                                                    <SelectItem value="all">Loading components...</SelectItem>
+                                                ) : (
+                                                    componentOptions.map((component) => (
+                                                        <SelectItem key={component} value={component}>
+                                                            {component === "all" ? "All Components" : component}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -702,7 +1005,7 @@ export default function AdminReports() {
                                 </div>
                             )}
                         </CardContent>
-                    </Card>
+                    </Card> */}
                 </div>
             </main>
         </div>
