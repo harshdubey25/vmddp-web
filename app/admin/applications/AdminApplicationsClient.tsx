@@ -413,7 +413,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                     <Input
