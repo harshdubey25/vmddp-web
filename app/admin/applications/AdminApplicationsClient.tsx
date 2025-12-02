@@ -312,6 +312,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                     status: app.status ?? '',
                     approver: app.approver ?? '',
                     submittedDate: app.created_at ?? app.date ?? '',
+                    milk_pouring_point: app.milk_pouring_point ?? ''
                 };
             });
 
@@ -324,7 +325,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                 return;
             }
 
-            const headers = ['Application ID', 'Applicant', 'Mobile', 'District', 'Village', 'Component', 'Status', 'Approver', 'Submitted Date'];
+            const headers = ['Application ID', 'Applicant', 'Mobile', 'District', 'Village', 'Component', 'Status', 'Approver', 'Submitted Date', 'Name Of Milk Pouring Point'];
 
             const escapeCell = (value: any) => {
                 if (value === null || value === undefined) return '';
@@ -345,6 +346,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                 a.status || '',
                 a.approver || '',
                 a.submittedDate || '',
+                a.milk_pouring_point || ''
             ]);
 
             const csvContent = [headers.map(escapeCell).join(','), ...rows.map((r: any) => r.map(escapeCell).join(','))].join('\n');
