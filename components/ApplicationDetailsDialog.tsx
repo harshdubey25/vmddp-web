@@ -302,7 +302,7 @@ export default function ApplicationDetailsDialog({
                                                     ) : criterion.type === 'checkbox' ? <p>{displayValue ? "Yes" : "No"}</p> : (
                                                         <>
                                                             <p className="font-medium">{displayValue || "N/A"}</p>
-                                                            {parsedResponse && <div>{parsedResponse.map((parsedObject: any) => <div>
+                                                            {parsedResponse && <div>{parsedResponse.map((parsedObject: any, idx: number) => <div key={idx}>
                                                                 <p>{parsedObject.name}</p>  <p>{parsedObject.value}</p>
 
                                                             </div>)}</div>}
