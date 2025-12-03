@@ -263,6 +263,16 @@ export default function ApplicationDetailsDialog({
                                         fullAppDoc.criteria.map((criterion: any, idx: number) => {
                                             // Check for both 'value' and 'file' keys
                                             const displayValue = criterion.file || criterion.value;
+                                            const jsonResponse = criterion.response;
+                                            const parsedResponse = jsonResponse ? (() => {
+                                                try {
+                                                    return JSON.parse(jsonResponse);
+                                                } catch (e) {
+                                                    return null;
+                                                }
+                                            })() : null;
+                                            console.log("parsedResponse", parsedResponse)
+                                            // If there's a value in the response, use it
                                             const valueStr = String(displayValue || '');
                                             const isDocumentLink = valueStr && (
                                                 valueStr.startsWith('http') ||
@@ -290,7 +300,13 @@ export default function ApplicationDetailsDialog({
                                                             </Button>
                                                         </div>
                                                     ) : criterion.type === 'checkbox' ? <p>{displayValue ? "Yes" : "No"}</p> : (
-                                                        <p className="font-medium">{displayValue || "N/A"}</p>
+                                                        <>
+                                                            <p className="font-medium">{displayValue || "N/A"}</p>
+                                                            {parsedResponse && <div>{parsedResponse.map((parsedObject: any) => <div>
+                                                                <p>{parsedObject.name}</p>  <p>{parsedObject.value}</p>
+
+                                                            </div>)}</div>}
+                                                        </>
                                                     )}
                                                 </div>
                                             );

@@ -292,7 +292,7 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                             </AccordionTrigger>
                                             <AccordionContent>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 pt-2">
-                                                    {villageGroup.components.map((comp) => {
+                                                    {villageGroup.components.map((comp: any) => {
                                                         const percentage = (comp.selected / comp.total) * 100;
                                                         const isComplete = comp.selected >= comp.total;
 
