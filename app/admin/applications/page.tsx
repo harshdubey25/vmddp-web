@@ -107,6 +107,9 @@ async function getApplications(
         date?: string;
         creation?: string;
         approver?: string;
+        aadhar_number?: string;
+        taluka?: string;
+        milk_pouring_point?: string;
     };
 
     const mappedApplications = (response.message?.applications || []).map((app: FrappeApp) => {
@@ -126,7 +129,7 @@ async function getApplications(
             fatherName: '',
             mobile: app.mobile_number ?? app.mobile_no ?? '',
             district: app.district ?? 'N/A',
-            taluka: '',
+            taluka: app.taluka ?? '',
             village: app.village ?? '',
             component: component,
             status: app.status,
@@ -136,13 +139,13 @@ async function getApplications(
             approver: app.approver,
             gender: '',
             caste: '',
-            aadharNumber: '',
+            aadharNumber: app.aadhar_number ?? '',
             rationCardMembers: 0,
             familyAadharNumbers: [],
             animalTagNumber: '',
             landHolding: 0,
             khasraNumber: '',
-            milkPouringPoint: '',
+            milkPouringPoint: app.milk_pouring_point,
             farmerPourerCode: '',
             componentDetails: {
                 benefits: [],

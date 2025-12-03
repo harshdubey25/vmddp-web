@@ -38,7 +38,11 @@ import { useDebounce } from "@/hooks/use-debounce";
 interface ApplicationListItem {
     id: string;
     applicantName: string;
+    aadharNumber: string;
+    mobile: string;
+    taluka: string;
     village: string;
+    milkPouringPoint: string;
     component: string;
     status: "Approved" | "Pending" | "Rejected" | "Selected";
     submittedDate: string;
@@ -500,7 +504,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
             return;
         }
 
-        const headers = ['Application ID', 'Applicant', 'Village', 'Component', 'Status', 'Submitted Date'];
+        const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'Taluka', 'Village', 'Milk Pouring Point', 'Component', 'Status', 'Submitted Date'];
 
         const escapeCell = (value: any) => {
             if (value === null || value === undefined) return '';
@@ -514,7 +518,11 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
         const rows = applications.map((a) => [
             a.id,
             a.applicantName,
+            a.aadharNumber || '',
+            a.mobile || '',
+            a.taluka || '',
             a.village,
+            a.milkPouringPoint || '',
             a.component,
             a.status,
             a.submittedDate,
@@ -597,7 +605,11 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                 return {
                     id: app.name,
                     applicantName: app.fullname ?? 'Unknown',
+                    aadharNumber: app.aadhar_number ?? '',
+                    mobile: app.mobile_number ?? app.mobile_no ?? '',
+                    taluka: app.taluka ?? '',
                     village: app.village ?? 'N/A',
+                    milkPouringPoint: app.milk_pouring_point ?? '',
                     component: component,
                     status: app.status ?? '',
                     submittedDate: app.created_at ?? app.date ?? '',
@@ -613,7 +625,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                 return;
             }
 
-            const headers = ['Application ID', 'Applicant', 'Village', 'Component', 'Status', 'Submitted Date'];
+            const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'Taluka', 'Village', 'Milk Pouring Point', 'Component', 'Status', 'Submitted Date'];
 
             const escapeCell = (value: any) => {
                 if (value === null || value === undefined) return '';
@@ -627,10 +639,14 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
             const rows = allApplications.map((a: any) => [
                 a.id,
                 a.applicantName,
-                a.village,
-                a.component,
-                a.status,
-                a.submittedDate,
+                a.aadharNumber || '',
+                a.mobile || '',
+                a.taluka || '',
+                a.village || '',
+                a.milkPouringPoint || '',
+                a.component || '',
+                a.status || '',
+                a.submittedDate || '',
             ]);
 
             const csvContent = [headers.map(escapeCell).join(','), ...rows.map((r: any) => r.map(escapeCell).join(','))].join('\n');
@@ -763,47 +779,72 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                     <table className="w-full min-w-[640px]">
                                         <thead className="bg-muted/50 border-b">
                                             <tr>
-                                                <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Application ID</th>
-                                                <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Applicant</th>
-                                                <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Village</th>
-                                                <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Component</th>
-                                                <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Status</th>
-                                                <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Date</th>
-                                                <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Actions</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">ID</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Applicant</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Aadhar Number</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Mobile Number</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Taluka</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Village</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden lg:table-cell">Milk Pouring Point</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden lg:table-cell">Component</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Status</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden sm:table-cell">Date</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {applications.map((app, index) => (
                                                 <tr
                                                     key={app.id}
-                                                    className="border-b hover:bg-muted/30 transition-colors"
+                                                    className="border-b hover:bg-muted/30 transition-colors cursor-pointer"
                                                     data-testid={`application-row-${index}`}
+                                                    onClick={(e) => handleViewDetails(app)}
                                                 >
-                                                    <td className="p-2 sm:p-3 md:p-4">
+                                                    <td className="p-2 sm:p-4">
                                                         <span className="font-mono text-xs sm:text-sm font-semibold">{app.id}</span>
                                                     </td>
-                                                    <td className="p-2 sm:p-3 md:p-4">
+                                                    <td className="p-2 sm:p-4">
                                                         <div>
-                                                            <p className="font-medium text-xs sm:text-sm">{app.applicantName}</p>
+                                                            <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{app.applicantName}</p>
                                                         </div>
                                                     </td>
-                                                    <td className="p-2 sm:p-3 md:p-4">
-                                                        <p className="text-xs sm:text-sm">{app.village}</p>
+                                                    <td className="p-2 sm:p-4">
+                                                        <div>
+                                                            <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{app.aadharNumber || '-'}</p>
+                                                        </div>
                                                     </td>
-                                                    <td className="p-2 sm:p-3 md:p-4 max-w-[150px] sm:max-w-[200px]">
-                                                        <p className="text-xs sm:text-sm break-words">{app.component}</p>
+                                                    <td className="p-2 sm:p-4">
+                                                        <div>
+                                                            <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{app.mobile || '-'}</p>
+                                                        </div>
                                                     </td>
-                                                    <td className="p-2 sm:p-3 md:p-4">{getStatusBadge(app.status)}</td>
-                                                    <td className="p-2 sm:p-3 md:p-4">
+                                                    <td className="p-2 sm:p-4">
+                                                        <div>
+                                                            <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{app.taluka || '-'}</p>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-2 sm:p-4">
+                                                        <div>
+                                                            <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{app.village}</p>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-2 sm:p-4 hidden lg:table-cell">
+                                                        <p className="text-xs sm:text-sm truncate max-w-[150px]">{app.milkPouringPoint || '-'}</p>
+                                                    </td>
+                                                    <td className="p-2 sm:p-4 hidden lg:table-cell">
+                                                        <p className="text-xs sm:text-sm truncate max-w-[150px]">{app.component}</p>
+                                                    </td>
+                                                    <td className="p-2 sm:p-4">{getStatusBadge(app.status)}</td>
+                                                    <td className="p-2 sm:p-4 hidden sm:table-cell">
                                                         <p className="text-xs sm:text-sm">{app.submittedDate}</p>
                                                     </td>
-                                                    <td className="p-2 sm:p-3 md:p-4">
+                                                    <td className="p-2 sm:p-4">
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
                                                             onClick={() => handleViewDetails(app)}
                                                             data-testid={`button-view-${index}`}
-                                                            className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3"
+                                                            className="text-xs sm:text-sm px-2 sm:px-3"
                                                         >
                                                             <Eye className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
                                                             <span className="hidden sm:inline">View</span>

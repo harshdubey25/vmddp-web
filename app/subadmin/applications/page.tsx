@@ -6,7 +6,11 @@ export const runtime = 'edge';
 interface ApplicationListItem {
     id: string;
     applicantName: string;
+    aadharNumber: string;
+    mobile: string;
+    taluka: string;
     village: string;
+    milkPouringPoint: string;
     component: string;
     status: "Approved" | "Pending" | "Rejected" | "Selected";
     submittedDate: string;
@@ -79,7 +83,11 @@ export default async function SubAdminApplications({
         return {
             id: app.name,
             applicantName: app.fullname,
+            aadharNumber: app.aadhar_number ?? '',
+            mobile: app.mobile_number ?? app.mobile_no ?? '',
+            taluka: app.taluka ?? '',
             village: app.village || 'N/A',
+            milkPouringPoint: app.milk_pouring_point ?? '',
             component: component_list,
             status: app.status,
             submittedDate,

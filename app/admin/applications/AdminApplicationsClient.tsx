@@ -305,8 +305,10 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                 return {
                     id: app.name,
                     applicantName: app.fullname ?? 'Unknown',
+                    aadharNumber: app.aadhar_number ?? '',
                     mobile: app.mobile_number ?? app.mobile_no ?? '',
                     district: app.district ?? 'N/A',
+                    taluka: app.taluka ?? '',
                     village: app.village ?? '',
                     component: component,
                     status: app.status ?? '',
@@ -325,7 +327,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                 return;
             }
 
-            const headers = ['Application ID', 'Applicant', 'Mobile', 'District', 'Village', 'Component', 'Status', 'Approver', 'Submitted Date', 'Name Of Milk Pouring Point'];
+            const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'District', 'Taluka', 'Village', 'Component', 'Status', 'Approver', 'Submitted Date', 'Name Of Milk Pouring Point'];
 
             const escapeCell = (value: any) => {
                 if (value === null || value === undefined) return '';
@@ -339,8 +341,10 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
             const rows = allApplications.map((a: any) => [
                 a.id,
                 a.applicantName,
+                a.aadharNumber,
                 a.mobile || '',
                 a.district || '',
+                a.taluka || '',
                 a.village || '',
                 a.component || '',
                 a.status || '',
@@ -496,7 +500,12 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                             <tr>
                                                 <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">ID</th>
                                                 <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Applicant</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Aadhar Number</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Mobile Number</th>
                                                 <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden md:table-cell">District</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Taluka</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Village</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden lg:table-cell">Milk Pouring Point</th>
                                                 <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden lg:table-cell">Component</th>
                                                 <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Status</th>
                                                 <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden xl:table-cell">Approver</th>
@@ -508,8 +517,9 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                             {applications.map((app, index) => (
                                                 <tr
                                                     key={app.id}
-                                                    className="border-b hover:bg-muted/30 transition-colors"
+                                                    className="border-b hover:bg-muted/30 transition-colors cursor-pointer"
                                                     data-testid={`application-row-${index}`}
+                                                    onClick={(e) => handleViewDetails(app)}
                                                 >
                                                     <td className="p-2 sm:p-4">
                                                         <span className="font-mono text-xs sm:text-sm font-semibold">{app.id}</span>
@@ -520,11 +530,38 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                                             <p className="text-[10px] sm:text-xs text-muted-foreground">{app.mobile}</p>
                                                         </div>
                                                     </td>
+                                                    <td className="p-2 sm:p-4">
+                                                        <div>
+                                                            <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{app.aadharNumber}</p>
+
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-2 sm:p-4">
+                                                        <div>
+                                                            <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{app.mobile}</p>
+
+                                                        </div>
+                                                    </td>
                                                     <td className="p-2 sm:p-4 hidden md:table-cell">
                                                         <div>
                                                             <p className="text-xs sm:text-sm">{app.district || 'N/A'}</p>
 
                                                         </div>
+                                                    </td>
+                                                    <td className="p-2 sm:p-4">
+                                                        <div>
+                                                            <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{app.taluka}</p>
+
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-2 sm:p-4">
+                                                        <div>
+                                                            <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{app.village}</p>
+
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-2 sm:p-4 hidden lg:table-cell">
+                                                        <p className="text-xs sm:text-sm truncate max-w-[150px]">{app.milkPouringPoint || 'N/A'}</p>
                                                     </td>
                                                     <td className="p-2 sm:p-4 hidden lg:table-cell">
                                                         <p className="text-xs sm:text-sm truncate max-w-[150px]">{app.component || 'N/A'}</p>
