@@ -14,6 +14,9 @@ interface ApplicationListItem {
     component: string;
     status: "Approved" | "Pending" | "Rejected" | "Selected";
     submittedDate: string;
+    dairyAnimalData?: {
+        [key: string]: any;
+    };
 }
 
 
@@ -91,6 +94,7 @@ export default async function SubAdminApplications({
             component: component_list,
             status: app.status,
             submittedDate,
+            dairyAnimalData: app.dairy_animal_data,
         };
     });
 

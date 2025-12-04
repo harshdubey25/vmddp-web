@@ -43,6 +43,9 @@ export interface Application {
         value: string;
         type?: string;
     }>;
+    dairyAnimalData?: {
+        [key: string]: any;
+    };
 }
 
 
@@ -110,6 +113,9 @@ async function getApplications(
         aadhar_number?: string;
         taluka?: string;
         milk_pouring_point?: string;
+        dairy_animal_data?: {
+            [key: string]: any;
+        };
     };
 
     const mappedApplications = (response.message?.applications || []).map((app: FrappeApp) => {
@@ -152,6 +158,7 @@ async function getApplications(
                 customQuestions: [],
             },
             documents: [],
+            dairyAnimalData: app.dairy_animal_data,
         };
         return mapped;
     });
