@@ -522,7 +522,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
             // Extract tag numbers from dairy_animal_data
             let tagNumbers = 'N/A';
             if (a.dairyAnimalData) {
-                const tagNumberArray = a.dairyAnimalData['Tag Number'];
+                const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
                 if (Array.isArray(tagNumberArray)) {
                     const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
                     tagNumbers = validTags.length > 0 ? validTags.join(', ') : 'N/A';
@@ -596,7 +596,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
             // Extract tag numbers from dairy_animal_data
             let tagNumbers = 'N/A';
             if (a.dairyAnimalData) {
-                const tagNumberArray = a.dairyAnimalData['Tag Number'];
+                const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
                 if (Array.isArray(tagNumberArray)) {
                     const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
                     tagNumbers = validTags.length > 0 ? validTags.join(', ') : 'N/A';
@@ -729,7 +729,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                 // Extract tag numbers from dairy_animal_data
                 let tagNumbers = 'N/A';
                 if (a.dairyAnimalData) {
-                    const tagNumberArray = a.dairyAnimalData['Tag Number'];
+                    const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
                     if (Array.isArray(tagNumberArray)) {
                         const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
                         tagNumbers = validTags.length > 0 ? validTags.join(', ') : 'N/A';
@@ -941,7 +941,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                                         {(() => {
                                                             if (!app.dairyAnimalData) return <p className="text-xs sm:text-sm text-muted-foreground">N/A</p>;
 
-                                                            const tagNumberArray = app.dairyAnimalData['Tag Number'];
+                                                            const tagNumberArray = app.dairyAnimalData['Registered Dairy Animal Tag Number'] || app.dairyAnimalData['Tag Number'];
                                                             if (!Array.isArray(tagNumberArray)) return <p className="text-xs sm:text-sm text-muted-foreground">N/A</p>;
 
                                                             const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
