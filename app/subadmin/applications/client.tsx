@@ -46,6 +46,9 @@ interface ApplicationListItem {
     component: string;
     status: "Approved" | "Pending" | "Rejected" | "Selected";
     submittedDate: string;
+    dairyAnimalData?: {
+        [key: string]: any;
+    };
 }
 
 interface Component {
@@ -504,7 +507,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
             return;
         }
 
-        const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'Taluka', 'Village', 'Milk Pouring Point', 'Component', 'Status', 'Submitted Date'];
+        const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'Taluka', 'Village', 'Milk Pouring Point', 'Component', 'Tag Numbers', 'Status', 'Submitted Date'];
 
         const escapeCell = (value: any) => {
             if (value === null || value === undefined) return '';
@@ -515,18 +518,31 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
             return str;
         };
 
-        const rows = applications.map((a) => [
-            a.id,
-            a.applicantName,
-            a.aadharNumber || '',
-            a.mobile || '',
-            a.taluka || '',
-            a.village,
-            a.milkPouringPoint || '',
-            a.component,
-            a.status,
-            a.submittedDate,
-        ]);
+        const rows = applications.map((a) => {
+            // Extract tag numbers from dairy_animal_data
+            let tagNumbers = 'N/A';
+            if (a.dairyAnimalData) {
+                const tagNumberArray = a.dairyAnimalData['Tag Number'];
+                if (Array.isArray(tagNumberArray)) {
+                    const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
+                    tagNumbers = validTags.length > 0 ? validTags.join(', ') : 'N/A';
+                }
+            }
+
+            return [
+                a.id,
+                a.applicantName,
+                a.aadharNumber || '',
+                a.mobile || '',
+                a.taluka || '',
+                a.village,
+                a.milkPouringPoint || '',
+                a.component,
+                tagNumbers,
+                a.status,
+                a.submittedDate,
+            ];
+        });
 
         const csvContent = [headers.map(escapeCell).join(','), ...rows.map(r => r.map(escapeCell).join(','))].join('\n');
 
@@ -554,7 +570,79 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
         });
     }, [applications, statusFilter, componentFilter, debouncedSearchQuery, toast]);
 
-    // Export ALL applications (with current filters) as CSV
+    // Export current page as Excel (using CSV format)
+    const handleExportExcel = useCallback(() => {
+        if (!applications || applications.length === 0) {
+            toast({
+                title: "No data",
+                description: "There are no applications to export.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'Taluka', 'Village', 'Milk Pouring Point', 'Component', 'Tag Numbers', 'Status', 'Submitted Date'];
+
+        const escapeCell = (value: any) => {
+            if (value === null || value === undefined) return '';
+            const str = String(value);
+            if (/["\n,]/.test(str)) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const rows = applications.map((a) => {
+            // Extract tag numbers from dairy_animal_data
+            let tagNumbers = 'N/A';
+            if (a.dairyAnimalData) {
+                const tagNumberArray = a.dairyAnimalData['Tag Number'];
+                if (Array.isArray(tagNumberArray)) {
+                    const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
+                    tagNumbers = validTags.length > 0 ? validTags.join(', ') : 'N/A';
+                }
+            }
+
+            return [
+                a.id,
+                a.applicantName,
+                a.aadharNumber || '',
+                a.mobile || '',
+                a.taluka || '',
+                a.village,
+                a.milkPouringPoint || '',
+                a.component,
+                tagNumbers,
+                a.status,
+                a.submittedDate,
+            ];
+        });
+
+        const csvContent = [headers.map(escapeCell).join(','), ...rows.map(r => r.map(escapeCell).join(','))].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+
+        const date = new Date().toISOString().split('T')[0];
+        const parts: string[] = [];
+        if (statusFilter && statusFilter !== 'all') parts.push(statusFilter);
+        if (componentFilter && componentFilter !== 'all') parts.push(componentFilter.replace(/\s+/g, '_'));
+        if (debouncedSearchQuery) parts.push(`q-${debouncedSearchQuery.replace(/\s+/g, '_')}`);
+        const suffix = parts.length ? `-${parts.join('-')}` : '';
+
+        link.href = url;
+        link.download = `applications${suffix}-${date}.xls`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+
+        toast({
+            title: "Export completed",
+            description: `Exported ${applications.length} applications from current page.`,
+        });
+    }, [applications, statusFilter, componentFilter, debouncedSearchQuery, toast]);    // Export ALL applications (with current filters) as CSV
     const handleExportAll = useCallback(async () => {
         toast({
             title: "Export started",
@@ -613,6 +701,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                     component: component,
                     status: app.status ?? '',
                     submittedDate: app.created_at ?? app.date ?? '',
+                    dairyAnimalData: app.dairy_animal_data,
                 };
             });
 
@@ -625,7 +714,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                 return;
             }
 
-            const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'Taluka', 'Village', 'Milk Pouring Point', 'Component', 'Status', 'Submitted Date'];
+            const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'Taluka', 'Village', 'Milk Pouring Point', 'Component', 'Tag Numbers', 'Status', 'Submitted Date'];
 
             const escapeCell = (value: any) => {
                 if (value === null || value === undefined) return '';
@@ -636,18 +725,31 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                 return str;
             };
 
-            const rows = allApplications.map((a: any) => [
-                a.id,
-                a.applicantName,
-                a.aadharNumber || '',
-                a.mobile || '',
-                a.taluka || '',
-                a.village || '',
-                a.milkPouringPoint || '',
-                a.component || '',
-                a.status || '',
-                a.submittedDate || '',
-            ]);
+            const rows = allApplications.map((a: any) => {
+                // Extract tag numbers from dairy_animal_data
+                let tagNumbers = 'N/A';
+                if (a.dairyAnimalData) {
+                    const tagNumberArray = a.dairyAnimalData['Tag Number'];
+                    if (Array.isArray(tagNumberArray)) {
+                        const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
+                        tagNumbers = validTags.length > 0 ? validTags.join(', ') : 'N/A';
+                    }
+                }
+
+                return [
+                    a.id,
+                    a.applicantName,
+                    a.aadharNumber || '',
+                    a.mobile || '',
+                    a.taluka || '',
+                    a.village || '',
+                    a.milkPouringPoint || '',
+                    a.component || '',
+                    tagNumbers,
+                    a.status || '',
+                    a.submittedDate || '',
+                ];
+            });
 
             const csvContent = [headers.map(escapeCell).join(','), ...rows.map((r: any) => r.map(escapeCell).join(','))].join('\n');
 
@@ -787,6 +889,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                                 <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Village</th>
                                                 <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden lg:table-cell">Milk Pouring Point</th>
                                                 <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden lg:table-cell">Component</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden xl:table-cell">Tag Numbers</th>
                                                 <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Status</th>
                                                 <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden sm:table-cell">Date</th>
                                                 <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Actions</th>
@@ -833,6 +936,27 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                                     </td>
                                                     <td className="p-2 sm:p-4 hidden lg:table-cell">
                                                         <p className="text-xs sm:text-sm truncate max-w-[150px]">{app.component}</p>
+                                                    </td>
+                                                    <td className="p-2 sm:p-4 hidden xl:table-cell">
+                                                        {(() => {
+                                                            if (!app.dairyAnimalData) return <p className="text-xs sm:text-sm text-muted-foreground">N/A</p>;
+
+                                                            const tagNumberArray = app.dairyAnimalData['Tag Number'];
+                                                            if (!Array.isArray(tagNumberArray)) return <p className="text-xs sm:text-sm text-muted-foreground">N/A</p>;
+
+                                                            const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
+                                                            if (validTags.length === 0) return <p className="text-xs sm:text-sm text-muted-foreground">N/A</p>;
+
+                                                            return (
+                                                                <div className="flex flex-wrap gap-1">
+                                                                    {validTags.map((tag: string, idx: number) => (
+                                                                        <Badge key={idx} variant="outline" className="text-xs font-mono">
+                                                                            {tag}
+                                                                        </Badge>
+                                                                    ))}
+                                                                </div>
+                                                            );
+                                                        })()}
                                                     </td>
                                                     <td className="p-2 sm:p-4">{getStatusBadge(app.status)}</td>
                                                     <td className="p-2 sm:p-4 hidden sm:table-cell">
