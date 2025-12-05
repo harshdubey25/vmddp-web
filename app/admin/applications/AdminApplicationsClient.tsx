@@ -512,7 +512,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                     </Button>
                 </div>
             </header>
-            <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30">
+            <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30 ">
                 <div className="space-y-4 sm:space-y-6 max-w-7xl">
                     <Card>
                         <CardHeader className="p-4 sm:p-6">
@@ -520,7 +520,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                 <div>
                                     <CardTitle className="text-base sm:text-lg">All Applications</CardTitle>
                                     <CardDescription className="text-xs sm:text-sm">
-                                        {applications.length} applications found
+                                        {paginationData?.total_applications} applications found
                                     </CardDescription>
                                 </div>
                             </div>
@@ -726,8 +726,8 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                             </div>
 
                             {/* Pagination */}
-                            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 pt-3 sm:pt-4">
-                                <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+                            <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-0 pt-3 sm:pt-4">
+                                <p className="text-xs sm:text-sm text-muted-foreground">
                                     {paginationData ? (
                                         <>
                                             Showing {applications.length} of {paginationData.total_applications} applications

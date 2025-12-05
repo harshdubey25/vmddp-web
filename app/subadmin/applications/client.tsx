@@ -110,9 +110,17 @@ interface SubAdminApplicationsClientProps {
         start_date: string;
         end_date: string;
     };
+    paginationData?: {
+        current_page: number;
+        page_size: number;
+        total_applications: number;
+        total_pages: number;
+        has_next_page: boolean;
+        has_previous_page: boolean;
+    };
 }
 
-export default function SubAdminApplicationsClient({ applications, currentPage, pageSize, initialFilters }: SubAdminApplicationsClientProps) {
+export default function SubAdminApplicationsClient({ applications, currentPage, pageSize, initialFilters, paginationData }: SubAdminApplicationsClientProps) {
 
     const { toast } = useToast();
     const { currentUser } = useFrappeAuth();
@@ -813,7 +821,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                 <div>
                                     <CardTitle className="text-base sm:text-lg md:text-xl">All Applications</CardTitle>
                                     <CardDescription className="text-xs sm:text-sm">
-                                        {applications.length} applications found in your zone
+                                        {paginationData?.total_applications} applications found in your zone
                                     </CardDescription>
                                 </div>
                             </div>
@@ -984,29 +992,37 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                             {/* Pagination */}
                             <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-0 pt-3 sm:pt-4">
                                 <p className="text-xs sm:text-sm text-muted-foreground">
-                                    Showing {applications.length} items on page {currentPage}
-                                    {applications.length < pageSize && currentPage > 1 ? ' (last page)' : ''}
+                                    {paginationData ? (
+                                        <>
+                                            Showing {applications.length} of {paginationData.total_applications} applications
+                                            (Page {paginationData.current_page} of {paginationData.total_pages})
+                                        </>
+                                    ) : (
+                                        <>
+                                            Showing {applications.length} items on page {currentPage}
+                                            {applications.length < pageSize && currentPage > 1 ? ' (last page)' : ''}
+                                        </>
+                                    )}
                                 </p>
                                 <Pagination>
                                     <PaginationContent>
                                         <PaginationItem>
                                             <PaginationPrevious
-                                                href={currentPage > 1 ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage - 1).toString() }).toString()}` : '#'}
+                                                href={(paginationData?.has_previous_page ?? currentPage > 1) ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage - 1).toString() }).toString()}` : '#'}
                                                 onClick={(e) => {
-                                                    if (currentPage <= 1) {
+                                                    if (!(paginationData?.has_previous_page ?? currentPage > 1)) {
                                                         e.preventDefault();
                                                     }
                                                 }}
-                                                className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
+                                                className={!(paginationData?.has_previous_page ?? currentPage > 1) ? 'pointer-events-none opacity-50' : ''}
                                             />
                                         </PaginationItem>
 
                                         {/* Page numbers */}
                                         {(() => {
-                                            const hasNextPage = applications.length === pageSize;
-                                            const maxVisiblePages = hasNextPage ? currentPage + 2 : currentPage;
+                                            const totalPages = paginationData?.total_pages ?? (applications.length === pageSize ? currentPage + 2 : currentPage);
                                             const startPage = Math.max(1, currentPage - 2);
-                                            const endPage = Math.min(maxVisiblePages, startPage + 4);
+                                            const endPage = Math.min(totalPages, startPage + 4);
 
                                             return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
                                                 const pageNum = startPage + i;
@@ -1023,7 +1039,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                             });
                                         })()}
 
-                                        {applications.length === pageSize && currentPage > 3 && (
+                                        {paginationData && currentPage < paginationData.total_pages - 2 && (
                                             <>
                                                 <PaginationItem>
                                                     <PaginationEllipsis />
@@ -1033,13 +1049,13 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
 
                                         <PaginationItem>
                                             <PaginationNext
-                                                href={applications.length === pageSize ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage + 1).toString() }).toString()}` : '#'}
+                                                href={(paginationData?.has_next_page ?? applications.length === pageSize) ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage + 1).toString() }).toString()}` : '#'}
                                                 onClick={(e) => {
-                                                    if (applications.length < pageSize) {
+                                                    if (!(paginationData?.has_next_page ?? applications.length === pageSize)) {
                                                         e.preventDefault();
                                                     }
                                                 }}
-                                                className={applications.length < pageSize ? 'pointer-events-none opacity-50' : ''}
+                                                className={!(paginationData?.has_next_page ?? applications.length === pageSize) ? 'pointer-events-none opacity-50' : ''}
                                             />
                                         </PaginationItem>
                                     </PaginationContent>
