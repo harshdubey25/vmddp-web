@@ -98,6 +98,8 @@ export default async function SubAdminApplications({
         };
     });
 
+    const pagination = response?.message?.pagination;
+
     return <SubAdminApplicationsClient
         applications={applications}
         currentPage={page}
@@ -109,5 +111,6 @@ export default async function SubAdminApplications({
             start_date: startDate || '',
             end_date: endDate || ''
         }}
+        paginationData={pagination}
     />;
 }

@@ -48,9 +48,17 @@ interface AdminApplicationsClientProps {
         start_date: string;
         end_date: string;
     };
+    paginationData?: {
+        current_page: number;
+        page_size: number;
+        total_applications: number;
+        total_pages: number;
+        has_next_page: boolean;
+        has_previous_page: boolean;
+    };
 }
 
-export default function AdminApplicationsClient({ applications, currentPage, pageSize, initialFilters }: AdminApplicationsClientProps) {
+export default function AdminApplicationsClient({ applications, currentPage, pageSize, initialFilters, paginationData }: AdminApplicationsClientProps) {
     console.log('AdminApplicationsClient received applications:', applications);
 
     const router = useRouter();
@@ -504,7 +512,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                     </Button>
                 </div>
             </header>
-            <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30">
+            <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30 ">
                 <div className="space-y-4 sm:space-y-6 max-w-7xl">
                     <Card>
                         <CardHeader className="p-4 sm:p-6">
@@ -512,7 +520,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                 <div>
                                     <CardTitle className="text-base sm:text-lg">All Applications</CardTitle>
                                     <CardDescription className="text-xs sm:text-sm">
-                                        {applications.length} applications found
+                                        {paginationData?.total_applications} applications found
                                     </CardDescription>
                                 </div>
                             </div>
@@ -718,31 +726,39 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                             </div>
 
                             {/* Pagination */}
-                            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 pt-3 sm:pt-4">
-                                <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-                                    Showing {applications.length} items on page {currentPage}
-                                    {applications.length < pageSize && currentPage > 1 ? ' (last page)' : ''}
+                            <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-0 pt-3 sm:pt-4">
+                                <p className="text-xs sm:text-sm text-muted-foreground">
+                                    {paginationData ? (
+                                        <>
+                                            Showing {applications.length} of {paginationData.total_applications} applications
+                                            (Page {paginationData.current_page} of {paginationData.total_pages})
+                                        </>
+                                    ) : (
+                                        <>
+                                            Showing {applications.length} items on page {currentPage}
+                                            {applications.length < pageSize && currentPage > 1 ? ' (last page)' : ''}
+                                        </>
+                                    )}
                                 </p>
                                 <Pagination>
                                     <PaginationContent>
                                         <PaginationItem>
                                             <PaginationPrevious
-                                                href={currentPage > 1 ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage - 1).toString() }).toString()}` : '#'}
+                                                href={(paginationData?.has_previous_page ?? currentPage > 1) ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage - 1).toString() }).toString()}` : '#'}
                                                 onClick={(e) => {
-                                                    if (currentPage <= 1) {
+                                                    if (!(paginationData?.has_previous_page ?? currentPage > 1)) {
                                                         e.preventDefault();
                                                     }
                                                 }}
-                                                className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
+                                                className={!(paginationData?.has_previous_page ?? currentPage > 1) ? 'pointer-events-none opacity-50' : ''}
                                             />
                                         </PaginationItem>
 
                                         {/* Page numbers */}
                                         {(() => {
-                                            const hasNextPage = applications.length === pageSize;
-                                            const maxVisiblePages = hasNextPage ? currentPage + 2 : currentPage;
+                                            const totalPages = paginationData?.total_pages ?? (applications.length === pageSize ? currentPage + 2 : currentPage);
                                             const startPage = Math.max(1, currentPage - 2);
-                                            const endPage = Math.min(maxVisiblePages, startPage + 4);
+                                            const endPage = Math.min(totalPages, startPage + 4);
 
                                             return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
                                                 const pageNum = startPage + i;
@@ -759,23 +775,23 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                             });
                                         })()}
 
-                                        {applications.length === pageSize && currentPage > 3 && (
+                                        {/* {paginationData && currentPage < paginationData.total_pages - 2 && (
                                             <>
                                                 <PaginationItem>
                                                     <PaginationEllipsis />
                                                 </PaginationItem>
                                             </>
-                                        )}
+                                        )} */}
 
                                         <PaginationItem>
                                             <PaginationNext
-                                                href={applications.length === pageSize ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage + 1).toString() }).toString()}` : '#'}
+                                                href={(paginationData?.has_next_page ?? applications.length === pageSize) ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage + 1).toString() }).toString()}` : '#'}
                                                 onClick={(e) => {
-                                                    if (applications.length < pageSize) {
+                                                    if (!(paginationData?.has_next_page ?? applications.length === pageSize)) {
                                                         e.preventDefault();
                                                     }
                                                 }}
-                                                className={applications.length < pageSize ? 'pointer-events-none opacity-50' : ''}
+                                                className={!(paginationData?.has_next_page ?? applications.length === pageSize) ? 'pointer-events-none opacity-50' : ''}
                                             />
                                         </PaginationItem>
                                     </PaginationContent>
