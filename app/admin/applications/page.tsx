@@ -58,7 +58,7 @@ async function getApplications(
     component?: string,
     startDate?: string,
     endDate?: string
-): Promise<Application[]> {
+): Promise<{ applications: Application[], pagination?: any }> {
     console.log("status:", status, "search:", search, "district:", district, "component:", component);
     const apiParams: any = {
         page: page.toString(),
@@ -163,7 +163,10 @@ async function getApplications(
         return mapped;
     });
 
-    return mappedApplications;
+    return {
+        applications: mappedApplications,
+        pagination: response.message?.pagination
+    };
 }
 
 export default async function Page({
@@ -191,7 +194,7 @@ export default async function Page({
     const startDate = params.start_date || '';
     const endDate = params.end_date || '';
 
-    const applications = await getApplications(page, limit, status, search, district, component, startDate, endDate);
+    const { applications, pagination } = await getApplications(page, limit, status, search, district, component, startDate, endDate);
 
 
     return <AdminApplicationsClient
@@ -206,5 +209,6 @@ export default async function Page({
             start_date: startDate,
             end_date: endDate
         }}
+        paginationData={pagination}
     />;
 }
