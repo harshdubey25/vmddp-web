@@ -1039,13 +1039,13 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                             });
                                         })()}
 
-                                        {paginationData && currentPage < paginationData.total_pages - 2 && (
+                                        {/* {paginationData && currentPage < paginationData.total_pages - 2 && (
                                             <>
                                                 <PaginationItem>
                                                     <PaginationEllipsis />
                                                 </PaginationItem>
                                             </>
-                                        )}
+                                        )} */}
 
                                         <PaginationItem>
                                             <PaginationNext

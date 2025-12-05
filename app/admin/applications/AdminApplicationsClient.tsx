@@ -775,13 +775,13 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                             });
                                         })()}
 
-                                        {paginationData && currentPage < paginationData.total_pages - 2 && (
+                                        {/* {paginationData && currentPage < paginationData.total_pages - 2 && (
                                             <>
                                                 <PaginationItem>
                                                     <PaginationEllipsis />
                                                 </PaginationItem>
                                             </>
-                                        )}
+                                        )} */}
 
                                         <PaginationItem>
                                             <PaginationNext
