@@ -140,18 +140,18 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
 
         const originalAppId = app.realApplicationId;
 
-        const currentSelected = applications.filter(
-            a => a.village === app.village && a.component === app.component && a.status === "Selected"
-        ).length;
+        // const currentSelected = applications.filter(
+        //     a => a.village === app.village && a.component === app.component && a.status === "Selected"
+        // ).length;
 
-        if (currentSelected >= 5) {
-            toast({
-                title: "Quota Reached",
-                description: `Selection limit (5) already reached for ${app.village} - ${app.component}`,
-                variant: "destructive",
-            });
-            return;
-        }
+        // if (currentSelected >= 5) {
+        //     toast({
+        //         title: "Quota Reached",
+        //         description: `Selection limit (5) already reached for ${app.village} - ${app.component}`,
+        //         variant: "destructive",
+        //     });
+        //     return;
+        // }
 
         try {
             // Update the App Form doctype via API using original application ID
