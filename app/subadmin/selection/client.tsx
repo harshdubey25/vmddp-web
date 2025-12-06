@@ -456,11 +456,11 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                                             {app.status === "Approved" && (
                                                                 <Button
                                                                     size="sm"
-                                                                    disabled={!canSelect(app)}
+                                                                    // disabled={!canSelect(app)}
                                                                     onClick={() => handleSelect(app.id)}
                                                                     className="gap-1 sm:gap-2 h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3"
                                                                     data-testid={`button-select-${index}`}
-                                                                    title={!canSelect(app) ? "Already selected or quota reached" : "Select this applicant for all their components"}
+                                                                // title={!canSelect(app) ? "Already selected or quota reached" : "Select this applicant for all their components"}
                                                                 >
                                                                     <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                                                                     <span className="hidden xs:inline">Select</span>
