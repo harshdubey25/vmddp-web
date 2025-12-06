@@ -194,8 +194,9 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
 
         if (alreadySelected) return false;
 
-        const quota = getVillageComponentQuota(app.village, app.component);
-        return quota.selected < quota.total;
+        // const quota = getVillageComponentQuota(app.village, app.component);
+        // return quota.selected < quota.total;
+        return true;
     };
 
     return (
