@@ -49,9 +49,14 @@ interface ApplicationSelectionItem {
     submittedDate: string;
 }interface SubAdminSelectionClientProps {
     applications: ApplicationSelectionItem[];
+    stats: {
+        approved: number;
+        selected: number;
+        total: number;
+    };
 }
 
-export default function SubAdminSelectionClient({ applications: initialApplications }: SubAdminSelectionClientProps) {
+export default function SubAdminSelectionClient({ applications: initialApplications, stats }: SubAdminSelectionClientProps) {
     const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState("");
     const [villageFilter, setVillageFilter] = useState("all");
@@ -75,7 +80,8 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
     const [statusFilter, setStatusFilter] = useState<"Selected" | "Approved">("Selected");
     const [pagination, setPagination] = useState({
         has_next_page: false,
-        has_previous_page: false
+        has_previous_page: false,
+        total_records: null as number | null
     });
 
     // Get unique villages for application filter dropdown
@@ -100,7 +106,8 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                 setVillages(villagesData);
                 setPagination({
                     has_next_page: paginationData.has_next_page || false,
-                    has_previous_page: paginationData.has_previous_page || false
+                    has_previous_page: paginationData.has_previous_page || false,
+                    total_records: paginationData.total_records || null
                 });
             } catch (error) {
                 console.error('Error fetching villages:', error);
@@ -225,11 +232,7 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                             <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6">
                                 <CardDescription className="text-xs sm:text-sm">Approved</CardDescription>
                                 <CardTitle className="text-2xl sm:text-3xl">
-                                    {new Set(
-                                        applications
-                                            .filter(app => app.status === "Approved")
-                                            .map(app => app.realApplicationId)
-                                    ).size}
+                                    {stats.approved}
                                 </CardTitle>
                             </CardHeader>
                         </Card>
@@ -237,19 +240,15 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                             <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6">
                                 <CardDescription className="text-xs sm:text-sm">Selected</CardDescription>
                                 <CardTitle className="text-2xl sm:text-3xl">
-                                    {new Set(
-                                        applications
-                                            .filter(app => app.status === "Selected")
-                                            .map(app => app.realApplicationId)
-                                    ).size}
+                                    {stats.selected}
                                 </CardTitle>
                             </CardHeader>
                         </Card>
                         <Card className="sm:col-span-2 md:col-span-1">
                             <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6">
-                                <CardDescription className="text-xs sm:text-sm">Total Component Entries</CardDescription>
+                                <CardDescription className="text-xs sm:text-sm">Total Applications</CardDescription>
                                 <CardTitle className="text-2xl sm:text-3xl">
-                                    {applications.length}
+                                    {stats.total}
                                 </CardTitle>
                             </CardHeader>
                         </Card>
@@ -265,7 +264,7 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                             {statusFilter === "Selected" ? "Selected" : "Approved"} Applications by Village
                                         </CardTitle>
                                         <CardDescription className="text-xs sm:text-sm">
-                                            {countsLoading ? 'Loading...' : `${villages.length} villages found`}
+                                            {countsLoading ? 'Loading...' : pagination.total_records !== null ? `${pagination.total_records} total villages` : `${villages.length} villages found`}
                                         </CardDescription>
                                     </div>
                                     <Select value={statusFilter} onValueChange={(value: any) => {
