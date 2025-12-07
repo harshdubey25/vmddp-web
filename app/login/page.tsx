@@ -62,11 +62,8 @@ export default function Login() {
                             </CardDescription>
                         </div>
                     </CardHeader>
-
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
-
-
                             <div className="space-y-2">
                                 <Label htmlFor="username">Username</Label>
                                 <div className="relative">
@@ -101,7 +98,7 @@ export default function Login() {
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between">
+                            {/* <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-2">
                                     <Checkbox
                                         id="remember"
@@ -119,7 +116,7 @@ export default function Login() {
                                     </label>
                                 </div>
 
-                            </div>
+                            </div> */}
 
                             <Button
                                 type="submit"
