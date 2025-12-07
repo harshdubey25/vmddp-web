@@ -49,9 +49,14 @@ interface ApplicationSelectionItem {
     submittedDate: string;
 }interface SubAdminSelectionClientProps {
     applications: ApplicationSelectionItem[];
+    stats: {
+        approved: number;
+        selected: number;
+        total: number;
+    };
 }
 
-export default function SubAdminSelectionClient({ applications: initialApplications }: SubAdminSelectionClientProps) {
+export default function SubAdminSelectionClient({ applications: initialApplications, stats }: SubAdminSelectionClientProps) {
     const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState("");
     const [villageFilter, setVillageFilter] = useState("all");
@@ -59,58 +64,62 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 20;
 
-    // Debug: Log application statuses
-    console.log('Applications loaded:', applications.length);
-    console.log('Approved count:', applications.filter(a => a.status === 'Approved').length);
-    console.log('Selected count:', applications.filter(a => a.status === 'Selected').length);    // Get unique villages
-    const villages = Array.from(new Set(applications.map(app => app.village))).sort();
+    // Village data from API (grouped by village)
+    interface VillageData {
+        village_id: string;
+        village_name: string;
+        district: string;
+        taluka: string;
+        components: { component: string; application_count: number }[];
+        total_selected_applications: number;
+    }
 
-    // Calculate village quotas per component
-    const getVillageComponentQuota = (village: string, component: string) => {
-        // Get unique people (by original application ID) selected for this village and component
-        const selectedApplications = applications.filter(
-            app => app.village === village && app.component === component && app.status === "Selected"
-        );
+    const [villages, setVillages] = useState<VillageData[]>([]);
+    const [countsLoading, setCountsLoading] = useState(false);
+    const [villageSearchQuery, setVillageSearchQuery] = useState("");
+    const [currentCountsPage, setCurrentCountsPage] = useState(1);
+    const [statusFilter, setStatusFilter] = useState<"Selected" | "Approved">("Selected");
+    const [pagination, setPagination] = useState({
+        has_next_page: false,
+        has_previous_page: false,
+        total_records: null as number | null
+    });
 
-        // Count unique people by extracting original application IDs
-        const uniqueSelectedPeople = new Set(
-            selectedApplications.map(app => app.realApplicationId)
-        );
+    // Get unique villages for application filter dropdown
+    const applicationVillages = Array.from(new Set(applications.map(app => app.village))).sort();
 
-        return { selected: uniqueSelectedPeople.size, total: 5 };
-    };
-
-    // Group components by village for accordion
-    const getVillageGroups = () => {
-        const groups = new Map<string, { village: string; components: { component: string; selected: number; total: number }[]; totalSelected: number; totalQuota: number }>();
-
-        applications.forEach(app => {
-            if (!groups.has(app.village)) {
-                groups.set(app.village, {
-                    village: app.village,
-                    components: [],
-                    totalSelected: 0,
-                    totalQuota: 0
+    // Fetch village data from backend API
+    useEffect(() => {
+        const fetchVillages = async () => {
+            setCountsLoading(true);
+            try {
+                const response = await frappeBrowser.call().get('vmddp_app.api.reports.village_selection_status_per_component', {
+                    page: currentCountsPage,
+                    limit: 5,
+                    status: statusFilter,
+                    village: villageSearchQuery || undefined
                 });
-            }
 
-            const group = groups.get(app.village)!;
-            const existingComponent = group.components.find(c => c.component === app.component);
+                const data = response?.message || response?.data || response;
+                const villagesData = data?.data || [];
+                const paginationData = data?.pagination || {};
 
-            if (!existingComponent) {
-                const quota = getVillageComponentQuota(app.village, app.component);
-                group.components.push({
-                    component: app.component,
-                    selected: quota.selected,
-                    total: quota.total
+                setVillages(villagesData);
+                setPagination({
+                    has_next_page: paginationData.has_next_page || false,
+                    has_previous_page: paginationData.has_previous_page || false,
+                    total_records: paginationData.total_records || null
                 });
-                group.totalSelected += quota.selected;
-                group.totalQuota += quota.total;
+            } catch (error) {
+                console.error('Error fetching villages:', error);
+                setVillages([]);
+            } finally {
+                setCountsLoading(false);
             }
-        });
+        };
 
-        return Array.from(groups.values()).sort((a, b) => a.village.localeCompare(b.village));
-    };
+        fetchVillages();
+    }, [currentCountsPage, villageSearchQuery, statusFilter]);
 
     const allFilteredApplications = applications
         .filter((app) => {
@@ -207,7 +216,7 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                         Beneficiary Selection
                     </h1>
                     <p className="text-xs sm:text-sm text-muted-foreground">
-                        Select up to 5 per village/component
+                        Manage approved and selected applications
                     </p>
                 </div>
                 <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-10" data-testid="button-export">
@@ -224,11 +233,7 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                             <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6">
                                 <CardDescription className="text-xs sm:text-sm">Approved</CardDescription>
                                 <CardTitle className="text-2xl sm:text-3xl">
-                                    {new Set(
-                                        applications
-                                            .filter(app => app.status === "Approved")
-                                            .map(app => app.realApplicationId)
-                                    ).size}
+                                    {stats.approved}
                                 </CardTitle>
                             </CardHeader>
                         </Card>
@@ -236,99 +241,141 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                             <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6">
                                 <CardDescription className="text-xs sm:text-sm">Selected</CardDescription>
                                 <CardTitle className="text-2xl sm:text-3xl">
-                                    {new Set(
-                                        applications
-                                            .filter(app => app.status === "Selected")
-                                            .map(app => app.realApplicationId)
-                                    ).size}
+                                    {stats.selected}
                                 </CardTitle>
                             </CardHeader>
                         </Card>
                         <Card className="sm:col-span-2 md:col-span-1">
                             <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6">
-                                <CardDescription className="text-xs sm:text-sm">Total Component Entries</CardDescription>
+                                <CardDescription className="text-xs sm:text-sm">Total Applications</CardDescription>
                                 <CardTitle className="text-2xl sm:text-3xl">
-                                    {applications.length}
+                                    {stats.total}
                                 </CardTitle>
                             </CardHeader>
                         </Card>
                     </div>
 
-                    {/* Village-Grouped Quota Accordion */}
+                    {/* Selection Status by Village and Component */}
                     <Card>
                         <CardHeader className="p-3 sm:p-4 md:p-6">
-                            <CardTitle className="text-base sm:text-lg md:text-xl">Selection Quota Status</CardTitle>
-                            <CardDescription className="text-xs sm:text-sm">Selection progress grouped by village (5 per component per village)</CardDescription>
+                            <div className="flex flex-col gap-3">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <CardTitle className="text-base sm:text-lg md:text-xl">
+                                            {statusFilter === "Selected" ? "Selected" : "Approved"} Applications by Village
+                                        </CardTitle>
+                                        <CardDescription className="text-xs sm:text-sm">
+                                            {countsLoading ? 'Loading...' : pagination.total_records !== null ? `${pagination.total_records} total villages` : `${villages.length} villages found`}
+                                        </CardDescription>
+                                    </div>
+                                    <Select value={statusFilter} onValueChange={(value: any) => {
+                                        setStatusFilter(value);
+                                        setCurrentCountsPage(1);
+                                    }}>
+                                        <SelectTrigger className="w-32 h-9 text-xs sm:text-sm">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Selected">Selected</SelectItem>
+                                            <SelectItem value="Approved">Approved</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="relative max-w-sm">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search village..."
+                                        value={villageSearchQuery}
+                                        onChange={(e) => {
+                                            setVillageSearchQuery(e.target.value);
+                                            setCurrentCountsPage(1);
+                                        }}
+                                        className="pl-10 text-xs sm:text-sm h-9"
+                                    />
+                                </div>
+                            </div>
                         </CardHeader>
                         <CardContent className="p-3 sm:p-4 md:p-6">
-                            <Accordion type="multiple" className="w-full">
-                                {getVillageGroups().map((villageGroup) => {
-                                    const isVillageComplete = villageGroup.components.every(c => c.selected >= c.total);
-
-                                    return (
-                                        <AccordionItem key={villageGroup.village} value={villageGroup.village}>
-                                            <AccordionTrigger className="hover:no-underline py-3">
-                                                <div className="flex items-center justify-between w-full pr-2 sm:pr-4">
-                                                    <div className="flex items-center gap-2 sm:gap-3">
-                                                        <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
-                                                        <div className="text-left">
-                                                            <h3 className="font-semibold text-sm sm:text-base">{villageGroup.village}</h3>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {villageGroup.components.length} component{villageGroup.components.length !== 1 ? 's' : ''}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 sm:gap-3">
-                                                        <div className="text-right">
-                                                            <p className="text-xs sm:text-sm font-semibold">
-                                                                {villageGroup.totalSelected} / {villageGroup.totalQuota}
-                                                            </p>
-                                                            <p className="text-xs text-muted-foreground hidden xs:block">total selected</p>
-                                                        </div>
-                                                        {isVillageComplete && (
-                                                            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-chart-3 flex-shrink-0" />
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </AccordionTrigger>
-                                            <AccordionContent>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 pt-2">
-                                                    {villageGroup.components.map((comp: any) => {
-                                                        const percentage = (comp.selected / comp.total) * 100;
-                                                        const isComplete = comp.selected >= comp.total;
-
-                                                        return (
-                                                            <div key={comp.component} className="p-2 sm:p-3 border rounded-lg space-y-2 bg-muted/30">
-                                                                <div className="flex items-center justify-between">
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <p className="text-xs sm:text-sm font-medium truncate">{comp.component}</p>
-                                                                    </div>
-                                                                    {isComplete && (
-                                                                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-chart-3 flex-shrink-0 ml-2" />
-                                                                    )}
-                                                                </div>
-                                                                <div className="flex items-center justify-between text-xs sm:text-sm">
-                                                                    <span className="text-muted-foreground">Selected</span>
-                                                                    <span className="font-semibold">
-                                                                        {comp.selected} / {comp.total}
-                                                                    </span>
-                                                                </div>
-                                                                <div className="w-full bg-muted rounded-full h-2">
-                                                                    <div
-                                                                        className={`h-2 rounded-full transition-all ${isComplete ? "bg-chart-3" : "bg-chart-1"
-                                                                            }`}
-                                                                        style={{ width: `${percentage}%` }}
-                                                                    />
+                            {countsLoading ? (
+                                <div className="text-center py-8 text-sm text-muted-foreground">Loading villages...</div>
+                            ) : villages.length === 0 ? (
+                                <div className="text-center py-8 text-sm text-muted-foreground">No villages found</div>
+                            ) : (
+                                <>
+                                    <Accordion type="multiple" className="w-full">
+                                        {villages.map((village) => {
+                                            return (
+                                                <AccordionItem key={village.village_id} value={village.village_id}>
+                                                    <AccordionTrigger className="hover:no-underline py-3">
+                                                        <div className="flex items-center justify-between w-full pr-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+                                                                <div className="text-left">
+                                                                    <h3 className="font-semibold text-sm sm:text-base">{village.village_name}</h3>
+                                                                    <p className="text-xs text-muted-foreground">
+                                                                        {village.district} • {village.taluka}
+                                                                    </p>
                                                                 </div>
                                                             </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    );
-                                })}
-                            </Accordion>
+                                                            <div className="text-right">
+                                                                <p className="text-lg sm:text-xl font-semibold text-primary">
+                                                                    {village.total_selected_applications}
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    {statusFilter === "Selected" ? "selected" : "approved"}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </AccordionTrigger>
+                                                    <AccordionContent>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+                                                            {village.components.map((comp) => (
+                                                                <div key={comp.component} className="p-3 border rounded-lg bg-muted/30">
+                                                                    <div className="flex items-center gap-2 mb-2">
+                                                                        <Package className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                                                        <p className="text-xs sm:text-sm font-medium truncate">{comp.component}</p>
+                                                                    </div>
+                                                                    <div className="flex items-center justify-between">
+                                                                        <span className="text-xs text-muted-foreground">Count</span>
+                                                                        <span className="text-base font-semibold text-primary">
+                                                                            {comp.application_count}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </AccordionContent>
+                                                </AccordionItem>
+                                            );
+                                        })}
+                                    </Accordion>
+
+                                    {/* Pagination for counts */}
+                                    {(pagination.has_next_page || pagination.has_previous_page) && (
+                                        <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setCurrentCountsPage(p => Math.max(1, p - 1))}
+                                                disabled={!pagination.has_previous_page}
+                                            >
+                                                Previous
+                                            </Button>
+                                            <span className="text-sm text-muted-foreground px-3">
+                                                Page {currentCountsPage}
+                                            </span>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setCurrentCountsPage(p => p + 1)}
+                                                disabled={!pagination.has_next_page}
+                                            >
+                                                Next
+                                            </Button>
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </CardContent>
                     </Card>
 
@@ -363,7 +410,7 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">All Villages</SelectItem>
-                                        {villages.map(village => (
+                                        {applicationVillages.map(village => (
                                             <SelectItem key={village} value={village}>{village}</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -386,8 +433,6 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                         </thead>
                                         <tbody>
                                             {filteredApplications.map((app, index) => {
-                                                const quota = getVillageComponentQuota(app.village, app.component);
-
                                                 return (
                                                     <tr
                                                         key={app.id}
@@ -435,12 +480,7 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                                         <td className="p-2 sm:p-3 md:p-4">
                                                             <div className="flex items-center gap-1 sm:gap-2">
                                                                 <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
-                                                                <div className="min-w-0">
-                                                                    <p className="text-xs sm:text-sm truncate">{app.village}</p>
-                                                                    <p className="text-xs text-muted-foreground">
-                                                                        {quota.selected}/{quota.total} selected
-                                                                    </p>
-                                                                </div>
+                                                                <p className="text-xs sm:text-sm truncate">{app.village}</p>
                                                             </div>
                                                         </td>
                                                         <td className="p-2 sm:p-3 md:p-4">

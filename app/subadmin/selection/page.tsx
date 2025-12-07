@@ -4,7 +4,7 @@ export const runtime = 'edge';
 
 interface ApplicationSelectionItem {
   id: string;
-  realApplicationId: string; 
+  realApplicationId: string;
   applicantName: string;
   mobile: string;
   village: string;
@@ -23,6 +23,14 @@ export default async function SubAdminSelection({ searchParams }: {
 }) {
   const frappe = await getFrappeWithUserToken();
 
+  // Fetch summary stats
+  const statsResponse = await frappe.call().get('vmddp_app.api.v1.dashboard.subadmin_dashboard_data');
+  const stats = {
+    approved: statsResponse?.message?.approved_applications ?? 0,
+    selected: statsResponse?.message?.selected_applications ?? 0,
+    total: statsResponse?.message?.total_applications ?? 0
+  };
+
   // Build filters object with OR condition for status
   const filters: Record<string, any> = {
     status: ['in', ['Approved', 'Selected']]
@@ -35,12 +43,12 @@ export default async function SubAdminSelection({ searchParams }: {
 
   const response = await frappe.call().get('vmddp_app.api.api.get_applications_summary', {
     page: '1',
-    limit: '1000', 
+    limit: '1000',
     filters: JSON.stringify(filters)
   });
 
   const applications: ApplicationSelectionItem[] = [];
-  
+
   (response?.message?.applications || []).forEach((app: any) => {
     let submittedDate = 'Unknown';
     if (app.creation) {
@@ -50,13 +58,13 @@ export default async function SubAdminSelection({ searchParams }: {
     } else if (app.modified) {
       submittedDate = new Date(app.modified).toISOString().split('T')[0];
     }
-    
+
     if (Array.isArray(app.component_list) && app.component_list.length > 0) {
       // Create separate entries for each component
       app.component_list.forEach((component: string) => {
         applications.push({
-          id: `${app.name}-${component}`, 
-          realApplicationId: app.name, 
+          id: `${app.name}-${component}`,
+          realApplicationId: app.name,
           applicantName: app.fullname,
           mobile: app.mobile_no || '',
           village: app.village || 'N/A',
@@ -79,5 +87,5 @@ export default async function SubAdminSelection({ searchParams }: {
     }
   });
 
-  return <SubAdminSelectionClient applications={applications} />;
+  return <SubAdminSelectionClient applications={applications} stats={stats} />;
 }
