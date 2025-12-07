@@ -71,6 +71,7 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
         district: string;
         taluka: string;
         components: { component: string; application_count: number }[];
+        total_selected_applications: number;
     }
 
     const [villages, setVillages] = useState<VillageData[]>([]);
@@ -303,8 +304,6 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                 <>
                                     <Accordion type="multiple" className="w-full">
                                         {villages.map((village) => {
-                                            const totalCount = village.components.reduce((sum, c) => sum + c.application_count, 0);
-
                                             return (
                                                 <AccordionItem key={village.village_id} value={village.village_id}>
                                                     <AccordionTrigger className="hover:no-underline py-3">
@@ -320,9 +319,11 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                                             </div>
                                                             <div className="text-right">
                                                                 <p className="text-lg sm:text-xl font-semibold text-primary">
-                                                                    {totalCount}
+                                                                    {village.total_selected_applications}
                                                                 </p>
-                                                                <p className="text-xs text-muted-foreground">total applications</p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    {statusFilter === "Selected" ? "selected" : "approved"}
+                                                                </p>
                                                             </div>
                                                         </div>
                                                     </AccordionTrigger>
