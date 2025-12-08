@@ -253,7 +253,7 @@ export default function AdminSubAdmins() {
                 setShowEditDialog(false);
                 setSelectedDPO(null);
             } else {
-                throw new Error(response?.error || "Update failed");
+                throw new Error(response?.message?.error || "Update failed");
             }
 
         } catch (error: any) {
