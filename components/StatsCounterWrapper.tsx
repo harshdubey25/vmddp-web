@@ -10,6 +10,7 @@ export default function StatsCounterWrapper() {
         pending: 0,
         total: 0,
         fetchError: false,
+        selected: 0
     });
     const [isLoading, setIsLoading] = useState(true);
 
@@ -24,6 +25,7 @@ export default function StatsCounterWrapper() {
                     pending: response?.message?.pending ?? 0,
                     total: response?.message?.total ?? 0,
                     fetchError: false,
+                    selected: response?.message?.selected ?? 0
                 });
             } catch (error) {
                 console.error("Failed to fetch application counts for AboutSection:", {
@@ -37,6 +39,7 @@ export default function StatsCounterWrapper() {
                     pending: 0,
                     total: 0,
                     fetchError: true,
+                    selected: 0
                 });
             } finally {
                 setIsLoading(false);
@@ -47,7 +50,7 @@ export default function StatsCounterWrapper() {
     }, []);
 
     if (isLoading) {
-        return <StatsCounter data={{ approved: 0, rejected: 0, pending: 0, total: 0 }} />;
+        return <StatsCounter data={{ approved: 0, rejected: 0, pending: 0, total: 0, selected: 0 }} />;
     }
 
     return <StatsCounter data={data} />;

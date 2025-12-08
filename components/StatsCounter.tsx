@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import { Users, CheckCircle, Clock, XCircle } from "lucide-react";
+import { Users, CheckCircle, Clock, XCircle, UserCheck } from "lucide-react";
 import { motion, useInView } from "framer-motion";
 import { useTranslation } from 'react-i18next';
 
@@ -71,7 +71,7 @@ function StatCard({ icon, value, label, color, testId, index }: StatCardProps) {
   );
 }
 
-export default function StatsCounter({ data }: { data: { approved: number; rejected: number; pending: number; total: number } }) {
+export default function StatsCounter({ data }: { data: { approved: number; rejected: number; pending: number; total: number, selected: number } }) {
   const { t } = useTranslation('common');
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -93,7 +93,7 @@ export default function StatsCounter({ data }: { data: { approved: number; rejec
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
           <StatCard
             icon={<Users className="w-6 h-6 text-chart-2" />}
             value={data.total}
@@ -111,12 +111,20 @@ export default function StatsCounter({ data }: { data: { approved: number; rejec
             index={1}
           />
           <StatCard
+            icon={<UserCheck className="w-6 h-6 text-chart-1" />}
+            value={data.selected}
+            label={t('selected')}
+            color="hsl(var(--chart-1))"
+            testId="stat-card-selected"
+            index={2}
+          />
+          <StatCard
             icon={<Clock className="w-6 h-6 text-chart-4" />}
             value={data.pending}
             label={t('pending_review')}
             color="hsl(var(--chart-4))"
             testId="stat-card-pending"
-            index={2}
+            index={3}
           />
           <StatCard
             icon={<XCircle className="w-6 h-6 text-chart-5" />}
@@ -124,7 +132,7 @@ export default function StatsCounter({ data }: { data: { approved: number; rejec
             label={t('rejected')}
             color="hsl(var(--chart-5))"
             testId="stat-card-rejected"
-            index={3}
+            index={4}
           />
         </div>
       </div>
