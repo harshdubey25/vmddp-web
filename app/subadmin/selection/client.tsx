@@ -37,6 +37,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { frappeBrowser } from "@/lib/frappe";
 import { getStatusBadge } from "@/lib/status-utils";
+import ApplicationDetailsDialog from "@/components/ApplicationDetailsDialog";
 
 interface ApplicationSelectionItem {
     id: string;
@@ -54,15 +55,36 @@ interface ApplicationSelectionItem {
         selected: number;
         total: number;
     };
+    currentPage: number;
+    pageSize: number;
+    initialFilters: {
+        status: string;
+        search: string;
+        village: string;
+    };
+    paginationData?: {
+        current_page: number;
+        total_pages: number;
+        total_records: number;
+        has_next_page: boolean;
+        has_previous_page: boolean;
+    };
 }
 
-export default function SubAdminSelectionClient({ applications: initialApplications, stats }: SubAdminSelectionClientProps) {
+export default function SubAdminSelectionClient({
+    applications: initialApplications,
+    stats,
+    currentPage,
+    pageSize,
+    initialFilters,
+    paginationData
+}: SubAdminSelectionClientProps) {
     const { toast } = useToast();
-    const [searchQuery, setSearchQuery] = useState("");
-    const [villageFilter, setVillageFilter] = useState("all");
+    const [searchQuery, setSearchQuery] = useState(initialFilters.search);
+    const [villageFilter, setVillageFilter] = useState(initialFilters.village);
     const [applications, setApplications] = useState<ApplicationSelectionItem[]>(initialApplications);
-    const [currentPage, setCurrentPage] = useState(1);
-    const pageSize = 20;
+    const [selectedApplication, setSelectedApplication] = useState<ApplicationSelectionItem | null>(null);
+    const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
 
     // Village data from API (grouped by village)
     interface VillageData {
@@ -88,6 +110,26 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
     // Get unique villages for application filter dropdown
     const applicationVillages = Array.from(new Set(applications.map(app => app.village))).sort();
 
+    // Update URL with filters
+    const updateFilters = (updates: Record<string, string>) => {
+        const params = new URLSearchParams(window.location.search);
+
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value && value !== 'all' && value !== '') {
+                params.set(key, value);
+            } else {
+                params.delete(key);
+            }
+        });
+
+        // Reset to page 1 when filters change
+        if ('page' in updates === false) {
+            params.delete('page');
+        }
+
+        window.location.href = `?${params.toString()}`;
+    };
+    console.log('applications', applications);
     // Fetch village data from backend API
     useEffect(() => {
         const fetchVillages = async () => {
@@ -121,27 +163,10 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
         fetchVillages();
     }, [currentCountsPage, villageSearchQuery, statusFilter]);
 
-    const allFilteredApplications = applications
-        .filter((app) => {
-            const matchesSearch =
-                app.realApplicationId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                app.applicantName.toLowerCase().includes(searchQuery.toLowerCase());
-
-            const matchesVillage = villageFilter === "all" || app.village === villageFilter;
-
-            return matchesSearch && matchesVillage;
-        })
-        .sort((a, b) => new Date(a.submittedDate).getTime() - new Date(b.submittedDate).getTime());
-
-    const totalItems = allFilteredApplications.length;
-    const totalPages = Math.ceil(totalItems / pageSize);
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const filteredApplications = allFilteredApplications.slice(startIndex, endIndex);
-
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchQuery, villageFilter]);
+    // Use server-side filtered and paginated data
+    const filteredApplications = applications;
+    const totalPages = paginationData?.total_pages || 1;
+    const totalItems = paginationData?.total_records || applications.length;
 
     const handleSelect = async (appId: string) => {
         const app = applications.find(a => a.id === appId);
@@ -149,18 +174,6 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
 
         const originalAppId = app.realApplicationId;
 
-        // const currentSelected = applications.filter(
-        //     a => a.village === app.village && a.component === app.component && a.status === "Selected"
-        // ).length;
-
-        // if (currentSelected >= 5) {
-        //     toast({
-        //         title: "Quota Reached",
-        //         description: `Selection limit (5) already reached for ${app.village} - ${app.component}`,
-        //         variant: "destructive",
-        //     });
-        //     return;
-        // }
 
         try {
             // Update the App Form doctype via API using original application ID
@@ -189,23 +202,6 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                 variant: "destructive",
             });
         }
-    };
-
-    const canSelect = (app: ApplicationSelectionItem) => {
-        if (app.status === "Selected") return false;
-
-        // Check if this person has already been selected for any component
-        const originalAppId = app.realApplicationId;
-        const alreadySelected = applications.some(a => {
-            const aOriginalId = a.id.includes('-') ? a.id.split('-')[0] : a.id;
-            return aOriginalId === originalAppId && a.status === "Selected";
-        });
-
-        if (alreadySelected) return false;
-
-        // const quota = getVillageComponentQuota(app.village, app.component);
-        // return quota.selected < quota.total;
-        return true;
     };
 
     return (
@@ -399,12 +395,28 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                         placeholder="Search by ID or name..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                updateFilters({ search: searchQuery });
+                                            }
+                                        }}
+                                        onBlur={() => {
+                                            if (searchQuery !== initialFilters.search) {
+                                                updateFilters({ search: searchQuery });
+                                            }
+                                        }}
                                         className="pl-8 sm:pl-10 text-xs sm:text-sm h-8 sm:h-10"
                                         data-testid="input-search"
                                     />
                                 </div>
 
-                                <Select value={villageFilter} onValueChange={setVillageFilter}>
+                                <Select
+                                    value={villageFilter}
+                                    onValueChange={(value) => {
+                                        setVillageFilter(value);
+                                        updateFilters({ village: value });
+                                    }}
+                                >
                                     <SelectTrigger data-testid="select-village-filter" className="text-xs sm:text-sm h-8 sm:h-10">
                                         <SelectValue placeholder="Filter by village" />
                                     </SelectTrigger>
@@ -436,8 +448,12 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                                 return (
                                                     <tr
                                                         key={app.id}
-                                                        className="border-b hover:bg-muted/30 transition-colors"
+                                                        className="border-b hover:bg-muted/30 transition-colors cursor-pointer"
                                                         data-testid={`application-row-${index}`}
+                                                        onClick={() => {
+                                                            setSelectedApplication(app);
+                                                            setIsDetailsDialogOpen(true);
+                                                        }}
                                                     >
                                                         <td className="p-2 sm:p-3 md:p-4">
                                                             <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
@@ -525,18 +541,16 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                             {totalPages > 1 && (
                                 <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-0 pt-3 sm:pt-4">
                                     <p className="text-xs sm:text-sm text-muted-foreground">
-                                        Showing {filteredApplications.length} items on page {currentPage}
-                                        {filteredApplications.length < pageSize && currentPage > 1 ? ' (last page)' : ''}
+                                        Showing {filteredApplications.length} of {totalItems} items • Page {currentPage} of {totalPages}
                                     </p>
                                     <Pagination>
                                         <PaginationContent>
                                             <PaginationItem>
                                                 <PaginationPrevious
-                                                    href="#"
+                                                    href={currentPage > 1 ? `?${new URLSearchParams({ ...Object.fromEntries(new URLSearchParams(window.location.search)), page: (currentPage - 1).toString() })}` : '#'}
                                                     onClick={(e) => {
-                                                        e.preventDefault();
-                                                        if (currentPage > 1) {
-                                                            setCurrentPage(currentPage - 1);
+                                                        if (currentPage <= 1) {
+                                                            e.preventDefault();
                                                         }
                                                     }}
                                                     className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
@@ -545,21 +559,18 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
 
                                             {/* Page numbers */}
                                             {(() => {
-                                                const hasNextPage = filteredApplications.length === pageSize && currentPage < totalPages;
-                                                const maxVisiblePages = hasNextPage ? currentPage + 2 : currentPage;
                                                 const startPage = Math.max(1, currentPage - 2);
-                                                const endPage = Math.min(totalPages, Math.min(maxVisiblePages, startPage + 4));
+                                                const endPage = Math.min(totalPages, startPage + 4);
 
                                                 return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
                                                     const pageNum = startPage + i;
+                                                    const params = new URLSearchParams(window.location.search);
+                                                    params.set('page', pageNum.toString());
+
                                                     return (
                                                         <PaginationItem key={pageNum}>
                                                             <PaginationLink
-                                                                href="#"
-                                                                onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    setCurrentPage(pageNum);
-                                                                }}
+                                                                href={`?${params.toString()}`}
                                                                 isActive={pageNum === currentPage}
                                                             >
                                                                 {pageNum}
@@ -569,21 +580,18 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                                                 });
                                             })()}
 
-                                            {filteredApplications.length === pageSize && currentPage < totalPages && currentPage > 3 && (
-                                                <>
-                                                    <PaginationItem>
-                                                        <PaginationEllipsis />
-                                                    </PaginationItem>
-                                                </>
+                                            {currentPage < totalPages - 2 && (
+                                                <PaginationItem>
+                                                    <PaginationEllipsis />
+                                                </PaginationItem>
                                             )}
 
                                             <PaginationItem>
                                                 <PaginationNext
-                                                    href="#"
+                                                    href={currentPage < totalPages ? `?${new URLSearchParams({ ...Object.fromEntries(new URLSearchParams(window.location.search)), page: (currentPage + 1).toString() })}` : '#'}
                                                     onClick={(e) => {
-                                                        e.preventDefault();
-                                                        if (currentPage < totalPages) {
-                                                            setCurrentPage(currentPage + 1);
+                                                        if (currentPage >= totalPages) {
+                                                            e.preventDefault();
                                                         }
                                                     }}
                                                     className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}
@@ -597,6 +605,16 @@ export default function SubAdminSelectionClient({ applications: initialApplicati
                     </Card>
                 </div>
             </main>
+
+            <ApplicationDetailsDialog
+                application={selectedApplication}
+                isOpen={isDetailsDialogOpen}
+                onClose={() => {
+                    setIsDetailsDialogOpen(false);
+                    setSelectedApplication(null);
+                }}
+                showReviewActions={false}
+            />
         </div>
     );
 }

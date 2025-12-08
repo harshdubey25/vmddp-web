@@ -13,14 +13,24 @@ interface ApplicationSelectionItem {
   submittedDate: string;
 }
 
-export default async function SubAdminSelection({ searchParams }: {
-  searchParams: {
-    district?: string;
-    taluka?: string;
+export default async function SubAdminSelection({
+  searchParams
+}: {
+  searchParams: Promise<{
+    page?: string;
+    limit?: string;
+    status?: string;
+    search?: string;
     village?: string;
-    component?: string;
-  }
+  }>
 }) {
+  const params = await searchParams;
+  const page = parseInt(params.page || '1');
+  const limit = parseInt(params.limit || '20');
+  const status = params.status || 'all';
+  const search = params.search || '';
+  const village = params.village || '';
+
   const frappe = await getFrappeWithUserToken();
 
   // Fetch summary stats
@@ -31,61 +41,60 @@ export default async function SubAdminSelection({ searchParams }: {
     total: statsResponse?.message?.total_applications ?? 0
   };
 
-  // Build filters object with OR condition for status
-  const filters: Record<string, any> = {
-    status: ['in', ['Approved', 'Selected']]
+  // Build API parameters
+  const apiParams: any = {
+    page: page.toString(),
+    limit: limit.toString(),
   };
 
-  if (searchParams.district) filters.district = searchParams.district;
-  if (searchParams.taluka) filters.taluka = searchParams.taluka;
-  if (searchParams.village) filters.village = searchParams.village;
-  if (searchParams.component) filters.component = searchParams.component;
+  // Apply status filter - default to showing both Approved and Selected
+  if (status && status !== 'all') {
+    apiParams.status = status.charAt(0).toUpperCase() + status.slice(1);
+  } else {
+    // When status is 'all', we want to show both Approved and Selected
+    apiParams.status = '["Approved","Selected"]';
+  }
 
-  const response = await frappe.call().get('vmddp_app.api.api.get_applications_summary', {
-    page: '1',
-    limit: '1000',
-    filters: JSON.stringify(filters)
+  // Add search filter if provided
+  if (search && search.trim()) {
+    apiParams.search = search.trim();
+  }
+
+  // Add village filter if provided
+  if (village && village !== 'all') {
+    apiParams.village = village;
+  }
+
+  const response = await frappe.call().get('vmddp_app.api.api.get_applications_summary', apiParams);
+
+  const applications: ApplicationSelectionItem[] = (response?.message?.applications || []).map((app: any): ApplicationSelectionItem => {
+    const component_list = Array.isArray(app.component_list) ? app.component_list.join(', ') : 'N/A';
+    const submittedDate = app.created_at || app.date || new Date().toISOString().split('T')[0];
+
+    return {
+      id: app.name,
+      realApplicationId: app.name,
+      applicantName: app.fullname,
+      mobile: app.mobile_number ?? app.mobile_no ?? '',
+      village: app.village || 'N/A',
+      component: component_list,
+      status: app.status as "Approved" | "Selected",
+      submittedDate,
+    };
   });
+  console.log('applications', applications);
+  const pagination = response?.message?.pagination;
 
-  const applications: ApplicationSelectionItem[] = [];
-
-  (response?.message?.applications || []).forEach((app: any) => {
-    let submittedDate = 'Unknown';
-    if (app.creation) {
-      submittedDate = new Date(app.creation).toISOString().split('T')[0];
-    } else if (app.date) {
-      submittedDate = new Date(app.date).toISOString().split('T')[0];
-    } else if (app.modified) {
-      submittedDate = new Date(app.modified).toISOString().split('T')[0];
-    }
-
-    if (Array.isArray(app.component_list) && app.component_list.length > 0) {
-      // Create separate entries for each component
-      app.component_list.forEach((component: string) => {
-        applications.push({
-          id: `${app.name}-${component}`,
-          realApplicationId: app.name,
-          applicantName: app.fullname,
-          mobile: app.mobile_no || '',
-          village: app.village || 'N/A',
-          component: component.trim(),
-          status: app.status as "Approved" | "Selected",
-          submittedDate,
-        });
-      });
-    } else {
-      applications.push({
-        id: app.name,
-        realApplicationId: app.name,
-        applicantName: app.fullname,
-        mobile: app.mobile_no || '',
-        village: app.village || 'N/A',
-        component: 'N/A',
-        status: app.status as "Approved" | "Selected",
-        submittedDate,
-      });
-    }
-  });
-
-  return <SubAdminSelectionClient applications={applications} stats={stats} />;
+  return <SubAdminSelectionClient
+    applications={applications}
+    stats={stats}
+    currentPage={page}
+    pageSize={limit}
+    initialFilters={{
+      status: status || 'all',
+      search: search || '',
+      village: village || 'all',
+    }}
+    paginationData={pagination}
+  />;
 }
