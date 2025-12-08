@@ -7,6 +7,7 @@ import AuthProvider from "@/context/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 import I18nProvider from "@/components/I18nProvider";
 import SplashWrapper from "@/components/SplashWrapper";
+import QRCodeScanner from "@/components/QRCodeScanner";
 import { GoogleTagManager } from "@next/third-parties/google"
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({
                 <SplashWrapper>
                   {children}
                 </SplashWrapper>
+                <QRCodeScanner />
                 <Toaster />
               </ThemeProvider>
             </AuthProvider>
