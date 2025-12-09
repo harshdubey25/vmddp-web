@@ -528,7 +528,7 @@ export default function ApplicationDetailsDialog({
                                 {reviewAction === "approve" ? "Approve Application" : "Reject Application"}
                             </DialogTitle>
                             <DialogDescription>
-                                Please provide remarks for this decision
+                                Please provide remarks for this decision (maximum 30 characters)
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
@@ -538,10 +538,19 @@ export default function ApplicationDetailsDialog({
                                     id="remarks"
                                     placeholder="Enter your remarks..."
                                     value={remarks}
-                                    onChange={(e) => setRemarks(e.target.value)}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value.length <= 30) {
+                                            setRemarks(value);
+                                        }
+                                    }}
                                     rows={4}
                                     data-testid="textarea-remarks"
+                                    maxLength={30}
                                 />
+                                <p className="text-xs text-muted-foreground text-right">
+                                    {remarks.length}/30 characters
+                                </p>
                             </div>
                             <div className="flex gap-3">
                                 <Button
