@@ -82,6 +82,7 @@ export default function SubAdminSelectionClient({
     const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState(initialFilters.search);
     const [villageFilter, setVillageFilter] = useState(initialFilters.village);
+    const [applicationStatusFilter, setApplicationStatusFilter] = useState(initialFilters.status || "all");
     const [applications, setApplications] = useState<ApplicationSelectionItem[]>(initialApplications);
     const [selectedApplication, setSelectedApplication] = useState<ApplicationSelectionItem | null>(null);
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
@@ -109,6 +110,180 @@ export default function SubAdminSelectionClient({
 
     // Get unique villages for application filter dropdown
     const applicationVillages = Array.from(new Set(applications.map(app => app.village))).sort();
+
+    // Export current page as CSV
+    const handleExport = () => {
+        if (!applications || applications.length === 0) {
+            toast({
+                title: "No data",
+                description: "There are no applications to export.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        // Filter only selected applications
+        const selectedApps = applications.filter(app => app.status === "Selected");
+
+        if (selectedApps.length === 0) {
+            toast({
+                title: "No selected applications",
+                description: "There are no selected applications to export on this page.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const headers = ['Application ID', 'Applicant', 'Mobile', 'Village', 'Component', 'Status', 'Submitted Date'];
+
+        const escapeCell = (value: any) => {
+            if (value === null || value === undefined) return '';
+            const str = String(value);
+            if (/["\n,]/.test(str)) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const rows = selectedApps.map((a) => [
+            a.realApplicationId,
+            a.applicantName,
+            a.mobile || '',
+            a.village || '',
+            a.component || '',
+            a.status,
+            a.submittedDate || '',
+        ]);
+
+        const csvContent = [headers.map(escapeCell).join(','), ...rows.map(r => r.map(escapeCell).join(','))].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+
+        const date = new Date().toISOString().split('T')[0];
+        const parts: string[] = [];
+        if (villageFilter && villageFilter !== 'all') parts.push(villageFilter.replace(/\s+/g, '_'));
+        if (searchQuery) parts.push(`q-${searchQuery.replace(/\s+/g, '_')}`);
+        const suffix = parts.length ? `-${parts.join('-')}` : '';
+
+        link.href = url;
+        link.download = `selected-applications${suffix}-${date}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+
+        toast({
+            title: "Export started",
+            description: `Exported ${selectedApps.length} selected applications from current page.`,
+        });
+    };
+
+    // Export ALL selected applications
+    const handleExportAll = async () => {
+        toast({
+            title: "Export started",
+            description: "Fetching all selected applications...",
+        });
+
+        try {
+            // Build API parameters for selected status only
+            const apiParams: any = {
+                status: 'Selected',
+                export: true
+            };
+
+            // Add search filter if provided
+            if (searchQuery && searchQuery.trim()) {
+                apiParams.search = searchQuery.trim();
+            }
+
+            // Add village filter if provided and not 'all'
+            if (villageFilter && villageFilter !== 'all') {
+                apiParams.village = villageFilter;
+            }
+
+            // Fetch from Frappe with filters
+            const response = await frappeBrowser.call().get('vmddp_app.api.api.get_applications_summary', apiParams);
+
+            const allApplications = (response.message?.applications || []).map((app: any) => {
+                let component = 'N/A';
+                if (Array.isArray(app.component_list)) {
+                    component = app.component_list.join(', ');
+                } else if (typeof app.component_list === 'string') {
+                    component = app.component_list;
+                }
+
+                return {
+                    id: app.name,
+                    realApplicationId: app.name,
+                    applicantName: app.fullname ?? 'Unknown',
+                    mobile: app.mobile_number ?? app.mobile_no ?? '',
+                    village: app.village ?? 'N/A',
+                    component: component,
+                    status: app.status ?? '',
+                    submittedDate: app.created_at ?? app.date ?? '',
+                };
+            }).filter((app: any) => app.status === 'Selected'); // Extra filter to ensure only selected
+
+            if (!allApplications || allApplications.length === 0) {
+                toast({
+                    title: "No data",
+                    description: "There are no selected applications to export.",
+                    variant: "destructive",
+                });
+                return;
+            }
+
+            const headers = ['Application ID', 'Applicant', 'Mobile', 'Village', 'Component', 'Status', 'Submitted Date'];
+
+            const escapeCell = (value: any) => {
+                if (value === null || value === undefined) return '';
+                const str = String(value);
+                if (/["\n,]/.test(str)) {
+                    return `"${str.replace(/"/g, '""')}"`;
+                }
+                return str;
+            };
+
+            const rows = allApplications.map((a: any) => [
+                a.realApplicationId,
+                a.applicantName,
+                a.mobile || '',
+                a.village || '',
+                a.component || '',
+                a.status || '',
+                a.submittedDate || '',
+            ]);
+
+            const csvContent = [headers.map(escapeCell).join(','), ...rows.map((r: any) => r.map(escapeCell).join(','))].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+
+            const date = new Date().toISOString().split('T')[0];
+            link.href = url;
+            link.download = `all-selected-applications-${date}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+
+            toast({
+                title: "Export completed",
+                description: `Successfully exported ${allApplications.length} selected applications.`,
+            });
+        } catch (error) {
+            console.error('Export error:', error);
+            toast({
+                title: "Export failed",
+                description: "Failed to export selected applications. Please try again.",
+                variant: "destructive",
+            });
+        }
+    };
 
     // Update URL with filters
     const updateFilters = (updates: Record<string, string>) => {
@@ -215,13 +390,19 @@ export default function SubAdminSelectionClient({
                         Manage approved and selected applications
                     </p>
                 </div>
-                <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-10" data-testid="button-export">
-                    <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden xs:inline">Export</span>
-                </Button>
-            </header>
-
-            <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 bg-muted/30">
+                <div className="flex gap-2">
+                    <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-10" data-testid="button-export" onClick={handleExport}>
+                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden xs:inline">Export Page</span>
+                        <span className="xs:hidden">Page</span>
+                    </Button>
+                    <Button variant="default" className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-10" data-testid="button-export-all" onClick={handleExportAll}>
+                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden xs:inline">Export All</span>
+                        <span className="xs:hidden">All</span>
+                    </Button>
+                </div>
+            </header>            <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 bg-muted/30">
                 <div className="space-y-4 sm:space-y-6 max-w-7xl">
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
@@ -388,7 +569,7 @@ export default function SubAdminSelectionClient({
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
                                 <div className="relative">
                                     <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
                                     <Input
@@ -409,6 +590,23 @@ export default function SubAdminSelectionClient({
                                         data-testid="input-search"
                                     />
                                 </div>
+
+                                <Select
+                                    value={applicationStatusFilter}
+                                    onValueChange={(value) => {
+                                        setApplicationStatusFilter(value);
+                                        updateFilters({ status: value });
+                                    }}
+                                >
+                                    <SelectTrigger data-testid="select-status-filter" className="text-xs sm:text-sm h-8 sm:h-10">
+                                        <SelectValue placeholder="Filter by status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Status</SelectItem>
+                                        <SelectItem value="Approved">Approved</SelectItem>
+                                        <SelectItem value="Selected">Selected</SelectItem>
+                                    </SelectContent>
+                                </Select>
 
                                 <Select
                                     value={villageFilter}
