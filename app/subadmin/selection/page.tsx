@@ -11,6 +11,12 @@ interface ApplicationSelectionItem {
   component: string;
   status: "Approved" | "Selected";
   submittedDate: string;
+  aadharNumber?: string;
+  taluka?: string;
+  milkPouringPoint?: string;
+  dairyAnimalData?: {
+    [key: string]: any;
+  };
 }
 
 export default async function SubAdminSelection({
@@ -80,6 +86,10 @@ export default async function SubAdminSelection({
       component: component_list,
       status: app.status as "Approved" | "Selected",
       submittedDate,
+      aadharNumber: app.aadhar_number || '',
+      taluka: app.taluka || '',
+      milkPouringPoint: app.milk_pouring_point || '',
+      dairyAnimalData: app.dairy_animal_data,
     };
   });
   console.log('applications', applications);

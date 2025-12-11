@@ -48,6 +48,12 @@ interface ApplicationSelectionItem {
     component: string;
     status: "Approved" | "Selected";
     submittedDate: string;
+    aadharNumber?: string;
+    taluka?: string;
+    milkPouringPoint?: string;
+    dairyAnimalData?: {
+        [key: string]: any;
+    };
 }interface SubAdminSelectionClientProps {
     applications: ApplicationSelectionItem[];
     stats: {
@@ -122,19 +128,10 @@ export default function SubAdminSelectionClient({
             return;
         }
 
-        // Filter only selected applications
-        const selectedApps = applications.filter(app => app.status === "Selected");
+        // Use all applications based on current filters (not just Selected)
+        const appsToExport = applications;
 
-        if (selectedApps.length === 0) {
-            toast({
-                title: "No selected applications",
-                description: "There are no selected applications to export on this page.",
-                variant: "destructive",
-            });
-            return;
-        }
-
-        const headers = ['Application ID', 'Applicant', 'Mobile', 'Village', 'Component', 'Status', 'Submitted Date'];
+        const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'Taluka', 'Village', 'Milk Pouring Point', 'Component', 'Tag Numbers', 'Status', 'Submitted Date'];
 
         const escapeCell = (value: any) => {
             if (value === null || value === undefined) return '';
@@ -145,15 +142,31 @@ export default function SubAdminSelectionClient({
             return str;
         };
 
-        const rows = selectedApps.map((a) => [
-            a.realApplicationId,
-            a.applicantName,
-            a.mobile || '',
-            a.village || '',
-            a.component || '',
-            a.status,
-            a.submittedDate || '',
-        ]);
+        const rows = appsToExport.map((a) => {
+            // Extract tag numbers from dairy_animal_data
+            let tagNumbers = 'N/A';
+            if (a.dairyAnimalData) {
+                const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
+                if (Array.isArray(tagNumberArray)) {
+                    const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
+                    tagNumbers = validTags.length > 0 ? validTags.join(', ') : 'N/A';
+                }
+            }
+
+            return [
+                a.realApplicationId,
+                a.applicantName,
+                a.aadharNumber || '',
+                a.mobile || '',
+                a.taluka || '',
+                a.village || '',
+                a.milkPouringPoint || '',
+                a.component || '',
+                tagNumbers,
+                a.status,
+                a.submittedDate || '',
+            ];
+        });
 
         const csvContent = [headers.map(escapeCell).join(','), ...rows.map(r => r.map(escapeCell).join(','))].join('\n');
 
@@ -163,12 +176,13 @@ export default function SubAdminSelectionClient({
 
         const date = new Date().toISOString().split('T')[0];
         const parts: string[] = [];
+        if (applicationStatusFilter && applicationStatusFilter !== 'all') parts.push(applicationStatusFilter);
         if (villageFilter && villageFilter !== 'all') parts.push(villageFilter.replace(/\s+/g, '_'));
         if (searchQuery) parts.push(`q-${searchQuery.replace(/\s+/g, '_')}`);
         const suffix = parts.length ? `-${parts.join('-')}` : '';
 
         link.href = url;
-        link.download = `selected-applications${suffix}-${date}.csv`;
+        link.download = `applications${suffix}-${date}.csv`;
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -176,23 +190,30 @@ export default function SubAdminSelectionClient({
 
         toast({
             title: "Export started",
-            description: `Exported ${selectedApps.length} selected applications from current page.`,
+            description: `Exported ${appsToExport.length} applications from current page.`,
         });
     };
 
-    // Export ALL selected applications
+    // Export ALL applications with current filters
     const handleExportAll = async () => {
         toast({
             title: "Export started",
-            description: "Fetching all selected applications...",
+            description: "Fetching all applications with current filters...",
         });
 
         try {
-            // Build API parameters for selected status only
+            // Build API parameters based on current filters
             const apiParams: any = {
-                status: 'Selected',
                 export: true
             };
+
+            // Add status filter based on current selection
+            if (applicationStatusFilter && applicationStatusFilter !== 'all') {
+                apiParams.status = applicationStatusFilter;
+            } else {
+                // When status is 'all', fetch both Approved and Selected
+                apiParams.status = '["Approved","Selected"]';
+            }
 
             // Add search filter if provided
             if (searchQuery && searchQuery.trim()) {
@@ -219,24 +240,28 @@ export default function SubAdminSelectionClient({
                     id: app.name,
                     realApplicationId: app.name,
                     applicantName: app.fullname ?? 'Unknown',
+                    aadharNumber: app.aadhar_number ?? '',
                     mobile: app.mobile_number ?? app.mobile_no ?? '',
+                    taluka: app.taluka ?? '',
                     village: app.village ?? 'N/A',
+                    milkPouringPoint: app.milk_pouring_point ?? '',
                     component: component,
                     status: app.status ?? '',
                     submittedDate: app.created_at ?? app.date ?? '',
+                    dairyAnimalData: app.dairy_animal_data,
                 };
-            }).filter((app: any) => app.status === 'Selected'); // Extra filter to ensure only selected
+            });
 
             if (!allApplications || allApplications.length === 0) {
                 toast({
                     title: "No data",
-                    description: "There are no selected applications to export.",
+                    description: "There are no applications to export with the current filters.",
                     variant: "destructive",
                 });
                 return;
             }
 
-            const headers = ['Application ID', 'Applicant', 'Mobile', 'Village', 'Component', 'Status', 'Submitted Date'];
+            const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'Taluka', 'Village', 'Milk Pouring Point', 'Component', 'Tag Numbers', 'Status', 'Submitted Date'];
 
             const escapeCell = (value: any) => {
                 if (value === null || value === undefined) return '';
@@ -247,15 +272,31 @@ export default function SubAdminSelectionClient({
                 return str;
             };
 
-            const rows = allApplications.map((a: any) => [
-                a.realApplicationId,
-                a.applicantName,
-                a.mobile || '',
-                a.village || '',
-                a.component || '',
-                a.status || '',
-                a.submittedDate || '',
-            ]);
+            const rows = allApplications.map((a: any) => {
+                // Extract tag numbers from dairy_animal_data
+                let tagNumbers = 'N/A';
+                if (a.dairyAnimalData) {
+                    const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
+                    if (Array.isArray(tagNumberArray)) {
+                        const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
+                        tagNumbers = validTags.length > 0 ? validTags.join(', ') : 'N/A';
+                    }
+                }
+
+                return [
+                    a.realApplicationId,
+                    a.applicantName,
+                    a.aadharNumber || '',
+                    a.mobile || '',
+                    a.taluka || '',
+                    a.village || '',
+                    a.milkPouringPoint || '',
+                    a.component || '',
+                    tagNumbers,
+                    a.status || '',
+                    a.submittedDate || '',
+                ];
+            });
 
             const csvContent = [headers.map(escapeCell).join(','), ...rows.map((r: any) => r.map(escapeCell).join(','))].join('\n');
 
@@ -264,8 +305,9 @@ export default function SubAdminSelectionClient({
             const link = document.createElement('a');
 
             const date = new Date().toISOString().split('T')[0];
+            const statusPart = applicationStatusFilter && applicationStatusFilter !== 'all' ? `-${applicationStatusFilter}` : '';
             link.href = url;
-            link.download = `all-selected-applications-${date}.csv`;
+            link.download = `all-applications${statusPart}-${date}.csv`;
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -273,13 +315,13 @@ export default function SubAdminSelectionClient({
 
             toast({
                 title: "Export completed",
-                description: `Successfully exported ${allApplications.length} selected applications.`,
+                description: `Successfully exported ${allApplications.length} applications.`,
             });
         } catch (error) {
             console.error('Export error:', error);
             toast({
                 title: "Export failed",
-                description: "Failed to export selected applications. Please try again.",
+                description: "Failed to export applications. Please try again.",
                 variant: "destructive",
             });
         }
