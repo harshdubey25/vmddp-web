@@ -20,7 +20,7 @@ export async function middleware(req: NextRequest) {
     }
     // Block subadmin from accessing admin routes
     if (data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
-      url.pathname = "/accountant/dashboard";
+      url.pathname = "/accountant/dd";
       return NextResponse.redirect(url);
     }
     // Only allow admin
