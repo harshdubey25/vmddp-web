@@ -490,16 +490,27 @@ export default function AdminSelectionClient({
                                     </Select>
                                 </div>
                                 <div className="relative max-w-sm">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Search district..."
+                                    <Select
                                         value={districtSearchQuery}
-                                        onChange={(e) => {
-                                            setDistrictSearchQuery(e.target.value);
+                                        onValueChange={(value) => {
+                                            setDistrictSearchQuery(value === "all" ? "" : value);
                                             setCurrentCountsPage(1);
                                         }}
-                                        className="pl-10 text-xs sm:text-sm h-9"
-                                    />
+                                    >
+                                        <SelectTrigger className="h-9 text-xs sm:text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <SelectValue placeholder="Select district..." />
+                                            </div>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Districts</SelectItem>
+                                            {districts.map((district) => (
+                                                <SelectItem key={district.district_id} value={district.district_name}>
+                                                    {district.district_name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                             </div>
                         </CardHeader>
