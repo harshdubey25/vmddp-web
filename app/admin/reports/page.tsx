@@ -446,14 +446,14 @@ export default function AdminReports() {
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleExportPDF} data-testid="button-export-pdf">
+                    {/* <Button variant="outline" onClick={handleExportPDF} data-testid="button-export-pdf">
                         <Download className="w-4 h-4 mr-2" />
                         Export PDF
                     </Button>
                     <Button variant="outline" onClick={handleExportExcel} data-testid="button-export-excel">
                         <Download className="w-4 h-4 mr-2" />
                         Export Excel
-                    </Button>
+                    </Button> */}
                     <Button
                         variant="default"
                         onClick={() => handleExportDistrictWiseReport("xlsx")}
