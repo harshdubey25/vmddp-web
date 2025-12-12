@@ -1,4 +1,5 @@
 "use client"
+export const runtime = 'edge';
 import { useState, use, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -184,7 +185,7 @@ export default function DDCollectionForm({
                                 Application Not Found
                             </CardTitle>
                             <CardDescription>
-                                The application you're looking for doesn't exist or has already been processed.
+                                The application you&apos;re looking for doesn&apos;t exist or has already been processed.
                             </CardDescription>
                         </CardHeader>
                         <CardFooter>
