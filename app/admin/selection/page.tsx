@@ -42,10 +42,11 @@ export default async function AdminSelection({
 
   // Fetch summary stats - using admin dashboard API
   const statsResponse = await frappe.call().get('vmddp_app.api.v1.dashboard.subadmin_dashboard_data');
+  
   const stats = {
-    approved: statsResponse?.message?.approved ?? 0,
-    selected: statsResponse?.message?.selected ?? 0,
-    total: statsResponse?.message?.total ?? 0
+    approved: statsResponse?.message?. approved_applications ?? 0,
+    selected: statsResponse?.message?.selected_applications ?? 0,
+    total: statsResponse?.message?.total_applications ?? 0
   };
 
   // Build API parameters
