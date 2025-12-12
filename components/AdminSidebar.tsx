@@ -26,6 +26,7 @@ interface AdminSidebarProps {
 const adminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
   { icon: FileText, label: "Applications", path: "/admin/applications" },
+  { icon: FileText, label: "Selection", path: "/admin/selection" },
 
   { icon: Users, label: "Sub-Admins", path: "/admin/subadmins" },
   { icon: Package, label: "Components", path: "/admin/components" },
