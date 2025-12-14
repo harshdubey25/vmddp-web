@@ -433,7 +433,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
         setSelectedAppId(app.id);
     };
 
-    const handleSubmitReview = async (action: "approve" | "reject", reviewRemarks: string, selectedComponents: Array<String>) => {
+    const handleSubmitReview = async (action: "approve" | "reject", reviewRemarks: string, selectedComponents: Array<string>) => {
         if (!selectedApp) return;
 
         const status = action === "approve" ? "Approved" : "Rejected";
@@ -449,6 +449,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                 application_id: selectedApp.id,
                 status: status,
                 components: selectedComponents,
+                remarks: reviewRemarks,
             })
             console.log('Approve/Reject response:', response);
 
