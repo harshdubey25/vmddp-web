@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     CheckCircle,
     XCircle,
@@ -28,12 +29,13 @@ import { getStatusBadge } from "@/lib/status-utils";
 import { useFrappeGetDoc } from "frappe-react-sdk";
 import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/enums/roles";
+import { useToast } from "@/hooks/use-toast";
 
 interface ApplicationDetailsDialogProps {
     application: any | null;
     isOpen: boolean;
     onClose: () => void;
-    onReview?: (action: "approve" | "reject", remarks: string) => void;
+    onReview?: (action: "approve" | "reject", remarks: string, selectedComponents: string[]) => void;
     showReviewActions?: boolean;
 }
 
@@ -46,10 +48,12 @@ export default function ApplicationDetailsDialog({
 }: ApplicationDetailsDialogProps) {
     const { user, loading } = useAuth();
     const isAdmin = !!user?.roles?.includes(UserRole.VMDDP_ADMIN);
+    const { toast } = useToast();
     const [showReviewDialog, setShowReviewDialog] = useState(false);
     const [reviewAction, setReviewAction] = useState<"approve" | "reject" | null>(null);
     const [remarks, setRemarks] = useState("");
     const [villageName, setVillageName] = useState<string>("");
+    const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
 
     // Fetch full application details including criteria child table
     const { data: fullAppDoc, isLoading: isLoadingFullApp } = useFrappeGetDoc(
@@ -78,17 +82,27 @@ export default function ApplicationDetailsDialog({
     if (!application) return null;
 
     const handleReview = (action: "approve" | "reject") => {
+        // Check if components are selected when approving
+        if (action === "approve" && selectedComponents.length === 0) {
+            toast({
+                title: "No components selected",
+                description: "Please select at least one component to approve.",
+                variant: "destructive",
+            });
+            return;
+        }
         setReviewAction(action);
         setShowReviewDialog(true);
     };
 
     const handleSubmitReview = () => {
         if (onReview && reviewAction) {
-            onReview(reviewAction, remarks);
+            onReview(reviewAction, remarks, selectedComponents);
         }
         setShowReviewDialog(false);
         setReviewAction(null);
         setRemarks("");
+        setSelectedComponents([]);
         onClose();
     };
     console.log("full app doc", fullAppDoc)
@@ -329,8 +343,33 @@ export default function ApplicationDetailsDialog({
                                 ) : fullAppDoc?.components && Array.isArray(fullAppDoc.components) && fullAppDoc.components.length > 0 ? (
                                     fullAppDoc.components.map((comp: any, idx: number) => (
                                         <div key={idx} className="mb-3 last:mb-0">
-                                            <Label className="text-muted-foreground">Component {idx + 1}</Label>
-                                            <p className="font-medium text-base mt-1">{comp.component}</p>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div>
+                                                    <Label className="text-muted-foreground">Component {idx + 1}</Label>
+                                                    <p className="font-medium text-base mt-1">{comp.component}</p>
+                                                </div>
+                                                {showReviewActions && application.status === "Pending" && !loading && !isAdmin && (
+                                                    <div className="flex items-center space-x-2">
+                                                        <Checkbox
+                                                            id={`component-${idx}`}
+                                                            checked={selectedComponents.includes(comp.component)}
+                                                            onCheckedChange={(checked) => {
+                                                                if (checked) {
+                                                                    setSelectedComponents([...selectedComponents, comp.component]);
+                                                                } else {
+                                                                    setSelectedComponents(selectedComponents.filter(c => c !== comp.component));
+                                                                }
+                                                            }}
+                                                        />
+                                                        <Label
+                                                            htmlFor={`component-${idx}`}
+                                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                                        >
+                                                            Approve
+                                                        </Label>
+                                                    </div>
+                                                )}
+                                            </div>
                                             {comp.response && comp.response !== '{}' && (() => {
                                                 try {
                                                     const parsed = JSON.parse(comp.response);
@@ -464,7 +503,7 @@ export default function ApplicationDetailsDialog({
                                 {documents.length > 0 ? (
                                     documents.map((doc, idx) => (
                                         <div
-                                            key={doc.url || idx}
+                                            key={idx}
                                             className="flex items-center justify-between p-3 border rounded-lg"
                                         >
                                             <div className="flex items-center gap-2">
@@ -532,6 +571,26 @@ export default function ApplicationDetailsDialog({
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
+                            {reviewAction === "approve" && selectedComponents.length > 0 && (
+                                <div className="space-y-2">
+                                    <Label>Selected Components for Approval</Label>
+                                    <div className="p-3 bg-muted/30 rounded-lg space-y-1">
+                                        {selectedComponents.map((component, idx) => (
+                                            <div key={idx} className="flex items-center gap-2">
+                                                <CheckCircle className="w-4 h-4 text-chart-3" />
+                                                <span className="text-sm font-medium">{component}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {reviewAction === "approve" && selectedComponents.length === 0 && (
+                                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                    <p className="text-sm text-yellow-800">
+                                        <strong>Note:</strong> No components selected. Please select at least one component to approve.
+                                    </p>
+                                </div>
+                            )}
                             <div className="space-y-2">
                                 <Label htmlFor="remarks">Remarks</Label>
                                 <Textarea
@@ -563,7 +622,7 @@ export default function ApplicationDetailsDialog({
                                 <Button
                                     className="flex-1"
                                     onClick={handleSubmitReview}
-                                    disabled={!remarks.trim()}
+                                    disabled={!remarks.trim() || (reviewAction === "approve" && selectedComponents.length === 0)}
                                     data-testid="button-submit-review"
                                 >
                                     Confirm {reviewAction === "approve" ? "Approval" : "Rejection"}

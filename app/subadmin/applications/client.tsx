@@ -29,7 +29,7 @@ import {
     FileText,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useFrappeGetDoc, useFrappeUpdateDoc, useFrappeGetDocList, useFrappeAuth } from "frappe-react-sdk";
+import { useFrappeGetDoc, useFrappeUpdateDoc, useFrappeGetDocList, useFrappeAuth, useFrappePostCall } from "frappe-react-sdk";
 import { getStatusBadge } from "@/lib/status-utils";
 import { frappeBrowser } from "@/lib/frappe";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
@@ -144,7 +144,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
             }
         }
     );
-
+    const { call: approveApplication } = useFrappePostCall('vmddp_app.api.app_form.approve_or_reject_applicaiton');
     // Debounce search query
     const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
@@ -433,18 +433,24 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
         setSelectedAppId(app.id);
     };
 
-    const handleSubmitReview = async (action: "approve" | "reject", reviewRemarks: string) => {
+    const handleSubmitReview = async (action: "approve" | "reject", reviewRemarks: string, selectedComponents: Array<String>) => {
         if (!selectedApp) return;
 
         const status = action === "approve" ? "Approved" : "Rejected";
 
         try {
             // Update the App Form doctype via Frappe hook
-            await updateDoc('App Form', selectedApp.id, {
+            // await updateDoc('App Form', selectedApp.id, {
+            //     status: status,
+            //     remarks: reviewRemarks,
+            //     approver: currentUser || undefined,
+            // });
+            const response = await approveApplication({
+                application_id: selectedApp.id,
                 status: status,
-                remarks: reviewRemarks,
-                approver: currentUser || undefined,
-            });
+                components: selectedComponents,
+            })
+            console.log('Approve/Reject response:', response);
 
             // Update the selected app status as well
             setSelectedApp({
@@ -1075,8 +1081,8 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                         setSelectedAppId(null);
                     }
                 }}
-                onReview={(action, remarks) => {
-                    handleSubmitReview(action, remarks);
+                onReview={(action, remarks, components) => {
+                    handleSubmitReview(action, remarks, components);
                 }}
                 showReviewActions={true}
             />
