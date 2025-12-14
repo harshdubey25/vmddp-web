@@ -20,7 +20,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 interface AdminSidebarProps {
-  userRole: "admin" | "subadmin";
+  userRole: "admin" | "subadmin" | "accountant";
 }
 
 const adminMenuItems = [
@@ -40,11 +40,32 @@ const subAdminMenuItems = [
   { icon: FileText, label: "Messages", path: "/subadmin/messages" },
   { icon: FileText, label: "Reports", path: "/subadmin/reports" }
 ]
+const accountantMenuItems = [
+  { icon: FileText, label: "DD", path: "/accountant/dd" },
+]
+// { icon: LayoutDashboard, label: "Dashboard", path: "/accountant" },
 // { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },;
 export default function AdminSidebar({ userRole }: AdminSidebarProps) {
   const { logout } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const menuItems = userRole === "admin" ? adminMenuItems : subAdminMenuItems;
+  // const menuItems = userRole === "admin" ? adminMenuItems : subAdminMenuItems;
+  let menuItems = [];
+  let sidebarTitle = "";
+  switch (userRole) {
+    case "accountant":
+      sidebarTitle = "Accountant";
+      menuItems = accountantMenuItems;
+      break;
+    case "subadmin":
+      sidebarTitle = "Sub-Admin";
+      menuItems = subAdminMenuItems;
+      break;
+    case "admin":
+    default:
+      sidebarTitle = "Administrator";
+      menuItems = adminMenuItems;
+      break;
+  }
   const location = usePathname();
   return (
     <>
@@ -79,7 +100,7 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
           <div className="min-w-0">
             <h2 className="font-display font-semibold text-sm md:text-xs lg:text-sm truncate">VMDDP</h2>
             <p className="text-xs md:text-[10px] lg:text-xs text-muted-foreground truncate">
-              {userRole === "admin" ? "Administrator" : "Sub-Admin"}
+              {sidebarTitle}
             </p>
           </div>
         </div>
