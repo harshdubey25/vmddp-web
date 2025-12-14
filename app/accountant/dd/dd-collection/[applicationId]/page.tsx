@@ -24,21 +24,11 @@ import {
     IndianRupee,
     Loader2,
 } from "lucide-react";
-import { useFrappeGetDoc, useFrappePostCall, useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappePostCall, useFrappeGetCall, useFrappeFileUpload } from "frappe-react-sdk";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CardSkeleton } from "@/components/LoadingSkeletons";
 
 
-const mockBanks = [
-    "State Bank of India",
-    "Bank of Maharashtra",
-    "Central Bank of India",
-    "Punjab National Bank",
-    "HDFC Bank",
-    "ICICI Bank",
-    "Axis Bank",
-    "Bank of Baroda",
-    "Union Bank of India",
-    "Canara Bank",
-];
 
 export default function DDCollectionForm({
     params
@@ -74,6 +64,10 @@ export default function DDCollectionForm({
         amount: "",
         ddImage: null as string | null,
     });
+
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
+    const { upload } = useFrappeFileUpload();
+
     useEffect(() => {
         if (submitError) {
             toast({
@@ -84,7 +78,7 @@ export default function DDCollectionForm({
         }
     }, [submitError, toast]);
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
@@ -95,11 +89,31 @@ export default function DDCollectionForm({
                 });
                 return;
             }
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setDdFormData((prev) => ({ ...prev, ddImage: reader.result as string }));
-            };
-            reader.readAsDataURL(file);
+
+            setIsUploadingImage(true);
+            try {
+                const uploadedFile = await upload(file, {
+                    isPrivate: true,
+
+                });
+
+                if (uploadedFile?.file_url) {
+                    setDdFormData((prev) => ({ ...prev, ddImage: uploadedFile.file_url }));
+                    toast({
+                        title: "Image uploaded",
+                        description: "DD image has been uploaded successfully",
+                    });
+                }
+            } catch (error: any) {
+                console.error("Image upload error:", error);
+                toast({
+                    title: "Upload failed",
+                    description: error.message || "Failed to upload image. Please try again.",
+                    variant: "destructive",
+                });
+            } finally {
+                setIsUploadingImage(false);
+            }
         }
     };
 
@@ -139,7 +153,7 @@ export default function DDCollectionForm({
                 dd_image: ddFormData.ddImage,
             });
 
-            if (response?.success) {
+            if (response?.message.success) {
                 toast({
                     title: "DD Recorded Successfully",
                     description: `DD #${ddFormData.ddNumber} for ₹${parseFloat(application?.amount || ddFormData.amount).toLocaleString("en-IN")} has been recorded`,
@@ -147,7 +161,7 @@ export default function DDCollectionForm({
 
                 // Redirect to DD collection list after successful submission
                 setTimeout(() => {
-                    router.push("/accountant/dd-collection");
+                    router.push("/accountant/dd?tab=approved");
                 }, 1500);
             } else {
                 throw new Error(response?.message || "Failed to submit DD");
@@ -167,8 +181,19 @@ export default function DDCollectionForm({
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-screen">
-                <p>Loading application details...</p>
+            <div className="bg-background w-full h-screen overflow-y-auto">
+                <div className="p-6 space-y-6">
+                    <div className="flex items-center gap-4">
+                        <Skeleton className="h-10 w-10 rounded-md" />
+                        <div className="flex-1 space-y-2">
+                            <Skeleton className="h-8 w-48" />
+                            <Skeleton className="h-4 w-64" />
+                        </div>
+                    </div>
+                    <CardSkeleton showHeader={true} showDescription={false} contentLines={4} />
+                    <CardSkeleton showHeader={true} showDescription={true} contentLines={6} />
+                    <CardSkeleton showHeader={true} showDescription={false} contentLines={3} />
+                </div>
             </div>
         );
     }
@@ -207,7 +232,7 @@ export default function DDCollectionForm({
             <div className="p-6 space-y-6 pb-20">
                 {/* Header */}
                 <div className="flex items-center gap-4">
-                    <Link href="/accountant/dd-collection">
+                    <Link href="/accountant/dd">
                         <Button variant="ghost" size="icon" data-testid="button-back">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
@@ -377,7 +402,12 @@ export default function DDCollectionForm({
                         <div className="space-y-2">
                             <Label>DD Image (Optional)</Label>
                             <div className="border-2 border-dashed rounded-lg p-6 text-center" data-testid="upload-dd-image-area">
-                                {ddFormData.ddImage ? (
+                                {isUploadingImage ? (
+                                    <div className="flex flex-col items-center gap-3 py-4">
+                                        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                                        <p className="text-sm text-muted-foreground">Uploading image...</p>
+                                    </div>
+                                ) : ddFormData.ddImage ? (
                                     <div className="space-y-4">
                                         <img
                                             src={ddFormData.ddImage}
