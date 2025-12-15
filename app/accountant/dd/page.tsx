@@ -147,8 +147,8 @@ export default function DDCollection() {
     const verifiedCount = ddCompletedApplications.length;
 
     return (
-        <div className="h-screen bg-background w-full">
-            <div className="p-6 space-y-6">
+        <div className=" bg-background w-full overflow-y-scroll">
+            <div className="p-6 space-y-6 ">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -289,72 +289,74 @@ export default function DDCollection() {
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent >
                                 {loading ? (
                                     <div className="text-center py-8 text-muted-foreground">Loading...</div>
                                 ) : (
                                     <>
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>Application ID</TableHead>
-                                                    <TableHead>Beneficiary</TableHead>
-                                                    <TableHead>Location</TableHead>
-                                                    <TableHead>Component</TableHead>
-                                                    <TableHead>Status</TableHead>
-                                                    <TableHead>DD Amount</TableHead>
-                                                    <TableHead>Action</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {selectedApplications.map((app) => (
-                                                    <TableRow key={app.name} data-testid={`row-approved-${app.name}`}>
-                                                        <TableCell className="font-medium">{app.name}</TableCell>
-                                                        <TableCell>
-                                                            <div>
-                                                                <p className="font-medium">{getFullName(app)}</p>
-                                                                <p className="text-xs text-muted-foreground">{app.aadhar_number}</p>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="flex flex-wrap gap-1">
-                                                                <Badge variant="outline" className="text-xs">{app.district}</Badge>
-                                                                <Badge variant="outline" className="text-xs">{app.taluka}</Badge>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Badge variant="outline">{app.component_name}</Badge>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {getStatusBadge(app.component_status)}
-                                                        </TableCell>
-                                                        <TableCell className="font-semibold text-primary">
-                                                            ₹{(app.amount || 0).toLocaleString("en-IN")}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Button
-                                                                size="sm"
-                                                                onClick={() => handleSelectApplication(app)}
-                                                                data-testid={`button-collect-${app.name}`}
-                                                            >
-                                                                <CreditCard className="h-4 w-4 mr-1" />
-                                                                Collect DD
-                                                            </Button>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                                {selectedApplications.length === 0 && (
+                                        <div className="overflow-x-auto overflow-y-auto h-full ">
+                                            <Table>
+                                                <TableHeader>
                                                     <TableRow>
-                                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                                            {approvedSearchAadhaar
-                                                                ? `No applications found for Aadhaar "${approvedSearchAadhaar}"`
-                                                                : "No approved applications pending DD collection"
-                                                            }
-                                                        </TableCell>
+                                                        <TableHead>Application ID</TableHead>
+                                                        <TableHead>Beneficiary</TableHead>
+                                                        <TableHead>Location</TableHead>
+                                                        <TableHead>Component</TableHead>
+                                                        <TableHead>Status</TableHead>
+                                                        <TableHead>DD Amount</TableHead>
+                                                        <TableHead>Action</TableHead>
                                                     </TableRow>
-                                                )}
-                                            </TableBody>
-                                        </Table>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {selectedApplications.map((app) => (
+                                                        <TableRow key={app.name} data-testid={`row-approved-${app.name}`}>
+                                                            <TableCell className="font-medium">{app.name}</TableCell>
+                                                            <TableCell>
+                                                                <div>
+                                                                    <p className="font-medium">{getFullName(app)}</p>
+                                                                    <p className="text-xs text-muted-foreground">{app.aadhar_number}</p>
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <div className="flex flex-wrap gap-1">
+                                                                    <Badge variant="outline" className="text-xs">{app.district}</Badge>
+                                                                    <Badge variant="outline" className="text-xs">{app.taluka}</Badge>
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Badge variant="outline">{app.component_name}</Badge>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {getStatusBadge(app.component_status)}
+                                                            </TableCell>
+                                                            <TableCell className="font-semibold text-primary">
+                                                                ₹{(app.amount || 0).toLocaleString("en-IN")}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Button
+                                                                    size="sm"
+                                                                    onClick={() => handleSelectApplication(app)}
+                                                                    data-testid={`button-collect-${app.name}`}
+                                                                >
+                                                                    <CreditCard className="h-4 w-4 mr-1" />
+                                                                    Collect DD
+                                                                </Button>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                    {selectedApplications.length === 0 && (
+                                                        <TableRow>
+                                                            <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                                                {approvedSearchAadhaar
+                                                                    ? `No applications found for Aadhaar "${approvedSearchAadhaar}"`
+                                                                    : "No approved applications pending DD collection"
+                                                                }
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
 
                                         {/* Pagination for Approved */}
                                         {selectedApplications.length > 0 && (
@@ -437,56 +439,58 @@ export default function DDCollection() {
                                     <div className="text-center py-8 text-muted-foreground">Loading...</div>
                                 ) : (
                                     <>
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>Application ID</TableHead>
-                                                    <TableHead>Beneficiary</TableHead>
-                                                    <TableHead>Location</TableHead>
-                                                    <TableHead>Component</TableHead>
-                                                    <TableHead>Amount</TableHead>
-                                                    <TableHead>Status</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {ddCompletedApplications.map((app) => (
-                                                    <TableRow key={app.name} data-testid={`row-dd-${app.name}`}>
-                                                        <TableCell className="font-medium">{app.name}</TableCell>
-                                                        <TableCell>
-                                                            <div>
-                                                                <p className="font-medium">{getFullName(app)}</p>
-                                                                <p className="text-xs text-muted-foreground">{app.aadhar_number}</p>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="flex flex-wrap gap-1">
-                                                                <Badge variant="outline" className="text-xs">{app.district}</Badge>
-                                                                <Badge variant="outline" className="text-xs">{app.taluka}</Badge>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Badge variant="outline">{app.component_name}</Badge>
-                                                        </TableCell>
-                                                        <TableCell className="font-medium">
-                                                            ₹{(app.amount || 0).toLocaleString("en-IN")}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {getStatusBadge(app.component_status)}
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                                {ddCompletedApplications.length === 0 && (
+                                        <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
+                                            <Table>
+                                                <TableHeader>
                                                     <TableRow>
-                                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                                            {selectedSearchAadhaar
-                                                                ? `No collected DDs found for Aadhaar "${selectedSearchAadhaar}"`
-                                                                : "No collected DD entries found"
-                                                            }
-                                                        </TableCell>
+                                                        <TableHead>Application ID</TableHead>
+                                                        <TableHead>Beneficiary</TableHead>
+                                                        <TableHead>Location</TableHead>
+                                                        <TableHead>Component</TableHead>
+                                                        <TableHead>Amount</TableHead>
+                                                        <TableHead>Status</TableHead>
                                                     </TableRow>
-                                                )}
-                                            </TableBody>
-                                        </Table>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {ddCompletedApplications.map((app) => (
+                                                        <TableRow key={app.name} data-testid={`row-dd-${app.name}`}>
+                                                            <TableCell className="font-medium">{app.name}</TableCell>
+                                                            <TableCell>
+                                                                <div>
+                                                                    <p className="font-medium">{getFullName(app)}</p>
+                                                                    <p className="text-xs text-muted-foreground">{app.aadhar_number}</p>
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <div className="flex flex-wrap gap-1">
+                                                                    <Badge variant="outline" className="text-xs">{app.district}</Badge>
+                                                                    <Badge variant="outline" className="text-xs">{app.taluka}</Badge>
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Badge variant="outline">{app.component_name}</Badge>
+                                                            </TableCell>
+                                                            <TableCell className="font-medium">
+                                                                ₹{(app.amount || 0).toLocaleString("en-IN")}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {getStatusBadge(app.component_status)}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                    {ddCompletedApplications.length === 0 && (
+                                                        <TableRow>
+                                                            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                                                {selectedSearchAadhaar
+                                                                    ? `No collected DDs found for Aadhaar "${selectedSearchAadhaar}"`
+                                                                    : "No collected DD entries found"
+                                                                }
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
 
                                         {/* Pagination for Selected */}
                                         {ddCompletedApplications.length > 0 && (
