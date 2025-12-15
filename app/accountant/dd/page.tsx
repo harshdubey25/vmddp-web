@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { frappeBrowser } from "@/lib/frappe";
+import { useFrappeGetCall } from "frappe-react-sdk";
 
 interface DDApplication {
     name: string;
@@ -44,6 +45,7 @@ export default function DDCollection() {
     const [selectedTotal, setSelectedTotal] = useState(0);
     const pageSize = 20;
 
+    const { data: statsData, isLoading: statsLoading, error: statsError } = useFrappeGetCall('vmddp_app.api.v1.accountant.get_dd_stats')
     // Fetch approved applications
     const fetchselectedApplications = async () => {
         setLoading(true);
@@ -103,7 +105,7 @@ export default function DDCollection() {
         } else {
             fetchddCompletedApplications();
         }
-    }, [activeTab, approvedPage, selectedPage, approvedSearchAadhaar, selectedSearchAadhaar]);
+    }, [activeTab, approvedPage, selectedPage]);
 
     const handleSelectApplication = (app: DDApplication) => {
         router.push(`/accountant/dd/dd-collection/${encodeURIComponent(app.name)}`);
@@ -140,12 +142,13 @@ export default function DDCollection() {
                 return <Badge variant="outline">{status}</Badge>;
         }
     };
-
+    console.log("Stats Data:", statsData);
     // Calculate summary stats
-    const totalCollected = ddCompletedApplications.reduce((sum: number, app: DDApplication) => sum + (app.amount || 0), 0);
-    const pendingCount = selectedApplications.length;
-    const verifiedCount = ddCompletedApplications.length;
+    const totalCollected = statsData?.message.total_dd_amount || 0;
+    const pendingCount = statsData?.message.pending_dd || 0;
 
+    const totalDDs = statsData?.message.total_applications || 0;
+    const collectedDDs = statsData?.message.total_dd_completed || 0;
     return (
         <div className=" bg-background w-full overflow-y-scroll">
             <div className="p-6 space-y-6 ">
@@ -191,7 +194,7 @@ export default function DDCollection() {
                                 <div>
                                     <p className="text-sm text-muted-foreground">Total DDs</p>
                                     <p className="text-2xl font-bold" data-testid="text-total-count">
-                                        {ddCompletedApplications.length}
+                                        {totalDDs}
                                     </p>
                                 </div>
                             </div>
@@ -223,7 +226,7 @@ export default function DDCollection() {
                                 <div>
                                     <p className="text-sm text-muted-foreground">Collected</p>
                                     <p className="text-2xl font-bold" data-testid="text-verified-count">
-                                        {verifiedCount}
+                                        {collectedDDs}
                                     </p>
                                 </div>
                             </div>
