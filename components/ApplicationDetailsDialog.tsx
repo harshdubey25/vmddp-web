@@ -105,7 +105,7 @@ export default function ApplicationDetailsDialog({
         setSelectedComponents([]);
         onClose();
     };
-    console.log("full app doc", fullAppDoc)
+
     const documents: { name: string; uploaded: boolean; url?: string }[] = [];
     if (fullAppDoc) {
         if (fullAppDoc.self_ration_card_image) {
@@ -169,7 +169,7 @@ export default function ApplicationDetailsDialog({
                                     <div>
                                         <Label className="text-muted-foreground">Applicant Name</Label>
                                         <p className="font-medium">
-                                            {fullAppDoc?.first_name || application.firstName || ''} {fullAppDoc?.middle_name || application.middleName || ''} {fullAppDoc?.last_name || application.lastName || ''}
+                                            {fullAppDoc?.first_name || application.firstName || ''} {fullAppDoc?.mid_name || application.middleName || ''} {fullAppDoc?.last_name || application.lastName || ''}
                                         </p>
                                     </div>
                                     <div>
@@ -285,7 +285,7 @@ export default function ApplicationDetailsDialog({
                                                     return null;
                                                 }
                                             })() : null;
-                                            console.log("parsedResponse", parsedResponse)
+
                                             // If there's a value in the response, use it
                                             const valueStr = String(displayValue || '');
                                             const isDocumentLink = valueStr && (

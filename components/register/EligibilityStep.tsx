@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { JSX } from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
 interface Props {
   control: any;
@@ -28,35 +28,36 @@ const EligibilityStep = ({ values, control, errors, criteriaFields, setValue }: 
     return `eligibility[${idx}].value`;
   }) || [];
 
-  // Watch all mainFieldNames at once
   const mainFieldValues = useWatch({ control, name: mainFieldNames });
 
-  const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
-  const [tagValidation, setTagValidation] = useState<{
-    [key: string]: { loading: boolean; valid?: boolean; message?: string };
-  }>({});
+  useEffect(() => {
+    if (!setValue) return;
+    
+    sortedCriteriaFields.forEach((field, idx) => {
+      if (Array.isArray(field.criteria_fields)) {
+        const currentValue = Number(mainFieldValues?.[idx]) || 0;
+        const currentEligibility = values?.eligibility?.[idx];
+        
+        if (currentEligibility?.child && Array.isArray(currentEligibility.child)) {
+          let expectedChildCount = 0;
+          field.criteria_fields.forEach((child: any) => {
+            if (child.condition === "=") {
+              expectedChildCount += currentValue;
+            } else {
+              expectedChildCount += 1;
+            }
+          });
+          
+          if (currentEligibility.child.length > expectedChildCount) {
+            const trimmedChild = currentEligibility.child.slice(0, expectedChildCount);
+            setValue(`eligibility[${idx}].child`, trimmedChild, { shouldValidate: false });
+          }
+        }
+      }
+    });
+  }, [mainFieldValues, sortedCriteriaFields, setValue, values?.eligibility]);
 
-  const handleValidateTag = async (fieldKey: string, value: string) => {
-    setTagValidation((p) => ({ ...p, [fieldKey]: { loading: true } }));
-    try {
-      const res = await fetch("/api/validate-tag-number", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tagNumber: value }),
-      });
-      const data = await res.json();
-      console.log("Tag validation response data:", data);
-      setTagValidation((p) => ({
-        ...p,
-        [fieldKey]: { loading: false, valid: !!data.valid, message: data.message },
-      }));
-    } catch (err) {
-      setTagValidation((p) => ({
-        ...p,
-        [fieldKey]: { loading: false, valid: false, message: "Validation failed" },
-      }));
-    }
-  };
+  const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
 
   const uploadFile = async (file: File, fieldName: string): Promise<string | null> => {
     setUploading(prev => ({ ...prev, [fieldName]: true }));
