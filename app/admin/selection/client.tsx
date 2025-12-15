@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -119,7 +120,6 @@ export default function AdminSelectionClient({
     // Get unique districts for application filter dropdown
     const applicationDistricts = Array.from(new Set(applications.map(app => app.district).filter(Boolean))).sort();
 
-    // Export current page as CSV
     const handleExport = () => {
         if (!applications || applications.length === 0) {
             toast({
@@ -133,15 +133,6 @@ export default function AdminSelectionClient({
         const appsToExport = applications;
         const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'District', 'Taluka', 'Village', 'Milk Pouring Point', 'Component', 'Tag Numbers', 'Status', 'Submitted Date'];
 
-        const escapeCell = (value: any) => {
-            if (value === null || value === undefined) return '';
-            const str = String(value);
-            if (/["\n,]/.test(str)) {
-                return `"${str.replace(/"/g, '""')}"`;
-            }
-            return str;
-        };
-
         const rows = appsToExport.map((a) => {
             let tagNumbers = 'N/A';
             if (a.dairyAnimalData) {
@@ -152,26 +143,35 @@ export default function AdminSelectionClient({
                 }
             }
 
-            return [
-                a.realApplicationId,
-                a.applicantName,
-                a.aadharNumber || '',
-                a.mobile || '',
-                a.district || '',
-                a.taluka || '',
-                a.village || '',
-                a.milkPouringPoint || '',
-                a.component || '',
-                tagNumbers,
-                a.status,
-                a.submittedDate || '',
-            ];
+            return {
+                'Application ID': a.realApplicationId,
+                'Applicant': a.applicantName,
+                'Aadhar Number': a.aadharNumber || '',
+                'Mobile': a.mobile || '',
+                'District': a.district || '',
+                'Taluka': a.taluka || '',
+                'Village': a.village || '',
+                'Milk Pouring Point': a.milkPouringPoint || '',
+                'Component': a.component || '',
+                'Tag Numbers': tagNumbers,
+                'Status': a.status,
+                'Submitted Date': a.submittedDate || '',
+            };
         });
 
-        const csvContent = [headers.map(escapeCell).join(','), ...rows.map(r => r.map(escapeCell).join(','))].join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
+        const worksheet = XLSX.utils.json_to_sheet(rows, { header: headers });
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Applications');
+
+        const colWidths = headers.map((h, i) => {
+            const maxDataLength = rows.reduce((max, row) => {
+                const value = String(row[h as keyof typeof row] || '');
+                return Math.max(max, value.length);
+            }, 0);
+            return { wch: Math.max(h.length, maxDataLength, 15) + 2 };
+        });
+        worksheet['!cols'] = colWidths;
+
         const date = new Date().toISOString().split('T')[0];
         const parts: string[] = [];
         if (applicationStatusFilter && applicationStatusFilter !== 'all') parts.push(applicationStatusFilter);
@@ -179,12 +179,7 @@ export default function AdminSelectionClient({
         if (searchQuery) parts.push(`q-${searchQuery.replace(/\s+/g, '_')}`);
         const suffix = parts.length ? `-${parts.join('-')}` : '';
 
-        link.href = url;
-        link.download = `admin-applications${suffix}-${date}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
+        XLSX.writeFile(workbook, `admin-applications${suffix}-${date}.xlsx`);
 
         toast({
             title: "Export started",
@@ -192,7 +187,6 @@ export default function AdminSelectionClient({
         });
     };
 
-    // Export ALL applications with current filters
     const handleExportAll = async () => {
         toast({
             title: "Export started",
@@ -256,15 +250,6 @@ export default function AdminSelectionClient({
 
             const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'District', 'Taluka', 'Village', 'Milk Pouring Point', 'Component', 'Tag Numbers', 'Status', 'Submitted Date'];
 
-            const escapeCell = (value: any) => {
-                if (value === null || value === undefined) return '';
-                const str = String(value);
-                if (/["\n,]/.test(str)) {
-                    return `"${str.replace(/"/g, '""')}"`;
-                }
-                return str;
-            };
-
             const rows = allApplications.map((a: any) => {
                 let tagNumbers = 'N/A';
                 if (a.dairyAnimalData) {
@@ -275,34 +260,38 @@ export default function AdminSelectionClient({
                     }
                 }
 
-                return [
-                    a.realApplicationId,
-                    a.applicantName,
-                    a.aadharNumber || '',
-                    a.mobile || '',
-                    a.district || '',
-                    a.taluka || '',
-                    a.village || '',
-                    a.milkPouringPoint || '',
-                    a.component || '',
-                    tagNumbers,
-                    a.status || '',
-                    a.submittedDate || '',
-                ];
+                return {
+                    'Application ID': a.realApplicationId,
+                    'Applicant': a.applicantName,
+                    'Aadhar Number': a.aadharNumber || '',
+                    'Mobile': a.mobile || '',
+                    'District': a.district || '',
+                    'Taluka': a.taluka || '',
+                    'Village': a.village || '',
+                    'Milk Pouring Point': a.milkPouringPoint || '',
+                    'Component': a.component || '',
+                    'Tag Numbers': tagNumbers,
+                    'Status': a.status || '',
+                    'Submitted Date': a.submittedDate || '',
+                };
             });
 
-            const csvContent = [headers.map(escapeCell).join(','), ...rows.map((r: any) => r.map(escapeCell).join(','))].join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
+            const worksheet = XLSX.utils.json_to_sheet(rows, { header: headers });
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Applications');
+
+            const colWidths = headers.map((h, i) => {
+                const maxDataLength = rows.reduce((max: number, row: any) => {
+                    const value = String(row[h as keyof typeof row] || '');
+                    return Math.max(max, value.length);
+                }, 0);
+                return { wch: Math.max(h.length, maxDataLength, 15) + 2 };
+            });
+            worksheet['!cols'] = colWidths;
+
             const date = new Date().toISOString().split('T')[0];
             const statusPart = applicationStatusFilter && applicationStatusFilter !== 'all' ? `-${applicationStatusFilter}` : '';
-            link.href = url;
-            link.download = `admin-all-applications${statusPart}-${date}.csv`;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            URL.revokeObjectURL(url);
+            XLSX.writeFile(workbook, `admin-all-applications${statusPart}-${date}.xlsx`);
 
             toast({
                 title: "Export completed",
@@ -318,7 +307,6 @@ export default function AdminSelectionClient({
         }
     };
 
-    // Update URL with filters
     const updateFilters = (updates: Record<string, string>) => {
         const params = new URLSearchParams(window.location.search);
 
