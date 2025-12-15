@@ -131,19 +131,39 @@ export default function AdminSelectionClient({
         }
 
         const appsToExport = applications;
-        const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'District', 'Taluka', 'Village', 'Milk Pouring Point', 'Component', 'Tag Numbers', 'Status', 'Submitted Date'];
 
-        const rows = appsToExport.map((a) => {
-            let tagNumbers = 'N/A';
+        let maxComponents = 1;
+        let maxTagNumbers = 1;
+        appsToExport.forEach((a) => {
+            const components = (a.component || '').split(',').map(c => c.trim()).filter(c => c);
+            maxComponents = Math.max(maxComponents, components.length);
+
             if (a.dairyAnimalData) {
                 const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
                 if (Array.isArray(tagNumberArray)) {
                     const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
-                    tagNumbers = validTags.length > 0 ? validTags.join(', ') : 'N/A';
+                    maxTagNumbers = Math.max(maxTagNumbers, validTags.length);
+                }
+            }
+        });
+
+        const baseHeaders = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'District', 'Taluka', 'Village', 'Milk Pouring Point'];
+        const componentHeaders = Array.from({ length: maxComponents }, (_, i) => `Component ${i + 1}`);
+        const tagHeaders = Array.from({ length: maxTagNumbers }, (_, i) => `Tag Number ${i + 1}`);
+        const endHeaders = ['Status', 'Submitted Date'];
+        const headers = [...baseHeaders, ...componentHeaders, ...tagHeaders, ...endHeaders];
+
+        const rows = appsToExport.map((a) => {
+            const components = (a.component || '').split(',').map(c => c.trim()).filter(c => c);
+            let tagNumbers: string[] = [];
+            if (a.dairyAnimalData) {
+                const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
+                if (Array.isArray(tagNumberArray)) {
+                    tagNumbers = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
                 }
             }
 
-            return {
+            const row: Record<string, string> = {
                 'Application ID': a.realApplicationId,
                 'Applicant': a.applicantName,
                 'Aadhar Number': a.aadharNumber || '',
@@ -152,11 +172,19 @@ export default function AdminSelectionClient({
                 'Taluka': a.taluka || '',
                 'Village': a.village || '',
                 'Milk Pouring Point': a.milkPouringPoint || '',
-                'Component': a.component || '',
-                'Tag Numbers': tagNumbers,
                 'Status': a.status,
                 'Submitted Date': a.submittedDate || '',
             };
+
+            for (let i = 0; i < maxComponents; i++) {
+                row[`Component ${i + 1}`] = components[i] || '';
+            }
+
+            for (let i = 0; i < maxTagNumbers; i++) {
+                row[`Tag Number ${i + 1}`] = tagNumbers[i] || '';
+            }
+
+            return row;
         });
 
         const worksheet = XLSX.utils.json_to_sheet(rows, { header: headers });
@@ -248,19 +276,38 @@ export default function AdminSelectionClient({
                 return;
             }
 
-            const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'District', 'Taluka', 'Village', 'Milk Pouring Point', 'Component', 'Tag Numbers', 'Status', 'Submitted Date'];
+            let maxComponents = 1;
+            let maxTagNumbers = 1;
+            allApplications.forEach((a: any) => {
+                const components = (a.component || '').split(',').map((c: string) => c.trim()).filter((c: string) => c);
+                maxComponents = Math.max(maxComponents, components.length);
 
-            const rows = allApplications.map((a: any) => {
-                let tagNumbers = 'N/A';
                 if (a.dairyAnimalData) {
                     const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
                     if (Array.isArray(tagNumberArray)) {
                         const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
-                        tagNumbers = validTags.length > 0 ? validTags.join(', ') : 'N/A';
+                        maxTagNumbers = Math.max(maxTagNumbers, validTags.length);
+                    }
+                }
+            });
+
+            const baseHeaders = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'District', 'Taluka', 'Village', 'Milk Pouring Point'];
+            const componentHeaders = Array.from({ length: maxComponents }, (_, i) => `Component ${i + 1}`);
+            const tagHeaders = Array.from({ length: maxTagNumbers }, (_, i) => `Tag Number ${i + 1}`);
+            const endHeaders = ['Status', 'Submitted Date'];
+            const headers = [...baseHeaders, ...componentHeaders, ...tagHeaders, ...endHeaders];
+
+            const rows = allApplications.map((a: any) => {
+                const components = (a.component || '').split(',').map((c: string) => c.trim()).filter((c: string) => c);
+                let tagNumbers: string[] = [];
+                if (a.dairyAnimalData) {
+                    const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
+                    if (Array.isArray(tagNumberArray)) {
+                        tagNumbers = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
                     }
                 }
 
-                return {
+                const row: Record<string, string> = {
                     'Application ID': a.realApplicationId,
                     'Applicant': a.applicantName,
                     'Aadhar Number': a.aadharNumber || '',
@@ -269,11 +316,19 @@ export default function AdminSelectionClient({
                     'Taluka': a.taluka || '',
                     'Village': a.village || '',
                     'Milk Pouring Point': a.milkPouringPoint || '',
-                    'Component': a.component || '',
-                    'Tag Numbers': tagNumbers,
                     'Status': a.status || '',
                     'Submitted Date': a.submittedDate || '',
                 };
+
+                for (let i = 0; i < maxComponents; i++) {
+                    row[`Component ${i + 1}`] = components[i] || '';
+                }
+
+                for (let i = 0; i < maxTagNumbers; i++) {
+                    row[`Tag Number ${i + 1}`] = tagNumbers[i] || '';
+                }
+
+                return row;
             });
 
             const worksheet = XLSX.utils.json_to_sheet(rows, { header: headers });
