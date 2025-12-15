@@ -98,7 +98,11 @@ export default function DDCollectionForm({
                 });
 
                 if (uploadedFile?.file_url) {
-                    setDdFormData((prev) => ({ ...prev, ddImage: uploadedFile.file_url }));
+                    const baseUrl = process.env.NEXT_PUBLIC_FRAPPE_BASE_URL || '';
+                    const fullImageUrl = uploadedFile.file_url.startsWith('http')
+                        ? uploadedFile.file_url
+                        : `${baseUrl}${uploadedFile.file_url}`;
+                    setDdFormData((prev) => ({ ...prev, ddImage: fullImageUrl }));
                     toast({
                         title: "Image uploaded",
                         description: "DD image has been uploaded successfully",
@@ -409,22 +413,27 @@ export default function DDCollectionForm({
                                     </div>
                                 ) : ddFormData.ddImage ? (
                                     <div className="space-y-4">
-                                        <img
-                                            src={ddFormData.ddImage}
-                                            alt="DD Preview"
-                                            className="max-h-48 mx-auto rounded-lg border"
-                                            data-testid="img-dd-preview"
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={removeImage}
-                                            data-testid="button-remove-image"
-                                        >
-                                            <X className="h-4 w-4 mr-1" />
-                                            Remove Image
-                                        </Button>
+                                        <div className="flex items-center justify-center gap-3 py-6">
+                                            <div className="p-3 rounded-full bg-green-500/10">
+                                                <Check className="h-8 w-8 text-green-500" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="font-medium text-green-600 dark:text-green-400">DD Image Uploaded Successfully</p>
+                                                <p className="text-xs text-muted-foreground break-all mt-1">{ddFormData.ddImage}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-center">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={removeImage}
+                                                data-testid="button-remove-image"
+                                            >
+                                                <X className="h-4 w-4 mr-1" />
+                                                Remove Image
+                                            </Button>
+                                        </div>
                                     </div>
                                 ) : (
                                     <label htmlFor="ddImage" className="cursor-pointer block">
