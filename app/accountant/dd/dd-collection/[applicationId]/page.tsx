@@ -9,6 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
     ArrowLeft,
@@ -57,6 +64,7 @@ export default function DDCollectionForm({
     );
 
     const [ddFormData, setDdFormData] = useState({
+        animalType: "",
         ddNumber: "",
         ddDate: "",
         bankName: "",
@@ -127,6 +135,7 @@ export default function DDCollectionForm({
 
     const isFormValid = () => {
         return (
+            ddFormData.animalType !== "" &&
             ddFormData.ddNumber.trim() !== "" &&
             ddFormData.ddDate !== "" &&
             ddFormData.bankName !== "" &&
@@ -148,6 +157,7 @@ export default function DDCollectionForm({
         try {
             const response = await submitDD({
                 app_form: applicationId,
+                animal_type: ddFormData.animalType,
                 dd_number: ddFormData.ddNumber,
                 dd_date: ddFormData.ddDate,
                 amount: application?.amount || ddFormData.amount,
@@ -345,6 +355,22 @@ export default function DDCollectionForm({
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="animalType">Type of Animal *</Label>
+                                <Select
+                                    value={ddFormData.animalType}
+                                    onValueChange={(value) => setDdFormData({ ...ddFormData, animalType: value })}
+                                >
+                                    <SelectTrigger id="animalType" data-testid="select-animal-type">
+                                        <SelectValue placeholder="Select animal type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Desi Cow">Desi Cow</SelectItem>
+                                        <SelectItem value="CrossBreed">CrossBreed</SelectItem>
+                                        <SelectItem value="Buffalo">Buffalo</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <div className="space-y-2">
                                 <Label htmlFor="ddNumber">DD Number *</Label>
                                 <Input
