@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { frappeBrowser } from "@/lib/frappe";
 import { useFrappeGetCall } from "frappe-react-sdk";
+import DDFilters from "@/components/DDFilters";
 
 interface DDApplication {
     name: string;
@@ -35,12 +36,28 @@ export default function DDCollection() {
     const [ddCompletedApplications, setddCompletedApplications] = useState<DDApplication[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'approved');
-    const [approvedSearchAadhaar, setApprovedSearchAadhaar] = useState('');
-    const [selectedSearchAadhaar, setSelectedSearchAadhaar] = useState('');
+
+    // Filter states for Selected Applications tab
+    const [approvedFilters, setApprovedFilters] = useState({
+        aadhaar: '',
+        district: '',
+        taluka: '',
+        village: ''
+    });
+
+    // Filter states for Collected DDs tab
+    const [collectedFilters, setCollectedFilters] = useState({
+        aadhaar: '',
+        district: '',
+        taluka: '',
+        village: ''
+    });
 
     // Pagination states
-    const [approvedPage, setApprovedPage] = useState(1);
-    const [selectedPage, setSelectedPage] = useState(1);
+    const initialApprovedPage = Number(searchParams.get('approvedPage') || searchParams.get('page') || 1);
+    const initialSelectedPage = Number(searchParams.get('collectedPage') || searchParams.get('page') || 1);
+    const [approvedPage, setApprovedPage] = useState(initialApprovedPage);
+    const [selectedPage, setSelectedPage] = useState(initialSelectedPage);
     const [approvedTotal, setApprovedTotal] = useState(0);
     const [selectedTotal, setSelectedTotal] = useState(0);
     const pageSize = 20;
@@ -56,14 +73,24 @@ export default function DDCollection() {
                 limit_page_length: pageSize,
             };
 
-            if (approvedSearchAadhaar && approvedSearchAadhaar.trim()) {
-                params.aadhar_number = approvedSearchAadhaar.trim();
+            // Add all filter parameters
+            if (approvedFilters.aadhaar && approvedFilters.aadhaar.trim()) {
+                params.aadhar_number = approvedFilters.aadhaar.trim();
+            }
+            if (approvedFilters.district && approvedFilters.district.trim()) {
+                params.district = approvedFilters.district.trim();
+            }
+            if (approvedFilters.taluka && approvedFilters.taluka.trim()) {
+                params.Taluka = approvedFilters.taluka.trim();
+            }
+            if (approvedFilters.village && approvedFilters.village.trim()) {
+                params.Village = approvedFilters.village.trim();
             }
 
             const response = await frappeBrowser.call().get('vmddp_app.api.v1.accountant.dd_applications', params);
             const data = response?.message || [];
             setselectedApplications(data);
-            setApprovedTotal(data.length); // You might want to get total count from API
+            setApprovedTotal(data.length);
         } catch (error) {
             console.error('Error fetching approved applications:', error);
             setselectedApplications([]);
@@ -82,8 +109,18 @@ export default function DDCollection() {
                 limit_page_length: pageSize,
             };
 
-            if (selectedSearchAadhaar && selectedSearchAadhaar.trim()) {
-                params.aadhar_number = selectedSearchAadhaar.trim();
+            // Add all filter parameters
+            if (collectedFilters.aadhaar && collectedFilters.aadhaar.trim()) {
+                params.aadhar_number = collectedFilters.aadhaar.trim();
+            }
+            if (collectedFilters.district && collectedFilters.district.trim()) {
+                params.district = collectedFilters.district.trim();
+            }
+            if (collectedFilters.taluka && collectedFilters.taluka.trim()) {
+                params.Taluka = collectedFilters.taluka.trim();
+            }
+            if (collectedFilters.village && collectedFilters.village.trim()) {
+                params.Village = collectedFilters.village.trim();
             }
 
             const response = await frappeBrowser.call().get('vmddp_app.api.v1.accountant.dd_applications', params);
@@ -98,14 +135,41 @@ export default function DDCollection() {
         }
     };
 
-    // Fetch data when tab or pagination changes
+    // Fetch data when tab, pagination, or filters change
     useEffect(() => {
         if (activeTab === 'approved') {
             fetchselectedApplications();
         } else {
             fetchddCompletedApplications();
         }
-    }, [activeTab, approvedPage, selectedPage]);
+    }, [activeTab, approvedPage, selectedPage, approvedFilters, collectedFilters]);
+
+    // Keep page numbers in the URL so refresh preserves the current page
+    useEffect(() => {
+        try {
+            const params = new URLSearchParams(searchParams.toString());
+            // ensure tab is preserved
+            params.set('tab', activeTab);
+
+            if (approvedPage && approvedPage > 1) {
+                params.set('approvedPage', String(approvedPage));
+            } else {
+                params.delete('approvedPage');
+            }
+
+            if (selectedPage && selectedPage > 1) {
+                params.set('collectedPage', String(selectedPage));
+            } else {
+                params.delete('collectedPage');
+            }
+
+            const query = params.toString();
+            // Use replace to avoid adding history entries on every change
+            router.replace(query ? `?${query}` : `/accountant/dd`);
+        } catch (err) {
+            console.error('Error syncing page params to URL', err);
+        }
+    }, [approvedPage, selectedPage, activeTab]);
 
     const handleSelectApplication = (app: DDApplication) => {
         router.push(`/accountant/dd/dd-collection/${encodeURIComponent(app.name)}`);
@@ -118,14 +182,14 @@ export default function DDCollection() {
         router.push(`?${params.toString()}`);
     };
 
-    const handleApprovedSearch = () => {
-        setApprovedPage(1); // Reset to first page on search
-        fetchselectedApplications();
+    const handleApprovedFilterChange = (filters: { aadhaar: string; district: string; taluka: string; village: string }) => {
+        setApprovedPage(1); // Reset to first page on filter change
+        setApprovedFilters(filters);
     };
 
-    const handleSelectedSearch = () => {
-        setSelectedPage(1); // Reset to first page on search
-        fetchddCompletedApplications();
+    const handleCollectedFilterChange = (filters: { aadhaar: string; district: string; taluka: string; village: string }) => {
+        setSelectedPage(1); // Reset to first page on filter change
+        setCollectedFilters(filters);
     };
 
     const getFullName = (app: DDApplication) => {
@@ -249,47 +313,22 @@ export default function DDCollection() {
 
                     {/* Tab 1:  Applications */}
                     <TabsContent value="approved" className="space-y-4">
+                        {/* Filters Section */}
+                        <DDFilters
+                            onFilterChange={handleApprovedFilterChange}
+                            initialFilters={approvedFilters}
+                        />
+
                         <Card data-testid="card-approved-search">
                             <CardHeader className="pb-4">
-                                <div className="flex items-center justify-between gap-4">
-                                    <div>
-                                        <CardTitle className="flex items-center gap-2">
-                                            <ClipboardList className="h-5 w-5" />
-                                            Selected Applications Awaiting DD Collection
-                                        </CardTitle>
-                                        <CardDescription>
-                                            {selectedApplications.length} selected applications pending DD collection
-                                        </CardDescription>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="relative">
-                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            <Input
-                                                placeholder="Search by Aadhaar..."
-                                                value={approvedSearchAadhaar}
-                                                onChange={(e) => setApprovedSearchAadhaar(e.target.value.replace(/\D/g, "").slice(0, 12))}
-                                                onKeyDown={(e) => e.key === 'Enter' && handleApprovedSearch()}
-                                                className="pl-9 w-60"
-                                                data-testid="input-approved-aadhaar-search"
-                                            />
-                                        </div>
-                                        <Button onClick={handleApprovedSearch} size="sm">
-                                            Search
-                                        </Button>
-                                        {approvedSearchAadhaar && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => {
-                                                    setApprovedSearchAadhaar("");
-                                                    setApprovedPage(1);
-                                                }}
-                                                data-testid="button-clear-approved-search"
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </Button>
-                                        )}
-                                    </div>
+                                <div>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <ClipboardList className="h-5 w-5" />
+                                        Selected Applications Awaiting DD Collection
+                                    </CardTitle>
+                                    <CardDescription>
+                                        {selectedApplications.length} selected applications pending DD collection
+                                    </CardDescription>
                                 </div>
                             </CardHeader>
                             <CardContent >
@@ -350,8 +389,8 @@ export default function DDCollection() {
                                                     {selectedApplications.length === 0 && (
                                                         <TableRow>
                                                             <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                                                {approvedSearchAadhaar
-                                                                    ? `No applications found for Aadhaar "${approvedSearchAadhaar}"`
+                                                                {(approvedFilters.aadhaar || approvedFilters.district || approvedFilters.taluka || approvedFilters.village)
+                                                                    ? "No applications found matching the selected filters"
                                                                     : "No approved applications pending DD collection"
                                                                 }
                                                             </TableCell>
@@ -397,44 +436,19 @@ export default function DDCollection() {
 
                     {/* Tab 2: Collected DDs */}
                     <TabsContent value="collected" className="space-y-4">
+                        {/* Filters Section */}
+                        <DDFilters
+                            onFilterChange={handleCollectedFilterChange}
+                            initialFilters={collectedFilters}
+                        />
+
                         <Card data-testid="card-dd-list">
                             <CardHeader className="pb-4">
-                                <div className="flex items-center justify-between gap-4">
-                                    <div>
-                                        <CardTitle>Collected DDs</CardTitle>
-                                        <CardDescription>
-                                            {ddCompletedApplications.length} collected demand drafts (Selected applications)
-                                        </CardDescription>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="relative">
-                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            <Input
-                                                placeholder="Search by Aadhaar..."
-                                                value={selectedSearchAadhaar}
-                                                onChange={(e) => setSelectedSearchAadhaar(e.target.value.replace(/\D/g, "").slice(0, 12))}
-                                                onKeyDown={(e) => e.key === 'Enter' && handleSelectedSearch()}
-                                                className="pl-9 w-60"
-                                                data-testid="input-selected-aadhaar-search"
-                                            />
-                                        </div>
-                                        <Button onClick={handleSelectedSearch} size="sm">
-                                            Search
-                                        </Button>
-                                        {selectedSearchAadhaar && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => {
-                                                    setSelectedSearchAadhaar("");
-                                                    setSelectedPage(1);
-                                                }}
-                                                data-testid="button-clear-selected-search"
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </Button>
-                                        )}
-                                    </div>
+                                <div>
+                                    <CardTitle>Collected DDs</CardTitle>
+                                    <CardDescription>
+                                        {ddCompletedApplications.length} collected demand drafts (Selected applications)
+                                    </CardDescription>
                                 </div>
                             </CardHeader>
                             <CardContent>
@@ -484,8 +498,8 @@ export default function DDCollection() {
                                                     {ddCompletedApplications.length === 0 && (
                                                         <TableRow>
                                                             <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                                                {selectedSearchAadhaar
-                                                                    ? `No collected DDs found for Aadhaar "${selectedSearchAadhaar}"`
+                                                                {(collectedFilters.aadhaar || collectedFilters.district || collectedFilters.taluka || collectedFilters.village)
+                                                                    ? "No collected DDs found matching the selected filters"
                                                                     : "No collected DD entries found"
                                                                 }
                                                             </TableCell>
