@@ -156,7 +156,7 @@ export default function AdminSelectionClient({
         const componentHeaders = COMPONENT_ORDER.map((name, i) => `Component ${i + 1}`);
         const tagHeaders = Array.from({ length: maxTagNumbers }, (_, i) => `Tag Number ${i + 1}`);
         const endHeaders = ['Status', 'Submitted Date'];
-        const headers = [...baseHeaders, ...componentHeaders, ...tagHeaders, ...endHeaders];
+        const headers = [...baseHeaders, ...componentHeaders, 'Status', ...tagHeaders, ...endHeaders];
 
         const rows = appsToExport.map((a) => {
             const componentsArr = (a.component || '').split(',').map(c => c.trim()).filter(c => c);
@@ -178,14 +178,13 @@ export default function AdminSelectionClient({
                 'Taluka': a.taluka || '',
                 'Village': a.village || '',
                 'Milk Pouring Point': a.milkPouringPoint || '',
-                'Status': a.status,
                 'Submitted Date': a.submittedDate || '',
             };
 
             for (let i = 0; i < COMPONENT_ORDER.length; i++) {
                 row[`Component ${i + 1}`] = componentsInOrder[i] || '';
             }
-
+            row['Status'] = a.status;
             for (let i = 0; i < maxTagNumbers; i++) {
                 row[`Tag Number ${i + 1}`] = tagNumbers[i] || '';
             }
@@ -297,8 +296,8 @@ export default function AdminSelectionClient({
             const baseHeaders = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'District', 'Taluka', 'Village', 'Milk Pouring Point'];
             const componentHeaders = COMPONENT_ORDER.map((name, i) => `Component ${i + 1}`);
             const tagHeaders = Array.from({ length: maxTagNumbers }, (_, i) => `Tag Number ${i + 1}`);
-            const endHeaders = ['Status', 'Submitted Date'];
-            const headers = [...baseHeaders, ...componentHeaders, ...tagHeaders, ...endHeaders];
+            const endHeaders = ['Submitted Date'];
+            const headers = [...baseHeaders, ...componentHeaders,'Status', ...tagHeaders, ...endHeaders];
 
             const rows = allApplications.map((a: any) => {
                 const componentsArr = (a.component || '').split(',').map((c: string) => c.trim()).filter((c: string) => c);
