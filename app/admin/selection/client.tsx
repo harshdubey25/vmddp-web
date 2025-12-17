@@ -141,7 +141,6 @@ export default function AdminSelectionClient({
 
         const appsToExport = applications;
 
-        let maxComponents = COMPONENT_ORDER.length;
         let maxTagNumbers = 1;
         appsToExport.forEach((a) => {
             if (a.dairyAnimalData) {
