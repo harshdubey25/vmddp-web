@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Users, CheckCircle, Clock, XCircle, UserCheck } from "lucide-react";
 import { motion, useInView } from "framer-motion";
 import { useTranslation } from 'react-i18next';
+import QRCodeScanner from "./QRCodeScanner";
 
 interface StatCardProps {
   icon: React.ReactNode;
@@ -77,7 +78,7 @@ export default function StatsCounter({ data }: { data: { approved: number; rejec
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section className="py-8 sm:py-12 lg:py-16 bg-muted/30" ref={ref}>
+    <section className="py-8 sm:py-12 lg:py-16 bg-muted/30 relative" ref={ref}>     
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -85,6 +86,9 @@ export default function StatsCounter({ data }: { data: { approved: number; rejec
           transition={{ duration: 0.6 }}
           className="text-center mb-6 sm:mb-8 lg:mb-10"
         >
+          <div className="flex justify-start mb-2 sm:mb-3">
+            <QRCodeScanner />
+          </div>
           <h2 className="font-display font-semibold text-xl sm:text-2xl lg:text-3xl mb-2 sm:mb-3" data-testid="text-stats-title">
             {t('stats_title')}
           </h2>

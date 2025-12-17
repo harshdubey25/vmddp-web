@@ -12,7 +12,7 @@ export default function QRCodeScanner() {
         <>
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed left-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-primary hover:bg-primary/90 shadow-lg transition-all duration-300 flex items-center justify-center group hover:w-14 hover:h-14"
+                className="w-12 h-12 rounded-full bg-primary hover:bg-primary/90 shadow-lg transition-all duration-300 flex items-center justify-center group hover:w-14 hover:h-14"
                 aria-label="Open QR Scanner"
             >
                 <Scan className="w-6 h-6 text-primary-foreground" />

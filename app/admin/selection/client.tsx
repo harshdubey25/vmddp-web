@@ -53,6 +53,7 @@ interface ApplicationSelectionItem {
     status: "Approved" | "Selected";
     submittedDate: string;
     aadharNumber?: string;
+    mobile_no?: number;
     taluka?: string;
     milkPouringPoint?: string;
     dairyAnimalData?: {
@@ -415,7 +416,6 @@ export default function AdminSelectionClient({
                 };
             });
 
-            // Only include status === "Selected"
             const selectedApps = allApplications.filter((a: any) => a.status === "Selected");
 
             if (!selectedApps || selectedApps.length === 0) {
@@ -431,12 +431,12 @@ export default function AdminSelectionClient({
             const tableColumn = [
                 "Date",
                 "Application ID",
-                "Applicant",
+                "Name",
                 "District",
                 "Taluka",
                 "Village",
                 "Component",
-                "Status"
+                "Phone Number"
             ];
             const tableRows = selectedApps.map((app: ApplicationSelectionItem) => [
                 app.submittedDate === 'Unknown'
@@ -448,7 +448,7 @@ export default function AdminSelectionClient({
                 app.taluka || 'N/A',
                 app.village || 'N/A',
                 app.component,
-                app.status
+                app.mobile || 'N/A'
             ]);
 
             autoTable(doc, {
