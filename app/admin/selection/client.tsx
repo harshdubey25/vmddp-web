@@ -58,6 +58,15 @@ interface ApplicationSelectionItem {
     };
 }
 
+const COMPONENT_ORDER = [
+    "Animal Induction",
+    "HGM (Pregnant cow)",
+    "Fertility Feed",
+    "SNF Enhancer",
+    "Fodder Seed",
+    "Supply Chaff Cutter",
+    "Supply Of Silage",
+];
 interface AdminSelectionClientProps {
     applications: ApplicationSelectionItem[];
     stats: {
@@ -132,12 +141,9 @@ export default function AdminSelectionClient({
 
         const appsToExport = applications;
 
-        let maxComponents = 1;
+        let maxComponents = COMPONENT_ORDER.length;
         let maxTagNumbers = 1;
         appsToExport.forEach((a) => {
-            const components = (a.component || '').split(',').map(c => c.trim()).filter(c => c);
-            maxComponents = Math.max(maxComponents, components.length);
-
             if (a.dairyAnimalData) {
                 const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
                 if (Array.isArray(tagNumberArray)) {
@@ -148,13 +154,14 @@ export default function AdminSelectionClient({
         });
 
         const baseHeaders = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'District', 'Taluka', 'Village', 'Milk Pouring Point'];
-        const componentHeaders = Array.from({ length: maxComponents }, (_, i) => `Component ${i + 1}`);
+        const componentHeaders = COMPONENT_ORDER.map((name, i) => `Component ${i + 1}`);
         const tagHeaders = Array.from({ length: maxTagNumbers }, (_, i) => `Tag Number ${i + 1}`);
         const endHeaders = ['Status', 'Submitted Date'];
         const headers = [...baseHeaders, ...componentHeaders, ...tagHeaders, ...endHeaders];
 
         const rows = appsToExport.map((a) => {
-            const components = (a.component || '').split(',').map(c => c.trim()).filter(c => c);
+            const componentsArr = (a.component || '').split(',').map(c => c.trim()).filter(c => c);
+            const componentsInOrder = COMPONENT_ORDER.map(orderName => componentsArr.find((c: string) => c === orderName) || '');
             let tagNumbers: string[] = [];
             if (a.dairyAnimalData) {
                 const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
@@ -176,8 +183,8 @@ export default function AdminSelectionClient({
                 'Submitted Date': a.submittedDate || '',
             };
 
-            for (let i = 0; i < maxComponents; i++) {
-                row[`Component ${i + 1}`] = components[i] || '';
+            for (let i = 0; i < COMPONENT_ORDER.length; i++) {
+                row[`Component ${i + 1}`] = componentsInOrder[i] || '';
             }
 
             for (let i = 0; i < maxTagNumbers; i++) {
@@ -245,7 +252,8 @@ export default function AdminSelectionClient({
             const allApplications = (response.message?.applications || []).map((app: any) => {
                 let component = 'N/A';
                 if (Array.isArray(app.component_list)) {
-                    component = app.component_list.join(', ');
+                    const ordered = COMPONENT_ORDER.map(orderName => app.component_list.find((c: string) => c === orderName)).filter(Boolean);
+                    component = ordered.join(', ');
                 } else if (typeof app.component_list === 'string') {
                     component = app.component_list;
                 }
@@ -276,12 +284,8 @@ export default function AdminSelectionClient({
                 return;
             }
 
-            let maxComponents = 1;
             let maxTagNumbers = 1;
             allApplications.forEach((a: any) => {
-                const components = (a.component || '').split(',').map((c: string) => c.trim()).filter((c: string) => c);
-                maxComponents = Math.max(maxComponents, components.length);
-
                 if (a.dairyAnimalData) {
                     const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
                     if (Array.isArray(tagNumberArray)) {
@@ -292,13 +296,14 @@ export default function AdminSelectionClient({
             });
 
             const baseHeaders = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'District', 'Taluka', 'Village', 'Milk Pouring Point'];
-            const componentHeaders = Array.from({ length: maxComponents }, (_, i) => `Component ${i + 1}`);
+            const componentHeaders = COMPONENT_ORDER.map((name, i) => `Component ${i + 1}`);
             const tagHeaders = Array.from({ length: maxTagNumbers }, (_, i) => `Tag Number ${i + 1}`);
             const endHeaders = ['Status', 'Submitted Date'];
             const headers = [...baseHeaders, ...componentHeaders, ...tagHeaders, ...endHeaders];
 
             const rows = allApplications.map((a: any) => {
-                const components = (a.component || '').split(',').map((c: string) => c.trim()).filter((c: string) => c);
+                const componentsArr = (a.component || '').split(',').map((c: string) => c.trim()).filter((c: string) => c);
+                const componentsInOrder = COMPONENT_ORDER.map(orderName => componentsArr.find((c: string) => c === orderName) || '');
                 let tagNumbers: string[] = [];
                 if (a.dairyAnimalData) {
                     const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
@@ -320,8 +325,8 @@ export default function AdminSelectionClient({
                     'Submitted Date': a.submittedDate || '',
                 };
 
-                for (let i = 0; i < maxComponents; i++) {
-                    row[`Component ${i + 1}`] = components[i] || '';
+                for (let i = 0; i < COMPONENT_ORDER.length; i++) {
+                    row[`Component ${i + 1}`] = componentsInOrder[i] || '';
                 }
 
                 for (let i = 0; i < maxTagNumbers; i++) {
@@ -590,20 +595,24 @@ export default function AdminSelectionClient({
                                                 </AccordionTrigger>
                                                 <AccordionContent>
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
-                                                        {district.components.map((comp) => (
-                                                            <div key={comp.component} className="p-3 border rounded-lg bg-muted/30">
-                                                                <div className="flex items-center gap-2 mb-2">
-                                                                    <Package className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                                                                    <p className="text-xs sm:text-sm font-medium truncate">{comp.component}</p>
+                                                        {COMPONENT_ORDER.map((orderName) => {
+                                                            const comp = district.components.find(c => c.component === orderName);
+                                                            if (!comp) return null;
+                                                            return (
+                                                                <div key={comp.component} className="p-3 border rounded-lg bg-muted/30">
+                                                                    <div className="flex items-center gap-2 mb-2">
+                                                                        <Package className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                                                        <p className="text-xs sm:text-sm font-medium truncate">{comp.component}</p>
+                                                                    </div>
+                                                                    <div className="flex items-center justify-between">
+                                                                        <span className="text-xs text-muted-foreground">Count</span>
+                                                                        <span className="text-base font-semibold text-primary">
+                                                                            {comp.application_count}
+                                                                        </span>
+                                                                    </div>
                                                                 </div>
-                                                                <div className="flex items-center justify-between">
-                                                                    <span className="text-xs text-muted-foreground">Count</span>
-                                                                    <span className="text-base font-semibold text-primary">
-                                                                        {comp.application_count}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        ))}
+                                                            );
+                                                        })}
                                                     </div>
                                                 </AccordionContent>
                                             </AccordionItem>
