@@ -367,59 +367,7 @@ export default function AdminSelectionClient({
         }
     };
 
-    const handleExportPDF = () => {
-        const selectedApps = applications.filter(app => app.status === "Selected");
-        if (!selectedApps || selectedApps.length === 0) {
-            toast({
-                title: "No data",
-                description: "There are no selected applications to export.",
-                variant: "destructive",
-            });
-            return;
-        }
-        const doc = new jsPDF();
-        const tableColumn = [
-            "Date",
-            "Application ID",
-            "Applicant",
-            "District",
-            "Taluka",
-            "Village",
-            "Component",
-            "Status"
-        ];
-        const tableRows = selectedApps.map((app: ApplicationSelectionItem) => [
-            app.submittedDate === 'Unknown'
-                ? 'Unknown'
-                : new Date(app.submittedDate).toLocaleDateString(),
-            app.realApplicationId,
-            app.applicantName,
-            app.district || 'N/A',
-            app.taluka || 'N/A',
-            app.village || 'N/A',
-            app.component,
-            app.status
-        ]);
-        autoTable(doc, {
-            head: [tableColumn],
-            body: tableRows,
-            styles: { fontSize: 8 },
-            headStyles: { fillColor: [22, 160, 133] },
-            margin: { top: 20 },
-        });
-        const date = new Date().toISOString().split('T')[0];
-        const parts: string[] = [];
-        if (districtFilter && districtFilter !== 'all') parts.push(districtFilter.replace(/\s+/g, '_'));
-        if (searchQuery) parts.push(`q-${searchQuery.replace(/\s+/g, '_')}`);
-        const suffix = parts.length ? `-Selected-${parts.join('-')}` : '-Selected';
-        doc.save(`admin-applications${suffix}-${date}.pdf`);
-        toast({
-            title: "PDF Exported",
-            description: `Exported ${selectedApps.length} selected applications from current page as PDF.`,
-        });
-    };
 
-    // Export ALL selected applications as PDF (with current filters)
     const handleExportAllPDF = async () => {
         toast({
             title: "Export started",
@@ -643,11 +591,6 @@ export default function AdminSelectionClient({
                         <Download className="w-3 h-3 sm:w-4 sm:h-4" />
                         <span className="hidden xs:inline">Export All</span>
                         <span className="xs:hidden">All</span>
-                    </Button>
-                    <Button variant="secondary" className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-10" data-testid="button-export-pdf" onClick={handleExportPDF}>
-                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="hidden xs:inline">Export PDF</span>
-                        <span className="xs:hidden">PDF</span>
                     </Button>
                     <Button variant="secondary" className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-10" data-testid="button-export-all-pdf" onClick={handleExportAllPDF}>
                         <Download className="w-3 h-3 sm:w-4 sm:h-4" />
