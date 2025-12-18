@@ -429,7 +429,7 @@ export default function AdminSelectionClient({
 
             const doc = new jsPDF();
             const tableColumn = [
-                "Date",
+                "Application Date",
                 "Application ID",
                 "Name",
                 "District",
@@ -499,14 +499,13 @@ export default function AdminSelectionClient({
         window.location.href = `?${params.toString()}`;
     };
 
-    // Fetch district data from backend API
     useEffect(() => {
         const fetchDistricts = async () => {
             setCountsLoading(true);
             try {
                 const response = await frappeBrowser.call().get('vmddp_app.api.reports.district_selection_status_per_component', {
                     page: currentCountsPage,
-                    limit: 5,
+                    limit: 10,
                     status: statusFilter,
                     district: districtSearchQuery || undefined
                 });
