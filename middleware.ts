@@ -86,7 +86,7 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/subadmin/dashboard", req.url));
       }
       else if (data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
-        return NextResponse.redirect(new URL("/accountant/dashboard", req.url));
+        return NextResponse.redirect(new URL("/accountant/dd", req.url));
       }
     }
     // If validation failed but token exists, allow access to login page
