@@ -121,14 +121,8 @@ export default function AdminSelectionClient({
     const [districts, setDistricts] = useState<DistrictData[]>([]);
     const [countsLoading, setCountsLoading] = useState(false);
     const [districtSearchQuery, setDistrictSearchQuery] = useState("");
-    const [currentCountsPage, setCurrentCountsPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState<"Selected" | "Approved">("Selected");
     const [showAllDistricts, setShowAllDistricts] = useState(false);
-    const [pagination, setPagination] = useState({
-        has_next_page: false,
-        has_previous_page: false,
-        total_records: null as number | null
-    });
 
     // Get unique districts for application filter dropdown
     const applicationDistricts = Array.from(new Set(applications.map(app => app.district).filter(Boolean))).sort();
@@ -505,22 +499,15 @@ export default function AdminSelectionClient({
             setCountsLoading(true);
             try {
                 const response = await frappeBrowser.call().get('vmddp_app.api.reports.district_selection_status_per_component', {
-                    page: currentCountsPage,
-                    limit: 10,
+                    limit: 25,
                     status: statusFilter,
                     district: districtSearchQuery || undefined
                 });
 
                 const data = response?.message || response?.data || response;
                 const districtsData = data?.data || [];
-                const paginationData = data?.pagination || {};
 
                 setDistricts(districtsData);
-                setPagination({
-                    has_next_page: paginationData.has_next_page || false,
-                    has_previous_page: paginationData.has_previous_page || false,
-                    total_records: paginationData.total_records || null
-                });
             } catch (error) {
                 console.error('Error fetching districts:', error);
                 setDistricts([]);
@@ -530,7 +517,7 @@ export default function AdminSelectionClient({
         };
 
         fetchDistricts();
-    }, [currentCountsPage, districtSearchQuery, statusFilter]);
+    }, [districtSearchQuery, statusFilter]);
 
     const filteredApplications = applications;
     const totalPages = paginationData?.total_pages || 1;
@@ -640,12 +627,12 @@ export default function AdminSelectionClient({
                                             {statusFilter === "Selected" ? "Selected" : "Approved"} Applications by District
                                         </CardTitle>
                                         <CardDescription className="text-xs sm:text-sm">
-                                            {countsLoading ? 'Loading...' : pagination.total_records !== null ? `${pagination.total_records} total districts` : `${districts.length} districts found`}
+                                            {countsLoading ? 'Loading...' : `${districts.length} districts found`}
                                         </CardDescription>
                                     </div>
                                     <Select value={statusFilter} onValueChange={(value: any) => {
                                         setStatusFilter(value);
-                                        setCurrentCountsPage(1);
+                                        setShowAllDistricts(false);
                                     }}>
                                         <SelectTrigger className="w-32 h-9 text-xs sm:text-sm">
                                             <SelectValue />
@@ -661,7 +648,7 @@ export default function AdminSelectionClient({
                                         value={districtSearchQuery}
                                         onValueChange={(value) => {
                                             setDistrictSearchQuery(value === "all" ? "" : value);
-                                            setCurrentCountsPage(1);
+                                            setShowAllDistricts(false);
                                         }}
                                     >
                                         <SelectTrigger className="h-9 text-xs sm:text-sm">
@@ -689,7 +676,12 @@ export default function AdminSelectionClient({
                             ) : (
                                 <>
                                     <Accordion type="multiple" className="w-full">
-                                        {(showAllDistricts ? districts : districts.slice(0, 6)).map((district) => (
+                                        {(() => {
+                                            const filteredDistricts = districtSearchQuery
+                                                ? districts.filter(d => d.district_name === districtSearchQuery)
+                                                : districts;
+                                            const displayDistricts = showAllDistricts ? filteredDistricts : filteredDistricts.slice(0, 6);
+                                            return displayDistricts.map((district) => (
                                             <AccordionItem key={district.district_id} value={district.district_id}>
                                                 <AccordionTrigger className="hover:no-underline py-3">
                                                     <div className="flex items-center justify-between w-full pr-4">
@@ -735,56 +727,37 @@ export default function AdminSelectionClient({
                                                     </div>
                                                 </AccordionContent>
                                             </AccordionItem>
-                                        ))}
+                                        ));
+                                        })()}
                                     </Accordion>
 
-                                    {districts.length > 6 && (
-                                        <div className="flex items-center justify-center mt-4 pt-4 border-t">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setShowAllDistricts(!showAllDistricts)}
-                                                className="text-xs sm:text-sm"
-                                            >
-                                                {showAllDistricts ? (
-                                                    <>
-                                                        Show Less Districts
-                                                        <span className="ml-2">↑</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        Show All {districts.length} Districts
-                                                        <span className="ml-2">↓</span>
-                                                    </>
-                                                )}
-                                            </Button>
-                                        </div>
-                                    )}
-
-                                    {/* Pagination for counts */}
-                                    {(pagination.has_next_page || pagination.has_previous_page) && (
-                                        <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setCurrentCountsPage(p => Math.max(1, p - 1))}
-                                                disabled={!pagination.has_previous_page}
-                                            >
-                                                Previous
-                                            </Button>
-                                            <span className="text-sm text-muted-foreground px-3">
-                                                Page {currentCountsPage}
-                                            </span>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setCurrentCountsPage(p => p + 1)}
-                                                disabled={!pagination.has_next_page}
-                                            >
-                                                Next
-                                            </Button>
-                                        </div>
-                                    )}
+                                    {(() => {
+                                        const filteredDistricts = districtSearchQuery
+                                            ? districts.filter(d => d.district_name === districtSearchQuery)
+                                            : districts;
+                                        return filteredDistricts.length > 6 && (
+                                            <div className="flex items-center justify-center mt-4 pt-4 border-t">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setShowAllDistricts(!showAllDistricts)}
+                                                    className="text-xs sm:text-sm"
+                                                >
+                                                    {showAllDistricts ? (
+                                                        <>
+                                                            Show Less Districts
+                                                            <span className="ml-2">↑</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            Show All {filteredDistricts.length} Districts
+                                                            <span className="ml-2">↓</span>
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        );
+                                    })()}
                                 </>
                             )}
                         </CardContent>
