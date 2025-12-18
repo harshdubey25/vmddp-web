@@ -124,8 +124,7 @@ export default function AdminSelectionClient({
     const [statusFilter, setStatusFilter] = useState<"Selected" | "Approved">("Selected");
     const [showAllDistricts, setShowAllDistricts] = useState(false);
 
-    // Get unique districts for application filter dropdown
-    const applicationDistricts = Array.from(new Set(applications.map(app => app.district).filter(Boolean))).sort();
+    const applicationDistricts = Array.from(new Set(districts.map(d => d.district_name).filter(Boolean))).sort();
 
     const handleExport = () => {
         if (!applications || applications.length === 0) {
