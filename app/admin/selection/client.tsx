@@ -294,7 +294,7 @@ export default function AdminSelectionClient({
             const componentHeaders = COMPONENT_ORDER.map((name, i) => `Component ${i + 1}`);
             const tagHeaders = Array.from({ length: maxTagNumbers }, (_, i) => `Tag Number ${i + 1}`);
             const endHeaders = ['Submitted Date'];
-            const headers = [...baseHeaders, ...componentHeaders,'Status', ...tagHeaders, ...endHeaders];
+            const headers = [...baseHeaders, ...componentHeaders, 'Status', ...tagHeaders, ...endHeaders];
 
             const rows = allApplications.map((a: any) => {
                 const componentsArr = (a.component || '').split(',').map((c: string) => c.trim()).filter((c: string) => c);
@@ -421,7 +421,9 @@ export default function AdminSelectionClient({
                 return;
             }
 
-            const doc = new jsPDF();
+            const doc = new jsPDF({
+                orientation: 'landscape',
+            });
             const tableColumn = [
                 "Application Date",
                 "Application ID",
@@ -448,8 +450,26 @@ export default function AdminSelectionClient({
             autoTable(doc, {
                 head: [tableColumn],
                 body: tableRows,
-                styles: { fontSize: 8 },
-                headStyles: { fillColor: [22, 160, 133] },
+                styles: {
+                    fontSize: 8,
+                    cellPadding: 2,
+                    overflow: 'linebreak',
+                },
+                headStyles: {
+                    fillColor: [22, 160, 133],
+                    fontStyle: 'bold',
+                },
+                columnStyles: {
+                    0: { cellWidth: 'auto' },
+                    1: { cellWidth: 'auto' }, 
+                    2: { cellWidth: 'auto' }, 
+                    3: { cellWidth: 'auto' }, 
+                    4: { cellWidth: 'auto' }, 
+                    5: { cellWidth: 'auto' }, 
+                    6: { cellWidth: 'auto', minCellWidth: 30 },
+                    7: { cellWidth: 'auto' },
+                },
+                tableWidth: 'auto',
                 margin: { top: 20 },
             });
 
@@ -681,52 +701,52 @@ export default function AdminSelectionClient({
                                                 : districts;
                                             const displayDistricts = showAllDistricts ? filteredDistricts : filteredDistricts.slice(0, 6);
                                             return displayDistricts.map((district) => (
-                                            <AccordionItem key={district.district_id} value={district.district_id}>
-                                                <AccordionTrigger className="hover:no-underline py-3">
-                                                    <div className="flex items-center justify-between w-full pr-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
-                                                            <div className="text-left">
-                                                                <h3 className="font-semibold text-sm sm:text-base">{district.district_name}</h3>
+                                                <AccordionItem key={district.district_id} value={district.district_id}>
+                                                    <AccordionTrigger className="hover:no-underline py-3">
+                                                        <div className="flex items-center justify-between w-full pr-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+                                                                <div className="text-left">
+                                                                    <h3 className="font-semibold text-sm sm:text-base">{district.district_name}</h3>
+                                                                    <p className="text-xs text-muted-foreground">
+                                                                        District
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="text-lg sm:text-xl font-semibold text-primary">
+                                                                    {district.total_selected_applications}
+                                                                </p>
                                                                 <p className="text-xs text-muted-foreground">
-                                                                    District
+                                                                    {statusFilter === "Selected" ? "selected" : "approved"}
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        <div className="text-right">
-                                                            <p className="text-lg sm:text-xl font-semibold text-primary">
-                                                                {district.total_selected_applications}
-                                                            </p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {statusFilter === "Selected" ? "selected" : "approved"}
-                                                            </p>
+                                                    </AccordionTrigger>
+                                                    <AccordionContent>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+                                                            {COMPONENT_ORDER.map((orderName) => {
+                                                                const comp = district.components.find(c => c.component === orderName);
+                                                                if (!comp) return null;
+                                                                return (
+                                                                    <div key={comp.component} className="p-3 border rounded-lg bg-muted/30">
+                                                                        <div className="flex items-center gap-2 mb-2">
+                                                                            <Package className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                                                            <p className="text-xs sm:text-sm font-medium truncate">{comp.component}</p>
+                                                                        </div>
+                                                                        <div className="flex items-center justify-between">
+                                                                            <span className="text-xs text-muted-foreground">Count</span>
+                                                                            <span className="text-base font-semibold text-primary">
+                                                                                {comp.application_count}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
                                                         </div>
-                                                    </div>
-                                                </AccordionTrigger>
-                                                <AccordionContent>
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
-                                                        {COMPONENT_ORDER.map((orderName) => {
-                                                            const comp = district.components.find(c => c.component === orderName);
-                                                            if (!comp) return null;
-                                                            return (
-                                                                <div key={comp.component} className="p-3 border rounded-lg bg-muted/30">
-                                                                    <div className="flex items-center gap-2 mb-2">
-                                                                        <Package className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                                                                        <p className="text-xs sm:text-sm font-medium truncate">{comp.component}</p>
-                                                                    </div>
-                                                                    <div className="flex items-center justify-between">
-                                                                        <span className="text-xs text-muted-foreground">Count</span>
-                                                                        <span className="text-base font-semibold text-primary">
-                                                                            {comp.application_count}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </AccordionContent>
-                                            </AccordionItem>
-                                        ));
+                                                    </AccordionContent>
+                                                </AccordionItem>
+                                            ));
                                         })()}
                                     </Accordion>
 
@@ -767,7 +787,7 @@ export default function AdminSelectionClient({
                         <CardHeader className="p-3 sm:p-4 md:p-6">
                             <div className="flex flex-col md:flex-row gap-2 sm:gap-4 items-start md:items-center justify-between">
                                 <div>
-                                    <CardTitle className="text-base sm:text-lg md:text-xl">Approved Applications (FIFO Order)</CardTitle>
+                                    <CardTitle className="text-base sm:text-lg md:text-xl">Applications (FIFO Order)</CardTitle>
                                     <CardDescription className="text-xs sm:text-sm">
                                         {totalItems} applications • Page {currentPage} of {totalPages}
                                     </CardDescription>
