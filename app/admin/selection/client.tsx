@@ -123,6 +123,7 @@ export default function AdminSelectionClient({
     const [districtSearchQuery, setDistrictSearchQuery] = useState("");
     const [currentCountsPage, setCurrentCountsPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState<"Selected" | "Approved">("Selected");
+    const [showAllDistricts, setShowAllDistricts] = useState(false);
     const [pagination, setPagination] = useState({
         has_next_page: false,
         has_previous_page: false,
@@ -688,7 +689,7 @@ export default function AdminSelectionClient({
                             ) : (
                                 <>
                                     <Accordion type="multiple" className="w-full">
-                                        {districts.map((district) => (
+                                        {(showAllDistricts ? districts : districts.slice(0, 6)).map((district) => (
                                             <AccordionItem key={district.district_id} value={district.district_id}>
                                                 <AccordionTrigger className="hover:no-underline py-3">
                                                     <div className="flex items-center justify-between w-full pr-4">
@@ -736,6 +737,29 @@ export default function AdminSelectionClient({
                                             </AccordionItem>
                                         ))}
                                     </Accordion>
+
+                                    {districts.length > 6 && (
+                                        <div className="flex items-center justify-center mt-4 pt-4 border-t">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setShowAllDistricts(!showAllDistricts)}
+                                                className="text-xs sm:text-sm"
+                                            >
+                                                {showAllDistricts ? (
+                                                    <>
+                                                        Show Less Districts
+                                                        <span className="ml-2">↑</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        Show All {districts.length} Districts
+                                                        <span className="ml-2">↓</span>
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+                                    )}
 
                                     {/* Pagination for counts */}
                                     {(pagination.has_next_page || pagination.has_previous_page) && (
