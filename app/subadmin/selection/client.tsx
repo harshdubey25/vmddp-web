@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,7 +55,19 @@ interface ApplicationSelectionItem {
     dairyAnimalData?: {
         [key: string]: any;
     };
-}interface SubAdminSelectionClientProps {
+}
+
+const COMPONENT_ORDER = [
+    "Animal Induction",
+    "HGM (Pregnant cow)",
+    "Fertility Feed",
+    "SNF Enhancer",
+    "Fodder Seed",
+    "Supply Chaff Cutter",
+    "Supply Of Silage",
+];
+
+interface SubAdminSelectionClientProps {
     applications: ApplicationSelectionItem[];
     stats: {
         approved: number;
@@ -117,7 +130,7 @@ export default function SubAdminSelectionClient({
     // Get unique villages for application filter dropdown
     const applicationVillages = Array.from(new Set(applications.map(app => app.village))).sort();
 
-    // Export current page as CSV
+    // Export current page as Excel
     const handleExport = () => {
         if (!applications || applications.length === 0) {
             toast({
@@ -128,51 +141,70 @@ export default function SubAdminSelectionClient({
             return;
         }
 
-        // Use all applications based on current filters (not just Selected)
         const appsToExport = applications;
 
-        const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'Taluka', 'Village', 'Milk Pouring Point', 'Component', 'Tag Numbers', 'Status', 'Submitted Date'];
-
-        const escapeCell = (value: any) => {
-            if (value === null || value === undefined) return '';
-            const str = String(value);
-            if (/["\n,]/.test(str)) {
-                return `"${str.replace(/"/g, '""')}"`;
-            }
-            return str;
-        };
-
-        const rows = appsToExport.map((a) => {
-            // Extract tag numbers from dairy_animal_data
-            let tagNumbers = 'N/A';
+        let maxTagNumbers = 1;
+        appsToExport.forEach((a) => {
             if (a.dairyAnimalData) {
                 const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
                 if (Array.isArray(tagNumberArray)) {
                     const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
-                    tagNumbers = validTags.length > 0 ? validTags.join(', ') : 'N/A';
+                    maxTagNumbers = Math.max(maxTagNumbers, validTags.length);
+                }
+            }
+        });
+
+        const baseHeaders = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'Taluka', 'Village', 'Milk Pouring Point'];
+        const componentHeaders = COMPONENT_ORDER.map((name, i) => `Component ${i + 1}`);
+        const tagHeaders = Array.from({ length: maxTagNumbers }, (_, i) => `Tag Number ${i + 1}`);
+        const endHeaders = ['Status', 'Submitted Date'];
+        const headers = [...baseHeaders, ...componentHeaders, 'Status', ...tagHeaders, ...endHeaders];
+
+        const rows = appsToExport.map((a) => {
+            const componentsArr = (a.component || '').split(',').map(c => c.trim()).filter(c => c);
+            const componentsInOrder = COMPONENT_ORDER.map(orderName => componentsArr.find((c: string) => c === orderName) || '');
+            let tagNumbers: string[] = [];
+            if (a.dairyAnimalData) {
+                const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
+                if (Array.isArray(tagNumberArray)) {
+                    tagNumbers = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
                 }
             }
 
-            return [
-                a.realApplicationId,
-                a.applicantName,
-                a.aadharNumber || '',
-                a.mobile || '',
-                a.taluka || '',
-                a.village || '',
-                a.milkPouringPoint || '',
-                a.component || '',
-                tagNumbers,
-                a.status,
-                a.submittedDate || '',
-            ];
+            const row: Record<string, string> = {
+                'Application ID': a.realApplicationId,
+                'Applicant': a.applicantName,
+                'Aadhar Number': a.aadharNumber || '',
+                'Mobile': a.mobile || '',
+                'Taluka': a.taluka || '',
+                'Village': a.village || '',
+                'Milk Pouring Point': a.milkPouringPoint || '',
+                'Submitted Date': a.submittedDate || '',
+            };
+
+            for (let i = 0; i < COMPONENT_ORDER.length; i++) {
+                row[`Component ${i + 1}`] = componentsInOrder[i] || '';
+            }
+            row['Status'] = a.status;
+            for (let i = 0; i < maxTagNumbers; i++) {
+                row[`Tag Number ${i + 1}`] = tagNumbers[i] || '';
+            }
+
+            return row;
         });
 
-        const csvContent = [headers.map(escapeCell).join(','), ...rows.map(r => r.map(escapeCell).join(','))].join('\n');
+        const worksheet = XLSX.utils.json_to_sheet(rows, { header: headers });
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Applications');
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
+        const colWidths = headers.map((h, i) => {
+            const maxDataLength = rows.reduce((max, row) => {
+                const value = String(row[h as keyof typeof row] || '');
+                return Math.max(max, value.length);
+            }, 0);
+            return { wch: Math.max(h.length, maxDataLength, 15) + 2 };
+        });
+        worksheet['!cols'] = colWidths;
 
         const date = new Date().toISOString().split('T')[0];
         const parts: string[] = [];
@@ -181,12 +213,7 @@ export default function SubAdminSelectionClient({
         if (searchQuery) parts.push(`q-${searchQuery.replace(/\s+/g, '_')}`);
         const suffix = parts.length ? `-${parts.join('-')}` : '';
 
-        link.href = url;
-        link.download = `applications${suffix}-${date}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
+        XLSX.writeFile(workbook, `applications${suffix}-${date}.xlsx`);
 
         toast({
             title: "Export started",
@@ -261,57 +288,73 @@ export default function SubAdminSelectionClient({
                 return;
             }
 
-            const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'Taluka', 'Village', 'Milk Pouring Point', 'Component', 'Tag Numbers', 'Status', 'Submitted Date'];
-
-            const escapeCell = (value: any) => {
-                if (value === null || value === undefined) return '';
-                const str = String(value);
-                if (/["\n,]/.test(str)) {
-                    return `"${str.replace(/"/g, '""')}"`;
-                }
-                return str;
-            };
-
-            const rows = allApplications.map((a: any) => {
-                // Extract tag numbers from dairy_animal_data
-                let tagNumbers = 'N/A';
+            let maxTagNumbers = 1;
+            allApplications.forEach((a: any) => {
                 if (a.dairyAnimalData) {
                     const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
                     if (Array.isArray(tagNumberArray)) {
                         const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
-                        tagNumbers = validTags.length > 0 ? validTags.join(', ') : 'N/A';
+                        maxTagNumbers = Math.max(maxTagNumbers, validTags.length);
+                    }
+                }
+            });
+
+            const baseHeaders = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'Taluka', 'Village', 'Milk Pouring Point'];
+            const componentHeaders = COMPONENT_ORDER.map((name, i) => `Component ${i + 1}`);
+            const tagHeaders = Array.from({ length: maxTagNumbers }, (_, i) => `Tag Number ${i + 1}`);
+            const endHeaders = ['Submitted Date'];
+            const headers = [...baseHeaders, ...componentHeaders, 'Status', ...tagHeaders, ...endHeaders];
+
+            const rows = allApplications.map((a: any) => {
+                const componentsArr = (a.component || '').split(',').map((c: string) => c.trim()).filter((c: string) => c);
+                const componentsInOrder = COMPONENT_ORDER.map(orderName => componentsArr.find((c: string) => c === orderName) || '');
+                let tagNumbers: string[] = [];
+                if (a.dairyAnimalData) {
+                    const tagNumberArray = a.dairyAnimalData['Registered Dairy Animal Tag Number'] || a.dairyAnimalData['Tag Number'];
+                    if (Array.isArray(tagNumberArray)) {
+                        tagNumbers = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
                     }
                 }
 
-                return [
-                    a.realApplicationId,
-                    a.applicantName,
-                    a.aadharNumber || '',
-                    a.mobile || '',
-                    a.taluka || '',
-                    a.village || '',
-                    a.milkPouringPoint || '',
-                    a.component || '',
-                    tagNumbers,
-                    a.status || '',
-                    a.submittedDate || '',
-                ];
+                const row: Record<string, string> = {
+                    'Application ID': a.realApplicationId,
+                    'Applicant': a.applicantName,
+                    'Aadhar Number': a.aadharNumber || '',
+                    'Mobile': a.mobile || '',
+                    'Taluka': a.taluka || '',
+                    'Village': a.village || '',
+                    'Milk Pouring Point': a.milkPouringPoint || '',
+                    'Status': a.status || '',
+                    'Submitted Date': a.submittedDate || '',
+                };
+
+                for (let i = 0; i < COMPONENT_ORDER.length; i++) {
+                    row[`Component ${i + 1}`] = componentsInOrder[i] || '';
+                }
+
+                for (let i = 0; i < maxTagNumbers; i++) {
+                    row[`Tag Number ${i + 1}`] = tagNumbers[i] || '';
+                }
+
+                return row;
             });
 
-            const csvContent = [headers.map(escapeCell).join(','), ...rows.map((r: any) => r.map(escapeCell).join(','))].join('\n');
+            const worksheet = XLSX.utils.json_to_sheet(rows, { header: headers });
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Applications');
 
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
+            const colWidths = headers.map((h, i) => {
+                const maxDataLength = rows.reduce((max: number, row: any) => {
+                    const value = String(row[h as keyof typeof row] || '');
+                    return Math.max(max, value.length);
+                }, 0);
+                return { wch: Math.max(h.length, maxDataLength, 15) + 2 };
+            });
+            worksheet['!cols'] = colWidths;
 
             const date = new Date().toISOString().split('T')[0];
             const statusPart = applicationStatusFilter && applicationStatusFilter !== 'all' ? `-${applicationStatusFilter}` : '';
-            link.href = url;
-            link.download = `all-applications${statusPart}-${date}.csv`;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            URL.revokeObjectURL(url);
+            XLSX.writeFile(workbook, `all-applications${statusPart}-${date}.xlsx`);
 
             toast({
                 title: "Export completed",
