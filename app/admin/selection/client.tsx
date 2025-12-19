@@ -836,12 +836,7 @@ export default function AdminSelectionClient({
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
-                                                updateFilters({ search: searchQuery });
-                                            }
-                                        }}
-                                        onBlur={() => {
-                                            if (searchQuery !== initialFilters.search) {
-                                                updateFilters({ search: searchQuery });
+                                                updateFilters({ search: searchQuery, status: applicationStatusFilter, district: districtFilter });
                                             }
                                         }}
                                         className="pl-8 sm:pl-10 text-xs sm:text-sm h-8 sm:h-10"
@@ -853,7 +848,6 @@ export default function AdminSelectionClient({
                                     value={applicationStatusFilter}
                                     onValueChange={(value) => {
                                         setApplicationStatusFilter(value);
-                                        updateFilters({ status: value });
                                     }}
                                 >
                                     <SelectTrigger data-testid="select-status-filter" className="text-xs sm:text-sm h-8 sm:h-10">
@@ -870,7 +864,6 @@ export default function AdminSelectionClient({
                                     value={districtFilter}
                                     onValueChange={(value) => {
                                         setDistrictFilter(value);
-                                        updateFilters({ district: value });
                                     }}
                                 >
                                     <SelectTrigger data-testid="select-district-filter" className="text-xs sm:text-sm h-8 sm:h-10">
@@ -889,7 +882,6 @@ export default function AdminSelectionClient({
                                         type="date"
                                         value={dateFrom}
                                         onChange={(e) => setDateFrom(e.target.value)}
-                                        onBlur={() => updateFilters({ status: applicationStatusFilter, search: searchQuery, district: districtFilter })}
                                         className="flex-1 text-xs sm:text-sm h-8 sm:h-10"
                                         placeholder="From date"
                                         data-testid="input-date-from"
@@ -898,12 +890,22 @@ export default function AdminSelectionClient({
                                         type="date"
                                         value={dateTo}
                                         onChange={(e) => setDateTo(e.target.value)}
-                                        onBlur={() => updateFilters({ status: applicationStatusFilter, search: searchQuery, district: districtFilter })}
                                         className="flex-1 text-xs sm:text-sm h-8 sm:h-10"
                                         placeholder="To date"
                                         data-testid="input-date-to"
                                     />
                                 </div>
+                            </div>
+
+                            <div className="flex justify-end">
+                                <Button 
+                                    onClick={() => updateFilters({ search: searchQuery, status: applicationStatusFilter, district: districtFilter })}
+                                    className="gap-2 text-xs sm:text-sm h-8 sm:h-10"
+                                    data-testid="button-apply-filters"
+                                >
+                                    <Search className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    Search
+                                </Button>
                             </div>
 
                             <div className="border rounded-lg overflow-hidden">
