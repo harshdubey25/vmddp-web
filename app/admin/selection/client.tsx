@@ -639,7 +639,7 @@ export default function AdminSelectionClient({
             </header>
 
             <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 bg-muted/30">
-                <div className="space-y-4 sm:space-y-6 max-w-7xl">
+                <div className="space-y-4 sm:space-y-6 max-w-7xl w-full mx-auto">
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                         <Card>
@@ -908,8 +908,8 @@ export default function AdminSelectionClient({
                                 </Button>
                             </div>
 
-                            <div className="border rounded-lg overflow-hidden">
-                                <div className="overflow-x-auto">
+                            <div className="border rounded-lg overflow-hidden w-full">
+                                <div className="overflow-x-auto max-w-full">
                                     <table className="w-full min-w-[720px]">
                                         <thead className="bg-muted/50 border-b">
                                             <tr>
