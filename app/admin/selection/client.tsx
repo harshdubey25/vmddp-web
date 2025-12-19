@@ -83,6 +83,8 @@ interface AdminSelectionClientProps {
         status: string;
         search: string;
         district: string;
+        start_date: string;
+        end_date: string;
     };
     paginationData?: {
         current_page: number;
@@ -105,6 +107,8 @@ export default function AdminSelectionClient({
     const [searchQuery, setSearchQuery] = useState(initialFilters.search);
     const [districtFilter, setDistrictFilter] = useState(initialFilters.district);
     const [applicationStatusFilter, setApplicationStatusFilter] = useState(initialFilters.status || "all");
+    const [dateFrom, setDateFrom] = useState(initialFilters.start_date || "");
+    const [dateTo, setDateTo] = useState(initialFilters.end_date || "");
     const [applications, setApplications] = useState<ApplicationSelectionItem[]>(initialApplications);
     const [selectedApplication, setSelectedApplication] = useState<ApplicationSelectionItem | null>(null);
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
@@ -240,6 +244,14 @@ export default function AdminSelectionClient({
 
             if (districtFilter && districtFilter !== 'all') {
                 apiParams.district = districtFilter;
+            }
+
+            if (dateFrom) {
+                apiParams.start_date = dateFrom;
+            }
+
+            if (dateTo) {
+                apiParams.end_date = dateTo;
             }
 
             const response = await frappeBrowser.call().get('vmddp_app.api.api.get_applications_summary', apiParams);
@@ -382,6 +394,14 @@ export default function AdminSelectionClient({
                 apiParams.district = districtFilter;
             }
 
+            if (dateFrom) {
+                apiParams.start_date = dateFrom;
+            }
+
+            if (dateTo) {
+                apiParams.end_date = dateTo;
+            }
+
             const response = await frappeBrowser.call().get('vmddp_app.api.api.get_applications_summary', apiParams);
 
             const allApplications = (response.message?.applications || []).map((app: any) => {
@@ -505,6 +525,18 @@ export default function AdminSelectionClient({
                 params.delete(key);
             }
         });
+
+        if (dateFrom) {
+            params.set('start_date', dateFrom);
+        } else {
+            params.delete('start_date');
+        }
+        
+        if (dateTo) {
+            params.set('end_date', dateTo);
+        } else {
+            params.delete('end_date');
+        }
 
         if ('page' in updates === false) {
             params.delete('page');
@@ -795,7 +827,7 @@ export default function AdminSelectionClient({
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
                                 <div className="relative">
                                     <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
                                     <Input
@@ -851,6 +883,27 @@ export default function AdminSelectionClient({
                                         ))}
                                     </SelectContent>
                                 </Select>
+
+                                <div className="flex gap-2">
+                                    <Input
+                                        type="date"
+                                        value={dateFrom}
+                                        onChange={(e) => setDateFrom(e.target.value)}
+                                        onBlur={() => updateFilters({ status: applicationStatusFilter, search: searchQuery, district: districtFilter })}
+                                        className="flex-1 text-xs sm:text-sm h-8 sm:h-10"
+                                        placeholder="From date"
+                                        data-testid="input-date-from"
+                                    />
+                                    <Input
+                                        type="date"
+                                        value={dateTo}
+                                        onChange={(e) => setDateTo(e.target.value)}
+                                        onBlur={() => updateFilters({ status: applicationStatusFilter, search: searchQuery, district: districtFilter })}
+                                        className="flex-1 text-xs sm:text-sm h-8 sm:h-10"
+                                        placeholder="To date"
+                                        data-testid="input-date-to"
+                                    />
+                                </div>
                             </div>
 
                             <div className="border rounded-lg overflow-hidden">

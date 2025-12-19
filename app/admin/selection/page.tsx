@@ -29,6 +29,8 @@ export default async function AdminSelection({
     status?: string;
     search?: string;
     district?: string;
+    start_date?: string;
+    end_date?: string;
   }>
 }) {
   const params = await searchParams;
@@ -37,6 +39,8 @@ export default async function AdminSelection({
   const status = params.status || 'all';
   const search = params.search || '';
   const district = params.district || '';
+  const start_date = params.start_date || '';
+  const end_date = params.end_date || '';
 
   const frappe = await getFrappeWithUserToken();
 
@@ -73,6 +77,14 @@ export default async function AdminSelection({
     apiParams.district = district;
   }
 
+  if (start_date) {
+    apiParams.start_date = start_date;
+  }
+
+  if (end_date) {
+    apiParams.end_date = end_date;
+  }
+
   const response = await frappe.call().get('vmddp_app.api.api.get_applications_summary', apiParams);
 
   const applications: ApplicationSelectionItem[] = (response?.message?.applications || []).map((app: any): ApplicationSelectionItem => {
@@ -107,6 +119,8 @@ export default async function AdminSelection({
       status: status || 'all',
       search: search || '',
       district: district || 'all',
+      start_date: start_date || '',
+      end_date: end_date || '',
     }}
     paginationData={pagination}
   />;
