@@ -891,6 +891,7 @@ export default function SubAdminSelectionClient({
             </main>
 
             <ApplicationDetailsDialog
+                page="selection"
                 application={selectedApplication}
                 isOpen={isDetailsDialogOpen}
                 onClose={() => {

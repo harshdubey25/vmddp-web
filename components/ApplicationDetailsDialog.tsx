@@ -349,7 +349,7 @@ export default function ApplicationDetailsDialog({
                                         if (page === 'selection') {
                                             // Filter to show only components with status "Approved" or "Selected"
                                             componentsToShow = fullAppDoc.components.filter((comp: any) =>
-                                                comp.status === 'Approved' || comp.status === 'Selected'
+                                                comp.component_status === 'Approved' || comp.component_status === 'Selected'
                                             );
                                         }
 
