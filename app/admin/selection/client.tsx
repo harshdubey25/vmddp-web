@@ -39,8 +39,7 @@ import { useToast } from "@/hooks/use-toast";
 import { frappeBrowser } from "@/lib/frappe";
 import { getStatusBadge } from "@/lib/status-utils";
 import ApplicationDetailsDialog from "@/components/ApplicationDetailsDialog";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+
 
 interface ApplicationSelectionItem {
     id: string;
@@ -375,145 +374,39 @@ export default function AdminSelectionClient({
     };
 
 
-    const handleExportAllPDF = async () => {
-        toast({
-            title: "Export started",
-            description: "Fetching all selected applications with current filters...",
-        });
+    const handleExportPDF = () => {
+        const params = new URLSearchParams();
 
-        try {
-            const apiParams: any = {
-                export: true,
-                status: "Selected"
-            };
-
-            if (searchQuery && searchQuery.trim()) {
-                apiParams.search = searchQuery.trim();
-            }
-            if (districtFilter && districtFilter !== 'all') {
-                apiParams.district = districtFilter;
-            }
-
-            if (dateFrom) {
-                apiParams.start_date = dateFrom;
-            }
-
-            if (dateTo) {
-                apiParams.end_date = dateTo;
-            }
-
-            const response = await frappeBrowser.call().get('vmddp_app.api.api.get_applications_summary', apiParams);
-
-            const allApplications = (response.message?.applications || []).map((app: any) => {
-                let component = 'N/A';
-                if (Array.isArray(app.component_list)) {
-                    const ordered = COMPONENT_ORDER.map(orderName => app.component_list.find((c: string) => c === orderName)).filter(Boolean);
-                    component = ordered.join(', ');
-                } else if (typeof app.component_list === 'string') {
-                    component = app.component_list;
-                }
-
-                return {
-                    id: app.name,
-                    realApplicationId: app.name,
-                    applicantName: app.fullname ?? 'Unknown',
-                    aadharNumber: app.aadhar_number ?? '',
-                    mobile: app.mobile_number ?? app.mobile_no ?? '',
-                    district: app.district ?? app.address_district ?? '',
-                    taluka: app.taluka ?? '',
-                    village: app.village ?? 'N/A',
-                    milkPouringPoint: app.milk_pouring_point ?? '',
-                    component: component,
-                    status: app.status ?? '',
-                    submittedDate: app.created_at ?? app.date ?? '',
-                    dairyAnimalData: app.dairy_animal_data,
-                };
-            });
-
-            const selectedApps = allApplications.filter((a: any) => a.status === "Selected");
-
-            if (!selectedApps || selectedApps.length === 0) {
-                toast({
-                    title: "No data",
-                    description: "There are no selected applications to export.",
-                    variant: "destructive",
-                });
-                return;
-            }
-
-            const doc = new jsPDF({
-                orientation: 'landscape',
-            });
-            const tableColumn = [
-                "Application Date",
-                "Application ID",
-                "Name",
-                "District",
-                "Taluka",
-                "Village",
-                "Component",
-                "Phone Number"
-            ];
-            const tableRows = selectedApps.map((app: ApplicationSelectionItem) => [
-                app.submittedDate === 'Unknown'
-                    ? 'Unknown'
-                    : new Date(app.submittedDate).toLocaleDateString(),
-                app.realApplicationId,
-                app.applicantName,
-                app.district || 'N/A',
-                app.taluka || 'N/A',
-                app.village || 'N/A',
-                app.component,
-                app.mobile || 'N/A'
-            ]);
-
-            autoTable(doc, {
-                head: [tableColumn],
-                body: tableRows,
-                styles: {
-                    fontSize: 8,
-                    cellPadding: 2,
-                    overflow: 'linebreak',
-                },
-                headStyles: {
-                    fillColor: [22, 160, 133],
-                    fontStyle: 'bold',
-                },
-                columnStyles: {
-                    0: { cellWidth: 'auto' },
-                    1: { cellWidth: 'auto' }, 
-                    2: { cellWidth: 'auto' }, 
-                    3: { cellWidth: 'auto' }, 
-                    4: { cellWidth: 'auto' }, 
-                    5: { cellWidth: 'auto' }, 
-                    6: { cellWidth: 'auto', minCellWidth: 30 },
-                    7: { cellWidth: 'auto' },
-                },
-                tableWidth: 'auto',
-                margin: { top: 20 },
-            });
-
-            const date = new Date().toISOString().split('T')[0];
-            const parts: string[] = [];
-            if (districtFilter && districtFilter !== 'all') parts.push(districtFilter.replace(/\s+/g, '_'));
-            if (searchQuery) parts.push(`q-${searchQuery.replace(/\s+/g, '_')}`);
-            const suffix = parts.length ? `-Selected-${parts.join('-')}` : '-Selected';
-
-            doc.save(`admin-all-applications${suffix}-${date}.pdf`);
-
-            toast({
-                title: "PDF Exported",
-                description: `Exported ${selectedApps.length} selected applications as PDF.`,
-            });
-        } catch (error) {
-            console.error('Export error:', error);
-            toast({
-                title: "Export failed",
-                description: "Failed to export selected applications. Please try again.",
-                variant: "destructive",
-            });
+        if (applicationStatusFilter && applicationStatusFilter !== 'all') {
+            params.set("status", applicationStatusFilter);
+        } else {
+            params.set("status", '["Approved","Selected"]');
         }
+
+        if (districtFilter && districtFilter !== "all") {
+            params.set("district", districtFilter);
+        }
+
+        if (searchQuery && searchQuery.trim()) {
+            params.set("search", searchQuery.trim());
+        }
+
+        if (dateFrom) {
+            params.set("start_date", dateFrom);
+        }
+
+        if (dateTo) {
+            params.set("end_date", dateTo);
+        }
+
+        const url =
+            `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}` +
+            `/api/method/vmddp_app.api.reports.generate_selected_applications_pdf?` +
+            params.toString();
+
+        window.open(url, "_blank");
     };
+
 
     const updateFilters = (updates: Record<string, string>) => {
         const params = new URLSearchParams(window.location.search);
@@ -531,7 +424,7 @@ export default function AdminSelectionClient({
         } else {
             params.delete('start_date');
         }
-        
+
         if (dateTo) {
             params.set('end_date', dateTo);
         } else {
@@ -630,7 +523,7 @@ export default function AdminSelectionClient({
                         <span className="hidden xs:inline">Export All</span>
                         <span className="xs:hidden">All</span>
                     </Button>
-                    <Button variant="secondary" className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-10" data-testid="button-export-all-pdf" onClick={handleExportAllPDF}>
+                    <Button variant="secondary" className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-10" data-testid="button-export-all-pdf" onClick={handleExportPDF}>
                         <Download className="w-3 h-3 sm:w-4 sm:h-4" />
                         <span className="hidden xs:inline">Export All PDF</span>
                         <span className="xs:hidden">All PDF</span>
@@ -898,7 +791,7 @@ export default function AdminSelectionClient({
                             </div>
 
                             <div className="flex justify-end">
-                                <Button 
+                                <Button
                                     onClick={() => updateFilters({ search: searchQuery, status: applicationStatusFilter, district: districtFilter })}
                                     className="gap-2 text-xs sm:text-sm h-8 sm:h-10"
                                     data-testid="button-apply-filters"
@@ -1098,4 +991,5 @@ export default function AdminSelectionClient({
             />
         </div>
     );
+    
 }
