@@ -374,7 +374,7 @@ export default function AdminSelectionClient({
     };
 
 
-    const handleExportPDF = () => {
+    const handleExportPDF = async () => {
         const params = new URLSearchParams();
 
         if (applicationStatusFilter && applicationStatusFilter !== 'all') {
@@ -399,12 +399,48 @@ export default function AdminSelectionClient({
             params.set("end_date", dateTo);
         }
 
-        const url =
-            `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}` +
-            `/api/method/vmddp_app.api.reports.generate_selected_applications_pdf?` +
-            params.toString();
+        const url = `/api/reports/selected-applications-pdf?${params.toString()}`;
 
-        window.open(url, "_blank");
+        try {
+            toast({
+                title: "Generating PDF",
+                description: "Please wait while the PDF is being generated...",
+            });
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: "Failed to generate PDF" }));
+                toast({
+                    title: "Error",
+                    description: errorData.error || "Failed to generate PDF",
+                    variant: "destructive",
+                });
+                return;
+            }
+
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = 'selected-applications.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(downloadUrl);
+
+            toast({
+                title: "Success",
+                description: "PDF has been downloaded successfully",
+            });
+        } catch (error) {
+            console.error("PDF export error:", error);
+            toast({
+                title: "Error",
+                description: "Failed to export PDF. Please try again.",
+                variant: "destructive",
+            });
+        }
     };
 
 
