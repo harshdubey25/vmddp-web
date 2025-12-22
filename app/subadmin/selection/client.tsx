@@ -39,6 +39,7 @@ import { useToast } from "@/hooks/use-toast";
 import { frappeBrowser } from "@/lib/frappe";
 import { getStatusBadge } from "@/lib/status-utils";
 import ApplicationDetailsDialog from "@/components/ApplicationDetailsDialog";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 
 interface ApplicationSelectionItem {
     id: string;
@@ -427,7 +428,7 @@ export default function SubAdminSelectionClient({
     const filteredApplications = applications;
     const totalPages = paginationData?.total_pages || 1;
     const totalItems = paginationData?.total_records || applications.length;
-
+    const { call: selectionApplication } = useFrappePostCall("vmddp_app.api.app_form.select_application");
     const handleSelect = async (appId: string) => {
         const app = applications.find(a => a.id === appId);
         if (!app) return;
@@ -437,10 +438,10 @@ export default function SubAdminSelectionClient({
 
         try {
             // Update the App Form doctype via API using original application ID
-            await frappeBrowser.db().updateDoc('App Form', originalAppId, {
-                status: 'Selected',
-            });
-
+            // await frappeBrowser.db().updateDoc('App Form', originalAppId, {
+            //     status: 'Selected',
+            // });
+            await selectionApplication({ application_id: originalAppId });
             setApplications(prev =>
                 prev.map(application => {
                     const applicantOriginalId = application.realApplicationId;
