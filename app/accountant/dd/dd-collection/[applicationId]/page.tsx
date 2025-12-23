@@ -35,7 +35,10 @@ import { useFrappePostCall, useFrappeGetCall, useFrappeFileUpload } from "frappe
 import { Skeleton } from "@/components/ui/skeleton";
 import { CardSkeleton } from "@/components/LoadingSkeletons";
 
-
+enum DDComponents {
+    HGM = "HGM (Pregnant cow)",
+    ANIMAL_INDUCTION = "Animal Induction",
+}
 
 export default function DDCollectionForm({
     params
@@ -365,9 +368,24 @@ export default function DDCollectionForm({
                                         <SelectValue placeholder="Select animal type" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Desi Cow">Desi Cow</SelectItem>
-                                        <SelectItem value="CrossBreed">CrossBreed</SelectItem>
-                                        <SelectItem value="Buffalo">Buffalo</SelectItem>
+                                        {application?.component_name.toLowerCase() === DDComponents.ANIMAL_INDUCTION.toLowerCase() ? (
+                                            <>
+                                                <SelectItem value="Desi Cow">Desi Cow</SelectItem>
+                                                <SelectItem value="CrossBreed">CrossBreed</SelectItem>
+                                                <SelectItem value="Buffalo">Buffalo</SelectItem>
+                                            </>
+                                        ) : application?.component_name.toLowerCase() === DDComponents.HGM.toLowerCase() ? (
+                                            <>
+                                                <SelectItem value="Cow">Cow</SelectItem>
+                                                <SelectItem value="Buffalo">Buffalo</SelectItem>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <SelectItem value="Desi Cow">Desi Cow</SelectItem>
+                                                <SelectItem value="CrossBreed">CrossBreed</SelectItem>
+                                                <SelectItem value="Buffalo">Buffalo</SelectItem>
+                                            </>
+                                        )}
                                     </SelectContent>
                                 </Select>
                             </div>
