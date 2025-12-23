@@ -29,6 +29,7 @@ import * as XLSX from "xlsx";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useDebounce } from "@/hooks/use-debounce";
+import { frappeBrowser } from "@/lib/frappe";
 
 export default function DDReportPage() {
     const { toast } = useToast();
@@ -57,63 +58,51 @@ export default function DDReportPage() {
     const totalPages = Math.ceil(totalRecords / pageSize);
 
     // Export to Excel
-    const handleExport = () => {
-        if (reports.length === 0) {
+    const handleExport = async () => {
+        toast({
+            title: "Export started",
+            description: "Generating report...",
+        });
+
+        try {
+            const params: Record<string, string> = {};
+
+            if (debouncedSearchQuery) params.search_text = debouncedSearchQuery;
+            if (componentFilter !== 'all') params.component = componentFilter;
+            if (animalFilter !== 'all') params.item = animalFilter;
+
+            const axiosResponse = await frappeBrowser.call().axios.get(
+                '/api/method/vmddp_app.api.v1.accountant.export_completed_dd_list',
+                {
+                    params,
+                    responseType: 'blob',
+                }
+            );
+
+            const blob = new Blob([axiosResponse.data], {
+                type: axiosResponse.headers['content-type'] || 'application/octet-stream',
+            });
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = `dd-reports-${new Date().toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(downloadUrl);
+
             toast({
-                title: "No data",
-                description: "There are no reports to export.",
+                title: "Export completed",
+                description: "Report downloaded successfully.",
+            });
+        } catch (error) {
+            console.error('Export error:', error);
+            toast({
+                title: "Export failed",
+                description: "Failed to export report. Please try again.",
                 variant: "destructive",
             });
-            return;
         }
-
-        const exportData = reports.map((report: any) => ({
-            "Application ID": report.name,
-            "Beneficiary Name": `${report.first_name || ""} ${report.mid_name || ""} ${report.last_name || ""}`.trim(),
-            "Aadhar Number": report.aadhar_number?.startsWith('http') ? "N/A" : report.aadhar_number,
-            "District": report.district || "N/A",
-            "Taluka": report.taluka || "N/A",
-            "Village": report.village || "N/A",
-            "Bank": report.source_bank_name || "N/A",
-            "Branch": report.branch_name || "N/A",
-            "Amount (₹)": report.dd_amount || report.amount || 0,
-            "DD Number": report.dd_number || "N/A",
-            "DD Date": report.dd_date || "N/A",
-            "Animal Type": report.animal_type || "N/A",
-            "Component": report.component_name || "N/A",
-            "Status": report.component_status || "DD Completed",
-        }));
-
-        const worksheet = XLSX.utils.json_to_sheet(exportData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "DD Reports");
-
-        // Set column widths
-        const colWidths = [
-            { wch: 18 }, // Application ID
-            { wch: 25 }, // Beneficiary Name
-            { wch: 18 }, // Aadhar Number
-            { wch: 15 }, // District
-            { wch: 15 }, // Taluka
-            { wch: 15 }, // Village
-            { wch: 25 }, // Bank
-            { wch: 20 }, // Branch
-            { wch: 15 }, // Amount
-            { wch: 15 }, // DD Number
-            { wch: 12 }, // DD Date
-            { wch: 15 }, // Animal Type
-            { wch: 20 }, // Component
-            { wch: 12 }, // Status
-        ];
-        worksheet["!cols"] = colWidths;
-
-        const date = new Date().toISOString().split("T")[0];
-        XLSX.writeFile(workbook, `dd-reports-${date}.xlsx`);
-
-        toast({
-            title: "Export completed",
-            description: `Successfully exported ${reports.length} reports.`,
-        });
     };
 
     const handleSearch = () => {
