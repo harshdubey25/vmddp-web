@@ -42,6 +42,7 @@ const subAdminMenuItems = [
 ]
 const accountantMenuItems = [
   { icon: FileText, label: "DD", path: "/accountant/dd" },
+  { icon: BarChart3, label: "DD Reports", path: "/accountant/dd-report" }
 ]
 // { icon: LayoutDashboard, label: "Dashboard", path: "/accountant" },
 // { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },;
