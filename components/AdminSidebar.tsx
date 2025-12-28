@@ -14,6 +14,7 @@ import {
   Settings,
   ChevronRight,
   ChevronLeft,
+  TargetIcon
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -30,6 +31,7 @@ const adminMenuItems = [
 
   { icon: Users, label: "Sub-Admins", path: "/admin/subadmins" },
   { icon: Package, label: "Components", path: "/admin/components" },
+  { icon: TargetIcon, label: "Target Allocation", path: "/admin/target-allocation" },
   { icon: BarChart3, label: "Reports", path: "/admin/reports" },
 ];
 // { icon: Settings, label: "Settings", path: "/admin/settings" }
