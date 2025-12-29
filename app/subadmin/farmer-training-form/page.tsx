@@ -1,0 +1,537 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import AdminSidebar from "@/components/AdminSidebar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft, GraduationCap, FileText, MapPin, Building, Image, IndianRupee, Save, X, Target, Upload } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { CalendarIcon } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
+
+interface FormData {
+  eventName: string;
+  eventDate: Date | undefined;
+  district: string;
+  taluka: string;
+  village: string;
+  trainingVenueType: string;
+  venueName: string;
+  numberOfParticipants: string;
+  participantListImages: File[];
+  trainingMaterial: string;
+  logistics: string;
+  refreshment: string;
+  totalAmount: string;
+}
+
+const trainingVenueOptions = [
+  "govt. institute",
+  "private Farms",
+  "progressive farmers",
+];
+
+const EXPENSE_PER_HEAD = 360;
+const MAX_IMAGES = 5;
+
+const targetData = {
+  physical: 500,
+  achieved: 320,
+};
+
+export default function FarmerTrainingForm() {
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const [formData, setFormData] = useState<FormData>({
+    eventName: "",
+    eventDate: undefined,
+    district: "",
+    taluka: "",
+    village: "",
+    trainingVenueType: "",
+    venueName: "",
+    numberOfParticipants: "",
+    participantListImages: [],
+    trainingMaterial: "",
+    logistics: "",
+    refreshment: "",
+    totalAmount: "0",
+  });
+
+  const remainingTarget = targetData.physical - targetData.achieved;
+  const targetProgress = (targetData.achieved / targetData.physical) * 100;
+  const currentParticipants = parseInt(formData.numberOfParticipants) || 0;
+  const wouldExceedTarget = currentParticipants > remainingTarget;
+  
+  const totalAmount = currentParticipants * EXPENSE_PER_HEAD;
+  
+  const materialAmount = parseFloat(formData.trainingMaterial) || 0;
+  const logisticsAmount = parseFloat(formData.logistics) || 0;
+  const refreshmentAmount = parseFloat(formData.refreshment) || 0;
+  const allocatedAmount = materialAmount + logisticsAmount + refreshmentAmount;
+  const remainingAmount = totalAmount - allocatedAmount;
+  const exceedsTotal = allocatedAmount > totalAmount;
+
+  useEffect(() => {
+    const participants = parseInt(formData.numberOfParticipants) || 0;
+    const total = participants * EXPENSE_PER_HEAD;
+    setFormData(prev => ({ ...prev, totalAmount: total.toString() }));
+  }, [formData.numberOfParticipants]);
+
+  const handleInputChange = (field: keyof FormData, value: string | Date | undefined | File | null) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newImages = Array.from(files);
+    const totalImages = formData.participantListImages.length + newImages.length;
+    
+    if (totalImages > MAX_IMAGES) {
+      toast({
+        title: "Image Limit Exceeded",
+        description: `Maximum ${MAX_IMAGES} images allowed. You can add ${MAX_IMAGES - formData.participantListImages.length} more.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      participantListImages: [...prev.participantListImages, ...newImages],
+    }));
+    
+    e.target.value = '';
+  };
+
+  const removeImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      participantListImages: prev.participantListImages.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.eventName || !formData.eventDate || !formData.district || 
+        !formData.taluka || !formData.village || !formData.trainingVenueType ||
+        !formData.venueName || !formData.numberOfParticipants) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill all required fields including venue name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const participants = parseInt(formData.numberOfParticipants);
+    if (participants > 30) {
+      toast({
+        title: "Validation Error",
+        description: "Maximum 30 participants allowed per training session.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (wouldExceedTarget) {
+      toast({
+        title: "Target Exceeded",
+        description: `Cannot submit. Only ${remainingTarget} participants remaining in target allocation.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (exceedsTotal) {
+      toast({
+        title: "Budget Exceeded",
+        description: "Sub-allocations cannot exceed the total budget amount.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Application Submitted",
+      description: "Farmer training application has been submitted successfully.",
+    });
+
+    router.push("/subadmin/farmer-training");
+  };
+
+  const handleCancel = () => {
+    router.push("/subadmin/farmer-training");
+  };
+
+  const formatCurrency = (amount: string | number) => {
+    const num = typeof amount === 'string' ? parseFloat(amount) || 0 : amount;
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(num);
+  };
+
+  return (
+    <div className="flex h-screen w-full overflow-hidden bg-background">
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <header className="flex items-center justify-between p-6 border-b bg-card">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCancel}
+              data-testid="button-back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-form-title">
+                <GraduationCap className="w-6 h-6" />
+                New Farmer Training Application
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Fill in the details to create a new training application
+              </p>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto p-6 bg-muted/30">
+          <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl mx-auto pb-6">
+            <Card className="border-primary/30 bg-primary/5">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Target className="w-5 h-5" />
+                  Target Status - Farmer Training
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Physical Target:</span>
+                  <span className="font-semibold">{targetData.physical} participants</span>
+                </div>
+                <Progress value={targetProgress} className="h-3" />
+                <div className="flex items-center justify-between">
+                  <div className="text-sm">
+                    <p className="text-muted-foreground">Achieved: <span className="font-semibold text-foreground">{targetData.achieved}</span></p>
+                  </div>
+                  <div className="text-sm text-right">
+                    <p className="text-muted-foreground">Remaining: <span className="font-semibold text-foreground">{remainingTarget}</span></p>
+                  </div>
+                </div>
+                {wouldExceedTarget && (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      Cannot exceed target! Only {remainingTarget} participants remaining. Please adjust the number.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Event Details
+                </CardTitle>
+                <CardDescription>
+                  Enter the training event information
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="eventName">Event Name *</Label>
+                    <Input
+                      id="eventName"
+                      value={formData.eventName}
+                      onChange={(e) => handleInputChange("eventName", e.target.value)}
+                      placeholder="e.g., Dairy Management Training"
+                      data-testid="input-event-name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Event Date *</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !formData.eventDate && "text-muted-foreground"
+                          )}
+                          data-testid="button-event-date"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {formData.eventDate ? format(formData.eventDate, "PPP") : "Pick a date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={formData.eventDate}
+                          onSelect={(date) => handleInputChange("eventDate", date)}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5" />
+                  Location Details
+                </CardTitle>
+                <CardDescription>
+                  Select the training location
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="district">District *</Label>
+                    <Input
+                      id="district"
+                      value={formData.district}
+                      onChange={(e) => handleInputChange("district", e.target.value)}
+                      placeholder="Enter district"
+                      data-testid="input-district"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="taluka">Taluka *</Label>
+                    <Input
+                      id="taluka"
+                      value={formData.taluka}
+                      onChange={(e) => handleInputChange("taluka", e.target.value)}
+                      placeholder="Enter taluka"
+                      data-testid="input-taluka"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="village">Village *</Label>
+                    <Input
+                      id="village"
+                      value={formData.village}
+                      onChange={(e) => handleInputChange("village", e.target.value)}
+                      placeholder="Enter village"
+                      data-testid="input-village"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="w-5 h-5" />
+                  Training Venue
+                </CardTitle>
+                <CardDescription>
+                  Specify venue type and name
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="venueType">Venue Type *</Label>
+                    <Select value={formData.trainingVenueType} onValueChange={(value) => handleInputChange("trainingVenueType", value)}>
+                      <SelectTrigger id="venueType" data-testid="select-venue-type">
+                        <SelectValue placeholder="Select venue type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {trainingVenueOptions.map((v) => (
+                          <SelectItem key={v} value={v}>{v}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="venueName">Venue Name *</Label>
+                    <Input
+                      id="venueName"
+                      value={formData.venueName}
+                      onChange={(e) => handleInputChange("venueName", e.target.value)}
+                      placeholder="e.g., Krishi Vigyan Kendra"
+                      data-testid="input-venue-name"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Upload className="w-5 h-5" />
+                  Participants
+                </CardTitle>
+                <CardDescription>
+                  Enter number of participants (Maximum 30 per session)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="participants">Number of Participants *</Label>
+                  <Input
+                    id="participants"
+                    type="number"
+                    min="1"
+                    max="30"
+                    value={formData.numberOfParticipants}
+                    onChange={(e) => handleInputChange("numberOfParticipants", e.target.value)}
+                    placeholder="Enter number (max 30)"
+                    data-testid="input-participants"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="images">Participant List Images (Max {MAX_IMAGES})</Label>
+                  <Input
+                    id="images"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageUpload}
+                    data-testid="input-images"
+                  />
+                  {formData.participantListImages.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                      {formData.participantListImages.map((img, idx) => (
+                        <div key={idx} className="relative border rounded p-2">
+                          <p className="text-xs truncate">{img.name}</p>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="mt-1"
+                            onClick={() => removeImage(idx)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <IndianRupee className="w-5 h-5" />
+                  Fund Allocation
+                </CardTitle>
+                <CardDescription>
+                  Budget: {formatCurrency(totalAmount)} (@ ₹{EXPENSE_PER_HEAD}/participant)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="training-material">Training Material (₹)</Label>
+                    <Input
+                      id="training-material"
+                      type="number"
+                      min="0"
+                      value={formData.trainingMaterial}
+                      onChange={(e) => handleInputChange("trainingMaterial", e.target.value)}
+                      placeholder="0"
+                      data-testid="input-training-material"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="logistics">Logistics (₹)</Label>
+                    <Input
+                      id="logistics"
+                      type="number"
+                      min="0"
+                      value={formData.logistics}
+                      onChange={(e) => handleInputChange("logistics", e.target.value)}
+                      placeholder="0"
+                      data-testid="input-logistics"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="refreshment">Refreshment (₹)</Label>
+                    <Input
+                      id="refreshment"
+                      type="number"
+                      min="0"
+                      value={formData.refreshment}
+                      onChange={(e) => handleInputChange("refreshment", e.target.value)}
+                      placeholder="0"
+                      data-testid="input-refreshment"
+                    />
+                  </div>
+                </div>
+                <div className="border-t pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold">Allocated:</span>
+                    <span className={cn(exceedsTotal && "text-destructive")}>{formatCurrency(allocatedAmount)}</span>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="font-semibold">Remaining:</span>
+                    <span className={cn(remainingAmount < 0 && "text-destructive")}>{formatCurrency(remainingAmount)}</span>
+                  </div>
+                </div>
+                {exceedsTotal && (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      Sub-allocations exceed total budget by {formatCurrency(Math.abs(remainingAmount))}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-end gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                className="gap-2"
+                data-testid="button-cancel"
+              >
+                <X className="w-4 h-4" />
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="gap-2"
+                disabled={wouldExceedTarget || exceedsTotal}
+                data-testid="button-submit"
+              >
+                <Save className="w-4 h-4" />
+                Submit Application
+              </Button>
+            </div>
+          </form>
+        </main>
+      </div>
+    </div>
+  );
+}

@@ -14,7 +14,9 @@ import {
   Settings,
   ChevronRight,
   ChevronLeft,
-  TargetIcon
+  TargetIcon,
+  GraduationCap,
+  Stethoscope
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -24,7 +26,19 @@ interface AdminSidebarProps {
   userRole: "admin" | "subadmin" | "accountant";
 }
 
-const adminMenuItems = [
+type MenuItem = {
+  icon: any;
+  label: string;
+  path: string;
+  type?: never;
+} | {
+  type: "separator";
+  icon?: never;
+  label?: never;
+  path?: never;
+};
+
+const adminMenuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
   { icon: FileText, label: "Applications", path: "/admin/applications" },
   { icon: FileText, label: "Selection", path: "/admin/selection" },
@@ -35,14 +49,17 @@ const adminMenuItems = [
   { icon: BarChart3, label: "Reports", path: "/admin/reports" },
 ];
 // { icon: Settings, label: "Settings", path: "/admin/settings" }
-const subAdminMenuItems = [
+const subAdminMenuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/subadmin/dashboard" },
   { icon: FileText, label: "Applications", path: "/subadmin/applications" },
   { icon: FileText, label: "Selection", path: "/subadmin/selection" },
   { icon: FileText, label: "Messages", path: "/subadmin/messages" },
-  { icon: FileText, label: "Reports", path: "/subadmin/reports" }
+  { icon: FileText, label: "Reports", path: "/subadmin/reports" },
+  { type: "separator" },
+  { icon: GraduationCap, label: "Farmer Training", path: "/subadmin/farmer-training" },
+  { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/subadmin/treatment" }
 ]
-const accountantMenuItems = [
+const accountantMenuItems: MenuItem[] = [
   { icon: FileText, label: "DD", path: "/accountant/dd" },
   { icon: BarChart3, label: "DD Reports", path: "/accountant/dd-report" }
 ]
@@ -110,7 +127,13 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
 
         <ScrollArea className="flex-1 px-3 md:px-2 lg:px-3 py-4 md:py-3 lg:py-4">
           <nav className="space-y-1">
-            {menuItems.map((item) => {
+            {menuItems.map((item, index) => {
+              if (item.type === "separator") {
+                return (
+                  <Separator key={`separator-${index}`} className="my-3" />
+                );
+              }
+
               const Icon = item.icon;
               const isActive = location === item.path;
 
