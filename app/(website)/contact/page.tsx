@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
+import QRCodeScanner from "@/components/QRCodeScanner";
 
 export default function Contact() {
     const { t } = useTranslation('common');
@@ -74,6 +75,9 @@ export default function Contact() {
     return (
         <div className="min-h-[calc(100vh-16rem)] py-12 sm:py-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-start mb-2 sm:mb-3">
+                    <QRCodeScanner />
+                </div>
                 <div className="text-center mb-10">
                     <h1 className="font-display font-semibold text-2xl sm:text-3xl mb-3" data-testid="text-contact-title">
                         {t('contact_dpo_title')}
