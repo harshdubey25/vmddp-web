@@ -33,6 +33,7 @@ import { getStatusBadge } from "@/lib/status-utils";
 import ApplicationDetailsDialog from "@/components/ApplicationDetailsDialog";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { frappeBrowser } from "@/lib/frappe";
+import * as XLSX from 'xlsx';
 
 import { Application } from "./page";
 
@@ -196,7 +197,6 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
         setSelectedApp(null);
     };
 
-    // Export current applications list as CSV
     const handleExport = useCallback(() => {
         if (!applications || applications.length === 0) {
             toast({
@@ -209,89 +209,6 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
 
         const headers = ['Application ID', 'Applicant', 'Mobile', 'District', 'Village', 'Component', 'Tag Numbers', 'Status', 'Approver', 'Submitted Date'];
 
-        const escapeCell = (value: any) => {
-            if (value === null || value === undefined) return '';
-            const str = String(value);
-            if (/["\n,]/.test(str)) {
-                return `"${str.replace(/"/g, '""')}"`;
-            }
-            return str;
-        };
-
-        const rows = applications.map((a) => {
-            // Extract tag numbers from dairy_animal_data
-            let tagNumbers = 'N/A';
-            if (a.dairyAnimalData) {
-                const tagNumberArray = a.dairyAnimalData['Tag Number'];
-                if (Array.isArray(tagNumberArray)) {
-                    const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== '');
-                    tagNumbers = validTags.length > 0 ? validTags.join(', ') : 'N/A';
-                }
-            }
-
-            return [
-                a.id,
-                a.applicantName,
-                (a as any).mobile || (a as any).mobile_no || '',
-                a.district || '',
-                a.village || '',
-                a.component || '',
-                tagNumbers,
-                a.status || '',
-                a.approver || '',
-                a.submittedDate || '',
-            ];
-        });
-
-        const csvContent = [headers.map(escapeCell).join(','), ...rows.map(r => r.map(escapeCell).join(','))].join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-
-        const date = new Date().toISOString().split('T')[0];
-        const parts: string[] = [];
-        if (statusFilter && statusFilter !== 'all') parts.push(statusFilter.replace(/\s+/g, '_'));
-        if (districtFilter && districtFilter !== 'all') parts.push(districtFilter.replace(/\s+/g, '_'));
-        if (componentFilter && componentFilter !== 'all') parts.push(componentFilter.replace(/\s+/g, '_'));
-        if (debouncedSearchQuery) parts.push(`q-${debouncedSearchQuery.replace(/\s+/g, '_')}`);
-        const suffix = parts.length ? `-${parts.join('-')}` : '';
-
-        link.href = url;
-        link.download = `applications${suffix}-${date}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
-
-        toast({
-            title: "Export started",
-            description: `Exported ${applications.length} applications from current page.`,
-        });
-    }, [applications, statusFilter, districtFilter, componentFilter, debouncedSearchQuery, toast]);
-
-    // Export current page as Excel (using CSV format)
-    const handleExportExcel = useCallback(() => {
-        if (!applications || applications.length === 0) {
-            toast({
-                title: "No data",
-                description: "There are no applications to export.",
-                variant: "destructive",
-            });
-            return;
-        }
-
-        const headers = ['Application ID', 'Applicant', 'Mobile', 'District', 'Village', 'Component', 'Tag Numbers', 'Status', 'Approver', 'Submitted Date'];
-
-        const escapeCell = (value: any) => {
-            if (value === null || value === undefined) return '';
-            const str = String(value);
-            if (/["\n,]/.test(str)) {
-                return `"${str.replace(/"/g, '""')}"`;
-            }
-            return str;
-        };
-
         const rows = applications.map((a) => {
             // Extract tag numbers from dairy_animal_data
             let tagNumbers = 'N/A';
@@ -303,25 +220,34 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                 }
             }
 
-            return [
-                a.id,
-                a.applicantName,
-                (a as any).mobile || (a as any).mobile_no || '',
-                a.district || '',
-                a.village || '',
-                a.component || '',
-                tagNumbers,
-                a.status || '',
-                a.approver || '',
-                a.submittedDate || '',
-            ];
+            const row: Record<string, string> = {
+                'Application ID': a.id,
+                'Applicant': a.applicantName,
+                'Mobile': (a as any).mobile || (a as any).mobile_no || '',
+                'District': a.district || '',
+                'Village': a.village || '',
+                'Component': a.component || '',
+                'Tag Numbers': tagNumbers,
+                'Status': a.status || '',
+                'Approver': a.approver || '',
+                'Submitted Date': a.submittedDate || '',
+            };
+
+            return row;
         });
 
-        const csvContent = [headers.map(escapeCell).join(','), ...rows.map(r => r.map(escapeCell).join(','))].join('\n');
+        const worksheet = XLSX.utils.json_to_sheet(rows, { header: headers });
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Applications');
 
-        const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
+        const colWidths = headers.map((h) => {
+            const maxDataLength = rows.reduce((max, row) => {
+                const value = String(row[h as keyof typeof row] || '');
+                return Math.max(max, value.length);
+            }, 0);
+            return { wch: Math.max(h.length, maxDataLength, 15) + 2 };
+        });
+        worksheet['!cols'] = colWidths;
 
         const date = new Date().toISOString().split('T')[0];
         const parts: string[] = [];
@@ -331,18 +257,14 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
         if (debouncedSearchQuery) parts.push(`q-${debouncedSearchQuery.replace(/\s+/g, '_')}`);
         const suffix = parts.length ? `-${parts.join('-')}` : '';
 
-        link.href = url;
-        link.download = `applications${suffix}-${date}.xls`;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
+        XLSX.writeFile(workbook, `applications${suffix}-${date}.xlsx`);
 
         toast({
-            title: "Export completed",
+            title: "Export started",
             description: `Exported ${applications.length} applications from current page.`,
         });
-    }, [applications, statusFilter, districtFilter, componentFilter, debouncedSearchQuery, toast]);    // Export ALL applications (with current filters) as CSV
+    }, [applications, statusFilter, districtFilter, componentFilter, debouncedSearchQuery, toast]);
+
     const handleExportAll = useCallback(async () => {
         toast({
             title: "Export started",
@@ -423,15 +345,6 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
 
             const headers = ['Application ID', 'Applicant', 'Aadhar Number', 'Mobile', 'District', 'Taluka', 'Village', 'Component', 'Tag Numbers', 'Status', 'Approver', 'Submitted Date', 'Name Of Milk Pouring Point'];
 
-            const escapeCell = (value: any) => {
-                if (value === null || value === undefined) return '';
-                const str = String(value);
-                if (/["\n,]/.test(str)) {
-                    return `"${str.replace(/"/g, '""')}"`;
-                }
-                return str;
-            };
-
             const rows = allApplications.map((a: any) => {
                 // Extract tag numbers from dairy_animal_data
                 let tagNumbers = 'N/A';
@@ -443,36 +356,40 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                     }
                 }
 
-                return [
-                    a.id,
-                    a.applicantName,
-                    a.aadharNumber,
-                    a.mobile || '',
-                    a.district || '',
-                    a.taluka || '',
-                    a.village || '',
-                    a.component || '',
-                    tagNumbers,
-                    a.status || '',
-                    a.approver || '',
-                    a.submittedDate || '',
-                    a.milk_pouring_point || ''
-                ];
+                const row: Record<string, string> = {
+                    'Application ID': a.id,
+                    'Applicant': a.applicantName,
+                    'Aadhar Number': a.aadharNumber,
+                    'Mobile': a.mobile || '',
+                    'District': a.district || '',
+                    'Taluka': a.taluka || '',
+                    'Village': a.village || '',
+                    'Component': a.component || '',
+                    'Tag Numbers': tagNumbers,
+                    'Status': a.status || '',
+                    'Approver': a.approver || '',
+                    'Submitted Date': a.submittedDate || '',
+                    'Name Of Milk Pouring Point': a.milk_pouring_point || ''
+                };
+
+                return row;
             });
 
-            const csvContent = [headers.map(escapeCell).join(','), ...rows.map((r: any) => r.map(escapeCell).join(','))].join('\n');
+            const worksheet = XLSX.utils.json_to_sheet(rows, { header: headers });
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Applications');
 
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
+            const colWidths = headers.map((h) => {
+                const maxDataLength = rows.reduce((max: number, row: any) => {
+                    const value = String(row[h as keyof typeof row] || '');
+                    return Math.max(max, value.length);
+                }, 0);
+                return { wch: Math.max(h.length, maxDataLength, 15) + 2 };
+            });
+            worksheet['!cols'] = colWidths;
 
             const date = new Date().toISOString().split('T')[0];
-            link.href = url;
-            link.download = `all-applications-${date}.csv`;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            URL.revokeObjectURL(url);
+            XLSX.writeFile(workbook, `all-applications-${date}.xlsx`);
 
             toast({
                 title: "Export completed",
