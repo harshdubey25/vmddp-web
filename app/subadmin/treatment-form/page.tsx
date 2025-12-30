@@ -24,13 +24,8 @@ import {
   PREDEFINED_MEDICINES, 
   PREDEFINED_OBSERVATIONS 
 } from "@/types/subadmin";
-import { User, MapPin, Pill, Plus, Trash2, X } from "lucide-react";
+import { MapPin, Pill, Plus, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-const predefinedSymptoms = PREDEFINED_SYMPTOMS;
-const predefinedTreatments = PREDEFINED_TREATMENTS;
-const predefinedMedicines = PREDEFINED_MEDICINES;
-const predefinedObservations = PREDEFINED_OBSERVATIONS;
 
 export default function TreatmentForm() {
   const { toast } = useToast();
@@ -111,15 +106,15 @@ export default function TreatmentForm() {
     }));
   };
 
-  const addCustomSymptom = () => {
-    if (formData.customSymptom.trim() && !formData.symptoms.includes(formData.customSymptom.trim())) {
-      setFormData((prev) => ({
-        ...prev,
-        symptoms: [...prev.symptoms, prev.customSymptom.trim()],
-        customSymptom: "",
-      }));
-    }
-  };
+  // const addCustomSymptom = () => {
+  //   if (formData.customSymptom.trim() && !formData.symptoms.includes(formData.customSymptom.trim())) {
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       symptoms: [...prev.symptoms, prev.customSymptom.trim()],
+  //       customSymptom: "",
+  //     }));
+  //   }
+  // };
 
   const removeSymptom = (symptom: string) => {
     setFormData((prev) => ({
@@ -645,7 +640,7 @@ export default function TreatmentForm() {
                   <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
                     <Pill className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p>No medicines added yet</p>
-                    <p className="text-sm">Click "Add Medicine" to record administered medicines</p>
+                    <p className="text-sm">Click &ldquo;Add Medicine&rdquo; to record administered medicines</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
