@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AdminSidebar from "@/components/AdminSidebar";
+import { useFrappeCreateDoc, useFrappeGetDocList } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,16 +14,14 @@ import { ArrowLeft, GraduationCap, FileText, MapPin, Building, Image, IndianRupe
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"; 
 import { CalendarIcon } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
-import { FormData } from "@/types/subadmin";
-import { TRAINING_VENUE_OPTIONS } from "@/types/subadmin";
+import { FarmerTrainingFormData, TRAINING_VENUE_OPTIONS, EXPENSE_PER_HEAD, MAX_TRAINING_IMAGES } from "@/types/subadmin";
 
-const EXPENSE_PER_HEAD = 360;
-const MAX_IMAGES = 5;
+const MAX_IMAGES = MAX_TRAINING_IMAGES;
 
 const targetData = {
   physical: 500,
@@ -32,14 +31,16 @@ const targetData = {
 export default function FarmerTrainingForm() {
   const { toast } = useToast();
   const router = useRouter();
+  const { createDoc, loading: isSubmitting } = useFrappeCreateDoc();
+  const [uploadingImages, setUploadingImages] = useState(false);
 
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<FarmerTrainingFormData>({
     eventName: "",
     eventDate: undefined,
     district: "",
     taluka: "",
     village: "",
-    trainingVenueType: "",
+    venueType: "",
     venueName: "",
     numberOfParticipants: "",
     participantListImages: [],
@@ -47,6 +48,23 @@ export default function FarmerTrainingForm() {
     logistics: "",
     refreshment: "",
     totalAmount: "0",
+  });
+
+  const { data: districtData } = useFrappeGetDocList("District Master", {
+    fields: ["name", "name1"],
+    limit: 1000,
+  });
+
+  const { data: talukaData, mutate: mutateTaluka } = useFrappeGetDocList("Taluka Master", {
+    fields: ["name", "name1", "district"],
+    filters: formData.district ? [["district", "=", formData.district]] : undefined,
+    limit: 1000,
+  });
+
+  const { data: villageData, mutate: mutateVillage } = useFrappeGetDocList("Village Master", {
+    fields: ["name", "name1", "taluka"],
+    filters: formData.taluka ? [["taluka", "=", formData.taluka]] : undefined,
+    limit: 1000,
   });
 
   const remainingTarget = targetData.physical - targetData.achieved;
@@ -69,8 +87,17 @@ export default function FarmerTrainingForm() {
     setFormData(prev => ({ ...prev, totalAmount: total.toString() }));
   }, [formData.numberOfParticipants]);
 
-  const handleInputChange = (field: keyof FormData, value: string | Date | undefined | File | null) => {
+  const handleInputChange = (field: keyof FarmerTrainingFormData, value: string | Date | undefined | File | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    if (field === "district") {
+      setFormData(prev => ({ ...prev, taluka: "", village: "" }));
+      mutateTaluka();
+      mutateVillage();
+    } else if (field === "taluka") {
+      setFormData(prev => ({ ...prev, village: "" }));
+      mutateVillage();
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,11 +131,11 @@ export default function FarmerTrainingForm() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.eventName || !formData.eventDate || !formData.district || 
-        !formData.taluka || !formData.village || !formData.trainingVenueType ||
+        !formData.taluka || !formData.village || !formData.venueType ||
         !formData.venueName || !formData.numberOfParticipants) {
       toast({
         title: "Validation Error",
@@ -146,12 +173,67 @@ export default function FarmerTrainingForm() {
       return;
     }
 
-    toast({
-      title: "Application Submitted",
-      description: "Farmer training application has been submitted successfully.",
-    });
+    try {
+      setUploadingImages(true);
 
-    router.push("/subadmin/farmer-training");
+      let imageTableEntries: Array<{ image: string }> = [];
+      if (formData.participantListImages.length > 0) {
+        const uploadPromises = formData.participantListImages.map(async (file) => {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('is_private', '0');
+          formData.append('folder', 'Home');
+
+          const response = await fetch('/api/method/upload_file', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error('Upload failed');
+          }
+
+          const result = await response.json();
+          const fileUrl = result.message?.file_url;
+          return { image: fileUrl };
+        });
+        
+        imageTableEntries = await Promise.all(uploadPromises);
+      }
+
+      setUploadingImages(false);
+
+      await createDoc('Farmer Training Application', {
+        event_name: formData.eventName,
+        event_date: format(formData.eventDate!, 'yyyy-MM-dd'),
+        district: formData.district,
+        taluka: formData.taluka,
+        village: formData.village,
+        venue_type: formData.venueType,
+        venue_name: formData.venueName,
+        number_of_participants: parseInt(formData.numberOfParticipants),
+        images_table: imageTableEntries,
+        training_material: parseFloat(formData.trainingMaterial) || 0,
+        logistics: parseFloat(formData.logistics) || 0,
+        refreshment: parseFloat(formData.refreshment) || 0,
+      });
+
+      toast({
+        title: "Application Submitted",
+        description: "Farmer training application has been submitted successfully.",
+      });
+
+      router.push("/subadmin/farmer-training");
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      toast({
+        title: "Submission Failed",
+        description: error instanceof Error ? error.message : "Failed to submit application. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImages(false);
+    }
   };
 
   const handleCancel = () => {
@@ -291,33 +373,56 @@ export default function FarmerTrainingForm() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="district">District *</Label>
-                    <Input
-                      id="district"
-                      value={formData.district}
-                      onChange={(e) => handleInputChange("district", e.target.value)}
-                      placeholder="Enter district"
-                      data-testid="input-district"
-                    />
+                    <Select value={formData.district} onValueChange={(value) => handleInputChange("district", value)}>
+                      <SelectTrigger id="district" data-testid="select-district">
+                        <SelectValue placeholder="Select district" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {districtData?.map((district: any) => (
+                          <SelectItem key={district.name} value={district.name}>
+                            {district.name1 || district.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="taluka">Taluka *</Label>
-                    <Input
-                      id="taluka"
-                      value={formData.taluka}
-                      onChange={(e) => handleInputChange("taluka", e.target.value)}
-                      placeholder="Enter taluka"
-                      data-testid="input-taluka"
-                    />
+                    <Select 
+                      value={formData.taluka} 
+                      onValueChange={(value) => handleInputChange("taluka", value)}
+                      disabled={!formData.district}
+                    >
+                      <SelectTrigger id="taluka" data-testid="select-taluka">
+                        <SelectValue placeholder="Select taluka" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {talukaData?.map((taluka: any) => (
+                          <SelectItem key={taluka.name} value={taluka.name}>
+                            {taluka.name1 || taluka.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="village">Village *</Label>
-                    <Input
-                      id="village"
-                      value={formData.village}
-                      onChange={(e) => handleInputChange("village", e.target.value)}
-                      placeholder="Enter village"
-                      data-testid="input-village"
-                    />
+                    <Select 
+                      value={formData.village} 
+                      onValueChange={(value) => handleInputChange("village", value)}
+                      disabled={!formData.taluka}
+                    >
+                      <SelectTrigger id="village" data-testid="select-village">
+                        <SelectValue placeholder="Select village" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {villageData?.map((village: any) => (
+                          <SelectItem key={village.name} value={village.name}>
+                            {village.name1 || village.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </CardContent>
@@ -337,7 +442,7 @@ export default function FarmerTrainingForm() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="venueType">Venue Type *</Label>
-                    <Select value={formData.trainingVenueType} onValueChange={(value) => handleInputChange("trainingVenueType", value)}>
+                    <Select value={formData.venueType} onValueChange={(value) => handleInputChange("venueType", value)}>
                       <SelectTrigger id="venueType" data-testid="select-venue-type">
                         <SelectValue placeholder="Select venue type" />
                       </SelectTrigger>
@@ -502,11 +607,11 @@ export default function FarmerTrainingForm() {
               <Button
                 type="submit"
                 className="gap-2"
-                disabled={wouldExceedTarget || exceedsTotal}
+                disabled={wouldExceedTarget || exceedsTotal || isSubmitting || uploadingImages}
                 data-testid="button-submit"
               >
                 <Save className="w-4 h-4" />
-                Submit Application
+                {uploadingImages ? 'Uploading Images...' : isSubmitting ? 'Submitting...' : 'Submit Application'}
               </Button>
             </div>
           </form>

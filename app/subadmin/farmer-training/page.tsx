@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useFrappeGetDocList } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, GraduationCap, Upload, Search, FileText } from "lucide-react";
+import { Download, GraduationCap, Upload, Search, FileText, Loader2 } from "lucide-react";
 
 interface FundAllocation {
   trainingMaterial: number;
@@ -17,79 +18,21 @@ interface FundAllocation {
 }
 
 interface Application {
-  id: string;
-  eventName: string;
-  eventDate: string;
+  name: string;
+  event_name: string;
+  event_date: string;
   district: string;
   taluka: string;
   village: string;
-  trainingVenue: string;
-  numberOfParticipants: number;
-  participantListImage: string;
-  fundAllocation: FundAllocation;
-  status: "pending" | "approved" | "selected" | "rejected";
-  submittedDate: string;
+  venue_name: string;
+  venue_type: string;
+  number_of_participants: number;
+  training_material: number;
+  logistics: number;
+  refreshment: number;
+  docstatus: number;
+  creation: string;
 }
-
-const mockApplications: Application[] = [
-  {
-    id: "VMDDP-FT-2024-001",
-    eventName: "Dairy Management Training",
-    eventDate: "2024-12-25",
-    district: "Nagpur",
-    taluka: "Saoner",
-    village: "Saoner",
-    trainingVenue: "Krishi Vigyan Kendra",
-    numberOfParticipants: 25,
-    participantListImage: "/uploads/participants_001.jpg",
-    fundAllocation: {
-      trainingMaterial: 15000,
-      logistics: 8000,
-      refreshment: 12000,
-      totalAmount: 35000,
-    },
-    status: "pending",
-    submittedDate: "2024-12-16",
-  },
-  {
-    id: "VMDDP-FT-2024-002",
-    eventName: "Animal Healthcare Workshop",
-    eventDate: "2024-12-22",
-    district: "Nagpur",
-    taluka: "Parseoni",
-    village: "Parseoni",
-    trainingVenue: "Gram Panchayat Hall",
-    numberOfParticipants: 20,
-    participantListImage: "/uploads/participants_002.jpg",
-    fundAllocation: {
-      trainingMaterial: 10000,
-      logistics: 5000,
-      refreshment: 8000,
-      totalAmount: 23000,
-    },
-    status: "approved",
-    submittedDate: "2024-12-14",
-  },
-  {
-    id: "VMDDP-FT-2024-003",
-    eventName: "Fodder Cultivation Training",
-    eventDate: "2024-12-20",
-    district: "Nagpur",
-    taluka: "Ramtek",
-    village: "Ramtek",
-    trainingVenue: "Agricultural College",
-    numberOfParticipants: 30,
-    participantListImage: "/uploads/participants_003.jpg",
-    fundAllocation: {
-      trainingMaterial: 20000,
-      logistics: 12000,
-      refreshment: 18000,
-      totalAmount: 50000,
-    },
-    status: "selected",
-    submittedDate: "2024-12-12",
-  },
-];
 
 export default function FarmerTraining() {
   const router = useRouter();
@@ -102,31 +45,53 @@ export default function FarmerTraining() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const filteredApplications = mockApplications.filter((app) => {
+  const { data: applications, isLoading, error } = useFrappeGetDocList<Application>("Farmer Training Application", {
+    fields: [
+      "name",
+      "event_name",
+      "event_date",
+      "district",
+      "taluka",
+      "village",
+      "venue_name",
+      "venue_type",
+      "number_of_participants",
+      "training_material",
+      "logistics",
+      "refreshment",
+      "docstatus",
+      "creation"
+    ],
+    orderBy: {
+      field: "creation",
+      order: "desc"
+    },
+    limit: 1000,
+  });
+
+  const filteredApplications = (applications || []).filter((app) => {
     const matchesSearch =
-      app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.eventName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || app.status === statusFilter;
+      app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.event_name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || app.docstatus.toString() === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Badge variant="outline" className="bg-chart-4/10 text-chart-4 border-chart-4/20">Pending</Badge>;
-      case "approved":
-        return <Badge variant="outline" className="bg-chart-3/10 text-chart-3 border-chart-3/20">Approved</Badge>;
-      case "selected":
-        return <Badge variant="outline" className="bg-chart-1/10 text-chart-1 border-chart-1/20">Selected</Badge>;
-      case "rejected":
-        return <Badge variant="outline" className="bg-chart-5/10 text-chart-5 border-chart-5/20">Rejected</Badge>;
+  const getStatusBadge = (docstatus: number) => {
+    switch (docstatus) {
+      case 0:
+        return <Badge variant="outline" className="bg-chart-4/10 text-chart-4 border-chart-4/20">Draft</Badge>;
+      case 1:
+        return <Badge variant="outline" className="bg-chart-3/10 text-chart-3 border-chart-3/20">Submitted</Badge>;
+      case 2:
+        return <Badge variant="outline" className="bg-chart-5/10 text-chart-5 border-chart-5/20">Cancelled</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline">Unknown</Badge>;
     }
   };
 
   const handleViewDetails = (app: Application) => {
-    router.push(`/subadmin/farmer-training/${encodeURIComponent(app.id)}`);
+    router.push(`/subadmin/farmer-training/${encodeURIComponent(app.name)}`);
   };
 
   const formatCurrency = (amount: number) => {
@@ -135,6 +100,10 @@ export default function FarmerTraining() {
       currency: 'INR',
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const getTotalBudget = (app: Application) => {
+    return (app.training_material || 0) + (app.logistics || 0) + (app.refreshment || 0);
   };
 
   return (
@@ -196,56 +165,69 @@ export default function FarmerTraining() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
-                      <SelectItem value="selected">Selected</SelectItem>
-                      <SelectItem value="rejected">Rejected</SelectItem>
+                      <SelectItem value="0">Draft</SelectItem>
+                      <SelectItem value="1">Submitted</SelectItem>
+                      <SelectItem value="2">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-muted/50 border-b">
-                        <tr>
-                          <th className="text-left p-3 text-sm font-medium">Application ID</th>
-                          <th className="text-left p-3 text-sm font-medium">Event Name</th>
-                          <th className="text-left p-3 text-sm font-medium">Date</th>
-                          <th className="text-left p-3 text-sm font-medium">Venue</th>
-                          <th className="text-left p-3 text-sm font-medium">Participants</th>
-                          <th className="text-left p-3 text-sm font-medium">Budget</th>
-                          <th className="text-left p-3 text-sm font-medium">Status</th>
-                          <th className="text-left p-3 text-sm font-medium">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredApplications.map((app) => (
-                          <tr key={app.id} className="border-b hover:bg-muted/30">
-                            <td className="p-3 text-sm font-mono">{app.id}</td>
-                            <td className="p-3 text-sm">{app.eventName}</td>
-                            <td className="p-3 text-sm">{app.eventDate}</td>
-                            <td className="p-3 text-sm">{app.trainingVenue}</td>
-                            <td className="p-3 text-sm">{app.numberOfParticipants}</td>
-                            <td className="p-3 text-sm">{formatCurrency(app.fundAllocation.totalAmount)}</td>
-                            <td className="p-3 text-sm">{getStatusBadge(app.status)}</td>
-                            <td className="p-3 text-sm">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleViewDetails(app)}
-                                data-testid="button-view-details"
-                              >
-                                <FileText className="w-4 h-4 mr-1" />
-                                View
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                   </div>
-                </div>
+                ) : error ? (
+                  <div className="text-center py-12 text-destructive">
+                    Error loading applications. Please try again.
+                  </div>
+                ) : filteredApplications.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No applications found.
+                  </div>
+                ) : (
+                  <div className="border rounded-lg overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-muted/50 border-b">
+                          <tr>
+                            <th className="text-left p-3 text-sm font-medium">Application ID</th>
+                            <th className="text-left p-3 text-sm font-medium">Event Name</th>
+                            <th className="text-left p-3 text-sm font-medium">Date</th>
+                            <th className="text-left p-3 text-sm font-medium">Venue</th>
+                            <th className="text-left p-3 text-sm font-medium">Participants</th>
+                            <th className="text-left p-3 text-sm font-medium">Budget</th>
+                            <th className="text-left p-3 text-sm font-medium">Status</th>
+                            <th className="text-left p-3 text-sm font-medium">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredApplications.map((app) => (
+                            <tr key={app.name} className="border-b hover:bg-muted/30">
+                              <td className="p-3 text-sm font-mono">{app.name}</td>
+                              <td className="p-3 text-sm">{app.event_name}</td>
+                              <td className="p-3 text-sm">{new Date(app.event_date).toLocaleDateString()}</td>
+                              <td className="p-3 text-sm">{app.venue_name}</td>
+                              <td className="p-3 text-sm">{app.number_of_participants}</td>
+                              <td className="p-3 text-sm">{formatCurrency(getTotalBudget(app))}</td>
+                              <td className="p-3 text-sm">{getStatusBadge(app.docstatus)}</td>
+                              <td className="p-3 text-sm">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleViewDetails(app)}
+                                  data-testid="button-view-details"
+                                >
+                                  <FileText className="w-4 h-4 mr-1" />
+                                  View
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

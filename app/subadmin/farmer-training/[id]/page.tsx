@@ -1,109 +1,38 @@
 "use client";
 
+export const runtime = 'edge';
 import { useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import AdminSidebar from "@/components/AdminSidebar";
+import { useFrappeGetDoc } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileText, GraduationCap, MapPin, Building, Users, Image, IndianRupee } from "lucide-react";
+import { ArrowLeft, FileText, GraduationCap, MapPin, Building, Users, Image, IndianRupee, Loader2 } from "lucide-react";
 
-interface FundAllocation {
-  trainingMaterial: number;
-  logistics: number;
-  refreshment: number;
-  totalBudget: number;
+interface ImageTableEntry {
+  image: string;
 }
 
 interface Application {
-  id: string;
-  eventName: string;
-  eventDate: string;
+  name: string;
+  event_name: string;
+  event_date: string;
   district: string;
   taluka: string;
   village: string;
-  trainingVenueType: string;
-  venueName: string;
-  numberOfParticipants: number;
-  participantImages: string[];
-  fundAllocation: FundAllocation;
-  status: "pending" | "approved" | "completed" | "rejected";
-  submittedDate: string;
+  venue_type: string;
+  venue_name: string;
+  number_of_participants: number;
+  images_table?: ImageTableEntry[];
+  training_material: number;
+  logistics: number;
+  refreshment: number;
+  docstatus: number;
+  creation: string;
 }
 
 const EXPENSE_PER_HEAD = 360;
-
-const mockApplications: Application[] = [
-  {
-    id: "VMDDP-FT-2024-001",
-    eventName: "Dairy Management Training",
-    eventDate: "2024-12-20",
-    district: "Nagpur",
-    taluka: "Hingna",
-    village: "Hingna",
-    trainingVenueType: "govt. institute",
-    venueName: "Krishi Vigyan Kendra, Nagpur",
-    numberOfParticipants: 25,
-    participantImages: [
-      "https://placehold.co/400x300/e2e8f0/64748b?text=Participant+List+1",
-      "https://placehold.co/400x300/e2e8f0/64748b?text=Participant+List+2",
-      "https://placehold.co/400x300/e2e8f0/64748b?text=Participant+List+3",
-    ],
-    fundAllocation: {
-      trainingMaterial: 3000,
-      logistics: 2500,
-      refreshment: 2000,
-      totalBudget: 25 * EXPENSE_PER_HEAD,
-    },
-    status: "pending",
-    submittedDate: "2024-12-15",
-  },
-  {
-    id: "VMDDP-FT-2024-002",
-    eventName: "Cattle Breeding Workshop",
-    eventDate: "2024-12-18",
-    district: "Nagpur",
-    taluka: "Kamptee",
-    village: "Kamptee",
-    trainingVenueType: "private Farms",
-    venueName: "Sharma Dairy Farm",
-    numberOfParticipants: 20,
-    participantImages: [
-      "https://placehold.co/400x300/e2e8f0/64748b?text=Participant+List+1",
-      "https://placehold.co/400x300/e2e8f0/64748b?text=Participant+List+2",
-    ],
-    fundAllocation: {
-      trainingMaterial: 2500,
-      logistics: 2000,
-      refreshment: 1800,
-      totalBudget: 20 * EXPENSE_PER_HEAD,
-    },
-    status: "approved",
-    submittedDate: "2024-12-14",
-  },
-  {
-    id: "VMDDP-FT-2024-003",
-    eventName: "Fodder Management Session",
-    eventDate: "2024-12-22",
-    district: "Nagpur",
-    taluka: "Hingna",
-    village: "Wadi",
-    trainingVenueType: "progressive farmers",
-    venueName: "Patil Krishi Farm",
-    numberOfParticipants: 15,
-    participantImages: [
-      "https://placehold.co/400x300/e2e8f0/64748b?text=Participant+List+1",
-    ],
-    fundAllocation: {
-      trainingMaterial: 2000,
-      logistics: 1500,
-      refreshment: 1200,
-      totalBudget: 15 * EXPENSE_PER_HEAD,
-    },
-    status: "completed",
-    submittedDate: "2024-12-12",
-  },
-];
 
 export default function ViewFarmerTrainingApplication() {
   const router = useRouter();
@@ -111,23 +40,22 @@ export default function ViewFarmerTrainingApplication() {
   
   const applicationId = params?.id ? decodeURIComponent(Array.isArray(params.id) ? params.id[0] : params.id) : null;
 
-  const application = useMemo(
-    () => mockApplications.find((app) => app.id === applicationId),
-    [applicationId]
+  const { data: application, isLoading, error } = useFrappeGetDoc<Application>(
+    "Farmer Training Application",
+    applicationId || "",
+    applicationId ? undefined : null
   );
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Badge className="bg-chart-4/10 text-chart-4 border-chart-4/20">Pending</Badge>;
-      case "approved":
-        return <Badge className="bg-chart-3/10 text-chart-3 border-chart-3/20">Approved</Badge>;
-      case "completed":
-        return <Badge className="bg-chart-1/10 text-chart-1 border-chart-1/20">Completed</Badge>;
-      case "rejected":
-        return <Badge className="bg-chart-5/10 text-chart-5 border-chart-5/20">Rejected</Badge>;
+  const getStatusBadge = (docstatus: number) => {
+    switch (docstatus) {
+      case 0:
+        return <Badge className="bg-chart-4/10 text-chart-4 border-chart-4/20">Draft</Badge>;
+      case 1:
+        return <Badge className="bg-chart-3/10 text-chart-3 border-chart-3/20">Submitted</Badge>;
+      case 2:
+        return <Badge className="bg-chart-5/10 text-chart-5 border-chart-5/20">Cancelled</Badge>;
       default:
-        return <Badge>{status}</Badge>;
+        return <Badge>Unknown</Badge>;
     }
   };
 
@@ -139,7 +67,24 @@ export default function ViewFarmerTrainingApplication() {
     }).format(amount);
   };
 
-  if (!application) {
+  const getTotalBudget = () => {
+    if (!application) return 0;
+    return (application.training_material || 0) + (application.logistics || 0) + (application.refreshment || 0);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-full overflow-hidden bg-background">
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex-1 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !application) {
     return (
       <div className="flex h-screen w-full overflow-hidden bg-background">
         <div className="flex flex-col flex-1 overflow-hidden">
@@ -175,10 +120,10 @@ export default function ViewFarmerTrainingApplication() {
                 <FileText className="w-6 h-6" />
                 Training Application Details
               </h1>
-              <p className="text-sm text-muted-foreground" data-testid="text-app-id">{application.id}</p>
+              <p className="text-sm text-muted-foreground" data-testid="text-app-id">{application.name}</p>
             </div>
           </div>
-          {getStatusBadge(application.status)}
+          {getStatusBadge(application.docstatus)}
         </header>
 
         <main className="flex-1 overflow-auto p-6 bg-muted/30">
@@ -187,8 +132,8 @@ export default function ViewFarmerTrainingApplication() {
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
-                    <p className="font-mono font-semibold text-lg">{application.id}</p>
-                    <p className="text-sm text-muted-foreground">Submitted on {application.submittedDate}</p>
+                    <p className="font-mono font-semibold text-lg">{application.name}</p>
+                    <p className="text-sm text-muted-foreground">Submitted on {new Date(application.creation).toLocaleDateString()}</p>
                   </div>
                 </div>
               </CardContent>
@@ -205,11 +150,11 @@ export default function ViewFarmerTrainingApplication() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Event Name</p>
-                    <p className="font-medium">{application.eventName}</p>
+                    <p className="font-medium">{application.event_name}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Event Date</p>
-                    <p className="font-medium">{application.eventDate}</p>
+                    <p className="font-medium">{new Date(application.event_date).toLocaleDateString()}</p>
                   </div>
                 </div>
               </CardContent>
@@ -251,11 +196,11 @@ export default function ViewFarmerTrainingApplication() {
                 <CardContent className="space-y-3">
                   <div>
                     <p className="text-sm text-muted-foreground">Venue Type</p>
-                    <p className="font-medium">{application.trainingVenueType}</p>
+                    <p className="font-medium">{application.venue_type}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Venue Name</p>
-                    <p className="font-medium">{application.venueName}</p>
+                    <p className="font-medium">{application.venue_name}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -270,11 +215,11 @@ export default function ViewFarmerTrainingApplication() {
                 <CardContent className="space-y-3">
                   <div>
                     <p className="text-sm text-muted-foreground">Number of Participants</p>
-                    <p className="font-medium text-2xl">{application.numberOfParticipants}</p>
+                    <p className="font-medium text-2xl">{application.number_of_participants}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Total Budget</p>
-                    <p className="font-semibold text-lg">{formatCurrency(application.fundAllocation.totalBudget)}</p>
+                    <p className="font-semibold text-lg">{formatCurrency(getTotalBudget())}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -288,12 +233,12 @@ export default function ViewFarmerTrainingApplication() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {application.participantImages && application.participantImages.length > 0 ? (
+                {application.images_table && application.images_table.length > 0 ? (
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    {application.participantImages.map((image, idx) => (
+                    {application.images_table.map((entry, idx) => (
                       <div key={idx} className="border rounded-lg overflow-hidden">
                         <img 
-                          src={image} 
+                          src={entry.image.startsWith('http') ? entry.image : `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${entry.image}`}
                           alt={`Participant list ${idx + 1}`}
                           className="w-full h-32 object-cover"
                         />
@@ -321,24 +266,24 @@ export default function ViewFarmerTrainingApplication() {
                   <div className="p-4 bg-primary/10 rounded-lg">
                     <div className="flex justify-between items-center">
                       <span className="font-semibold">Total Budget</span>
-                      <span className="text-xl font-bold">{formatCurrency(application.fundAllocation.totalBudget)}</span>
+                      <span className="text-xl font-bold">{formatCurrency(getTotalBudget())}</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {application.numberOfParticipants} participants × ₹{EXPENSE_PER_HEAD}
+                      {application.number_of_participants} participants × ₹{EXPENSE_PER_HEAD}
                     </p>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="p-3 border rounded-lg">
                       <p className="text-xs text-muted-foreground mb-1">Training Material</p>
-                      <p className="font-semibold">{formatCurrency(application.fundAllocation.trainingMaterial)}</p>
+                      <p className="font-semibold">{formatCurrency(application.training_material)}</p>
                     </div>
                     <div className="p-3 border rounded-lg">
                       <p className="text-xs text-muted-foreground mb-1">Logistics</p>
-                      <p className="font-semibold">{formatCurrency(application.fundAllocation.logistics)}</p>
+                      <p className="font-semibold">{formatCurrency(application.logistics)}</p>
                     </div>
                     <div className="p-3 border rounded-lg">
                       <p className="text-xs text-muted-foreground mb-1">Refreshment</p>
-                      <p className="font-semibold">{formatCurrency(application.fundAllocation.refreshment)}</p>
+                      <p className="font-semibold">{formatCurrency(application.refreshment)}</p>
                     </div>
                   </div>
                 </div>

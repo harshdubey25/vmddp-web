@@ -1,12 +1,15 @@
 "use client";
 
+export const runtime = 'edge';
+
 import { useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { useFrappeGetDoc } from "frappe-react-sdk";
 import AdminSidebar from "@/components/AdminSidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileText, MapPin, User, Stethoscope, Pill } from "lucide-react";
+import { ArrowLeft, FileText, MapPin, User, Stethoscope, Pill, Loader2 } from "lucide-react";
 
 interface TreatmentDetails {
   ownerFirstName: string;
@@ -52,119 +55,64 @@ interface Application {
   };
 }
 
-const mockApplications: Application[] = [
-  {
-    id: "VMDDP-TIA-2024-001",
-    applicantName: "Ramesh Patil",
-    mobile: "9876543210",
-    village: "Hingna",
-    component: "Treatment of Infertile Animal",
-    status: "pending",
-    submittedDate: "2024-12-15",
-    treatmentDetails: {
-      ownerFirstName: "Ramesh",
-      ownerMiddleName: "Kumar",
-      ownerSurname: "Patil",
-      district: "Nagpur",
-      taluka: "Hingna",
-      village: "Hingna",
-      animalType: "Buffalo",
-      tagNumber: "MH-31-BF-001234",
-      examinationDate: "2024-12-10",
-      veterinarianName: "Dr. Suresh Kamble",
-      diagnosisSymptoms: ["Anestrus", "Repeat Breeding"],
-      primaryTreatment: "Hormonal Therapy",
-      actualTreatment: "GnRH Protocol",
-      suggestedTreatment: "Hormonal Therapy (GnRH/PGF2α)",
-      treatmentGiven: "Hormonal Therapy (GnRH/PGF2α)",
-      treatmentDate: "2024-12-12",
-      treatmentDays: "21",
-      treatmentGap: "9",
-      followUpObservations: "Animal responded well to treatment. Heat signs observed after 18 days.",
-      medicines: [
-        {
-          date: "2024-12-12",
-          name: "GnRH Injection",
-          batchNumber: "BTN-2024-001",
-          expiryDate: "2025-12-31",
-          price: "250",
-        },
-      ],
-    },
-    componentDetails: {
-      benefits: [
-        "Free veterinary consultation",
-        "Subsidized medication",
-        "Follow-up treatment support",
-      ],
-      customQuestions: [
-        { label: "Animal Age", answer: "4 years" },
-        { label: "Previous Calving", answer: "1 time" },
-      ],
-    },
-  },
-  {
-    id: "VMDDP-TIA-2024-002",
-    applicantName: "Suresh Jadhav",
-    mobile: "9876543211",
-    village: "Kamptee",
-    component: "Treatment of Infertile Animal",
-    status: "approved",
-    submittedDate: "2024-12-14",
-    treatmentDetails: {
-      ownerFirstName: "Suresh",
-      ownerMiddleName: "Govind",
-      ownerSurname: "Jadhav",
-      district: "Nagpur",
-      taluka: "Kamptee",
-      village: "Kamptee",
-      animalType: "Cow",
-      tagNumber: "MH-31-CW-005678",
-      examinationDate: "2024-12-08",
-      veterinarianName: "Dr. Priya Deshmukh",
-      diagnosisSymptoms: ["Silent Heat", "Ovarian Cyst"],
-      primaryTreatment: "CIDR Protocol",
-      actualTreatment: "Progesterone + GnRH",
-      suggestedTreatment: "Hormonal Therapy (GnRH/PGF2α)",
-      treatmentGiven: "Hormonal Therapy (GnRH/PGF2α)",
-      treatmentDate: "2024-12-10",
-      treatmentDays: "14",
-      treatmentGap: "7",
-      followUpObservations: "Heat signs observed. Animal ready for AI.",
-      medicines: [
-        {
-          date: "2024-12-10",
-          name: "Progesterone CIDR",
-          batchNumber: "BTN-2024-002",
-          expiryDate: "2025-06-30",
-          price: "450",
-        },
-      ],
-    },
-    componentDetails: {
-      benefits: [
-        "Free veterinary consultation",
-        "Subsidized medication",
-        "Follow-up treatment support",
-      ],
-      customQuestions: [
-        { label: "Animal Age", answer: "5 years" },
-        { label: "Previous Calving", answer: "2 times" },
-      ],
-    },
-  },
-];
-
 export default function ViewTreatmentApplication() {
   const router = useRouter();
   const params = useParams();
 
   const applicationId = params?.id ? decodeURIComponent(Array.isArray(params.id) ? params.id[0] : params.id) : null;
 
-  const application = useMemo(
-    () => mockApplications.find((app) => app.id === applicationId),
-    [applicationId]
+  // Fetch treatment document from Frappe
+  const { data: treatmentDoc, isLoading, error } = useFrappeGetDoc<any>(
+    "Treatment of Infertile Animal",
+    applicationId || ""
   );
+
+  // Transform Frappe document to Application interface
+  const application = useMemo(() => {
+    if (!treatmentDoc) return null;
+
+    return {
+      id: treatmentDoc.name,
+      applicantName: `${treatmentDoc.first_name} ${treatmentDoc.middle_name ? treatmentDoc.middle_name + " " : ""}${treatmentDoc.surname}`,
+      mobile: treatmentDoc.mobile || "-",
+      village: treatmentDoc.village,
+      component: "Treatment of Infertile Animal",
+      status: "pending" as const, // Add workflow field to DocType if needed
+      submittedDate: treatmentDoc.creation ? new Date(treatmentDoc.creation).toLocaleDateString("en-GB") : "",
+      treatmentDetails: {
+        ownerFirstName: treatmentDoc.first_name,
+        ownerMiddleName: treatmentDoc.middle_name || "",
+        ownerSurname: treatmentDoc.surname,
+        district: treatmentDoc.district,
+        taluka: treatmentDoc.taluka,
+        village: treatmentDoc.village,
+        animalType: treatmentDoc.animal_type,
+        tagNumber: treatmentDoc.tag_number,
+        examinationDate: treatmentDoc.examination_date || "-",
+        veterinarianName: treatmentDoc.veterinarian_name || "-",
+        diagnosisSymptoms: treatmentDoc.symptom ? treatmentDoc.symptom.map((s: any) => s.symptom_name) : [],
+        primaryTreatment: treatmentDoc.primary_treatment || "-",
+        actualTreatment: treatmentDoc.actual_treatment_outcome || "-",
+        suggestedTreatment: treatmentDoc.suggested_treatment || "-",
+        treatmentGiven: treatmentDoc.treatment_given || "-",
+        treatmentDate: treatmentDoc.treatment_date || "-",
+        treatmentDays: "-",
+        treatmentGap: "-",
+        followUpObservations: treatmentDoc.follow_up_observations || "-",
+        medicines: treatmentDoc.medicine ? treatmentDoc.medicine.map((m: any) => ({
+          date: m.date || "-",
+          name: m.medicine_name || "-",
+          batchNumber: m.batch_number || "-",
+          expiryDate: m.expiry_date || "-",
+          price: m.price ? m.price.toString() : "0",
+        })) : [],
+      },
+      componentDetails: {
+        benefits: [],
+        customQuestions: [],
+      },
+    };
+  }, [treatmentDoc]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -181,13 +129,30 @@ export default function ViewTreatmentApplication() {
     }
   };
 
-  if (!application) {
+  if (isLoading) {
     return (
       <div className="flex h-screen w-full overflow-hidden bg-background">
         <div className="flex flex-col flex-1 overflow-hidden">
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center space-y-4">
-              <p className="text-muted-foreground">Application not found</p>
+              <Loader2 className="w-8 h-8 animate-spin mx-auto text-muted-foreground" />
+              <p className="text-muted-foreground">Loading application details...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !application) {
+    return (
+      <div className="flex h-screen w-full overflow-hidden bg-background">
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center space-y-4">
+              <p className="text-muted-foreground">
+                {error ? "Error loading application" : "Application not found"}
+              </p>
               <Button onClick={() => router.push("/subadmin/treatment")}>
                 Back to Applications
               </Button>
@@ -325,7 +290,7 @@ export default function ViewTreatmentApplication() {
                     <div>
                       <p className="text-sm text-muted-foreground mb-2">Symptoms</p>
                       <div className="flex flex-wrap gap-2">
-                        {application.treatmentDetails.diagnosisSymptoms.map((symptom, idx) => (
+                        {application.treatmentDetails.diagnosisSymptoms.map((symptom: string, idx: number) => (
                           <Badge key={idx} variant="outline">{symptom}</Badge>
                         ))}
                       </div>
@@ -368,7 +333,7 @@ export default function ViewTreatmentApplication() {
                             </tr>
                           </thead>
                           <tbody>
-                            {application.treatmentDetails.medicines.map((medicine, idx) => (
+                            {application.treatmentDetails.medicines.map((medicine: { date: string; name: string; batchNumber: string; expiryDate: string; price: string; }, idx: number) => (
                               <tr key={idx} className="border-b">
                                 <td className="p-3 text-sm">{medicine.date}</td>
                                 <td className="p-3 text-sm">{medicine.name}</td>

@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useFrappeGetDocList } from "frappe-react-sdk";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Stethoscope, Upload, Search, FileText } from "lucide-react";
+import { Download, Stethoscope, Upload, Search, FileText, Loader2 } from "lucide-react";
 
 interface TreatmentDetails {
   ownerFirstName: string;
@@ -167,7 +169,53 @@ export default function TreatmentPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const filteredApplications = mockApplications.filter((app) => {
+  // Fetch treatment applications from Frappe
+  const { data: treatmentApplications, isLoading, error } = useFrappeGetDocList<any>(
+    "Treatment of Infertile Animal",
+    {
+      fields: [
+        "name",
+        "first_name",
+        "middle_name",
+        "surname",
+        "district",
+        "taluka",
+        "village",
+        "animal_type",
+        "tag_number",
+        "examination_date",
+        "veterinarian_name",
+        "treatment_date",
+        "suggested_treatment",
+        "treatment_given",
+        "primary_treatment",
+        "actual_treatment_outcome",
+        "creation",
+        "modified",
+      ],
+      orderBy: {
+        field: "creation",
+        order: "desc",
+      },
+    }
+  );
+
+  // Transform Frappe data to match the Application interface
+  const applications: Application[] = (treatmentApplications || []).map((doc) => ({
+    id: doc.name,
+    applicantName: `${doc.first_name} ${doc.middle_name ? doc.middle_name + " " : ""}${doc.surname}`,
+    mobile: "", // Add mobile field to DocType if needed
+    village: doc.village,
+    component: "Treatment of Infertile Animal",
+    status: "pending", // Add workflow status field to DocType if needed
+    submittedDate: doc.creation ? new Date(doc.creation).toLocaleDateString("en-GB") : "",
+    componentDetails: {
+      benefits: [],
+      customQuestions: [],
+    },
+  }));
+
+  const filteredApplications = applications.filter((app) => {
     const matchesSearch =
       app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.applicantName.toLowerCase().includes(searchQuery.toLowerCase());
@@ -261,46 +309,61 @@ export default function TreatmentPage() {
                   </Select>
                 </div>
 
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-muted/50 border-b">
-                        <tr>
-                          <th className="text-left p-3 text-sm font-medium">Application ID</th>
-                          <th className="text-left p-3 text-sm font-medium">Applicant Name</th>
-                          <th className="text-left p-3 text-sm font-medium">Mobile</th>
-                          <th className="text-left p-3 text-sm font-medium">Village</th>
-                          <th className="text-left p-3 text-sm font-medium">Status</th>
-                          <th className="text-left p-3 text-sm font-medium">Submitted</th>
-                          <th className="text-left p-3 text-sm font-medium">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredApplications.map((app) => (
-                          <tr key={app.id} className="border-b hover:bg-muted/30">
-                            <td className="p-3 text-sm font-mono">{app.id}</td>
-                            <td className="p-3 text-sm">{app.applicantName}</td>
-                            <td className="p-3 text-sm">{app.mobile}</td>
-                            <td className="p-3 text-sm">{app.village}</td>
-                            <td className="p-3 text-sm">{getStatusBadge(app.status)}</td>
-                            <td className="p-3 text-sm">{app.submittedDate}</td>
-                            <td className="p-3 text-sm">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleViewDetails(app)}
-                                data-testid="button-view-details"
-                              >
-                                <FileText className="w-4 h-4 mr-1" />
-                                View
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                    <span className="ml-2 text-muted-foreground">Loading applications...</span>
                   </div>
-                </div>
+                ) : error ? (
+                  <div className="flex items-center justify-center py-12 text-destructive">
+                    <p>Error loading applications. Please try again.</p>
+                  </div>
+                ) : filteredApplications.length === 0 ? (
+                  <div className="flex items-center justify-center py-12 text-muted-foreground">
+                    <p>No applications found.</p>
+                  </div>
+                ) : (
+                  <div className="border rounded-lg overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-muted/50 border-b">
+                          <tr>
+                            <th className="text-left p-3 text-sm font-medium">Application ID</th>
+                            <th className="text-left p-3 text-sm font-medium">Applicant Name</th>
+                            <th className="text-left p-3 text-sm font-medium">Mobile</th>
+                            <th className="text-left p-3 text-sm font-medium">Village</th>
+                            <th className="text-left p-3 text-sm font-medium">Status</th>
+                            <th className="text-left p-3 text-sm font-medium">Submitted</th>
+                            <th className="text-left p-3 text-sm font-medium">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredApplications.map((app) => (
+                            <tr key={app.id} className="border-b hover:bg-muted/30">
+                              <td className="p-3 text-sm font-mono">{app.id}</td>
+                              <td className="p-3 text-sm">{app.applicantName}</td>
+                              <td className="p-3 text-sm">{app.mobile || "-"}</td>
+                              <td className="p-3 text-sm">{app.village}</td>
+                              <td className="p-3 text-sm">{getStatusBadge(app.status)}</td>
+                              <td className="p-3 text-sm">{app.submittedDate}</td>
+                              <td className="p-3 text-sm">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleViewDetails(app)}
+                                  data-testid="button-view-details"
+                                >
+                                  <FileText className="w-4 h-4 mr-1" />
+                                  View
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
