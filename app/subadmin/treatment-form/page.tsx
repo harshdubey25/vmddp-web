@@ -10,15 +10,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Stethoscope, ClipboardList, Save } from "lucide-react";
+import { ArrowLeft, Stethoscope, ClipboardList, Save, CalendarIcon, MapPin, Pill, Plus, Trash2, X } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { MedicineEntry, TreatmentFormData } from "@/types/subadmin";
-import { MapPin, Pill, Plus, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function TreatmentForm() {

@@ -9,15 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, GraduationCap, FileText, MapPin, Building, IndianRupee, Save, X, Target, Upload } from "lucide-react";
+import { ArrowLeft, GraduationCap, FileText, MapPin, Building, IndianRupee, Save, X, Target, Upload, CalendarIcon, AlertTriangle } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils"; 
-import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
 import { FarmerTrainingFormData, TRAINING_VENUE_OPTIONS, EXPENSE_PER_HEAD, MAX_TRAINING_IMAGES } from "@/types/subadmin";
 
 const MAX_IMAGES = MAX_TRAINING_IMAGES;
