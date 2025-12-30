@@ -5,55 +5,12 @@ export const runtime = 'edge';
 import { useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useFrappeGetDoc } from "frappe-react-sdk";
-import AdminSidebar from "@/components/AdminSidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, FileText, MapPin, User, Stethoscope, Pill, Loader2 } from "lucide-react";
 
-interface TreatmentDetails {
-  ownerFirstName: string;
-  ownerMiddleName: string;
-  ownerSurname: string;
-  district: string;
-  taluka: string;
-  village: string;
-  animalType: string;
-  tagNumber: string;
-  examinationDate: string;
-  veterinarianName: string;
-  diagnosisSymptoms: string[];
-  primaryTreatment: string;
-  actualTreatment: string;
-  suggestedTreatment: string;
-  treatmentGiven: string;
-  treatmentDate: string;
-  treatmentDays: string;
-  treatmentGap: string;
-  followUpObservations: string;
-  medicines: {
-    date: string;
-    name: string;
-    batchNumber: string;
-    expiryDate: string;
-    price: string;
-  }[];
-}
 
-interface Application {
-  id: string;
-  applicantName: string;
-  mobile: string;
-  village: string;
-  component: string;
-  status: "pending" | "approved" | "selected" | "rejected";
-  submittedDate: string;
-  treatmentDetails?: TreatmentDetails;
-  componentDetails: {
-    benefits: string[];
-    customQuestions: { label: string; answer: string }[];
-  };
-}
 
 export default function ViewTreatmentApplication() {
   const router = useRouter();
@@ -61,23 +18,20 @@ export default function ViewTreatmentApplication() {
 
   const applicationId = params?.id ? decodeURIComponent(Array.isArray(params.id) ? params.id[0] : params.id) : null;
 
-  // Fetch treatment document from Frappe
   const { data: treatmentDoc, isLoading, error } = useFrappeGetDoc<any>(
     "Treatment of Infertile Animal",
     applicationId || ""
   );
 
-  // Transform Frappe document to Application interface
   const application = useMemo(() => {
     if (!treatmentDoc) return null;
 
     return {
       id: treatmentDoc.name,
       applicantName: `${treatmentDoc.first_name} ${treatmentDoc.middle_name ? treatmentDoc.middle_name + " " : ""}${treatmentDoc.surname}`,
-      mobile: treatmentDoc.mobile || "-",
+      aadharNumber: treatmentDoc.aadhar_number || "-",
       village: treatmentDoc.village,
       component: "Treatment of Infertile Animal",
-      status: "pending" as const, // Add workflow field to DocType if needed
       submittedDate: treatmentDoc.creation ? new Date(treatmentDoc.creation).toLocaleDateString("en-GB") : "",
       treatmentDetails: {
         ownerFirstName: treatmentDoc.first_name,
@@ -185,7 +139,6 @@ export default function ViewTreatmentApplication() {
               <p className="text-sm text-muted-foreground" data-testid="text-app-id">{application.id}</p>
             </div>
           </div>
-          {getStatusBadge(application.status)}
         </header>
 
         <main className="flex-1 overflow-auto p-6 bg-muted/30">
@@ -200,7 +153,7 @@ export default function ViewTreatmentApplication() {
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">Applicant</p>
                     <p className="font-semibold" data-testid="text-applicant-name">{application.applicantName}</p>
-                    <p className="text-sm text-muted-foreground" data-testid="text-mobile">{application.mobile}</p>
+                    <p className="text-sm text-muted-foreground" data-testid="text-mobile">{application.aadharNumber}</p>
                   </div>
                 </div>
               </CardContent>

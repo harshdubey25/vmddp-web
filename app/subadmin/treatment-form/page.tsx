@@ -189,7 +189,7 @@ export default function TreatmentForm() {
 
     try {
       const symptomsTable = formData.symptoms.map((symptom) => ({
-        symptom_name: symptom,
+        symptom: symptom,
       }));
 
       const medicinesTable = formData.medicines

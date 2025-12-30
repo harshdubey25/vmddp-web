@@ -7,8 +7,6 @@ import { useFrappeGetDocList } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, Stethoscope, Upload, Search, FileText, Loader2 } from "lucide-react";
 
 interface TreatmentDetails {
@@ -43,10 +41,9 @@ interface TreatmentDetails {
 interface Application {
   id: string;
   applicantName: string;
-  mobile: string;
+  aadharNumber: number;
   village: string;
   component: string;
-  status: "pending" | "approved" | "selected" | "rejected";
   submittedDate: string;
   treatmentDetails?: TreatmentDetails;
   componentDetails: {
@@ -55,108 +52,6 @@ interface Application {
   };
 }
 
-const mockApplications: Application[] = [
-  {
-    id: "VMDDP-TIA-2024-001",
-    applicantName: "Ramesh Patil",
-    mobile: "9876543210",
-    village: "Hingna",
-    component: "Treatment of Infertile Animal",
-    status: "pending",
-    submittedDate: "2024-12-15",
-    treatmentDetails: {
-      ownerFirstName: "Ramesh",
-      ownerMiddleName: "Kumar",
-      ownerSurname: "Patil",
-      district: "Nagpur",
-      taluka: "Hingna",
-      village: "Hingna",
-      animalType: "Buffalo",
-      tagNumber: "MH-31-BF-001234",
-      examinationDate: "2024-12-10",
-      veterinarianName: "Dr. Suresh Kamble",
-      diagnosisSymptoms: ["Anestrus", "Repeat Breeding"],
-      primaryTreatment: "Hormonal Therapy",
-      actualTreatment: "GnRH Protocol",
-      suggestedTreatment: "Hormonal Therapy (GnRH/PGF2α)",
-      treatmentGiven: "Hormonal Therapy (GnRH/PGF2α)",
-      treatmentDate: "2024-12-12",
-      treatmentDays: "21",
-      treatmentGap: "9",
-      followUpObservations: "Animal responded well to treatment. Heat signs observed after 18 days.",
-      medicines: [
-        {
-          date: "2024-12-12",
-          name: "GnRH Injection",
-          batchNumber: "BTN-2024-001",
-          expiryDate: "2025-12-31",
-          price: "250",
-        },
-      ],
-    },
-    componentDetails: {
-      benefits: [
-        "Free veterinary consultation",
-        "Subsidized medication",
-        "Follow-up treatment support",
-      ],
-      customQuestions: [
-        { label: "Animal Age", answer: "4 years" },
-        { label: "Previous Calving", answer: "1 time" },
-      ],
-    },
-  },
-  {
-    id: "VMDDP-TIA-2024-002",
-    applicantName: "Suresh Jadhav",
-    mobile: "9876543211",
-    village: "Kamptee",
-    component: "Treatment of Infertile Animal",
-    status: "approved",
-    submittedDate: "2024-12-14",
-    treatmentDetails: {
-      ownerFirstName: "Suresh",
-      ownerMiddleName: "Govind",
-      ownerSurname: "Jadhav",
-      district: "Nagpur",
-      taluka: "Kamptee",
-      village: "Kamptee",
-      animalType: "Cow",
-      tagNumber: "MH-31-CW-005678",
-      examinationDate: "2024-12-08",
-      veterinarianName: "Dr. Priya Deshmukh",
-      diagnosisSymptoms: ["Silent Heat", "Ovarian Cyst"],
-      primaryTreatment: "CIDR Protocol",
-      actualTreatment: "Progesterone + GnRH",
-      suggestedTreatment: "Hormonal Therapy (GnRH/PGF2α)",
-      treatmentGiven: "Hormonal Therapy (GnRH/PGF2α)",
-      treatmentDate: "2024-12-10",
-      treatmentDays: "14",
-      treatmentGap: "7",
-      followUpObservations: "Heat signs observed. Animal ready for AI.",
-      medicines: [
-        {
-          date: "2024-12-10",
-          name: "Progesterone CIDR",
-          batchNumber: "BTN-2024-002",
-          expiryDate: "2025-06-30",
-          price: "450",
-        },
-      ],
-    },
-    componentDetails: {
-      benefits: [
-        "Free veterinary consultation",
-        "Subsidized medication",
-        "Follow-up treatment support",
-      ],
-      customQuestions: [
-        { label: "Animal Age", answer: "5 years" },
-        { label: "Previous Calving", answer: "2 times" },
-      ],
-    },
-  },
-];
 
 export default function TreatmentPage() {
   const router = useRouter();
@@ -169,7 +64,6 @@ export default function TreatmentPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // Fetch treatment applications from Frappe
   const { data: treatmentApplications, isLoading, error } = useFrappeGetDocList<any>(
     "Treatment of Infertile Animal",
     {
@@ -178,6 +72,7 @@ export default function TreatmentPage() {
         "first_name",
         "middle_name",
         "surname",
+        "aadhar_number",
         "district",
         "taluka",
         "village",
@@ -200,14 +95,12 @@ export default function TreatmentPage() {
     }
   );
 
-  // Transform Frappe data to match the Application interface
   const applications: Application[] = (treatmentApplications || []).map((doc) => ({
     id: doc.name,
     applicantName: `${doc.first_name} ${doc.middle_name ? doc.middle_name + " " : ""}${doc.surname}`,
-    mobile: "", // Add mobile field to DocType if needed
+    aadharNumber: doc.aadhar_number, 
     village: doc.village,
     component: "Treatment of Infertile Animal",
-    status: "pending", // Add workflow status field to DocType if needed
     submittedDate: doc.creation ? new Date(doc.creation).toLocaleDateString("en-GB") : "",
     componentDetails: {
       benefits: [],
@@ -219,24 +112,10 @@ export default function TreatmentPage() {
     const matchesSearch =
       app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.applicantName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || app.status === statusFilter;
+    const matchesStatus = statusFilter === "all";
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Badge variant="outline" className="bg-chart-4/10 text-chart-4 border-chart-4/20">Pending</Badge>;
-      case "approved":
-        return <Badge variant="outline" className="bg-chart-3/10 text-chart-3 border-chart-3/20">Approved</Badge>;
-      case "selected":
-        return <Badge variant="outline" className="bg-chart-1/10 text-chart-1 border-chart-1/20">Selected</Badge>;
-      case "rejected":
-        return <Badge variant="outline" className="bg-chart-5/10 text-chart-5 border-chart-5/20">Rejected</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
 
   const handleViewDetails = (app: Application) => {
     router.push(`/subadmin/treatment/${encodeURIComponent(app.id)}`);
@@ -295,18 +174,6 @@ export default function TreatmentPage() {
                       data-testid="input-search"
                     />
                   </div>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger data-testid="select-status">
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
-                      <SelectItem value="selected">Selected</SelectItem>
-                      <SelectItem value="rejected">Rejected</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 {isLoading ? (
@@ -330,7 +197,7 @@ export default function TreatmentPage() {
                           <tr>
                             <th className="text-left p-3 text-sm font-medium">Application ID</th>
                             <th className="text-left p-3 text-sm font-medium">Applicant Name</th>
-                            <th className="text-left p-3 text-sm font-medium">Mobile</th>
+                            <th className="text-left p-3 text-sm font-medium">Aadhar Number</th>
                             <th className="text-left p-3 text-sm font-medium">Village</th>
                             <th className="text-left p-3 text-sm font-medium">Status</th>
                             <th className="text-left p-3 text-sm font-medium">Submitted</th>
@@ -342,9 +209,8 @@ export default function TreatmentPage() {
                             <tr key={app.id} className="border-b hover:bg-muted/30">
                               <td className="p-3 text-sm font-mono">{app.id}</td>
                               <td className="p-3 text-sm">{app.applicantName}</td>
-                              <td className="p-3 text-sm">{app.mobile || "-"}</td>
+                              <td className="p-3 text-sm">{app.aadharNumber || "-"}</td>
                               <td className="p-3 text-sm">{app.village}</td>
-                              <td className="p-3 text-sm">{getStatusBadge(app.status)}</td>
                               <td className="p-3 text-sm">{app.submittedDate}</td>
                               <td className="p-3 text-sm">
                                 <Button
