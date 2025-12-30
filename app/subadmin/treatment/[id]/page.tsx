@@ -1,8 +1,5 @@
 "use client";
 
-export const runtime = 'edge';
-
-import { useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useFrappeGetDoc } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
@@ -10,7 +7,37 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, FileText, MapPin, User, Stethoscope, Pill, Loader2 } from "lucide-react";
 
+export const runtime = 'edge';
 
+interface TreatmentDoc {
+  name: string;
+  first_name: string;
+  middle_name?: string;
+  surname: string;
+  aadhar_number?: string;
+  village: string;
+  creation: string;
+  district: string;
+  taluka: string;
+  animal_type: string;
+  tag_number: string;
+  examination_date?: string;
+  veterinarian_name?: string;
+  symptom?: Array<{ symptom: string }>;
+  primary_treatment?: string;
+  actual_treatment_outcome?: string;
+  suggested_treatment?: string;
+  treatment_given?: string;
+  treatment_date?: string;
+  follow_up_observations?: string;
+  medicine?: Array<{
+    date?: string;
+    medicine_name?: string;
+    batch_number?: string;
+    expiry_date?: string;
+    price?: number;
+  }>;
+}
 
 export default function ViewTreatmentApplication() {
   const router = useRouter();
@@ -18,15 +45,13 @@ export default function ViewTreatmentApplication() {
 
   const applicationId = params?.id ? decodeURIComponent(Array.isArray(params.id) ? params.id[0] : params.id) : null;
 
-  const { data: treatmentDoc, isLoading, error } = useFrappeGetDoc<any>(
+  const { data: treatmentDoc, isLoading, error } = useFrappeGetDoc<TreatmentDoc>(
     "Treatment of Infertile Animal",
-    applicationId || ""
+    applicationId || "",
+    applicationId ? undefined : null 
   );
 
-  const application = useMemo(() => {
-    if (!treatmentDoc) return null;
-
-    return {
+  const application = treatmentDoc ? {
       id: treatmentDoc.name,
       applicantName: `${treatmentDoc.first_name} ${treatmentDoc.middle_name ? treatmentDoc.middle_name + " " : ""}${treatmentDoc.surname}`,
       aadharNumber: treatmentDoc.aadhar_number || "-",
@@ -44,7 +69,7 @@ export default function ViewTreatmentApplication() {
         tagNumber: treatmentDoc.tag_number,
         examinationDate: treatmentDoc.examination_date || "-",
         veterinarianName: treatmentDoc.veterinarian_name || "-",
-        diagnosisSymptoms: treatmentDoc.symptom ? treatmentDoc.symptom.map((s: any) => s.symptom_name) : [],
+        diagnosisSymptoms: treatmentDoc.symptom ? treatmentDoc.symptom.map((s: any) => s.symptom) : [],
         primaryTreatment: treatmentDoc.primary_treatment || "-",
         actualTreatment: treatmentDoc.actual_treatment_outcome || "-",
         suggestedTreatment: treatmentDoc.suggested_treatment || "-",
@@ -65,23 +90,8 @@ export default function ViewTreatmentApplication() {
         benefits: [],
         customQuestions: [],
       },
-    };
-  }, [treatmentDoc]);
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Badge className="bg-chart-4/10 text-chart-4 border-chart-4/20">Pending</Badge>;
-      case "approved":
-        return <Badge className="bg-chart-3/10 text-chart-3 border-chart-3/20">Approved</Badge>;
-      case "selected":
-        return <Badge className="bg-chart-1/10 text-chart-1 border-chart-1/20">Selected</Badge>;
-      case "rejected":
-        return <Badge className="bg-chart-5/10 text-chart-5 border-chart-5/20">Rejected</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
     }
-  };
+  : null;
 
   if (isLoading) {
     return (
@@ -243,9 +253,14 @@ export default function ViewTreatmentApplication() {
                     <div>
                       <p className="text-sm text-muted-foreground mb-2">Symptoms</p>
                       <div className="flex flex-wrap gap-2">
-                        {application.treatmentDetails.diagnosisSymptoms.map((symptom: string, idx: number) => (
-                          <Badge key={idx} variant="outline">{symptom}</Badge>
-                        ))}
+                        {application.treatmentDetails.diagnosisSymptoms.length > 0 ? (
+                          application.treatmentDetails.diagnosisSymptoms.map((symptom: string, idx: number) => (
+                            <Badge key={idx} variant="outline">{symptom}</Badge>
+                          ))
+                        ) : (
+                          <p className="text-sm text-muted-foreground">No symptoms recorded</p>
+                        )}
+                        
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">

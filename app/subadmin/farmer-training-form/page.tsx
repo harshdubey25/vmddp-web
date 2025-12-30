@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import AdminSidebar from "@/components/AdminSidebar";
 import { useFrappeCreateDoc, useFrappeGetDocList } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, GraduationCap, FileText, MapPin, Building, Image, IndianRupee, Save, X, Target, Upload } from "lucide-react";
+import { ArrowLeft, GraduationCap, FileText, MapPin, Building, IndianRupee, Save, X, Target, Upload } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -87,7 +86,7 @@ export default function FarmerTrainingForm() {
     setFormData(prev => ({ ...prev, totalAmount: total.toString() }));
   }, [formData.numberOfParticipants]);
 
-  const handleInputChange = (field: keyof FarmerTrainingFormData, value: string | Date | undefined | File | null) => {
+  const handleInputChange = (field: keyof FarmerTrainingFormData, value: string | Date | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
     if (field === "district") {
@@ -179,14 +178,14 @@ export default function FarmerTrainingForm() {
       let imageTableEntries: Array<{ image: string }> = [];
       if (formData.participantListImages.length > 0) {
         const uploadPromises = formData.participantListImages.map(async (file) => {
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('is_private', '0');
-          formData.append('folder', 'Home');
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', file);
+          uploadFormData.append('is_private', '0');
+          uploadFormData.append('folder', 'Home');
 
           const response = await fetch('/api/method/upload_file', {
             method: 'POST',
-            body: formData,
+            body: uploadFormData,
           });
 
           if (!response.ok) {

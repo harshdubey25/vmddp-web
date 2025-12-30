@@ -9,30 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, GraduationCap, Upload, Search, FileText, Loader2 } from "lucide-react";
+import { Application } from "@/types/subadmin";
 
-interface FundAllocation {
-  trainingMaterial: number;
-  logistics: number;
-  refreshment: number;
-  totalAmount: number;
-}
 
-interface Application {
-  name: string;
-  event_name: string;
-  event_date: string;
-  district: string;
-  taluka: string;
-  village: string;
-  venue_name: string;
-  venue_type: string;
-  number_of_participants: number;
-  training_material: number;
-  logistics: number;
-  refreshment: number;
-  docstatus: number;
-  creation: string;
-}
+
 
 export default function FarmerTraining() {
   const router = useRouter();
@@ -77,18 +57,7 @@ export default function FarmerTraining() {
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusBadge = (docstatus: number) => {
-    switch (docstatus) {
-      case 0:
-        return <Badge variant="outline" className="bg-chart-4/10 text-chart-4 border-chart-4/20">Draft</Badge>;
-      case 1:
-        return <Badge variant="outline" className="bg-chart-3/10 text-chart-3 border-chart-3/20">Submitted</Badge>;
-      case 2:
-        return <Badge variant="outline" className="bg-chart-5/10 text-chart-5 border-chart-5/20">Cancelled</Badge>;
-      default:
-        return <Badge variant="outline">Unknown</Badge>;
-    }
-  };
+
 
   const handleViewDetails = (app: Application) => {
     router.push(`/subadmin/farmer-training/${encodeURIComponent(app.name)}`);
@@ -159,17 +128,6 @@ export default function FarmerTraining() {
                       data-testid="input-search"
                     />
                   </div>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger data-testid="select-status">
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="0">Draft</SelectItem>
-                      <SelectItem value="1">Submitted</SelectItem>
-                      <SelectItem value="2">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 {isLoading ? (
@@ -196,7 +154,6 @@ export default function FarmerTraining() {
                             <th className="text-left p-3 text-sm font-medium">Venue</th>
                             <th className="text-left p-3 text-sm font-medium">Participants</th>
                             <th className="text-left p-3 text-sm font-medium">Budget</th>
-                            <th className="text-left p-3 text-sm font-medium">Status</th>
                             <th className="text-left p-3 text-sm font-medium">Actions</th>
                           </tr>
                         </thead>
@@ -209,7 +166,6 @@ export default function FarmerTraining() {
                               <td className="p-3 text-sm">{app.venue_name}</td>
                               <td className="p-3 text-sm">{app.number_of_participants}</td>
                               <td className="p-3 text-sm">{formatCurrency(getTotalBudget(app))}</td>
-                              <td className="p-3 text-sm">{getStatusBadge(app.docstatus)}</td>
                               <td className="p-3 text-sm">
                                 <Button
                                   variant="ghost"

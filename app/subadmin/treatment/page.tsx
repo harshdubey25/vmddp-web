@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Download, Stethoscope, Upload, Search, FileText, Loader2 } from "lucide-react";
+import { TreatmentDoc } from "@/types/subadmin";
 
 interface TreatmentDetails {
   ownerFirstName: string;
@@ -41,7 +42,7 @@ interface TreatmentDetails {
 interface Application {
   id: string;
   applicantName: string;
-  aadharNumber: number;
+  aadharNumber?: string;
   village: string;
   component: string;
   submittedDate: string;
@@ -62,9 +63,10 @@ export default function TreatmentPage() {
   };
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
 
-  const { data: treatmentApplications, isLoading, error } = useFrappeGetDocList<any>(
+ 
+
+  const { data: treatmentApplications, isLoading, error } = useFrappeGetDocList<TreatmentDoc>(
     "Treatment of Infertile Animal",
     {
       fields: [
@@ -111,9 +113,9 @@ export default function TreatmentPage() {
   const filteredApplications = applications.filter((app) => {
     const matchesSearch =
       app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.applicantName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all";
-    return matchesSearch && matchesStatus;
+      app.applicantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.village.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
   });
 
 
@@ -199,19 +201,18 @@ export default function TreatmentPage() {
                             <th className="text-left p-3 text-sm font-medium">Applicant Name</th>
                             <th className="text-left p-3 text-sm font-medium">Aadhar Number</th>
                             <th className="text-left p-3 text-sm font-medium">Village</th>
-                            <th className="text-left p-3 text-sm font-medium">Status</th>
-                            <th className="text-left p-3 text-sm font-medium">Submitted</th>
+                            <th className="text-left p-3 text-sm font-medium">Submitted Date</th>
                             <th className="text-left p-3 text-sm font-medium">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {filteredApplications.map((app) => (
-                            <tr key={app.id} className="border-b hover:bg-muted/30">
+                            <tr key={app.id} className="border-b hover:bg-muted/30 transition-colors">
                               <td className="p-3 text-sm font-mono">{app.id}</td>
-                              <td className="p-3 text-sm">{app.applicantName}</td>
+                              <td className="p-3 text-sm font-medium">{app.applicantName}</td>
                               <td className="p-3 text-sm">{app.aadharNumber || "-"}</td>
                               <td className="p-3 text-sm">{app.village}</td>
-                              <td className="p-3 text-sm">{app.submittedDate}</td>
+                              <td className="p-3 text-sm text-muted-foreground">{app.submittedDate}</td>
                               <td className="p-3 text-sm">
                                 <Button
                                   variant="ghost"

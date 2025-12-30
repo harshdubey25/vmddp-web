@@ -21,16 +21,11 @@ export interface TreatmentFormData {
     examinationDate: Date | undefined;
     veterinarianName: string;
     symptoms: string[];
-    customSymptom: string;
     suggestedTreatment: string;
-    customSuggestedTreatment: string;
     treatmentGiven: string;
-    customTreatmentGiven: string;
     treatmentDate: Date | undefined;
     primaryTreatment: string;
     actualTreatment: string;
-    treatmentDays: string;
-    treatmentGap: string;
     followUpNotes: string;
     medicines: MedicineEntry[];
 }
@@ -100,3 +95,43 @@ export interface TargetData {
     physical: number;
     achieved: number;
 }
+
+export interface Application {
+  name: string;
+  event_name: string;
+  event_date: string;
+  district: string;
+  taluka: string;
+  village: string;
+  venue_name: string;
+  venue_type: string;
+  number_of_participants: number;
+  training_material: number;
+  logistics: number;
+  refreshment: number;
+  docstatus: number;
+  creation: string;
+}
+
+export  interface TreatmentDoc {
+    name: string;
+    first_name: string;
+    middle_name?: string;
+    surname: string;
+    aadhar_number?: string;
+    district: string;
+    taluka: string;
+    village: string;
+    animal_type: string;
+    tag_number: string;
+    examination_date?: string;
+    veterinarian_name?: string;
+    treatment_date?: string;
+    suggested_treatment?: string;
+    treatment_given?: string;
+    primary_treatment?: string;
+    actual_treatment_outcome?: string;
+    creation: string;
+    modified: string;
+  }
+

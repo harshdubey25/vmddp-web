@@ -18,12 +18,6 @@ import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { MedicineEntry, TreatmentFormData } from "@/types/subadmin";
-import { 
-  PREDEFINED_SYMPTOMS, 
-  PREDEFINED_TREATMENTS, 
-  PREDEFINED_MEDICINES, 
-  PREDEFINED_OBSERVATIONS 
-} from "@/types/subadmin";
 import { MapPin, Pill, Plus, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -45,21 +39,15 @@ export default function TreatmentForm() {
     examinationDate: undefined,
     veterinarianName: "",
     symptoms: [],
-    customSymptom: "",
     suggestedTreatment: "",
-    customSuggestedTreatment: "",
     treatmentGiven: "",
-    customTreatmentGiven: "",
     treatmentDate: undefined,
     primaryTreatment: "",
     actualTreatment: "",
-    treatmentDays: "",
-    treatmentGap: "",
     followUpNotes: "",
     medicines: [],
   });
 
-  // Fetch master data from Frappe
   const { data: districtData } = useFrappeGetDocList("District Master", {
     fields: ["name", "name1"],
     limit: 1000,
@@ -105,16 +93,6 @@ export default function TreatmentForm() {
         : [...prev.symptoms, symptom],
     }));
   };
-
-  // const addCustomSymptom = () => {
-  //   if (formData.customSymptom.trim() && !formData.symptoms.includes(formData.customSymptom.trim())) {
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       symptoms: [...prev.symptoms, prev.customSymptom.trim()],
-  //       customSymptom: "",
-  //     }));
-  //   }
-  // };
 
   const removeSymptom = (symptom: string) => {
     setFormData((prev) => ({
@@ -213,8 +191,8 @@ export default function TreatmentForm() {
           : undefined,
         veterinarian_name: formData.veterinarianName || undefined,
         symptom: symptomsTable.length > 0 ? symptomsTable : undefined,
-        suggested_treatment: formData.suggestedTreatment || formData.customSuggestedTreatment || undefined,
-        treatment_given: formData.treatmentGiven || formData.customTreatmentGiven || undefined,
+        suggested_treatment: formData.suggestedTreatment || undefined,
+        treatment_given: formData.treatmentGiven || undefined,
         treatment_date: formData.treatmentDate
           ? format(formData.treatmentDate, "yyyy-MM-dd")
           : undefined,

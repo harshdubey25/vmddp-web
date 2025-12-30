@@ -1,14 +1,13 @@
 "use client";
 
-export const runtime = 'edge';
-import { useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
-import AdminSidebar from "@/components/AdminSidebar";
 import { useFrappeGetDoc } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, FileText, GraduationCap, MapPin, Building, Users, Image, IndianRupee, Loader2 } from "lucide-react";
+
+export const runtime = 'edge';
 
 interface ImageTableEntry {
   image: string;
@@ -46,18 +45,6 @@ export default function ViewFarmerTrainingApplication() {
     applicationId ? undefined : null
   );
 
-  const getStatusBadge = (docstatus: number) => {
-    switch (docstatus) {
-      case 0:
-        return <Badge className="bg-chart-4/10 text-chart-4 border-chart-4/20">Draft</Badge>;
-      case 1:
-        return <Badge className="bg-chart-3/10 text-chart-3 border-chart-3/20">Submitted</Badge>;
-      case 2:
-        return <Badge className="bg-chart-5/10 text-chart-5 border-chart-5/20">Cancelled</Badge>;
-      default:
-        return <Badge>Unknown</Badge>;
-    }
-  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -123,7 +110,6 @@ export default function ViewFarmerTrainingApplication() {
               <p className="text-sm text-muted-foreground" data-testid="text-app-id">{application.name}</p>
             </div>
           </div>
-          {getStatusBadge(application.docstatus)}
         </header>
 
         <main className="flex-1 overflow-auto p-6 bg-muted/30">
