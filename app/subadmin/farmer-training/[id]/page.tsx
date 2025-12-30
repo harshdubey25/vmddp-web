@@ -1,7 +1,5 @@
 "use client";
 
-export const runtime = 'edge';
-
 import { useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import AdminSidebar from "@/components/AdminSidebar";
