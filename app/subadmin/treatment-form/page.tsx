@@ -16,57 +16,16 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import type { MedicineEntry, TreatmentFormData } from "@/types/subadmin";
+import { PREDEFINED_SYMPTOMS } from "@/types/subadmin";
 
-interface MedicineEntry {
-  id: string;
-  date: Date | undefined;
-  medicineName: string;
-  batchNumber: string;
-  expiryDate: Date | undefined;
-  price: string;
-}
-
-interface FormData {
-  firstName: string;
-  middleName: string;
-  surname: string;
-  district: string;
-  taluka: string;
-  village: string;
-  animalType: string;
-  tagNumber: string;
-  examinationDate: Date | undefined;
-  veterinarianName: string;
-  symptoms: string[];
-  customSymptom: string;
-  suggestedTreatment: string;
-  treatmentGiven: string;
-  treatmentDate: Date | undefined;
-  primaryTreatment: string;
-  actualTreatment: string;
-  treatmentDays: string;
-  treatmentGap: string;
-  followUpNotes: string;
-  medicines: MedicineEntry[];
-}
-
-const predefinedSymptoms = [
-  "Anestrus",
-  "Repeat Breeding",
-  "Silent Heat",
-  "Delayed Puberty",
-  "Ovarian Cyst",
-  "Uterine Infection",
-  "Hormonal Imbalance",
-  "Poor Body Condition",
-  "Nutritional Deficiency",
-];
+const predefinedSymptoms = [...PREDEFINED_SYMPTOMS];
 
 export default function TreatmentForm() {
   const { toast } = useToast();
   const router = useRouter();
 
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<TreatmentFormData>({
     firstName: "",
     middleName: "",
     surname: "",

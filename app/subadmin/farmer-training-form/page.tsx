@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import AdminSidebar from "@/components/AdminSidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,28 +18,8 @@ import { CalendarIcon } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
-
-interface FormData {
-  eventName: string;
-  eventDate: Date | undefined;
-  district: string;
-  taluka: string;
-  village: string;
-  trainingVenueType: string;
-  venueName: string;
-  numberOfParticipants: string;
-  participantListImages: File[];
-  trainingMaterial: string;
-  logistics: string;
-  refreshment: string;
-  totalAmount: string;
-}
-
-const trainingVenueOptions = [
-  "govt. institute",
-  "private Farms",
-  "progressive farmers",
-];
+import { FormData } from "@/types/subadmin";
+import { TRAINING_VENUE_OPTIONS } from "@/types/subadmin";
 
 const EXPENSE_PER_HEAD = 360;
 const MAX_IMAGES = 5;
@@ -361,7 +342,7 @@ export default function FarmerTrainingForm() {
                         <SelectValue placeholder="Select venue type" />
                       </SelectTrigger>
                       <SelectContent>
-                        {trainingVenueOptions.map((v) => (
+                        {TRAINING_VENUE_OPTIONS.map((v) => (
                           <SelectItem key={v} value={v}>{v}</SelectItem>
                         ))}
                       </SelectContent>
