@@ -290,7 +290,7 @@ export default function DDCollectionForm({
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground">Aadhaar Number</p>
-                                    <p className="font-medium font-mono">{application.aadhar_number.replace(/(\d{4})/g, "$1 ").trim()}</p>
+                                    <p className="font-medium font-mono">{application.aadhar_number && application.aadhar_number.replace(/(\d{4})/g, "$1 ").trim()}</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3">
