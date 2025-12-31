@@ -1,5 +1,5 @@
 "use client";
-import StatusToggleBadge from "@/components/StatusToggleBadge";
+import { Components } from "@/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -12,8 +12,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-
-import { frappeBrowser } from "@/lib/frappe";
 import { useFrappeCreateDoc, useFrappeGetDocCount, useFrappeGetDocList, useFrappeUpdateDoc } from "frappe-react-sdk";
 
 import { Toaster } from "@/components/ui/toaster";
@@ -23,7 +21,7 @@ import {
     Package,
     Plus,
     Settings,
-    Trash2
+
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -319,7 +317,7 @@ export default function AdminComponents() {
                                 />
                             </div>
 
-                            {subsidyForm?.name === 'Treatment of Infertile Animal' && (
+                            {subsidyForm?.name === Components.FARMER_TRAINING && (
                                 <div className="space-y-2">
                                     <Label>Amount Per Head</Label>
                                     <Input

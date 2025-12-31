@@ -234,13 +234,13 @@ export default function TargetAllocation() {
                     <div className="max-w-6xl mx-auto space-y-6">
                         <Card>
                             <CardHeader>
-                                {/* <CardTitle className="text-lg">Select Allocation Level</CardTitle>
+                                <CardTitle className="text-lg">Select Allocation Level</CardTitle>
                                 <CardDescription>
                                     Choose whether to allocate targets for a district or headquarters
-                                </CardDescription> */}
+                                </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                {/* <RadioGroup
+                                <RadioGroup
                                     value={selectionType || ""}
                                     onValueChange={(value) => {
                                         setSelectionType(value as "district" | "headquarters");
@@ -262,7 +262,7 @@ export default function TargetAllocation() {
                                             Head Quarter
                                         </Label>
                                     </div>
-                                </RadioGroup> */}
+                                </RadioGroup>
 
                                 {selectionType === "district" && (
                                     <div className="space-y-3">
