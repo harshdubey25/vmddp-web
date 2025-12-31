@@ -39,13 +39,28 @@ export default function ComponentAllocation() {
     const { data: districts } = useFrappeGetDocList('District Master')
     const { data: components } = useFrappeGetDocList('Component')
     const { data: ddCompletedApplications } = useFrappeGetCall<DDCompletedApplication>('vmddp_app.api.v1.accountant.get_completed_dd_list', {
-        districts: districtFilter === 'all' ? null : districtFilter,
-        aadhaar: aadharFilter.length === 0 ? null : aadharFilter,
+        district: districtFilter === 'all' ? null : districtFilter,
+        search_text: aadharFilter.length === 0 ? null : aadharFilter,
         component: componentFilter === 'all' ? null : componentFilter,
     })
+
+    const { data: completedAllocations } = useFrappeGetCall<DDCompletedApplication>('vmddp_app.api.v1.accountant.get_completed_component_allocation_list', {
+        district: districtFilter === 'all' ? null : districtFilter,
+        search_text: aadharFilter.length === 0 ? null : aadharFilter,
+        component: componentFilter === 'all' ? null : componentFilter,
+    })
+
+    const { data: allocationStats } = useFrappeGetCall<{
+        message: {
+            pending_component_allocation: number;
+            total_component_allocated: number;
+            total_applications: number;
+        }
+    }>('vmddp_app.api.v1.accountant.get_component_allocation_stats')
+
     console.log('dd completed applications', ddCompletedApplications);
     return (
-        <div className="w-full bg-background">
+        <div className="w-full bg-background overflow-y-scroll">
             <div className="">
                 <div className="p-6 space-y-6">
                     {/* Header */}
@@ -75,7 +90,7 @@ export default function ComponentAllocation() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Total Allocations</p>
-                                        <p className="text-2xl font-bold">{100}</p>
+                                        <p className="text-2xl font-bold">{allocationStats?.message?.total_applications ?? 0}</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -89,7 +104,7 @@ export default function ComponentAllocation() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Awaiting Allocation</p>
-                                        <p className="text-2xl font-bold">{20}</p>
+                                        <p className="text-2xl font-bold">{allocationStats?.message?.pending_component_allocation ?? 0}</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -102,7 +117,7 @@ export default function ComponentAllocation() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Completed</p>
-                                        <p className="text-2xl font-bold">{30}</p>
+                                        <p className="text-2xl font-bold">{allocationStats?.message?.total_component_allocated ?? 0}</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -123,10 +138,10 @@ export default function ComponentAllocation() {
                                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                                     <TabsList>
                                         <TabsTrigger value="pending" data-testid="tab-pending">
-                                            Pending (20)
+                                            Pending ({allocationStats?.message?.pending_component_allocation ?? 0})
                                         </TabsTrigger>
                                         <TabsTrigger value="completed" data-testid="tab-completed">
-                                            Completed (30)
+                                            Completed ({allocationStats?.message?.total_component_allocated ?? 0})
                                         </TabsTrigger>
                                     </TabsList>
 
@@ -237,7 +252,7 @@ export default function ComponentAllocation() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {ddCompletedApplications?.message?.map((alloc) => (
+                                            {completedAllocations?.message?.map((alloc) => (
                                                 <TableRow key={alloc.name} data-testid={`row-allocation-${alloc.name}`}>
                                                     <TableCell className="font-medium">{alloc.name}</TableCell>
                                                     <TableCell>{alloc.first_name} {alloc.mid_name} {alloc.last_name}</TableCell>
@@ -245,7 +260,7 @@ export default function ComponentAllocation() {
                                                     <TableCell>{alloc.district}</TableCell>
                                                     <TableCell>
                                                         <Badge variant="outline">
-                                                            {components?.find((c) => c.id === alloc.component_name)?.shortName}
+                                                            {alloc.component_name}
                                                         </Badge>
                                                     </TableCell>
                                                     <TableCell>{alloc.item || "-"}</TableCell>
@@ -254,7 +269,7 @@ export default function ComponentAllocation() {
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
-                                            {ddCompletedApplications?.message?.length === 0 && (
+                                            {completedAllocations?.message?.length === 0 && (
                                                 <TableRow>
                                                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                                                         No completed allocations
