@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { frappeBrowser } from "@/lib/frappe";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import AdminSelectionClient from "./client";
 
 interface ApplicationSelectionItem {
@@ -122,8 +124,99 @@ export default function AdminSelection() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header Skeleton */}
+        <header className="flex h-14 sm:h-16 items-center justify-between border-b pl-12 pr-3 sm:pl-6 sm:pr-6 bg-background">
+          <div>
+            <Skeleton className="h-5 sm:h-6 w-48 mb-1" />
+            <Skeleton className="h-3 sm:h-4 w-64 hidden sm:block" />
+          </div>
+          <Skeleton className="h-9 w-28" />
+        </header>
+
+        <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30">
+          <div className="space-y-4 sm:space-y-6">
+            {/* Stats Cards Skeleton */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="p-3 sm:p-4 lg:p-6">
+                    <div className="flex items-center justify-between mb-2 sm:mb-3">
+                      <Skeleton className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg" />
+                    </div>
+                    <div>
+                      <Skeleton className="h-6 sm:h-7 lg:h-8 w-16 mb-1" />
+                      <Skeleton className="h-3 sm:h-4 w-24" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Main Card Skeleton */}
+            <Card>
+              <CardHeader className="pb-4">
+                {/* Filters Skeleton */}
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Skeleton className="h-10 flex-1" />
+                    <div className="flex gap-2 flex-wrap">
+                      <Skeleton className="h-10 w-[130px]" />
+                      <Skeleton className="h-10 w-[130px]" />
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Skeleton className="h-10 w-[150px]" />
+                    <Skeleton className="h-10 w-[150px]" />
+                    <Skeleton className="h-10 w-24" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {/* Table Header Skeleton */}
+                <div className="hidden md:flex items-center gap-4 p-3 border-b bg-muted/50 rounded-t-lg">
+                  <Skeleton className="h-4 w-8" />
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-32 flex-1" />
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+                {/* Table Rows Skeleton */}
+                <div className="space-y-0">
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4 p-4 border-b"
+                    >
+                      <Skeleton className="h-4 w-4 hidden md:block" />
+                      <Skeleton className="h-4 w-28" />
+                      <div className="flex-1 space-y-1">
+                        <Skeleton className="h-4 w-40" />
+                        <Skeleton className="h-3 w-28 md:hidden" />
+                      </div>
+                      <Skeleton className="h-4 w-24 hidden md:block" />
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                      <Skeleton className="h-4 w-24 hidden md:block" />
+                      <Skeleton className="h-8 w-16" />
+                    </div>
+                  ))}
+                </div>
+                {/* Pagination Skeleton */}
+                <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                  <Skeleton className="h-4 w-40" />
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-9 w-9" />
+                    <Skeleton className="h-9 w-9" />
+                    <Skeleton className="h-9 w-9" />
+                    <Skeleton className="h-9 w-9" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
       </div>
     );
   }

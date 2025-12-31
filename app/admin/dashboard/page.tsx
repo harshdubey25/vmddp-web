@@ -1,10 +1,8 @@
 
-// ...existing code...
-// Content from src/pages/admin/Dashboard.tsx
-export const dynamic = 'force-dynamic';
+"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
     FileText,
     Users,
@@ -20,7 +18,6 @@ import { Suspense } from "react";
 import { CardSkeleton, ListSkeleton } from "@/components/LoadingSkeletons";
 import RecentApplicationsDashboard from "./recent-applications";
 import ExportReportsDashboard from "./export-reports";
-export const runtime = 'edge';
 export default function AdminDashboard() {
 
     return (
@@ -37,9 +34,7 @@ export default function AdminDashboard() {
 
             <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30">
                 <div className="space-y-4 sm:space-y-6 max-w-7xl">
-                    <Suspense fallback={<CardSkeleton />}>
-                        <AdminDashboardStats />
-                    </Suspense>
+                    <AdminDashboardStats />
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <Card className="lg:col-span-2">
@@ -57,16 +52,12 @@ export default function AdminDashboard() {
                                 </Link>
                             </CardHeader>
                             <CardContent>
-                                <Suspense fallback={<ListSkeleton />}>
-                                    <RecentApplicationsDashboard />
-                                </Suspense>
+                                <RecentApplicationsDashboard />
                             </CardContent>
                         </Card>
 
                         <div className="space-y-6">
-                            <Suspense fallback={<CardSkeleton loadingText="Fetching Top Components" />}>
-                                <TopComponents />
-                            </Suspense>
+                            <TopComponents />
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-base sm:text-lg" data-testid="text-quick-actions">Quick Actions</CardTitle>
