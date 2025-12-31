@@ -1,7 +1,6 @@
 import { getFrappeWithUserToken } from "@/lib/frappeHelper";
 import AdminSelectionClient from "./client";
 export const runtime = 'edge';
-
 interface ApplicationSelectionItem {
   id: string;
   realApplicationId: string;
