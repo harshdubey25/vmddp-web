@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFrappeGetDocList } from "frappe-react-sdk";
+import { useToast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -63,6 +64,7 @@ export default function TreatmentPage() {
   };
 
   const [searchQuery, setSearchQuery] = useState("");
+  const { toast } = useToast();
 
  
 
@@ -114,13 +116,71 @@ export default function TreatmentPage() {
     const matchesSearch =
       app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.applicantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.village.toLowerCase().includes(searchQuery.toLowerCase());
+      app.village.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.aadharNumber?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
 
 
   const handleViewDetails = (app: Application) => {
     router.push(`/subadmin/treatment/${encodeURIComponent(app.id)}`);
+  };
+
+  const handleExport = async () => {
+    if (!filteredApplications || filteredApplications.length === 0) {
+      toast({
+        title: "No data",
+        description: "There are no applications to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const XLSX = await import('xlsx');
+      
+      const exportData = filteredApplications.map(app => ({
+        'Application ID': app.id,
+        'Applicant Name': app.applicantName,
+        'Aadhar Number': app.aadharNumber || '-',
+        'Village': app.village,
+        'District': assignedZone.district,
+        'Taluka': assignedZone.taluka,
+        'Component': app.component,
+        'Submitted Date': app.submittedDate,
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      
+      const headers = Object.keys(exportData[0]);
+      const colWidths = headers.map(header => {
+        const maxLength = Math.max(
+          header.length,
+          ...exportData.map(row => String(row[header as keyof typeof row] || '').length)
+        );
+        return { wch: maxLength + 2 }; 
+      });
+      worksheet['!cols'] = colWidths;
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Treatment Applications');
+
+      const date = new Date().toISOString().split('T')[0];
+      const filename = `treatment-applications-${date}.xlsx`;
+
+      XLSX.writeFile(workbook, filename);
+
+      toast({
+        title: "Export successful",
+        description: `Exported ${filteredApplications.length} applications.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: "Failed to export applications. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -136,7 +196,7 @@ export default function TreatmentPage() {
               Manage applications for {assignedZone.district} - {assignedZone.taluka}
             </p>
           </div>
-          <Button variant="outline" className="gap-2" data-testid="button-export">
+          <Button variant="outline" className="gap-2" data-testid="button-export" onClick={handleExport}>
             <Download className="w-4 h-4" />
             Export
           </Button>

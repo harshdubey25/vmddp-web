@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFrappeGetDocList } from "frappe-react-sdk";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { Application } from "@/types/subadmin";
 
 export default function FarmerTraining() {
   const router = useRouter();
+  const { toast } = useToast();
 
   const assignedZone = {
     district: "Nagpur",
@@ -75,6 +77,76 @@ export default function FarmerTraining() {
     return (app.training_material || 0) + (app.logistics || 0) + (app.refreshment || 0);
   };
 
+  const handleExport = async () => {
+    if (!filteredApplications || filteredApplications.length === 0) {
+      toast({
+        title: "No data",
+        description: "There are no applications to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const XLSX = await import('xlsx');
+      
+      // Prepare data for export
+      const exportData = filteredApplications.map(app => ({
+        'Application ID': app.name,
+        'Event Name': app.event_name,
+        'Event Date': new Date(app.event_date).toLocaleDateString('en-GB'),
+        'District': app.district,
+        'Taluka': app.taluka,
+        'Village': app.village,
+        'Venue Type': app.venue_type,
+        'Venue Name': app.venue_name,
+        'Participants': app.number_of_participants,
+        'Training Material': formatCurrency(app.training_material || 0),
+        'Logistics': formatCurrency(app.logistics || 0),
+        'Refreshment': formatCurrency(app.refreshment || 0),
+        'Total Budget': formatCurrency(getTotalBudget(app)),
+        'Status': app.docstatus === 0 ? 'Draft' : app.docstatus === 1 ? 'Submitted' : 'Cancelled',
+        'Created On': new Date(app.creation).toLocaleDateString('en-GB'),
+      }));
+
+      // Create worksheet
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      
+      // Auto-size columns
+      const headers = Object.keys(exportData[0]);
+      const colWidths = headers.map(header => {
+        const maxLength = Math.max(
+          header.length,
+          ...exportData.map(row => String(row[header as keyof typeof row] || '').length)
+        );
+        return { wch: maxLength + 2 }; // Add padding
+      });
+      worksheet['!cols'] = colWidths;
+
+      // Create workbook and add worksheet
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Farmer Training');
+
+      // Generate filename with date
+      const date = new Date().toISOString().split('T')[0];
+      const filename = `farmer-training-applications-${date}.xlsx`;
+
+      // Download file
+      XLSX.writeFile(workbook, filename);
+
+      toast({
+        title: "Export successful",
+        description: `Exported ${filteredApplications.length} applications.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: "Failed to export applications. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
       <div className="flex flex-col flex-1 overflow-hidden">
@@ -88,7 +160,7 @@ export default function FarmerTraining() {
               Manage training applications for {assignedZone.district} - {assignedZone.taluka}
             </p>
           </div>
-          <Button variant="outline" className="gap-2" data-testid="button-export">
+          <Button variant="outline" className="gap-2" onClick={handleExport} data-testid="button-export">
             <Download className="w-4 h-4" />
             Export
           </Button>
@@ -138,7 +210,7 @@ export default function FarmerTraining() {
                   <div className="text-center py-12 text-destructive">
                     Error loading applications. Please try again.
                   </div>
-                ) : filteredApplications.length === 0 ? (
+                ) : filteredApplications && filteredApplications.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
                     No applications found.
                   </div>
