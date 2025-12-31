@@ -1,8 +1,9 @@
-// Server component for admin applications page
-export const dynamic = 'force-dynamic';
-export const runtime = 'edge';
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import AdminApplicationsClient from "./AdminApplicationsClient";
-import { frappeServer } from "@/lib/frappe";
+import { frappeBrowser } from "@/lib/frappe";
 
 export interface Application {
     id: string;
@@ -47,6 +48,26 @@ export interface Application {
     };
 }
 
+type FrappeApp = {
+    created_at: string;
+    name: string;
+    fullname?: string;
+    mobile_number?: string;
+    mobile_no?: string;
+    district?: string;
+    village?: string;
+    component_list?: string | string[];
+    status?: string;
+    date?: string;
+    creation?: string;
+    approver?: string;
+    aadhar_number?: string;
+    taluka?: string;
+    milk_pouring_point?: string;
+    dairy_animal_data?: {
+        [key: string]: any;
+    };
+};
 
 async function getApplications(
     page: number = 1,
@@ -93,39 +114,15 @@ async function getApplications(
         apiParams.end_date = endDate;
     }
 
-    const response = await frappeServer.call().get('vmddp_app.api.api.get_applications_summary', apiParams);
-
-
-    type FrappeApp = {
-        created_at: string;
-        name: string;
-        fullname?: string;
-        mobile_number?: string;
-        mobile_no?: string;
-        district?: string;
-        village?: string;
-        component_list?: string | string[];
-        status?: string;
-        date?: string;
-        creation?: string;
-        approver?: string;
-        aadhar_number?: string;
-        taluka?: string;
-        milk_pouring_point?: string;
-        dairy_animal_data?: {
-            [key: string]: any;
-        };
-    };
+    const response = await frappeBrowser.call().get('vmddp_app.api.api.get_applications_summary', apiParams);
 
     const mappedApplications = (response.message?.applications || []).map((app: FrappeApp) => {
-
-
         // Handle component_list - it might be a string or array
-        let component = 'N/A';
+        let componentValue = 'N/A';
         if (Array.isArray(app.component_list)) {
-            component = app.component_list.join(', ');
+            componentValue = app.component_list.join(', ');
         } else if (typeof app.component_list === 'string') {
-            component = app.component_list;
+            componentValue = app.component_list;
         }
 
         const mapped = {
@@ -136,7 +133,7 @@ async function getApplications(
             district: app.district ?? 'N/A',
             taluka: app.taluka ?? '',
             village: app.village ?? '',
-            component: component,
+            component: componentValue,
             status: app.status,
             // Use full creation datetime for submittedDate
             submittedDate: app.created_at ?? app.date ?? '',
@@ -168,46 +165,62 @@ async function getApplications(
     };
 }
 
-export default async function Page({
-    searchParams
-}: {
-    searchParams: Promise<{
-        page?: string;
-        limit?: string;
-        status?: string;
-        search?: string;
-        district?: string;
-        component?: string;
-        start_date?: string;
-        end_date?: string;
-    }>
-}) {
-    const params = await searchParams;
+export default function Page() {
+    const searchParams = useSearchParams();
 
-    const page = parseInt(params.page || '1');
-    const limit = parseInt(params.limit || '20');
-    const status = params.status || 'all';
-    const search = params.search || '';
-    const district = params.district || 'all';
-    const component = params.component || 'all';
-    const startDate = params.start_date || '';
-    const endDate = params.end_date || '';
+    const [applications, setApplications] = useState<Application[]>([]);
+    const [pagination, setPagination] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const { applications, pagination } = await getApplications(page, limit, status, search, district, component, startDate, endDate);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const status = searchParams.get('status') || 'all';
+    const search = searchParams.get('search') || '';
+    const district = searchParams.get('district') || 'all';
+    const component = searchParams.get('component') || 'all';
+    const startDate = searchParams.get('start_date') || '';
+    const endDate = searchParams.get('end_date') || '';
 
+    const fetchApplications = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const { applications: fetchedApplications, pagination: fetchedPagination } =
+                await getApplications(page, limit, status, search, district, component, startDate, endDate);
+            setApplications(fetchedApplications);
+            setPagination(fetchedPagination);
+        } catch (error) {
+            console.error("Error fetching applications:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [page, limit, status, search, district, component, startDate, endDate]);
 
-    return <AdminApplicationsClient
-        applications={applications}
-        currentPage={page}
-        pageSize={limit}
-        initialFilters={{
-            status,
-            search,
-            district,
-            component,
-            start_date: startDate,
-            end_date: endDate
-        }}
-        paginationData={pagination}
-    />;
+    useEffect(() => {
+        fetchApplications();
+    }, [fetchApplications]);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
+
+    return (
+        <AdminApplicationsClient
+            applications={applications}
+            currentPage={page}
+            pageSize={limit}
+            initialFilters={{
+                status,
+                search,
+                district,
+                component,
+                start_date: startDate,
+                end_date: endDate
+            }}
+            paginationData={pagination}
+        />
+    );
 }
