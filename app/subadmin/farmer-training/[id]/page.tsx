@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = 'edge';
+
 import { useRouter, useParams } from "next/navigation";
 import { useFrappeGetDoc } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
