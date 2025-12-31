@@ -1,6 +1,5 @@
 // Server component for admin applications page
 export const dynamic = 'force-dynamic';
-export const runtime = 'edge';
 
 import AdminApplicationsClient from "./AdminApplicationsClient";
 import { frappeServer } from "@/lib/frappe";

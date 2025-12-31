@@ -4,7 +4,6 @@ import { Header } from "./header";
 import SubAdminDashboardStats from "./stats";
 import Link from "next/link";
 import { Suspense } from "react";
-export const runtime = 'edge';
 import { RecentApplicationsList } from "./recent-application-list";
 import { ListSkeleton, CardSkeleton } from "@/components/LoadingSkeletons";
 
