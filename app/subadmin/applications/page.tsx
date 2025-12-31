@@ -1,7 +1,6 @@
 import SubAdminApplicationsClient from "./client";
 import { getFrappeWithUserToken } from "@/lib/frappeHelper";
 export const runtime = 'edge';
-
 // Lightweight interface for list view
 interface ApplicationListItem {
     id: string;

@@ -1,7 +1,6 @@
 
 // ...existing code...
 // Content from src/pages/admin/Dashboard.tsx
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,7 @@ import { Suspense } from "react";
 import { CardSkeleton, ListSkeleton } from "@/components/LoadingSkeletons";
 import RecentApplicationsDashboard from "./recent-applications";
 import ExportReportsDashboard from "./export-reports";
-
+export const runtime = 'edge';
 export default function AdminDashboard() {
 
     return (
