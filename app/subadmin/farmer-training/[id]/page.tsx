@@ -1,5 +1,5 @@
 "use client";
-
+      
 export const runtime = 'edge';
 
 import { useRouter, useParams } from "next/navigation";
@@ -7,7 +7,9 @@ import { useFrappeGetDoc } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileText, GraduationCap, MapPin, Building, Users, Image, IndianRupee, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ArrowLeft, FileText, GraduationCap, MapPin, Building, Users, Image, IndianRupee, Loader2, X } from "lucide-react";
+import { useState } from "react";
 
 interface ImageTableEntry {
   image: string;
@@ -36,6 +38,7 @@ const EXPENSE_PER_HEAD = 360;
 export default function ViewFarmerTrainingApplication() {
   const router = useRouter();
   const params = useParams();
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   
   const applicationId = params?.id ? decodeURIComponent(Array.isArray(params.id) ? params.id[0] : params.id) : null;
 
@@ -221,15 +224,22 @@ export default function ViewFarmerTrainingApplication() {
               <CardContent>
                 {application.images_table && application.images_table.length > 0 ? (
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    {application.images_table.map((entry, idx) => (
-                      <div key={idx} className="border rounded-lg overflow-hidden">
-                        <img 
-                          src={entry.image.startsWith('http') ? entry.image : `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${entry.image}`}
-                          alt={`Participant list ${idx + 1}`}
-                          className="w-full h-32 object-cover"
-                        />
-                      </div>
-                    ))}
+                    {application.images_table.map((entry, idx) => {
+                      const imageUrl = entry.image.startsWith('http') ? entry.image : `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${entry.image}`;
+                      return (
+                        <div 
+                          key={idx} 
+                          className="border rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                          onClick={() => setPreviewImage(imageUrl)}
+                        >
+                          <img 
+                            src={imageUrl}
+                            alt={`Participant list ${idx + 1}`}
+                            className="w-full h-32 object-cover"
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="border-2 border-dashed rounded-lg p-8 text-center">
@@ -239,6 +249,23 @@ export default function ViewFarmerTrainingApplication() {
                 )}
               </CardContent>
             </Card>
+
+            <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+              <DialogContent className="max-w-4xl max-h-[90vh]">
+                <DialogHeader>
+                  <DialogTitle>Image Preview</DialogTitle>
+                </DialogHeader>
+                <div className="relative w-full h-full flex items-center justify-center">
+                  {previewImage && (
+                    <img 
+                      src={previewImage} 
+                      alt="Preview" 
+                      className="max-w-full max-h-[70vh] object-contain"
+                    />
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
 
             <Card>
               <CardHeader className="pb-3">

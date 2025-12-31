@@ -19,11 +19,6 @@ export default function FarmerTraining() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const assignedZone = {
-    district: "Nagpur",
-    taluka: "Hingna",
-  };
-
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -89,7 +84,7 @@ export default function FarmerTraining() {
 
     try {
       const XLSX = await import('xlsx');
-      
+
       // Prepare data for export
       const exportData = filteredApplications.map(app => ({
         'Application ID': app.name,
@@ -111,7 +106,7 @@ export default function FarmerTraining() {
 
       // Create worksheet
       const worksheet = XLSX.utils.json_to_sheet(exportData);
-      
+
       // Auto-size columns
       const headers = Object.keys(exportData[0]);
       const colWidths = headers.map(header => {
@@ -157,7 +152,7 @@ export default function FarmerTraining() {
               Farmer Training
             </h1>
             <p className="text-sm text-muted-foreground">
-              Manage training applications for {assignedZone.district} - {assignedZone.taluka}
+              Manage training applications
             </p>
           </div>
           <Button variant="outline" className="gap-2" onClick={handleExport} data-testid="button-export">
