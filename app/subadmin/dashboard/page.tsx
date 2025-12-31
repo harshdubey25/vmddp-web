@@ -6,7 +6,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { RecentApplicationsList } from "./recent-application-list";
 import { ListSkeleton, CardSkeleton } from "@/components/LoadingSkeletons";
-export const runtime = 'edge';
 
 export default async function SubAdminDashboard() {
     return (
