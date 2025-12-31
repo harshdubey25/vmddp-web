@@ -14,7 +14,8 @@ import {
   Settings,
   ChevronRight,
   ChevronLeft,
-  TargetIcon
+  TargetIcon,
+  Target
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -42,9 +43,23 @@ const subAdminMenuItems = [
   { icon: FileText, label: "Messages", path: "/subadmin/messages" },
   { icon: FileText, label: "Reports", path: "/subadmin/reports" }
 ]
+// {
+//     icon: LayoutDashboard,
+//     label: "Dashboard",
+//     path: "/accountant",
+//     badge: null,
+//   },
+//   {
+//     icon: Target,
+//     label: "Target & Achievement",
+//     path: "/accountant/target-achievement",
+//     badge: null,
+//   },
 const accountantMenuItems = [
+
   { icon: FileText, label: "DD", path: "/accountant/dd" },
-  { icon: BarChart3, label: "DD Reports", path: "/accountant/dd-report" }
+  { icon: BarChart3, label: "DD Reports", path: "/accountant/dd-report" },
+  { icon: Package, label: "Component Allocation", path: "/accountant/component-allocation" }
 ]
 // { icon: LayoutDashboard, label: "Dashboard", path: "/accountant" },
 // { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },;
