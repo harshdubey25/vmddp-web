@@ -45,7 +45,7 @@ export default function ComponentAllocation() {
     })
     console.log('dd completed applications', ddCompletedApplications);
     return (
-        <div className="w-full bg-background">
+        <div className="w-full bg-background overflow-y-scroll">
             <div className="">
                 <div className="p-6 space-y-6">
                     {/* Header */}
