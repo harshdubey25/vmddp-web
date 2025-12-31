@@ -289,7 +289,7 @@ export default function TargetAchievement() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <Card data-testid="card-physical-target">
                             <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-                                <CardTitle className="text-sm font-medium">{currentComponent.physicalLabel} Target</CardTitle>
+                                <CardTitle className="text-sm font-medium">Physical Target</CardTitle>
                                 <Target className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
@@ -300,7 +300,7 @@ export default function TargetAchievement() {
 
                         <Card data-testid="card-physical-achievement-summary">
                             <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-                                <CardTitle className="text-sm font-medium">{currentComponent.physicalLabel} Achievement</CardTitle>
+                                <CardTitle className="text-sm font-medium">Physical Achievement</CardTitle>
                                 <TrendingUp className="h-4 w-4 text-primary" />
                             </CardHeader>
                             <CardContent>
