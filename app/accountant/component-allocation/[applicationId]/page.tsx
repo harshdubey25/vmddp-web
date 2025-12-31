@@ -148,7 +148,7 @@ const hgmAnimalTypes = ["Cow", "Buffalo"];
 const HGM_MAX_COST = 210000; // Maximum eligible expenditure
 const HGM_MAX_SUBSIDY = 157000; // Maximum subsidy (75% of max);
 const HGM_DD_AMOUNT = 52500; // Fixed DD amount (25% of max)
-const HGM_PREGNANT_COW = "HGM (Pregnant Cow)";
+const HGM_PREGNANT_COW = "HGM (Pregnant cow)";
 const ANIMAL_INDUCTION = "Animal Induction";
 export default function AllocationForm({
   params
