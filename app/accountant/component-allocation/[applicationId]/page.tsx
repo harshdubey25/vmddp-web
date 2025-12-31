@@ -50,7 +50,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall, useFrappeCreateDoc, useFrappeGetDocList, useFrappeFileUpload, useFrappeUpdateDoc, useFrappePostCall } from "frappe-react-sdk";
 import { Skeleton } from "@/components/ui/skeleton";
-import { after } from "node:test";
+
 
 type AppFormResponse = FrappeCustomApiResponse<{
   name: string;
@@ -598,7 +598,7 @@ export default function AllocationForm({
                       Aadhaar Number
                     </p>
                     <p className="font-medium font-mono">
-                      {/* {application.aadhaar.replace(/(\d{4})/g, "$1 ").trim()} */}
+                      {data.message.aadhar_number && data.message.aadhar_number.replace(/(\d{4})/g, "$1 ").trim()}
                     </p>
                   </div>
                 </div>
