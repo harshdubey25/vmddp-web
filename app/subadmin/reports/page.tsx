@@ -14,7 +14,7 @@ export default function SubAdminReports() {
     const { user } = useAuth()
     // Mock zone - in real app, this would come from auth context
     const assignedZone = {
-        district: user?.dpo.district,
+        district: user?.dpo?.district,
     };
 
     return (

@@ -49,14 +49,14 @@ const subAdminMenuItems = [
 //     path: "/accountant",
 //     badge: null,
 //   },
-//   {
-//     icon: Target,
-//     label: "Target & Achievement",
-//     path: "/accountant/target-achievement",
-//     badge: null,
-//   },
-const accountantMenuItems = [
 
+const accountantMenuItems = [
+  {
+    icon: Target,
+    label: "Target & Achievement",
+    path: "/accountant/target-achievement",
+    badge: null,
+  },
   { icon: FileText, label: "DD", path: "/accountant/dd" },
   { icon: BarChart3, label: "DD Reports", path: "/accountant/dd-report" },
   { icon: Package, label: "Component Allocation", path: "/accountant/component-allocation" }
