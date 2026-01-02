@@ -1,5 +1,5 @@
 "use client";
-      
+
 export const runtime = 'edge';
 
 import { useRouter, useParams } from "next/navigation";
@@ -99,11 +99,10 @@ export default function ViewFarmerTrainingApplication() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => router.push("/subadmin/farmer-training")}
+              onClick={() => router.push("/admin/farmer-training")}
               data-testid="button-back"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
             </Button>
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-title">

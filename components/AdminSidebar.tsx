@@ -33,8 +33,8 @@ type MenuItem = {
   type?: never;
 } | {
   type: "separator";
+  label?: string; 
   icon?: never;
-  label?: never;
   path?: never;
 };
 
@@ -47,6 +47,9 @@ const adminMenuItems: MenuItem[] = [
   { icon: Package, label: "Components", path: "/admin/components" },
   { icon: TargetIcon, label: "Target Allocation", path: "/admin/target-allocation" },
   { icon: BarChart3, label: "Reports", path: "/admin/reports" },
+  { type: "separator", label: "Target Based Allocation" },
+  { icon: GraduationCap, label: "Farmer Training", path: "/admin/farmer-training" },
+  { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/admin/treatment" }
 ];
 // { icon: Settings, label: "Settings", path: "/admin/settings" }
 const subAdminMenuItems: MenuItem[] = [
@@ -55,7 +58,7 @@ const subAdminMenuItems: MenuItem[] = [
   { icon: FileText, label: "Selection", path: "/subadmin/selection" },
   { icon: FileText, label: "Messages", path: "/subadmin/messages" },
   { icon: FileText, label: "Reports", path: "/subadmin/reports" },
-  { type: "separator" },
+  { type: "separator", label: "Target Based Allocation" },
   { icon: GraduationCap, label: "Farmer Training", path: "/subadmin/farmer-training" },
   { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/subadmin/treatment" }
 ]
@@ -131,7 +134,14 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
             {menuItems.map((item, index) => {
               if (item.type === "separator") {
                 return (
-                  <Separator key={`separator-${index}`} className="my-3" />
+                  <div key={`separator-${index}`} className="my-3">
+                    <Separator className="bg-border h-[2px] " />
+                    {item.label && (
+                      <p className="text-sm text-muted-foreground mt-2 px-3 font-bold">
+                        {item.label}
+                      </p>
+                    )}
+                  </div>
                 );
               }
 

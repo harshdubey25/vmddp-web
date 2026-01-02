@@ -19,6 +19,7 @@ export default function FarmerTraining() {
   const router = useRouter();
   const { toast } = useToast();
 
+
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -57,7 +58,7 @@ export default function FarmerTraining() {
 
 
   const handleViewDetails = (app: Application) => {
-    router.push(`/subadmin/farmer-training/${encodeURIComponent(app.name)}`);
+    router.push(`/admin/farmer-training/${encodeURIComponent(app.name)}`);
   };
 
   const formatCurrency = (amount: number) => {
@@ -84,7 +85,7 @@ export default function FarmerTraining() {
 
     try {
       const XLSX = await import('xlsx');
-
+      
       // Prepare data for export
       const exportData = filteredApplications.map(app => ({
         'Application ID': app.name,
@@ -106,7 +107,7 @@ export default function FarmerTraining() {
 
       // Create worksheet
       const worksheet = XLSX.utils.json_to_sheet(exportData);
-
+      
       // Auto-size columns
       const headers = Object.keys(exportData[0]);
       const colWidths = headers.map(header => {
@@ -152,7 +153,7 @@ export default function FarmerTraining() {
               Farmer Training
             </h1>
             <p className="text-sm text-muted-foreground">
-              Manage training applications
+              Manage training applications 
             </p>
           </div>
           <Button variant="outline" className="gap-2" onClick={handleExport} data-testid="button-export">
@@ -172,15 +173,6 @@ export default function FarmerTraining() {
                       Total {filteredApplications.length} applications found
                     </p>
                   </div>
-                  <Button
-                    size="sm"
-                    className="gap-1"
-                    onClick={() => router.push("/subadmin/farmer-training-form")}
-                    data-testid="button-create-application"
-                  >
-                    <Upload className="w-3 h-3" />
-                    Create New Application
-                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
