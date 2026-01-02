@@ -112,11 +112,17 @@ export default function AdminSelectionClient({
     const [selectedApplication, setSelectedApplication] = useState<ApplicationSelectionItem | null>(null);
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
 
-    // District data from API (grouped by district)
     interface DistrictData {
         district_id: string;
         district_name: string;
-        components: { component: string; application_count: number }[];
+        components: { 
+            component: string; 
+            application_count: number;
+            responses?: Array<{
+                response: any;
+                component_status: string;
+            }>;
+        }[];
         total_selected_applications: number;
         villages?: { village_name: string; count: number }[];
     }
@@ -126,6 +132,17 @@ export default function AdminSelectionClient({
     const [districtSearchQuery, setDistrictSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<"Selected" | "Approved">("Selected");
     const [showAllDistricts, setShowAllDistricts] = useState(false);
+    
+    interface ComponentQuestionAnswers {
+        [componentName: string]: {
+            [question: string]: {
+                [answer: string]: number;
+            };
+        };
+    }
+    const [componentQuestionAnswers, setComponentQuestionAnswers] = useState<ComponentQuestionAnswers>({});
+    const [questionAnswersLoading, setQuestionAnswersLoading] = useState(false);
+    const [loadedDistricts, setLoadedDistricts] = useState<Set<string>>(new Set());
 
     const applicationDistricts = Array.from(new Set(districts.map(d => d.district_name).filter(Boolean))).sort();
 
@@ -478,11 +495,18 @@ export default function AdminSelectionClient({
         const fetchDistricts = async () => {
             setCountsLoading(true);
             try {
-                const response = await frappeBrowser.call().get('vmddp_app.api.reports.district_selection_status_per_component', {
-                    limit: 25,
-                    status: statusFilter,
-                    district: districtSearchQuery || undefined
-                });
+                const params = new URLSearchParams();
+                params.append('limit', '25');
+                params.append('status', statusFilter);
+                if (districtSearchQuery && districtSearchQuery !== 'all') {
+                    params.append('district', districtSearchQuery);
+                }
+
+                const response = await frappeBrowser
+                    .call()
+                    .get(
+                        `vmddp_app.api.reports.district_selection_status_per_component?${params.toString()}`,
+                    );
 
                 const data = response?.message || response?.data || response;
                 const districtsData = data?.data || [];
@@ -498,6 +522,44 @@ export default function AdminSelectionClient({
 
         fetchDistricts();
     }, [districtSearchQuery, statusFilter]);
+
+    // Function to fetch component question answers for a specific district
+    const fetchDistrictQuestionAnswers = async (districtName: string) => {
+        // Skip if already loaded
+        if (loadedDistricts.has(districtName)) {
+            return;
+        }
+
+        setQuestionAnswersLoading(true);
+        try {
+            const params = new URLSearchParams({ 
+                component: 'all',
+                district: districtName,
+                status: statusFilter
+            });
+
+            const response = await frappeBrowser
+                .call()
+                .get(
+                    `vmddp_app.api.reports.get_component_question_answers_count?${params.toString()}`,
+                );
+
+            console.log('Question Answers API Response:', response);
+            const data = response?.message?.message || response?.message || {};
+            console.log('Extracted data:', data);
+            
+            setComponentQuestionAnswers(prev => ({
+                ...prev,
+                ...data
+            }));
+            
+            setLoadedDistricts(prev => new Set([...prev, districtName]));
+        } catch (error) {
+            console.error('Error fetching component question answers:', error);
+        } finally {
+            setQuestionAnswersLoading(false);
+        }
+    };
 
     const filteredApplications = applications;
     const totalPages = paginationData?.total_pages || 1;
@@ -655,20 +717,38 @@ export default function AdminSelectionClient({
                                 <div className="text-center py-8 text-sm text-muted-foreground">No districts found</div>
                             ) : (
                                 <>
-                                    <Accordion type="multiple" className="w-full">
-                                        {(() => {
-                                            const filteredDistricts = districtSearchQuery
-                                                ? districts.filter(d => d.district_name === districtSearchQuery)
-                                                : districts;
-                                            const displayDistricts = showAllDistricts ? filteredDistricts : filteredDistricts.slice(0, 6);
-                                            return displayDistricts.map((district) => (
+                                    {(() => {
+                                        const filteredDistricts = districtSearchQuery
+                                            ? districts.filter(d => d.district_name === districtSearchQuery)
+                                            : districts;
+                                        const displayDistricts = showAllDistricts ? filteredDistricts : filteredDistricts.slice(0, 6);
+                                        
+                                        return (
+                                            <Accordion 
+                                                type="multiple" 
+                                                className="w-full"
+                                                onValueChange={(openValues) => {
+                                                    openValues.forEach(districtId => {
+                                                        const district = districts.find(d => d.district_id === districtId);
+                                                        if (district) {
+                                                            fetchDistrictQuestionAnswers(district.district_name);
+                                                        }
+                                                    });
+                                                }}
+                                            >
+                                                {displayDistricts.map((district) => (
                                                 <AccordionItem key={district.district_id} value={district.district_id}>
                                                     <AccordionTrigger className="hover:no-underline py-3">
                                                         <div className="flex items-center justify-between w-full pr-4">
                                                             <div className="flex items-center gap-3">
                                                                 <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
                                                                 <div className="text-left">
-                                                                    <h3 className="font-semibold text-sm sm:text-base">{district.district_name}</h3>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <h3 className="font-semibold text-sm sm:text-base">{district.district_name}</h3>
+                                                                        {questionAnswersLoading && !loadedDistricts.has(district.district_name) && (
+                                                                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
+                                                                        )}
+                                                                    </div>
                                                                     <p className="text-xs text-muted-foreground">
                                                                         District
                                                                     </p>
@@ -689,27 +769,55 @@ export default function AdminSelectionClient({
                                                             {COMPONENT_ORDER.map((orderName) => {
                                                                 const comp = district.components.find(c => c.component === orderName);
                                                                 if (!comp) return null;
+                                                                
+                                                                const componentQuestions = componentQuestionAnswers[comp.component] || {};
+                                                                
                                                                 return (
                                                                     <div key={comp.component} className="p-3 border rounded-lg bg-muted/30">
                                                                         <div className="flex items-center gap-2 mb-2">
                                                                             <Package className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                                                                             <p className="text-xs sm:text-sm font-medium truncate">{comp.component}</p>
                                                                         </div>
-                                                                        <div className="flex items-center justify-between">
-                                                                            <span className="text-xs text-muted-foreground">Count</span>
+                                                                        <div className="flex items-center justify-between mb-1">
+                                                                            <span className="text-xs text-muted-foreground">Applications</span>
                                                                             <span className="text-base font-semibold text-primary">
                                                                                 {comp.application_count}
                                                                             </span>
                                                                         </div>
+                                                                        
+                                                                        {Object.keys(componentQuestions).length > 0 ? (
+                                                                            <div className="mt-2 pt-2 border-t space-y-2">
+                                                                                {questionAnswersLoading ? (
+                                                                                    <div className="text-xs text-muted-foreground text-center py-2">Loading...</div>
+                                                                                ) : (
+                                                                                    Object.entries(componentQuestions).map(([question, answers]) => (
+                                                                                        <div key={question} className="space-y-1">
+                                                                                            <p className="text-xs font-medium text-foreground">{question}</p>
+                                                                                            <div className="space-y-0.5 pl-2">
+                                                                                                {Object.entries(answers).map(([answer, count]) => (
+                                                                                                    count > 0 && (
+                                                                                                        <div key={answer} className="flex items-center justify-between">
+                                                                                                            <span className="text-xs text-muted-foreground">{answer}</span>
+                                                                                                            <span className="text-xs font-medium text-primary">{count}</span>
+                                                                                                        </div>
+                                                                                                    )
+                                                                                                ))}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ))
+                                                                                )}
+                                                                            </div>
+                                                                        ) : null}
                                                                     </div>
                                                                 );
                                                             })}
                                                         </div>
                                                     </AccordionContent>
                                                 </AccordionItem>
-                                            ));
-                                        })()}
-                                    </Accordion>
+                                            ))}
+                                            </Accordion>
+                                        );
+                                    })()}
 
                                     {(() => {
                                         const filteredDistricts = districtSearchQuery

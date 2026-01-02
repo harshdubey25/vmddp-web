@@ -1,12 +1,10 @@
 "use client"
-// ...existing code...
-// Content from src/pages/admin/Reports.tsx
+
 import { useState, useEffect } from "react";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+
 import {
     Select,
     SelectContent,
@@ -17,32 +15,7 @@ import {
 import { Label } from "@/components/ui/label";
 import {
     Download,
-    FileText,
-    TrendingUp,
-    BarChart3,
-    PieChart,
-    Calendar,
-    Filter,
-    Search,
-    ArrowUpDown,
-    ChevronLeft,
-    ChevronRight,
 } from "lucide-react";
-import {
-    LineChart,
-    Line,
-    BarChart,
-    Bar,
-    PieChart as RechartsPieChart,
-    Pie,
-    Cell,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    ResponsiveContainer,
-} from "recharts";
 import { frappeBrowser } from "@/lib/frappe";
 
 export default function AdminReports() {
@@ -215,23 +188,6 @@ export default function AdminReports() {
         };
     }, [selectedComponent, selectedDistrict, selectedStatus]);
 
-    const applicationTrend = [
-        { date: "Jan 1", applications: 45 },
-        { date: "Jan 5", applications: 78 },
-        { date: "Jan 10", applications: 92 },
-        { date: "Jan 15", applications: 125 },
-        { date: "Jan 20", applications: 156 },
-        { date: "Jan 25", applications: 189 },
-        { date: "Jan 31", applications: 234 },
-    ];
-
-    const componentData = [
-        { name: "Animal Induction", value: 342, color: "hsl(var(--chart-1))" },
-        { name: "HGM Purchase", value: 298, color: "hsl(var(--chart-2))" },
-        { name: "Fertility Feed", value: 215, color: "hsl(var(--chart-3))" },
-        { name: "Chaff Cutter", value: 187, color: "hsl(var(--chart-4))" },
-        { name: "Others", value: 205, color: "hsl(var(--chart-5))" },
-    ];
 
     const districtData = [
         { district: "Nagpur", applications: 245, approved: 189 },
@@ -241,12 +197,6 @@ export default function AdminReports() {
         { district: "Wardha", applications: 134, approved: 89 },
     ];
 
-    const subAdminPerformance = [
-        { name: "Dr. Rajesh Shinde", total: 245, pending: 32, approved: 198, rejected: 15 },
-        { name: "Mrs. Sunita Deshmukh", total: 189, pending: 28, approved: 145, rejected: 16 },
-        { name: "Mr. Prashant Kale", total: 312, pending: 45, approved: 245, rejected: 22 },
-        { name: "Dr. Vandana Patil", total: 156, pending: 12, approved: 132, rejected: 12 },
-    ];
 
     const allApplications = [
         { applicationId: "VMDDP2501234", farmerName: "Ramesh Kumar Patil", district: "Nagpur", taluka: "Umred", component: "Animal Induction", appliedDate: "2025-01-15", status: "Approved", amount: "₹50,000", approver: "Dr. Suresh Deshmukh" },
@@ -319,20 +269,6 @@ export default function AdminReports() {
         if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
         return 0;
     });
-
-    const totalPages = Math.ceil(sortedApplications.length / itemsPerPage);
-    const paginatedApplications = sortedApplications.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
-    const handleExportPDF = () => {
-        console.log("Exporting to PDF...");
-    };
-
-    const handleExportExcel = () => {
-        console.log("Exporting to Excel...");
-    };
 
     const handleExportDistrictWiseReport = async (format: "xlsx" | "csv") => {
         try {
