@@ -139,7 +139,7 @@ type HGMData = {
 
 
 
-const animalTypes = ["Crossbred", "Desi Cow", "Buffalo"];
+const animalTypes = ["Crossbreed", "Desi Cow", "Buffalo"];
 const hgmAnimalTypes = ["Cow", "Buffalo"];
 
 
