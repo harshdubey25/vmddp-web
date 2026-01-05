@@ -7,8 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, FileText, MapPin, User, Stethoscope, Pill, Loader2 } from "lucide-react";
 
-export const runtime = 'edge';
-
 interface TreatmentDoc {
   name: string;
   first_name: string;
@@ -23,7 +21,7 @@ interface TreatmentDoc {
   tag_number: string;
   examination_date?: string;
   veterinarian_name?: string;
-  symptom?: Array<{ symptom: string }>;
+  symptom?: Array<{ symtomp: string }>;
   primary_treatment?: string;
   actual_treatment_outcome?: string;
   suggested_treatment?: string;
@@ -69,7 +67,7 @@ export default function ViewTreatmentApplication() {
         tagNumber: treatmentDoc.tag_number,
         examinationDate: treatmentDoc.examination_date || "-",
         veterinarianName: treatmentDoc.veterinarian_name || "-",
-        diagnosisSymptoms: treatmentDoc.symptom ? treatmentDoc.symptom.map((s: any) => s.symptom) : [],
+        diagnosisSymptoms: treatmentDoc.symptom ? treatmentDoc.symptom.map((s: any) => s.symtomp) : [],
         primaryTreatment: treatmentDoc.primary_treatment || "-",
         actualTreatment: treatmentDoc.actual_treatment_outcome || "-",
         suggestedTreatment: treatmentDoc.suggested_treatment || "-",
