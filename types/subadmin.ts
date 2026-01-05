@@ -109,6 +109,7 @@ export interface Application {
   training_material: number;
   logistics: number;
   refreshment: number;
+  total_budget: number;
   docstatus: number;
   creation: string;
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useFrappeCreateDoc, useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeCreateDoc, useFrappeGetDocList, useFrappePostCall } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,16 +20,37 @@ import { FarmerTrainingFormData, TRAINING_VENUE_OPTIONS, EXPENSE_PER_HEAD, MAX_T
 
 const MAX_IMAGES = MAX_TRAINING_IMAGES;
 
-const targetData = {
-  physical: 500,
-  achieved: 320,
-};
-
 export default function FarmerTrainingForm() {
   const { toast } = useToast();
   const router = useRouter();
   const { createDoc, loading: isSubmitting } = useFrappeCreateDoc();
   const [uploadingImages, setUploadingImages] = useState(false);
+
+  const { data: trainingTarget } = useFrappeGetDocList(
+    "Target Allocation",
+    {
+      fields: ["name", "district", "component", "physical_target", "financial_target"],
+      filters: [["component", "=", "Farmer Training"]],
+      limit: 1,
+    }
+  );
+
+  const { data: submittedApplications } = useFrappeGetDocList(
+    "Farmer Training Application",
+    {
+      fields: ["name", "number_of_participants"],
+      filters: [["docstatus", ">=", 0]],
+      limit: 1000,
+    }
+  );
+
+  const physicalTarget = trainingTarget?.[0]?.physical_target || 500;
+  const achievedCount = submittedApplications?.reduce((sum, app: any) => sum + (app.number_of_participants || 0), 0) || 0;
+
+  const targetData = {
+    physical: physicalTarget,
+    achieved: achievedCount,
+  };
 
   const [formData, setFormData] = useState<FarmerTrainingFormData>({
     eventName: "",
@@ -69,20 +90,51 @@ export default function FarmerTrainingForm() {
   const currentParticipants = parseInt(formData.numberOfParticipants) || 0;
   const wouldExceedTarget = currentParticipants > remainingTarget;
   
-  const totalAmount = currentParticipants * EXPENSE_PER_HEAD;
-  
-  const materialAmount = parseFloat(formData.trainingMaterial) || 0;
-  const logisticsAmount = parseFloat(formData.logistics) || 0;
-  const refreshmentAmount = parseFloat(formData.refreshment) || 0;
-  const allocatedAmount = materialAmount + logisticsAmount + refreshmentAmount;
-  const remainingAmount = totalAmount - allocatedAmount;
-  const exceedsTotal = allocatedAmount > totalAmount;
+  const expectedBudget = currentParticipants * EXPENSE_PER_HEAD;
+  const allocatedBudget = (
+    parseFloat(formData.trainingMaterial) || 0
+  ) + (
+    parseFloat(formData.logistics) || 0
+  ) + (
+    parseFloat(formData.refreshment) || 0
+  );
+  const remainingBudget = expectedBudget - allocatedBudget;
+  const exceedsTotal = allocatedBudget > expectedBudget;
+
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  const { call: validateBudget } = useFrappePostCall('vmddp_app.vmddp.doctype.farmer_training_application.farmer_training_application.calculate_budget');
 
   useEffect(() => {
-    const participants = parseInt(formData.numberOfParticipants) || 0;
-    const total = participants * EXPENSE_PER_HEAD;
-    setFormData(prev => ({ ...prev, totalAmount: total.toString() }));
-  }, [formData.numberOfParticipants]);
+    const checkBackendValidation = async () => {
+      if (!currentParticipants) {
+        setValidationMessage(null);
+        return;
+      }
+
+      try {
+        const result = await validateBudget({
+          number_of_participants: formData.numberOfParticipants || '0',
+          training_material: formData.trainingMaterial || '0',
+          logistics: formData.logistics || '0',
+          refreshment: formData.refreshment || '0'
+        });
+        
+        if (result?.success) {
+          if (Math.abs(result.expected_budget - expectedBudget) > 0.01 || 
+              Math.abs(result.allocated_budget - allocatedBudget) > 0.01) {
+            setValidationMessage('⚠️ Calculation mismatch detected with backend');
+          } else {
+            setValidationMessage(null);
+          }
+        }
+      } catch (error) {
+        console.error('Validation error:', error);
+        setValidationMessage(null);
+      }
+    };
+    
+    checkBackendValidation();
+  }, [formData.numberOfParticipants, formData.trainingMaterial, formData.logistics, formData.refreshment, validateBudget, expectedBudget, allocatedBudget, currentParticipants]);
 
   const handleInputChange = (field: keyof FarmerTrainingFormData, value: string | Date | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -282,17 +334,13 @@ export default function FarmerTrainingForm() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Physical Target:</span>
-                  <span className="font-semibold">{targetData.physical} participants</span>
+                  <span className="text-muted-foreground">Physical Target: <strong className="text-foreground">{targetData.physical}</strong> participants</span>
+                  <span className="text-muted-foreground">Achieved: <strong className="text-foreground">{targetData.achieved}</strong> participants</span>
                 </div>
                 <Progress value={targetProgress} className="h-3" />
-                <div className="flex items-center justify-between">
-                  <div className="text-sm">
-                    <p className="text-muted-foreground">Achieved: <span className="font-semibold text-foreground">{targetData.achieved}</span></p>
-                  </div>
-                  <div className="text-sm text-right">
-                    <p className="text-muted-foreground">Remaining: <span className="font-semibold text-foreground">{remainingTarget}</span></p>
-                  </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">{targetProgress.toFixed(1)}% Achieved</span>
+                  <span className="text-muted-foreground">Remaining: <strong className="text-foreground">{remainingTarget}</strong> participants</span>
                 </div>
                 {wouldExceedTarget && (
                   <Alert variant="destructive">
@@ -527,10 +575,25 @@ export default function FarmerTrainingForm() {
                   Fund Allocation
                 </CardTitle>
                 <CardDescription>
-                  Budget: {formatCurrency(totalAmount)} (@ ₹{EXPENSE_PER_HEAD}/participant)
+                  Allocate budget across different expense categories
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Expected Budget</span>
+                    <span className="font-semibold text-lg">{formatCurrency(expectedBudget)}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {currentParticipants} participants × ₹{EXPENSE_PER_HEAD} per head
+                  </div>
+                  {validationMessage && (
+                    <div className="text-xs text-amber-600 font-medium">
+                      {validationMessage}
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="training-material">Training Material (₹)</Label>
@@ -569,21 +632,34 @@ export default function FarmerTrainingForm() {
                     />
                   </div>
                 </div>
-                <div className="border-t pt-4">
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold">Allocated:</span>
-                    <span className={cn(exceedsTotal && "text-destructive")}>{formatCurrency(allocatedAmount)}</span>
+                
+                <div className="border-t pt-4 space-y-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Total Allocated</span>
+                    <span className={cn("font-semibold", exceedsTotal && "text-destructive")}>
+                      {formatCurrency(allocatedBudget)}
+                    </span>
                   </div>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="font-semibold">Remaining:</span>
-                    <span className={cn(remainingAmount < 0 && "text-destructive")}>{formatCurrency(remainingAmount)}</span>
+                  <Progress 
+                    value={(allocatedBudget / expectedBudget) * 100} 
+                    className={cn("h-2", exceedsTotal && "bg-destructive/20")}
+                  />
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold">Balance Remaining</span>
+                    <span className={cn(
+                      "font-bold text-lg",
+                      remainingBudget < 0 ? "text-destructive" : "text-green-600"
+                    )}>
+                      {formatCurrency(remainingBudget)}
+                    </span>
                   </div>
                 </div>
+                
                 {exceedsTotal && (
                   <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      Sub-allocations exceed total budget by {formatCurrency(Math.abs(remainingAmount))}
+                      Sub-allocations exceed expected budget by {formatCurrency(Math.abs(remainingBudget))}
                     </AlertDescription>
                   </Alert>
                 )}
