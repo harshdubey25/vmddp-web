@@ -57,6 +57,7 @@ const subAdminMenuItems: MenuItem[] = [
   { icon: FileText, label: "Applications", path: "/subadmin/applications" },
   { icon: FileText, label: "Selection", path: "/subadmin/selection" },
   { icon: FileText, label: "Messages", path: "/subadmin/messages" },
+  {icon: TargetIcon, label: "Quota Details", path: "/subadmin/quota-details" },
   { icon: FileText, label: "Reports", path: "/subadmin/reports" },
   { type: "separator", label: "Target Based Allocation" },
   { icon: GraduationCap, label: "Farmer Training", path: "/subadmin/farmer-training" },
