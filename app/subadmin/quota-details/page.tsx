@@ -26,38 +26,40 @@ export default function QuotaDetails() {
     const { data: dpoData, isLoading } = useFrappeGetDoc("DPO", currentUser || undefined);
 
     const { data: quotaSummary, isLoading: summaryLoading } = useFrappeGetCall<{
-        treatment: {
-            count: number;
-            budget_used: number;
-            physical_target: number;
-            financial_target: number;
+        message: {
+            treatment: {
+                count: number;
+                budget_used: number;
+                physical_target: number;
+                financial_target: number;
+            };
+            training: {
+                count: number;
+                budget_used: number;
+                physical_target: number;
+                financial_target: number;
+            };
         };
-        training: {
-            count: number;
-            budget_used: number;
-            physical_target: number;
-            financial_target: number;
-        };
-    }>("vmddp_app.vmddp.api.quota_summary.get_quota_summary", {
-        district: dpoData?.district || undefined
-    });
-
+    }>("vmddp_app.api.v1.dashboard.get_quota_summary",
+        dpoData?.district ? { district: dpoData.district } : undefined,
+        dpoData?.district ? undefined : null
+    );
     const assignedZone = dpoData;
 
     const infertileQuota = {
         districtName: assignedZone?.district || "",
-        quota: quotaSummary?.treatment?.physical_target || 0,
-        utilized: quotaSummary?.treatment?.count || 0,
-        budget: quotaSummary?.treatment?.financial_target || 0,
-        budgetUtilized: quotaSummary?.treatment?.budget_used || 0,
+        quota: quotaSummary?.message?.treatment?.physical_target ?? 0,
+        utilized: quotaSummary?.message?.treatment?.count ?? 0,
+        budget: quotaSummary?.message?.treatment?.financial_target ?? 0,
+        budgetUtilized: quotaSummary?.message?.treatment?.budget_used ?? 0,
     };
 
     const trainingQuota = {
         districtName: assignedZone?.district || "",
-        quota: quotaSummary?.training?.physical_target || 0,
-        utilized: quotaSummary?.training?.count || 0,
-        budget: quotaSummary?.training?.financial_target || 0,
-        budgetUtilized: quotaSummary?.training?.budget_used || 0,
+        quota: quotaSummary?.message?.training?.physical_target ?? 0,
+        utilized: quotaSummary?.message?.training?.count ?? 0,
+        budget: quotaSummary?.message?.training?.financial_target ?? 0,
+        budgetUtilized: quotaSummary?.message?.training?.budget_used ?? 0,
     };
 
     const currentQuota = activeTab === "infertile" ? infertileQuota : trainingQuota;
@@ -109,7 +111,14 @@ export default function QuotaDetails() {
                             </TabsList>
 
                             <div className="mt-6 space-y-6">
-                                {currentQuota && (
+                                {(isLoading || summaryLoading) ? (
+                                    <div className="flex items-center justify-center py-12">
+                                        <div className="text-center space-y-2">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                                            <p className="text-sm text-muted-foreground">Loading quota data...</p>
+                                        </div>
+                                    </div>
+                                ) : currentQuota && (
                                     <>
                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                             <Card>
@@ -213,8 +222,8 @@ export default function QuotaDetails() {
                                             </CardContent>
                                         </Card>
 
-                                        <Card className="cursor-pointer hover:shadow-lg transition-all border-primary/30" 
-                                              onClick={() => router.push(activeTab === "infertile" ? "/subadmin/treatment" : "/subadmin/farmer-training")}>
+                                        <Card className="cursor-pointer hover:shadow-lg transition-all border-primary/30"
+                                            onClick={() => router.push(activeTab === "infertile" ? "/subadmin/treatment" : "/subadmin/farmer-training")}>
                                             <CardContent className="pt-6">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-4">

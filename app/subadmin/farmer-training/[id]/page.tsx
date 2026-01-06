@@ -1,6 +1,4 @@
 "use client";
-      
-export const runtime = 'edge';
 
 import { useRouter, useParams } from "next/navigation";
 import { useFrappeGetDoc } from "frappe-react-sdk";
@@ -10,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, FileText, GraduationCap, MapPin, Building, Users, Image, IndianRupee, Loader2, X } from "lucide-react";
 import { useState } from "react";
+
+export const runtime = 'edge';
 
 interface ImageTableEntry {
   image: string;
