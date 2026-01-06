@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ArrowLeft, FileText, GraduationCap, MapPin, Building, Users, Image, IndianRupee, Loader2, X } from "lucide-react";
 import { useState } from "react";
 
+export const runtime = 'edge';
+
 interface ImageTableEntry {
   image: string;
 }
