@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, FileText, GraduationCap, MapPin, Building, Users, Image, IndianRupee, Loader2, X } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface ImageTableEntry {
   image: string;
@@ -26,6 +27,7 @@ interface Application {
   venue_name: string;
   number_of_participants: number;
   images_table?: ImageTableEntry[];
+  gallery_table?: ImageTableEntry[];
   training_material: number;
   logistics: number;
   refreshment: number;
@@ -60,6 +62,15 @@ export default function ViewFarmerTrainingApplication() {
   const getTotalBudget = () => {
     if (!application) return 0;
     return (application.training_material || 0) + (application.logistics || 0) + (application.refreshment || 0);
+  };
+
+  const getExpectedBudget = () => {
+    if (!application) return 0;
+    return application.number_of_participants * EXPENSE_PER_HEAD;
+  };
+
+  const getRemainingBudget = () => {
+    return getExpectedBudget() - getTotalBudget();
   };
 
   if (isLoading) {
@@ -249,6 +260,42 @@ export default function ViewFarmerTrainingApplication() {
               </CardContent>
             </Card>
 
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Image className="w-4 h-4" />
+                  Gallery Images
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {application.gallery_table && application.gallery_table.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {application.gallery_table.map((entry, idx) => {
+                      const imageUrl = entry.image.startsWith('http') ? entry.image : `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${entry.image}`;
+                      return (
+                        <div 
+                          key={idx} 
+                          className="border rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                          onClick={() => setPreviewImage(imageUrl)}
+                        >
+                          <img 
+                            src={imageUrl}
+                            alt={`Participant list ${idx + 1}`}
+                            className="w-full h-32 object-cover"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                    <Image className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">No images uploaded</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
               <DialogContent className="max-w-4xl max-h-[90vh]">
                 <DialogHeader>
@@ -275,14 +322,20 @@ export default function ViewFarmerTrainingApplication() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
+                  <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Expected Budget</span>
+                      <span className="font-semibold">{formatCurrency(getExpectedBudget())}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {application.number_of_participants} participants × ₹{EXPENSE_PER_HEAD} per head
+                    </p>
+                  </div>
                   <div className="p-4 bg-primary/10 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold">Total Budget</span>
+                      <span className="font-semibold">Total Allocated</span>
                       <span className="text-xl font-bold">{formatCurrency(getTotalBudget())}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {application.number_of_participants} participants × ₹{EXPENSE_PER_HEAD}
-                    </p>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="p-3 border rounded-lg">
@@ -296,6 +349,17 @@ export default function ViewFarmerTrainingApplication() {
                     <div className="p-3 border rounded-lg">
                       <p className="text-xs text-muted-foreground mb-1">Refreshment</p>
                       <p className="font-semibold">{formatCurrency(application.refreshment)}</p>
+                    </div>
+                  </div>
+                  <div className="border-t pt-4">
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold">Balance Remaining</span>
+                      <span className={cn(
+                        "font-bold text-lg",
+                        getRemainingBudget() < 0 ? "text-destructive" : "text-green-600"
+                      )}>
+                        {formatCurrency(getRemainingBudget())}
+                      </span>
                     </div>
                   </div>
                 </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappeAuth, useFrappeGetDoc } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
@@ -57,16 +57,12 @@ interface Application {
 
 export default function TreatmentPage() {
   const router = useRouter();
-
-  const assignedZone = {
-    district: "Nagpur",
-    taluka: "Hingna",
-  };
-
+  const { currentUser } = useFrappeAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
- 
+  const { data: dpoData } = useFrappeGetDoc("DPO", currentUser || undefined);
+  const assignedDistrict = dpoData?.district;
 
   const { data: treatmentApplications, isLoading, error } = useFrappeGetDocList<TreatmentDoc>(
     "Treatment of Infertile Animal",
@@ -92,6 +88,7 @@ export default function TreatmentPage() {
         "creation",
         "modified",
       ],
+      filters: assignedDistrict ? [["district", "=", assignedDistrict]] : undefined,
       orderBy: {
         field: "creation",
         order: "desc",
@@ -144,8 +141,8 @@ export default function TreatmentPage() {
         'Applicant Name': app.applicantName,
         'Aadhar Number': app.aadharNumber || '-',
         'Village': app.village,
-        'District': assignedZone.district,
-        'Taluka': assignedZone.taluka,
+        'District': assignedDistrict.district,
+        'Taluka': assignedDistrict.taluka,
         'Component': app.component,
         'Submitted Date': app.submittedDate,
       }));
@@ -193,7 +190,7 @@ export default function TreatmentPage() {
               Treatment of Infertile Animal
             </h1>
             <p className="text-sm text-muted-foreground">
-              Manage applications for {assignedZone.district} - {assignedZone.taluka}
+              Manage applications for- {assignedDistrict} District
             </p>
           </div>
           <Button variant="outline" className="gap-2" data-testid="button-export" onClick={handleExport}>

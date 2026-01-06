@@ -28,6 +28,7 @@ export interface TreatmentFormData {
     actualTreatment: string;
     followUpNotes: string;
     medicines: MedicineEntry[];
+    galleryImages: File[];
 }
 
 export interface FarmerTrainingFormData {
@@ -40,6 +41,7 @@ export interface FarmerTrainingFormData {
     venueName: string;
     numberOfParticipants: string;
     participantListImages: File[];
+    galleryImages: File[];
     trainingMaterial: string;
     logistics: string;
     refreshment: string;

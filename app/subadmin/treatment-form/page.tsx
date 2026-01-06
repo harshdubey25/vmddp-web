@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useFrappeCreateDoc, useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeCreateDoc, useFrappeGetDocList, useFrappeAuth, useFrappeGetDoc } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,10 +19,30 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { MedicineEntry, TreatmentFormData } from "@/types/subadmin";
 import { Badge } from "@/components/ui/badge";
 
+const MAX_IMAGES = 5;
+const MAX_IMAGE_SIZE_MB = 5;
+const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+
+const validateImageSize = (file: File, toast: any): boolean => {
+  if (file.size > MAX_IMAGE_SIZE_BYTES) {
+    toast({
+      title: "File Size Exceeded",
+      description: `Image "${file.name}" is ${(file.size / (1024 * 1024)).toFixed(2)}MB. Maximum size is ${MAX_IMAGE_SIZE_MB}MB.`,
+      variant: "destructive",
+    });
+    return false;
+  }
+  return true;
+};
+
 export default function TreatmentForm() {
   const { toast } = useToast();
   const router = useRouter();
   const { createDoc, loading: isSubmitting } = useFrappeCreateDoc();
+  const { currentUser } = useFrappeAuth();
+
+  const { data: dpoData } = useFrappeGetDoc("DPO", currentUser || undefined);
+  const assignedDistrict = dpoData?.district;
 
   const [formData, setFormData] = useState<TreatmentFormData>({
     firstName: "",
@@ -44,10 +64,12 @@ export default function TreatmentForm() {
     actualTreatment: "",
     followUpNotes: "",
     medicines: [],
+    galleryImages: [],
   });
 
   const { data: districtData } = useFrappeGetDocList("District Master", {
     fields: ["name", "name1"],
+    filters: assignedDistrict ? [["name", "=", assignedDistrict]] : undefined,
     limit: 1000,
   });
 
@@ -62,6 +84,12 @@ export default function TreatmentForm() {
     filters: formData.taluka ? [["taluka", "=", formData.taluka]] : undefined,
     limit: 1000,
   });
+
+  useEffect(() => {
+    if (assignedDistrict && !formData.district) {
+      setFormData(prev => ({ ...prev, district: assignedDistrict }));
+    }
+  }, [assignedDistrict, formData.district]);
 
   const { data: itemData } = useFrappeGetDocList("Item", {
     fields: ["name", "item_name"],
@@ -130,6 +158,62 @@ export default function TreatmentForm() {
     }));
   };
 
+  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newImages = Array.from(files);
+    const totalImages = formData.galleryImages.length + newImages.length;
+    
+    if (totalImages > MAX_IMAGES) {
+      toast({
+        title: "Image Limit Exceeded",
+        description: `Maximum ${MAX_IMAGES} images allowed. You can add ${MAX_IMAGES - formData.galleryImages.length} more.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const validFiles: File[] = [];
+    
+    for (let i = 0; i < newImages.length; i++) {
+      const file = newImages[i];
+      
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid File Type",
+          description: `"${file.name}" is not an image file.`,
+          variant: "destructive",
+        });
+        continue;
+      }
+      
+      // Check file size
+      if (!validateImageSize(file, toast)) {
+        continue;
+      }
+      
+      validFiles.push(file);
+    }
+
+    if (validFiles.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        galleryImages: [...prev.galleryImages, ...validFiles],
+      }));
+    }
+    
+    e.target.value = '';
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      galleryImages: prev.galleryImages.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleSubmit = async () => {
     if (!formData.firstName || !formData.surname) {
       toast({
@@ -173,6 +257,31 @@ export default function TreatmentForm() {
           price: med.price ? parseFloat(med.price) : 0,
         }));
 
+      let galleryTableEntries: Array<{ image: string }> = [];
+      if (formData.galleryImages.length > 0) {
+        const uploadPromises = formData.galleryImages.map(async (file) => {
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', file);
+          uploadFormData.append('is_private', '0');
+          uploadFormData.append('folder', 'Home');
+
+          const response = await fetch('/api/method/upload_file', {
+            method: 'POST',
+            body: uploadFormData,
+          });
+
+          if (!response.ok) {
+            throw new Error('Gallery image upload failed');
+          }
+
+          const result = await response.json();
+          const fileUrl = result.message?.file_url;
+          return { image: fileUrl };
+        });
+        
+        galleryTableEntries = await Promise.all(uploadPromises);
+      }
+
       const docData = {
         doctype: "Treatment of Infertile Animal",
         first_name: formData.firstName,
@@ -198,6 +307,7 @@ export default function TreatmentForm() {
         actual_treatment_outcome: formData.actualTreatment || undefined,
         follow_up_observations: formData.followUpNotes || undefined,
         medicine: medicinesTable.length > 0 ? medicinesTable : undefined,
+        gallery_table: galleryTableEntries.length > 0 ? galleryTableEntries : undefined,
       };
 
       await createDoc("Treatment of Infertile Animal", docData);
@@ -589,6 +699,36 @@ export default function TreatmentForm() {
                       rows={3}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="gallery-images">Gallery Images (Max {MAX_IMAGES})</Label>
+                  <Input
+                    id="gallery-images"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleGalleryUpload}
+                    data-testid="input-gallery-images"
+                  />
+                  {formData.galleryImages.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                      {formData.galleryImages.map((img, idx) => (
+                        <div key={idx} className="relative border rounded p-2">
+                          <p className="text-xs truncate">{img.name}</p>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="mt-1"
+                            onClick={() => removeGalleryImage(idx)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

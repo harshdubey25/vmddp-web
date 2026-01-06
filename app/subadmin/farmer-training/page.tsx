@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappeAuth, useFrappeGetDoc } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -18,9 +18,13 @@ import { Application } from "@/types/subadmin";
 export default function FarmerTraining() {
   const router = useRouter();
   const { toast } = useToast();
+  const { currentUser } = useFrappeAuth();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  const { data: dpoData } = useFrappeGetDoc("DPO", currentUser || undefined);
+  const assignedDistrict = dpoData?.district;
 
   const { data: applications, isLoading, error } = useFrappeGetDocList<Application>("Farmer Training Application", {
     fields: [
@@ -39,6 +43,7 @@ export default function FarmerTraining() {
       "docstatus",
       "creation"
     ],
+    filters: assignedDistrict ? [["district", "=", assignedDistrict]] : undefined,
     orderBy: {
       field: "creation",
       order: "desc"
@@ -152,7 +157,7 @@ export default function FarmerTraining() {
               Farmer Training
             </h1>
             <p className="text-sm text-muted-foreground">
-              Manage training applications
+              Manage training applications - {assignedDistrict} District
             </p>
           </div>
           <Button variant="outline" className="gap-2" onClick={handleExport} data-testid="button-export">
