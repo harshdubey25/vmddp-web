@@ -11,12 +11,16 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  disabled,
   ...props
 }: CalendarProps) {
+  const disabledDates = disabled || ((date: Date) => date < new Date(new Date().setHours(0, 0, 0, 0)));
+  
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
+      disabled={disabledDates}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",

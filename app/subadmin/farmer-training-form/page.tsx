@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useFrappeCreateDoc, useFrappeGetDocList, useFrappePostCall } from "frappe-react-sdk";
+import { useFrappeCreateDoc, useFrappeGetDocList, useFrappePostCall, useFrappeAuth, useFrappeGetDoc } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,12 +19,30 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FarmerTrainingFormData, TRAINING_VENUE_OPTIONS, EXPENSE_PER_HEAD, MAX_TRAINING_IMAGES } from "@/types/subadmin";
 
 const MAX_IMAGES = MAX_TRAINING_IMAGES;
+const MAX_IMAGE_SIZE_MB = 5;
+const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+
+const validateImageSize = (file: File, toast: any): boolean => {
+  if (file.size > MAX_IMAGE_SIZE_BYTES) {
+    toast({
+      title: "File Size Exceeded",
+      description: `Image "${file.name}" is ${(file.size / (1024 * 1024)).toFixed(2)}MB. Maximum size is ${MAX_IMAGE_SIZE_MB}MB.`,
+      variant: "destructive",
+    });
+    return false;
+  }
+  return true;
+};
 
 export default function FarmerTrainingForm() {
   const { toast } = useToast();
   const router = useRouter();
   const { createDoc, loading: isSubmitting } = useFrappeCreateDoc();
   const [uploadingImages, setUploadingImages] = useState(false);
+  const { currentUser } = useFrappeAuth();
+
+  const { data: dpoData } = useFrappeGetDoc("DPO", currentUser || undefined);
+  const assignedDistrict = dpoData?.district;
 
   const { data: trainingTarget } = useFrappeGetDocList(
     "Target Allocation",
@@ -39,7 +57,7 @@ export default function FarmerTrainingForm() {
     "Farmer Training Application",
     {
       fields: ["name", "number_of_participants"],
-      filters: [["docstatus", ">=", 0]],
+      filters: [["docstatus", "=", 1]],
       limit: 1000,
     }
   );
@@ -62,6 +80,7 @@ export default function FarmerTrainingForm() {
     venueName: "",
     numberOfParticipants: "",
     participantListImages: [],
+    galleryImages: [],
     trainingMaterial: "",
     logistics: "",
     refreshment: "",
@@ -70,6 +89,7 @@ export default function FarmerTrainingForm() {
 
   const { data: districtData } = useFrappeGetDocList("District Master", {
     fields: ["name", "name1"],
+    filters: assignedDistrict ? [["name", "=", assignedDistrict]] : undefined,
     limit: 1000,
   });
 
@@ -84,6 +104,12 @@ export default function FarmerTrainingForm() {
     filters: formData.taluka ? [["taluka", "=", formData.taluka]] : undefined,
     limit: 1000,
   });
+
+  useEffect(() => {
+    if (assignedDistrict && !formData.district) {
+      setFormData(prev => ({ ...prev, district: assignedDistrict }));
+    }
+  }, [assignedDistrict, formData.district]);
 
   const remainingTarget = targetData.physical - targetData.achieved;
   const targetProgress = (targetData.achieved / targetData.physical) * 100;
@@ -134,7 +160,7 @@ export default function FarmerTrainingForm() {
     };
     
     checkBackendValidation();
-  }, [formData.numberOfParticipants, formData.trainingMaterial, formData.logistics, formData.refreshment, validateBudget, expectedBudget, allocatedBudget, currentParticipants]);
+  }, [formData.numberOfParticipants, formData.trainingMaterial, formData.logistics, formData.refreshment, validateBudget]);
 
   const handleInputChange = (field: keyof FarmerTrainingFormData, value: string | Date | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -165,10 +191,33 @@ export default function FarmerTrainingForm() {
       return;
     }
 
-    setFormData(prev => ({
-      ...prev,
-      participantListImages: [...prev.participantListImages, ...newImages],
-    }));
+    const validFiles: File[] = [];
+    
+    for (let i = 0; i < newImages.length; i++) {
+      const file = newImages[i];
+      
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid File Type",
+          description: `"${file.name}" is not an image file.`,
+          variant: "destructive",
+        });
+        continue;
+      }
+      
+      if (!validateImageSize(file, toast)) {
+        continue;
+      }
+      
+      validFiles.push(file);
+    }
+
+    if (validFiles.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        participantListImages: [...prev.participantListImages, ...validFiles],
+      }));
+    }
     
     e.target.value = '';
   };
@@ -177,6 +226,62 @@ export default function FarmerTrainingForm() {
     setFormData(prev => ({
       ...prev,
       participantListImages: prev.participantListImages.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newImages = Array.from(files);
+    const totalImages = formData.galleryImages.length + newImages.length;
+    
+    if (totalImages > MAX_IMAGES) {
+      toast({
+        title: "Image Limit Exceeded",
+        description: `Maximum ${MAX_IMAGES} images allowed. You can add ${MAX_IMAGES - formData.galleryImages.length} more.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const validFiles: File[] = [];
+    
+    for (let i = 0; i < newImages.length; i++) {
+      const file = newImages[i];
+      
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid File Type",
+          description: `"${file.name}" is not an image file.`,
+          variant: "destructive",
+        });
+        continue;
+      }
+      
+      // Check file size
+      if (!validateImageSize(file, toast)) {
+        continue;
+      }
+      
+      validFiles.push(file);
+    }
+
+    if (validFiles.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        galleryImages: [...prev.galleryImages, ...validFiles],
+      }));
+    }
+    
+    e.target.value = '';
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      galleryImages: prev.galleryImages.filter((_, i) => i !== index),
     }));
   };
 
@@ -250,6 +355,31 @@ export default function FarmerTrainingForm() {
         imageTableEntries = await Promise.all(uploadPromises);
       }
 
+      let galleryTableEntries: Array<{ image: string }> = [];
+      if (formData.galleryImages.length > 0) {
+        const uploadPromises = formData.galleryImages.map(async (file) => {
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', file);
+          uploadFormData.append('is_private', '0');
+          uploadFormData.append('folder', 'Home');
+
+          const response = await fetch('/api/method/upload_file', {
+            method: 'POST',
+            body: uploadFormData,
+          });
+
+          if (!response.ok) {
+            throw new Error('Upload failed');
+          }
+
+          const result = await response.json();
+          const fileUrl = result.message?.file_url;
+          return { image: fileUrl };
+        });
+        
+        galleryTableEntries = await Promise.all(uploadPromises);
+      }
+
       setUploadingImages(false);
 
       await createDoc('Farmer Training Application', {
@@ -262,6 +392,7 @@ export default function FarmerTrainingForm() {
         venue_name: formData.venueName,
         number_of_participants: parseInt(formData.numberOfParticipants),
         images_table: imageTableEntries,
+        gallery_table: galleryTableEntries,
         training_material: parseFloat(formData.trainingMaterial) || 0,
         logistics: parseFloat(formData.logistics) || 0,
         refreshment: parseFloat(formData.refreshment) || 0,
@@ -557,6 +688,35 @@ export default function FarmerTrainingForm() {
                             size="sm"
                             className="mt-1"
                             onClick={() => removeImage(idx)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gallery-images">Gallery Images (Max {MAX_IMAGES})</Label>
+                  <Input
+                    id="gallery-images"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleGalleryUpload}
+                    data-testid="input-gallery-images"
+                  />
+                  {formData.galleryImages.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                      {formData.galleryImages.map((img, idx) => (
+                        <div key={idx} className="relative border rounded p-2">
+                          <p className="text-xs truncate">{img.name}</p>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="mt-1"
+                            onClick={() => removeGalleryImage(idx)}
                           >
                             Remove
                           </Button>
