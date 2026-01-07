@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useFrappeCreateDoc, useFrappeGetDocList, useFrappeAuth, useFrappeGetDoc } from "frappe-react-sdk";
+import { useFrappeCreateDoc, useFrappeGetDocList, useFrappeAuth, useFrappeGetDoc, useFrappeGetCall } from "frappe-react-sdk";
+import { validateAndCompressImages, uploadImagesWithCompression } from "@/lib/image-utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Stethoscope, ClipboardList, Save, CalendarIcon, MapPin, Pill, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, Stethoscope, ClipboardList, Save, CalendarIcon, MapPin, Pill, Plus, Trash2, X, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -21,28 +23,30 @@ import { Badge } from "@/components/ui/badge";
 
 const MAX_IMAGES = 5;
 const MAX_IMAGE_SIZE_MB = 5;
-const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
-
-const validateImageSize = (file: File, toast: any): boolean => {
-  if (file.size > MAX_IMAGE_SIZE_BYTES) {
-    toast({
-      title: "File Size Exceeded",
-      description: `Image "${file.name}" is ${(file.size / (1024 * 1024)).toFixed(2)}MB. Maximum size is ${MAX_IMAGE_SIZE_MB}MB.`,
-      variant: "destructive",
-    });
-    return false;
-  }
-  return true;
-};
 
 export default function TreatmentForm() {
   const { toast } = useToast();
   const router = useRouter();
   const { createDoc, loading: isSubmitting } = useFrappeCreateDoc();
+  const [compressingImages, setCompressingImages] = useState(false);
   const { currentUser } = useFrappeAuth();
 
   const { data: dpoData } = useFrappeGetDoc("DPO", currentUser || undefined);
   const assignedDistrict = dpoData?.district;
+
+  const { data: quotaSummary } = useFrappeGetCall<{
+    message: {
+      treatment: {
+        count: number;
+        budget_used: number;
+        physical_target: number;
+        financial_target: number;
+      };
+    };
+  }>("vmddp_app.api.v1.dashboard.get_quota_summary",
+    dpoData?.district ? { district: dpoData.district } : undefined,
+    dpoData?.district ? undefined : null
+  );
 
   const [formData, setFormData] = useState<TreatmentFormData>({
     firstName: "",
@@ -158,7 +162,7 @@ export default function TreatmentForm() {
     }));
   };
 
-  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
@@ -174,37 +178,49 @@ export default function TreatmentForm() {
       return;
     }
 
-    const validFiles: File[] = [];
+    setCompressingImages(true);
     
-    for (let i = 0; i < newImages.length; i++) {
-      const file = newImages[i];
+    try {
+      const { validFiles, errors } = await validateAndCompressImages(newImages, {
+        maxSizeMB: MAX_IMAGE_SIZE_MB,
+        compressionOptions: {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+          fileType: 'image/jpeg',
+        },
+      });
       
-      // Check file type
-      if (!file.type.startsWith('image/')) {
+      // Show errors if any
+      errors.forEach(error => {
         toast({
-          title: "Invalid File Type",
-          description: `"${file.name}" is not an image file.`,
+          title: "Validation Error",
+          description: error,
           variant: "destructive",
         });
-        continue;
-      }
+      });
       
-      // Check file size
-      if (!validateImageSize(file, toast)) {
-        continue;
+      if (validFiles.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          galleryImages: [...prev.galleryImages, ...validFiles],
+        }));
+        
+        toast({
+          title: "Images Compressed",
+          description: `${validFiles.length} image(s) compressed and ready for upload.`,
+        });
       }
-      
-      validFiles.push(file);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to process images. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCompressingImages(false);
+      e.target.value = '';
     }
-
-    if (validFiles.length > 0) {
-      setFormData(prev => ({
-        ...prev,
-        galleryImages: [...prev.galleryImages, ...validFiles],
-      }));
-    }
-    
-    e.target.value = '';
   };
 
   const removeGalleryImage = (index: number) => {
@@ -214,7 +230,44 @@ export default function TreatmentForm() {
     }));
   };
 
+
+  const targetsAchieved = useMemo(() => {
+    if (!quotaSummary?.message?.treatment) return { physical: false, financial: false, both: false };
+    
+    const { count, budget_used, physical_target, financial_target } = quotaSummary.message.treatment;
+    
+    const physicalAchieved = count >= physical_target;
+    const financialAchieved = budget_used >= financial_target;
+    
+    return {
+      physical: physicalAchieved,
+      financial: financialAchieved,
+      both: physicalAchieved && financialAchieved,
+      either: physicalAchieved || financialAchieved,
+    };
+  }, [quotaSummary]);
+
+  const formatBudget = (amount: number): string => {
+    if (amount < 10000000) {
+      return `₹${(amount / 100000).toFixed(2)}L`;
+    }
+    return `₹${(amount / 10000000).toFixed(2)}Cr`;
+  };
+
   const handleSubmit = async () => {
+    if (targetsAchieved.either) {
+      const messages = [];
+      if (targetsAchieved.physical) messages.push("physical target");
+      if (targetsAchieved.financial) messages.push("financial target");
+      
+      toast({
+        title: "Target Achieved",
+        description: `The ${messages.join(" and ")} has been achieved. Cannot submit new applications.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!formData.firstName || !formData.surname) {
       toast({
         title: "Validation Error",
@@ -257,30 +310,13 @@ export default function TreatmentForm() {
           price: med.price ? parseFloat(med.price) : 0,
         }));
 
-      let galleryTableEntries: Array<{ image: string }> = [];
-      if (formData.galleryImages.length > 0) {
-        const uploadPromises = formData.galleryImages.map(async (file) => {
-          const uploadFormData = new FormData();
-          uploadFormData.append('file', file);
-          uploadFormData.append('is_private', '0');
-          uploadFormData.append('folder', 'Home');
-
-          const response = await fetch('/api/method/upload_file', {
-            method: 'POST',
-            body: uploadFormData,
-          });
-
-          if (!response.ok) {
-            throw new Error('Gallery image upload failed');
-          }
-
-          const result = await response.json();
-          const fileUrl = result.message?.file_url;
-          return { image: fileUrl };
-        });
-        
-        galleryTableEntries = await Promise.all(uploadPromises);
-      }
+      // Upload gallery images
+      const galleryTableEntries = formData.galleryImages.length > 0
+        ? await uploadImagesWithCompression(formData.galleryImages, {
+            isPrivate: false,
+            folder: 'Home',
+          })
+        : [];
 
       const docData = {
         doctype: "Treatment of Infertile Animal",
@@ -355,6 +391,31 @@ export default function TreatmentForm() {
 
         <main className="flex-1 overflow-auto p-6 bg-muted/30">
           <div className="space-y-6 max-w-4xl mx-auto">
+            {targetsAchieved.either && (
+              <Alert variant="destructive" className="border-2">
+                <AlertCircle className="h-5 w-5" />
+                <AlertTitle className="text-lg font-bold">
+                  {targetsAchieved.both 
+                    ? "Physical Target and Financial Target Achieved" 
+                    : targetsAchieved.physical 
+                    ? "Physical Target Achieved" 
+                    : "Financial Target Achieved"}
+                </AlertTitle>
+                <AlertDescription className="text-base">
+                  {targetsAchieved.both && (
+                    <>The district has achieved both the physical target ({quotaSummary?.message?.treatment?.physical_target} applications) and financial target ({formatBudget(quotaSummary?.message?.treatment?.financial_target || 0)}).</>
+                  )}
+                  {targetsAchieved.physical && !targetsAchieved.financial && (
+                    <>The district has achieved the physical target of {quotaSummary?.message?.treatment?.physical_target} applications.</>
+                  )}
+                  {targetsAchieved.financial && !targetsAchieved.physical && (
+                    <>The district has achieved the financial target of {formatBudget(quotaSummary?.message?.treatment?.financial_target || 0)}.</>
+                  )}
+                  {" "}
+                  No new applications can be submitted at this time.
+                </AlertDescription>
+              </Alert>
+            )}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -514,28 +575,13 @@ export default function TreatmentForm() {
                   <h3 className="font-semibold text-sm">Examination Details</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Examination Date</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !formData.examinationDate && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {formData.examinationDate ? format(formData.examinationDate, "PPP") : "Pick a date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={formData.examinationDate}
-                            onSelect={(date) => setFormData(prev => ({ ...prev, examinationDate: date }))}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <Label htmlFor="examinationDate">Examination Date</Label>
+                      <Input
+                        id="examinationDate"
+                        type="date"
+                        value={formData.examinationDate ? format(formData.examinationDate, "yyyy-MM-dd") : ""}
+                        onChange={(e) => setFormData(prev => ({ ...prev, examinationDate: e.target.value ? new Date(e.target.value) : undefined }))}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="veterinarianName">Veterinarian Name</Label>
@@ -642,28 +688,13 @@ export default function TreatmentForm() {
 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Treatment Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !formData.treatmentDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.treatmentDate ? format(formData.treatmentDate, "PPP") : "Pick a date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={formData.treatmentDate}
-                          onSelect={(date) => setFormData(prev => ({ ...prev, treatmentDate: date }))}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <Label htmlFor="treatmentDate">Treatment Date</Label>
+                    <Input
+                      id="treatmentDate"
+                      type="date"
+                      value={formData.treatmentDate ? format(formData.treatmentDate, "yyyy-MM-dd") : ""}
+                      onChange={(e) => setFormData(prev => ({ ...prev, treatmentDate: e.target.value ? new Date(e.target.value) : undefined }))}
+                    />
                   </div>
                 </div>
 
@@ -777,29 +808,13 @@ export default function TreatmentForm() {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           <div className="space-y-2">
-                            <Label>Date</Label>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className={cn(
-                                    "w-full justify-start text-left font-normal",
-                                    !medicine.date && "text-muted-foreground"
-                                  )}
-                                >
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {medicine.date ? format(medicine.date, "PP") : "Select date"}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0">
-                                <Calendar
-                                  mode="single"
-                                  selected={medicine.date}
-                                  onSelect={(d) => updateMedicine(medicine.id, "date", d)}
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
+                            <Label htmlFor={`medicine-date-${medicine.id}`}>Date</Label>
+                            <Input
+                              id={`medicine-date-${medicine.id}`}
+                              type="date"
+                              value={medicine.date ? format(medicine.date, "yyyy-MM-dd") : ""}
+                              onChange={(e) => updateMedicine(medicine.id, "date", e.target.value ? new Date(e.target.value) : undefined)}
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label>Medicine Name</Label>
@@ -828,29 +843,13 @@ export default function TreatmentForm() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>Expiry Date</Label>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className={cn(
-                                    "w-full justify-start text-left font-normal",
-                                    !medicine.expiryDate && "text-muted-foreground"
-                                  )}
-                                >
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {medicine.expiryDate ? format(medicine.expiryDate, "PP") : "Select date"}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0">
-                                <Calendar
-                                  mode="single"
-                                  selected={medicine.expiryDate}
-                                  onSelect={(d) => updateMedicine(medicine.id, "expiryDate", d)}
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
+                            <Label htmlFor={`medicine-expiry-${medicine.id}`}>Expiry Date</Label>
+                            <Input
+                              id={`medicine-expiry-${medicine.id}`}
+                              type="date"
+                              value={medicine.expiryDate ? format(medicine.expiryDate, "yyyy-MM-dd") : ""}
+                              onChange={(e) => updateMedicine(medicine.id, "expiryDate", e.target.value ? new Date(e.target.value) : undefined)}
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label>Price (₹)</Label>
@@ -882,10 +881,10 @@ export default function TreatmentForm() {
                 onClick={handleSubmit} 
                 className="gap-2" 
                 data-testid="button-submit-bottom"
-                disabled={isSubmitting}
+                disabled={isSubmitting || targetsAchieved.either || compressingImages}
               >
                 <Save className="w-4 h-4" />
-                {isSubmitting ? "Submitting..." : "Submit Application"}
+                {compressingImages ? "Compressing Images..." : isSubmitting ? "Submitting..." : targetsAchieved.either ? "Target Achieved" : "Submit Application"}
               </Button>
             </div>
           </div>
