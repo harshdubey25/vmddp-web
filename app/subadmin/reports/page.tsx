@@ -16,7 +16,6 @@ export default function SubAdminReports() {
     const assignedZone = {
         district: user?.dpo?.district,
     };
-
     return (
         <div className="flex flex-col flex-1 overflow-hidden">
             <header className="flex flex-col xs:flex-row items-start xs:items-center justify-between pl-12 pr-3 py-3 md:p-6 border-b bg-card gap-2 xs:gap-0">

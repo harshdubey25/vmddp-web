@@ -1,5 +1,6 @@
 "use client"
-
+// ...existing code...
+// Content from src/pages/admin/Reports.tsx
 import { useState, useEffect } from "react";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import {
     Download,
 } from "lucide-react";
+
 import { frappeBrowser } from "@/lib/frappe";
 
 export default function AdminReports() {
@@ -189,6 +191,9 @@ export default function AdminReports() {
     }, [selectedComponent, selectedDistrict, selectedStatus]);
 
 
+
+
+
     const districtData = [
         { district: "Nagpur", applications: 245, approved: 189 },
         { district: "Amravati", applications: 198, approved: 156 },
@@ -196,6 +201,7 @@ export default function AdminReports() {
         { district: "Yavatmal", applications: 156, approved: 98 },
         { district: "Wardha", applications: 134, approved: 89 },
     ];
+
 
 
     const allApplications = [
@@ -221,14 +227,7 @@ export default function AdminReports() {
         { applicationId: "VMDDP2501253", farmerName: "Ganesh Narayan Sonkusare", district: "Wardha", taluka: "Samudrapur", component: "Chaff Cutter", appliedDate: "2025-01-08", status: "Approved", amount: "₹15,000", approver: "Dr. Rajesh Kulkarni" },
     ];
 
-    const handleSort = (field: string) => {
-        if (sortField === field) {
-            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-        } else {
-            setSortField(field);
-            setSortOrder("asc");
-        }
-    };
+
 
     const filteredApplications = allApplications.filter((app) => {
         const matchesSearch =
@@ -269,6 +268,10 @@ export default function AdminReports() {
         if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
         return 0;
     });
+
+
+
+
 
     const handleExportDistrictWiseReport = async (format: "xlsx" | "csv") => {
         try {
