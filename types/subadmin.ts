@@ -3,6 +3,9 @@ export interface MedicineEntry {
     id: string;
     date: Date | undefined;
     medicineName: string;
+    dose: string;
+    schedule: string;
+    routeOfAdministration: string;
     batchNumber: string;
     expiryDate: Date | undefined;
     price: string;

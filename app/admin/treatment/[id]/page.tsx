@@ -39,6 +39,9 @@ interface TreatmentDoc {
   medicine?: Array<{
     date?: string;
     medicine_name?: string;
+    dose?: string;
+    schedule?: string;
+    route_of_administration?: string;
     batch_number?: string;
     expiry_date?: string;
     price?: number;
@@ -88,6 +91,9 @@ export default function ViewTreatmentApplication() {
         medicines: treatmentDoc.medicine ? treatmentDoc.medicine.map((m: any) => ({
           date: m.date || "-",
           name: m.medicine_name || "-",
+          dose: m.dose || "-",
+          schedule: m.schedule || "-",
+          routeOfAdministration: m.route_of_administration || "-",
           batchNumber: m.batch_number || "-",
           expiryDate: m.expiry_date || "-",
           price: m.price ? m.price.toString() : "0",
@@ -301,16 +307,22 @@ export default function ViewTreatmentApplication() {
                             <tr>
                               <th className="text-left p-3 text-sm font-medium">Date</th>
                               <th className="text-left p-3 text-sm font-medium">Medicine Name</th>
+                              <th className="text-left p-3 text-sm font-medium">Dose</th>
+                              <th className="text-left p-3 text-sm font-medium">Schedule</th>
+                              <th className="text-left p-3 text-sm font-medium">Route</th>
                               <th className="text-left p-3 text-sm font-medium">Batch Number</th>
                               <th className="text-left p-3 text-sm font-medium">Expiry Date</th>
                               <th className="text-left p-3 text-sm font-medium">Price (₹)</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {application.treatmentDetails.medicines.map((medicine: { date: string; name: string; batchNumber: string; expiryDate: string; price: string; }, idx: number) => (
+                            {application.treatmentDetails.medicines.map((medicine: { date: string; name: string; dose: string; schedule: string; routeOfAdministration: string; batchNumber: string; expiryDate: string; price: string; }, idx: number) => (
                               <tr key={idx} className="border-b">
                                 <td className="p-3 text-sm">{medicine.date}</td>
                                 <td className="p-3 text-sm">{medicine.name}</td>
+                                <td className="p-3 text-sm">{medicine.dose}</td>
+                                <td className="p-3 text-sm">{medicine.schedule}</td>
+                                <td className="p-3 text-sm">{medicine.routeOfAdministration}</td>
                                 <td className="p-3 text-sm font-mono">{medicine.batchNumber}</td>
                                 <td className="p-3 text-sm">{medicine.expiryDate}</td>
                                 <td className="p-3 text-sm">₹{medicine.price}</td>

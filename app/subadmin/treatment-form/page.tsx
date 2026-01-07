@@ -136,6 +136,9 @@ export default function TreatmentForm() {
       id: `med-${Date.now()}`,
       date: undefined,
       medicineName: "",
+      dose: "",
+      schedule: "",
+      routeOfAdministration: "",
       batchNumber: "",
       expiryDate: undefined,
       price: "",
@@ -295,6 +298,23 @@ export default function TreatmentForm() {
       return;
     }
 
+    if (formData.tagNumber.length !== 12) {
+      toast({
+        title: "Validation Error",
+        description: "Tag number must be exactly 12 alphanumeric characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (formData.aadharNumber.length !== 12) {
+      toast({
+        title: "Validation Error",
+        description: "Aadhar number must be exactly 12",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const symptomsTable = formData.symptoms.map((symptom) => ({
         symtomp: symptom,
@@ -305,6 +325,9 @@ export default function TreatmentForm() {
         .map((med) => ({
           date: med.date ? format(med.date, "yyyy-MM-dd") : undefined,
           medicine_name: med.medicineName,
+          dose: med.dose || undefined,
+          schedule: med.schedule || undefined,
+          route_of_administration: med.routeOfAdministration || undefined,
           batch_number: med.batchNumber,
           expiry_date: med.expiryDate ? format(med.expiryDate, "yyyy-MM-dd") : undefined,
           price: med.price ? parseFloat(med.price) : 0,
@@ -458,12 +481,17 @@ export default function TreatmentForm() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="surname">Aadhar Number *</Label>
+                      <Label htmlFor="aadharNumber">Aadhar Number *</Label>
                       <Input
                         id="aadharNumber"
                         value={formData.aadharNumber}
-                        onChange={(e) => setFormData(prev => ({ ...prev, aadharNumber: e.target.value }))}
-                        placeholder="Enter Aadhar number"
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 12);
+                          setFormData(prev => ({ ...prev, aadharNumber: value }));
+                        }}
+                        placeholder="Enter 12-digit Aadhar number"
+                        maxLength={12}
+                        inputMode="numeric"
                       />
                     </div>
                   </div>
@@ -564,8 +592,12 @@ export default function TreatmentForm() {
                       <Input
                         id="tagNumber"
                         value={formData.tagNumber}
-                        onChange={(e) => setFormData(prev => ({ ...prev, tagNumber: e.target.value }))}
-                        placeholder="e.g., MH-31-BF-001234"
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12);
+                          setFormData(prev => ({ ...prev, tagNumber: value.toLocaleUpperCase() }));
+                        }}
+                        placeholder="e.g., MH31BF001234"
+                        maxLength={12}
                       />
                     </div>
                   </div>
@@ -835,10 +867,34 @@ export default function TreatmentForm() {
                             </Select>
                           </div>
                           <div className="space-y-2">
+                            <Label>Dose</Label>
+                            <Input
+                              placeholder="e.g., 10mg, 5ml"
+                              value={medicine.dose || ""}
+                              onChange={(e) => updateMedicine(medicine.id, "dose", e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Schedule</Label>
+                            <Input
+                              placeholder="e.g., Twice daily, Once weekly"
+                              value={medicine.schedule || ""}
+                              onChange={(e) => updateMedicine(medicine.id, "schedule", e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Route of Administration</Label>
+                            <Input
+                              placeholder="e.g., Oral, Injection, Topical"
+                              value={medicine.routeOfAdministration || ""}
+                              onChange={(e) => updateMedicine(medicine.id, "routeOfAdministration", e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
                             <Label>Batch Number</Label>
                             <Input
                               placeholder="Enter batch number"
-                              value={medicine.batchNumber}
+                              value={medicine.batchNumber || ""}
                               onChange={(e) => updateMedicine(medicine.id, "batchNumber", e.target.value)}
                             />
                           </div>
@@ -856,7 +912,7 @@ export default function TreatmentForm() {
                             <Input
                               type="number"
                               placeholder="Enter price"
-                              value={medicine.price}
+                              value={medicine.price || ""}
                               onChange={(e) => updateMedicine(medicine.id, "price", e.target.value)}
                             />
                           </div>
