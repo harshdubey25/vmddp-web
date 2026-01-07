@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   TargetIcon,
   GraduationCap,
-  Stethoscope
+  Stethoscope,
+  FileCheck
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -33,7 +34,7 @@ type MenuItem = {
   type?: never;
 } | {
   type: "separator";
-  label?: string; 
+  label?: string;
   icon?: never;
   path?: never;
 };
@@ -57,7 +58,7 @@ const subAdminMenuItems: MenuItem[] = [
   { icon: FileText, label: "Applications", path: "/subadmin/applications" },
   { icon: FileText, label: "Selection", path: "/subadmin/selection" },
   { icon: FileText, label: "Messages", path: "/subadmin/messages" },
-  {icon: TargetIcon, label: "Quota Details", path: "/subadmin/quota-details" },
+  { icon: TargetIcon, label: "Quota Details", path: "/subadmin/quota-details" },
   { icon: FileText, label: "Reports", path: "/subadmin/reports" },
   { type: "separator", label: "Target Based Allocation" },
   { icon: GraduationCap, label: "Farmer Training", path: "/subadmin/farmer-training" },
@@ -67,6 +68,7 @@ const accountantMenuItems: MenuItem[] = [
   { icon: FileText, label: "DD Allocation", path: "/accountant/dd" },
   { icon: BarChart3, label: "DD Reports", path: "/accountant/dd-report" },
   { icon: Package, label: "Component Allocation", path: "/accountant/component-allocation" },
+  { icon: FileCheck, label: "Parantage Confirmation", path: "/accountant/parantage-confirmation" }
 ]
 // { icon: LayoutDashboard, label: "Dashboard", path: "/accountant" },
 // { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },;
