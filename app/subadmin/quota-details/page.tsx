@@ -70,8 +70,11 @@ export default function QuotaDetails() {
         return Math.round((utilized / quota) * 100);
     };
 
-    const formatBudgetInLakhs = (amount: number): string => {
-        return `₹${(amount / 100000).toFixed(2)}L`;
+    const formatBudgetInCrores = (amount: number): string => {
+        if (amount < 10000000) {
+            return `₹${(amount / 100000).toFixed(2)}L`;
+        }
+        return `₹${(amount / 10000000).toFixed(2)}Cr`;
     };
 
     return (
@@ -157,7 +160,7 @@ export default function QuotaDetails() {
                                                         </div>
                                                         <div>
                                                             <p className="text-sm text-muted-foreground">Financial Target</p>
-                                                            <p className="text-xl font-bold">{formatBudgetInLakhs(currentQuota.budget)}</p>
+                                                            <p className="text-xl font-bold">{formatBudgetInCrores(currentQuota.budget)}</p>
                                                         </div>
                                                     </div>
                                                 </CardContent>
@@ -171,7 +174,7 @@ export default function QuotaDetails() {
                                                         </div>
                                                         <div>
                                                             <p className="text-sm text-muted-foreground">Utilized</p>
-                                                            <p className="text-xl font-bold">{formatBudgetInLakhs(currentQuota.budgetUtilized)}</p>
+                                                            <p className="text-xl font-bold">{formatBudgetInCrores(currentQuota.budgetUtilized)}</p>
                                                         </div>
                                                     </div>
                                                 </CardContent>
@@ -206,13 +209,13 @@ export default function QuotaDetails() {
                                                     <div className="flex justify-between text-sm">
                                                         <span className="text-muted-foreground">Financial Target (FT)</span>
                                                         <span className="font-semibold">
-                                                            {formatBudgetInLakhs(currentQuota.budgetUtilized)} / {formatBudgetInLakhs(currentQuota.budget)}
+                                                            {formatBudgetInCrores(currentQuota.budgetUtilized)} / {formatBudgetInCrores(currentQuota.budget)}
                                                         </span>
                                                     </div>
                                                     <Progress value={calculateUtilization(currentQuota.budgetUtilized, currentQuota.budget)} className="h-3" />
                                                     <div className="flex items-center justify-between text-xs">
                                                         <span className="text-muted-foreground">
-                                                            {formatBudgetInLakhs(currentQuota.budget - currentQuota.budgetUtilized)} remaining
+                                                            {formatBudgetInCrores(currentQuota.budget - currentQuota.budgetUtilized)} remaining
                                                         </span>
                                                         <span className="font-medium text-chart-3">
                                                             {calculateUtilization(currentQuota.budgetUtilized, currentQuota.budget)}% utilized

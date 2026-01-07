@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useFrappeCreateDoc, useFrappeGetDocList, useFrappePostCall, useFrappeAuth, useFrappeGetDoc } from "frappe-react-sdk";
+import { useFrappeCreateDoc, useFrappeGetDocList, useFrappeAuth, useFrappeGetDoc } from "frappe-react-sdk";
+import { validateAndCompressImages, uploadImagesWithCompression } from "@/lib/image-utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,24 +23,19 @@ const MAX_IMAGES = MAX_TRAINING_IMAGES;
 const MAX_IMAGE_SIZE_MB = 5;
 const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 
-const validateImageSize = (file: File, toast: any): boolean => {
-  if (file.size > MAX_IMAGE_SIZE_BYTES) {
-    toast({
-      title: "File Size Exceeded",
-      description: `Image "${file.name}" is ${(file.size / (1024 * 1024)).toFixed(2)}MB. Maximum size is ${MAX_IMAGE_SIZE_MB}MB.`,
-      variant: "destructive",
-    });
-    return false;
-  }
-  return true;
-};
-
 export default function FarmerTrainingForm() {
   const { toast } = useToast();
   const router = useRouter();
   const { createDoc, loading: isSubmitting } = useFrappeCreateDoc();
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [compressingImages, setCompressingImages] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { currentUser } = useFrappeAuth();
+  const districtSetRef = useRef(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { data: dpoData } = useFrappeGetDoc("DPO", currentUser || undefined);
   const assignedDistrict = dpoData?.district;
@@ -48,18 +44,24 @@ export default function FarmerTrainingForm() {
     "Target Allocation",
     {
       fields: ["name", "district", "component", "physical_target", "financial_target"],
-      filters: [["component", "=", "Farmer Training"]],
+      filters: assignedDistrict 
+        ? [["component", "=", "Farmer Training"], ["district", "=", assignedDistrict]]
+        : [["component", "=", "Farmer Training"]],
       limit: 1,
-    }
+    },
+    assignedDistrict ? undefined : { revalidateOnFocus: false, revalidateOnReconnect: false }
   );
 
   const { data: submittedApplications } = useFrappeGetDocList(
     "Farmer Training Application",
     {
       fields: ["name", "number_of_participants"],
-      filters: [["docstatus", "=", 1]],
+      filters: assignedDistrict
+        ? [["docstatus", "=", 1], ["district", "=", assignedDistrict]]
+        : [["docstatus", "=", 1]],
       limit: 1000,
-    }
+    },
+    assignedDistrict ? undefined : { revalidateOnFocus: false, revalidateOnReconnect: false }
   );
 
   const physicalTarget = trainingTarget?.[0]?.physical_target || 500;
@@ -69,6 +71,8 @@ export default function FarmerTrainingForm() {
     physical: physicalTarget,
     achieved: achievedCount,
   };
+
+  const safeTargetData = mounted ? targetData : { physical: 0, achieved: 0 };
 
   const [formData, setFormData] = useState<FarmerTrainingFormData>({
     eventName: "",
@@ -93,28 +97,37 @@ export default function FarmerTrainingForm() {
     limit: 1000,
   });
 
-  const { data: talukaData, mutate: mutateTaluka } = useFrappeGetDocList("Taluka Master", {
-    fields: ["name", "name1", "district"],
-    filters: formData.district ? [["district", "=", formData.district]] : undefined,
-    limit: 1000,
-  });
+  const { data: talukaData, mutate: mutateTaluka } = useFrappeGetDocList(
+    "Taluka Master",
+    {
+      fields: ["name", "name1", "district"],
+      filters: formData.district ? [["district", "=", formData.district]] : undefined,
+      limit: 1000,
+    },
+    formData.district ? undefined : { revalidateOnFocus: false, revalidateOnReconnect: false, shouldRetryOnError: false, revalidateIfStale: false }
+  );
 
-  const { data: villageData, mutate: mutateVillage } = useFrappeGetDocList("Village Master", {
-    fields: ["name", "name1", "taluka"],
-    filters: formData.taluka ? [["taluka", "=", formData.taluka]] : undefined,
-    limit: 1000,
-  });
+  const { data: villageData, mutate: mutateVillage } = useFrappeGetDocList(
+    "Village Master",
+    {
+      fields: ["name", "name1", "taluka"],
+      filters: formData.taluka ? [["taluka", "=", formData.taluka]] : undefined,
+      limit: 1000,
+    },
+    formData.taluka ? undefined : { revalidateOnFocus: false, revalidateOnReconnect: false, shouldRetryOnError: false, revalidateIfStale: false }
+  );
 
   useEffect(() => {
-    if (assignedDistrict && !formData.district) {
+    if (mounted && assignedDistrict && !districtSetRef.current) {
+      districtSetRef.current = true;
       setFormData(prev => ({ ...prev, district: assignedDistrict }));
     }
-  }, [assignedDistrict, formData.district]);
+  }, [mounted, assignedDistrict]);
 
-  const remainingTarget = targetData.physical - targetData.achieved;
-  const targetProgress = (targetData.achieved / targetData.physical) * 100;
+  const remainingTarget = safeTargetData.physical - safeTargetData.achieved;
+  const targetProgress = safeTargetData.physical > 0 ? (safeTargetData.achieved / safeTargetData.physical) * 100 : 0;
   const currentParticipants = parseInt(formData.numberOfParticipants) || 0;
-  const wouldExceedTarget = currentParticipants > remainingTarget;
+  const wouldExceedTarget = mounted && currentParticipants > remainingTarget;
   
   const expectedBudget = currentParticipants * EXPENSE_PER_HEAD;
   const allocatedBudget = (
@@ -127,55 +140,20 @@ export default function FarmerTrainingForm() {
   const remainingBudget = expectedBudget - allocatedBudget;
   const exceedsTotal = allocatedBudget > expectedBudget;
 
-  const [validationMessage, setValidationMessage] = useState<string | null>(null);
-  const { call: validateBudget } = useFrappePostCall('vmddp_app.vmddp.doctype.farmer_training_application.farmer_training_application.calculate_budget');
-
-  useEffect(() => {
-    const checkBackendValidation = async () => {
-      if (!currentParticipants) {
-        setValidationMessage(null);
-        return;
-      }
-
-      try {
-        const result = await validateBudget({
-          number_of_participants: formData.numberOfParticipants || '0',
-          training_material: formData.trainingMaterial || '0',
-          logistics: formData.logistics || '0',
-          refreshment: formData.refreshment || '0'
-        });
-        
-        if (result?.success) {
-          if (Math.abs(result.expected_budget - expectedBudget) > 0.01 || 
-              Math.abs(result.allocated_budget - allocatedBudget) > 0.01) {
-            setValidationMessage('⚠️ Calculation mismatch detected with backend');
-          } else {
-            setValidationMessage(null);
-          }
-        }
-      } catch (error) {
-        console.error('Validation error:', error);
-        setValidationMessage(null);
-      }
-    };
-    
-    checkBackendValidation();
-  }, [formData.numberOfParticipants, formData.trainingMaterial, formData.logistics, formData.refreshment, validateBudget]);
-
   const handleInputChange = (field: keyof FarmerTrainingFormData, value: string | Date | undefined) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
     if (field === "district") {
-      setFormData(prev => ({ ...prev, taluka: "", village: "" }));
+      setFormData(prev => ({ ...prev, district: value as string, taluka: "", village: "" }));
       mutateTaluka();
       mutateVillage();
     } else if (field === "taluka") {
-      setFormData(prev => ({ ...prev, village: "" }));
+      setFormData(prev => ({ ...prev, taluka: value as string, village: "" }));
       mutateVillage();
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
     }
-  };
+  }; 
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
@@ -191,35 +169,48 @@ export default function FarmerTrainingForm() {
       return;
     }
 
-    const validFiles: File[] = [];
+    setCompressingImages(true);
     
-    for (let i = 0; i < newImages.length; i++) {
-      const file = newImages[i];
+    try {
+      const { validFiles, errors } = await validateAndCompressImages(newImages, {
+        maxSizeMB: MAX_IMAGE_SIZE_MB,
+        compressionOptions: {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+          fileType: 'image/jpeg',
+        },
+      });
       
-      if (!file.type.startsWith('image/')) {
+      errors.forEach(error => {
         toast({
-          title: "Invalid File Type",
-          description: `"${file.name}" is not an image file.`,
+          title: "Validation Error",
+          description: error,
           variant: "destructive",
         });
-        continue;
-      }
+      });
       
-      if (!validateImageSize(file, toast)) {
-        continue;
+      if (validFiles.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          participantListImages: [...prev.participantListImages, ...validFiles],
+        }));
+        
+        toast({
+          title: "Images Compressed",
+          description: `${validFiles.length} image(s) compressed and ready for upload.`,
+        });
       }
-      
-      validFiles.push(file);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to process images. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCompressingImages(false);
+      e.target.value = '';
     }
-
-    if (validFiles.length > 0) {
-      setFormData(prev => ({
-        ...prev,
-        participantListImages: [...prev.participantListImages, ...validFiles],
-      }));
-    }
-    
-    e.target.value = '';
   };
 
   const removeImage = (index: number) => {
@@ -229,7 +220,7 @@ export default function FarmerTrainingForm() {
     }));
   };
 
-  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
@@ -245,37 +236,48 @@ export default function FarmerTrainingForm() {
       return;
     }
 
-    const validFiles: File[] = [];
+    setCompressingImages(true);
     
-    for (let i = 0; i < newImages.length; i++) {
-      const file = newImages[i];
+    try {
+      const { validFiles, errors } = await validateAndCompressImages(newImages, {
+        maxSizeMB: MAX_IMAGE_SIZE_MB,
+        compressionOptions: {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+          fileType: 'image/jpeg',
+        },
+      });
       
-      // Check file type
-      if (!file.type.startsWith('image/')) {
+      errors.forEach(error => {
         toast({
-          title: "Invalid File Type",
-          description: `"${file.name}" is not an image file.`,
+          title: "Validation Error",
+          description: error,
           variant: "destructive",
         });
-        continue;
-      }
+      });
       
-      // Check file size
-      if (!validateImageSize(file, toast)) {
-        continue;
+      if (validFiles.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          galleryImages: [...prev.galleryImages, ...validFiles],
+        }));
+        
+        toast({
+          title: "Images Compressed",
+          description: `${validFiles.length} image(s) compressed and ready for upload.`,
+        });
       }
-      
-      validFiles.push(file);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to process images. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCompressingImages(false);
+      e.target.value = '';
     }
-
-    if (validFiles.length > 0) {
-      setFormData(prev => ({
-        ...prev,
-        galleryImages: [...prev.galleryImages, ...validFiles],
-      }));
-    }
-    
-    e.target.value = '';
   };
 
   const removeGalleryImage = (index: number) => {
@@ -330,55 +332,21 @@ export default function FarmerTrainingForm() {
     try {
       setUploadingImages(true);
 
-      let imageTableEntries: Array<{ image: string }> = [];
-      if (formData.participantListImages.length > 0) {
-        const uploadPromises = formData.participantListImages.map(async (file) => {
-          const uploadFormData = new FormData();
-          uploadFormData.append('file', file);
-          uploadFormData.append('is_private', '0');
-          uploadFormData.append('folder', 'Home');
+      // Upload participant list images
+      const imageTableEntries = formData.participantListImages.length > 0
+        ? await uploadImagesWithCompression(formData.participantListImages, {
+            isPrivate: false,
+            folder: 'Home',
+          })
+        : [];
 
-          const response = await fetch('/api/method/upload_file', {
-            method: 'POST',
-            body: uploadFormData,
-          });
-
-          if (!response.ok) {
-            throw new Error('Upload failed');
-          }
-
-          const result = await response.json();
-          const fileUrl = result.message?.file_url;
-          return { image: fileUrl };
-        });
-        
-        imageTableEntries = await Promise.all(uploadPromises);
-      }
-
-      let galleryTableEntries: Array<{ image: string }> = [];
-      if (formData.galleryImages.length > 0) {
-        const uploadPromises = formData.galleryImages.map(async (file) => {
-          const uploadFormData = new FormData();
-          uploadFormData.append('file', file);
-          uploadFormData.append('is_private', '0');
-          uploadFormData.append('folder', 'Home');
-
-          const response = await fetch('/api/method/upload_file', {
-            method: 'POST',
-            body: uploadFormData,
-          });
-
-          if (!response.ok) {
-            throw new Error('Upload failed');
-          }
-
-          const result = await response.json();
-          const fileUrl = result.message?.file_url;
-          return { image: fileUrl };
-        });
-        
-        galleryTableEntries = await Promise.all(uploadPromises);
-      }
+      // Upload gallery images
+      const galleryTableEntries = formData.galleryImages.length > 0
+        ? await uploadImagesWithCompression(formData.galleryImages, {
+            isPrivate: false,
+            folder: 'Home',
+          })
+        : [];
 
       setUploadingImages(false);
 
@@ -465,8 +433,8 @@ export default function FarmerTrainingForm() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Physical Target: <strong className="text-foreground">{targetData.physical}</strong> participants</span>
-                  <span className="text-muted-foreground">Achieved: <strong className="text-foreground">{targetData.achieved}</strong> participants</span>
+                  <span className="text-muted-foreground">Physical Target: <strong className="text-foreground">{safeTargetData.physical}</strong> participants</span>
+                  <span className="text-muted-foreground">Achieved: <strong className="text-foreground">{safeTargetData.achieved}</strong> participants</span>
                 </div>
                 <Progress value={targetProgress} className="h-3" />
                 <div className="flex items-center justify-between text-sm">
@@ -507,29 +475,14 @@ export default function FarmerTrainingForm() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Event Date *</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !formData.eventDate && "text-muted-foreground"
-                          )}
-                          data-testid="button-event-date"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.eventDate ? format(formData.eventDate, "PPP") : "Pick a date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={formData.eventDate}
-                          onSelect={(date) => handleInputChange("eventDate", date)}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <Label htmlFor="eventDate">Event Date *</Label>
+                    <Input
+                      id="eventDate"
+                      type="date"
+                      value={formData.eventDate ? format(formData.eventDate, "yyyy-MM-dd") : ""}
+                      onChange={(e) => handleInputChange("eventDate", e.target.value ? new Date(e.target.value) : undefined)}
+                      data-testid="input-event-date"
+                    />
                   </div>
                 </div>
               </CardContent>
@@ -747,11 +700,6 @@ export default function FarmerTrainingForm() {
                   <div className="text-xs text-muted-foreground">
                     {currentParticipants} participants × ₹{EXPENSE_PER_HEAD} per head
                   </div>
-                  {validationMessage && (
-                    <div className="text-xs text-amber-600 font-medium">
-                      {validationMessage}
-                    </div>
-                  )}
                 </div>
 
                 <div className="space-y-4">
@@ -840,11 +788,11 @@ export default function FarmerTrainingForm() {
               <Button
                 type="submit"
                 className="gap-2"
-                disabled={wouldExceedTarget || exceedsTotal || isSubmitting || uploadingImages}
+                disabled={wouldExceedTarget || exceedsTotal || isSubmitting || uploadingImages || compressingImages}
                 data-testid="button-submit"
               >
                 <Save className="w-4 h-4" />
-                {uploadingImages ? 'Uploading Images...' : isSubmitting ? 'Submitting...' : 'Submit Application'}
+                {compressingImages ? 'Compressing Images...' : uploadingImages ? 'Uploading Images...' : isSubmitting ? 'Submitting...' : 'Submit Application'}
               </Button>
             </div>
           </form>
