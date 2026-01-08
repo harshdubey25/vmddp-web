@@ -140,7 +140,7 @@ export default function DBTClaims() {
                     <Card data-testid="card-beneficiary-selector">
                         <CardHeader>
                             <CardTitle>New Claim - Select Beneficiary</CardTitle>
-                            <CardDescription>Select a component to view eligible beneficiaries, then click "View Form" to submit a claim</CardDescription>
+                            <CardDescription>Select a component to view eligible beneficiaries, then click &quot;View Form&quot; to submit a claim</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex flex-wrap gap-4 items-center">
