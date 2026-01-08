@@ -1,4 +1,5 @@
 "use client"
+export const runtime = 'edge';
 import Link from "next/link";
 import { ArrowLeft, FileText, Upload, Check, User, Building2, MapPin, CreditCard, ExternalLink, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
