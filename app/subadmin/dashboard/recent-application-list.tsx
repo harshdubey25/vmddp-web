@@ -1,5 +1,6 @@
-import { getFrappeWithUserToken } from "@/lib/frappeHelper";
-import { getStatusBadge } from "@/lib/status-utils";
+"use client"
+import { useFrappeGetCall } from "frappe-react-sdk";
+import { ListSkeleton } from "@/components/LoadingSkeletons";
 import RecentApplicationsClient from "./recent-applications-client";
 
 interface Application {
@@ -11,12 +12,33 @@ interface Application {
     date: string;
 }
 
-export const RecentApplicationsList = async () => {
-    const frappe = await getFrappeWithUserToken();
-    const response = await frappe.call().get('vmddp_app.api.api.get_applications_summary', { limit: 5, order_by: 'creation desc' });
+interface ApiResponse {
+    message: {
+        applications: Array<{
+            name: string;
+            fullname: string;
+            component_list: string;
+            village: string;
+            status: 'Approved' | 'Pending' | 'Rejected' | 'Selected';
+            date: string;
+        }>;
+    };
+}
+
+export function RecentApplicationsList() {
+    const { data: response, isLoading } = useFrappeGetCall<ApiResponse>(
+        'vmddp_app.api.api.get_applications_summary',
+        { limit: 5, order_by: 'creation desc' },
+        undefined,
+        { revalidateOnFocus: false }
+    );
+
+    if (isLoading) {
+        return <ListSkeleton />;
+    }
 
     // Process applications data
-    const applications: Application[] = (response || []).message.applications.map((app: any): Application => {
+    const applications: Application[] = (response?.message?.applications || []).map((app): Application => {
         return {
             id: app.name,
             applicant: app.fullname,
@@ -29,3 +51,5 @@ export const RecentApplicationsList = async () => {
 
     return <RecentApplicationsClient applications={applications} />;
 }
+
+export default RecentApplicationsList;
