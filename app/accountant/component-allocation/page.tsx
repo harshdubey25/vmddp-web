@@ -194,7 +194,6 @@ export default function ComponentAllocation() {
                                                 <TableHead>Aadhaar</TableHead>
                                                 <TableHead>District</TableHead>
                                                 <TableHead>Component</TableHead>
-                                                <TableHead>Status</TableHead>
                                                 <TableHead>Action</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -210,11 +209,6 @@ export default function ComponentAllocation() {
                                                             {getComponentIcon(app.component_name)}
                                                             {app.component_name}
                                                         </Badge>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge variant={'default'}> {app.component_status}</Badge>
-
-
                                                     </TableCell>
                                                     <TableCell>
                                                         <Link href={`/accountant/component-allocation/${encodeURIComponent(app.name)}`}>
@@ -251,7 +245,6 @@ export default function ComponentAllocation() {
                                                 <TableHead>District</TableHead>
                                                 <TableHead>Component</TableHead>
                                                 <TableHead>Animal/Item</TableHead>
-                                                <TableHead>Master Status</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -268,9 +261,6 @@ export default function ComponentAllocation() {
                                                     </TableCell>
                                                     <TableCell>
                                                         {alloc.type_of_animal || alloc.item || "-"}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge variant={'default'}> {alloc.component_status}</Badge>
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
