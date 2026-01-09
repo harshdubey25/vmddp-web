@@ -141,8 +141,6 @@ export default function TreatmentPage() {
         'Applicant Name': app.applicantName,
         'Aadhar Number': app.aadharNumber || '-',
         'Village': app.village,
-        'District': assignedDistrict.district,
-        'Taluka': assignedDistrict.taluka,
         'Component': app.component,
         'Submitted Date': app.submittedDate,
       }));
