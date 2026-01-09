@@ -3,6 +3,9 @@ export interface MedicineEntry {
     id: string;
     date: Date | undefined;
     medicineName: string;
+    dose: string;
+    schedule: string;
+    routeOfAdministration: string;
     batchNumber: string;
     expiryDate: Date | undefined;
     price: string;
@@ -28,6 +31,7 @@ export interface TreatmentFormData {
     actualTreatment: string;
     followUpNotes: string;
     medicines: MedicineEntry[];
+    galleryImages: File[];
 }
 
 export interface FarmerTrainingFormData {
@@ -40,6 +44,7 @@ export interface FarmerTrainingFormData {
     venueName: string;
     numberOfParticipants: string;
     participantListImages: File[];
+    galleryImages: File[];
     trainingMaterial: string;
     logistics: string;
     refreshment: string;

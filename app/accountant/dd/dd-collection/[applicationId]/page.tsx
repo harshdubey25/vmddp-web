@@ -34,6 +34,7 @@ import {
 import { useFrappePostCall, useFrappeGetCall, useFrappeFileUpload } from "frappe-react-sdk";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CardSkeleton } from "@/components/LoadingSkeletons";
+import { date } from "zod";
 
 enum DDComponents {
     HGM = "HGM (Pregnant cow)",
@@ -398,7 +399,10 @@ export default function DDCollectionForm({
                                     id="ddNumber"
                                     placeholder="Enter DD number"
                                     value={ddFormData.ddNumber}
-                                    onChange={(e) => setDdFormData({ ...ddFormData, ddNumber: e.target.value })}
+                                    onChange={(e) => {
+                                        const value= e.target.value.replace(/[^0-9]/g, '');
+                                        setDdFormData({ ...ddFormData, ddNumber:value });
+                                    }}
                                     data-testid="input-dd-number"
                                 />
                             </div>
@@ -409,6 +413,7 @@ export default function DDCollectionForm({
                                         id="ddDate"
                                         type="date"
                                         value={ddFormData.ddDate}
+                                        min={new Date().toISOString().split('T')[0]}
                                         onChange={(e) => setDdFormData({ ...ddFormData, ddDate: e.target.value })}
                                         data-testid="input-dd-date"
                                     />
@@ -551,7 +556,7 @@ export default function DDCollectionForm({
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-end gap-3">
-                        <Link href="/accountant/dd-collection">
+                        <Link href="/accountant/dd ">
                             <Button variant="outline" data-testid="button-cancel">
                                 Cancel
                             </Button>

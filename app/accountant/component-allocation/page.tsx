@@ -37,7 +37,10 @@ export default function ComponentAllocation() {
     const [aadharFilter, setAadharFilter] = useState("")
     const [componentFilter, setComponentFilter] = useState("all")
     const { data: districts } = useFrappeGetDocList('District Master')
-    const { data: components } = useFrappeGetDocList('Component')
+    const { data: components } = useFrappeGetDocList('Component', {
+        fields: ['name'],
+        filters: [['name', 'in', ['HGM (Pregnant cow)', 'Animal Induction']]],
+    })
     const { data: ddCompletedApplications } = useFrappeGetCall<DDCompletedApplication>('vmddp_app.api.v1.accountant.get_completed_dd_list', {
         district: districtFilter === 'all' ? null : districtFilter,
         search_text: aadharFilter.length === 0 ? null : aadharFilter,
@@ -191,7 +194,6 @@ export default function ComponentAllocation() {
                                                 <TableHead>Aadhaar</TableHead>
                                                 <TableHead>District</TableHead>
                                                 <TableHead>Component</TableHead>
-                                                <TableHead>Status</TableHead>
                                                 <TableHead>Action</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -207,11 +209,6 @@ export default function ComponentAllocation() {
                                                             {getComponentIcon(app.component_name)}
                                                             {app.component_name}
                                                         </Badge>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge variant={'default'}> {app.component_status}</Badge>
-
-
                                                     </TableCell>
                                                     <TableCell>
                                                         <Link href={`/accountant/component-allocation/${encodeURIComponent(app.name)}`}>
@@ -248,7 +245,6 @@ export default function ComponentAllocation() {
                                                 <TableHead>District</TableHead>
                                                 <TableHead>Component</TableHead>
                                                 <TableHead>Animal/Item</TableHead>
-                                                <TableHead>Master Status</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -263,9 +259,8 @@ export default function ComponentAllocation() {
                                                             {alloc.component_name}
                                                         </Badge>
                                                     </TableCell>
-                                                    <TableCell>{alloc.item || "-"}</TableCell>
                                                     <TableCell>
-                                                        <Badge variant={'default'}> {alloc.component_status}</Badge>
+                                                        {alloc.type_of_animal || alloc.item || "-"}
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
@@ -304,6 +299,7 @@ interface ComponentAllocationItem {
     source_bank_name: string;
     branch_name: string;
     item: string | null;
+    type_of_animal?: string;
     village: string;
     district: string;
     taluka: string;

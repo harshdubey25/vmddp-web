@@ -2,6 +2,7 @@
 export const runtime = 'edge';
 import { useState, use } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { FrappeCustomApiResponse, ComponentStatus } from "@/types";
 import {
   ArrowLeft,
@@ -156,6 +157,7 @@ export default function AllocationForm({
   params: Promise<{ applicationId: string }>;
 }) {
 
+  const router = useRouter();
   const { applicationId } = use(params)
   const { upload, isCompleted, loading, error: fileUploadError, progress, reset } = useFrappeFileUpload()
   const { data, isLoading, error } = useFrappeGetCall<AppFormResponse>('vmddp_app.api.v1.accountant.get_application_data_and_dd_amount', { application_id: applicationId })
@@ -501,8 +503,11 @@ export default function AllocationForm({
         description: `Allocation recorded for ${data.message.first_name}. Ledger updated automatically.`,
       });
       setShowConfirmation(false);
-      // Optionally navigate back
-      // router.push("/accountant/component-allocation");
+      
+      setTimeout(() => {
+        router.push("/accountant/component-allocation");
+        router.refresh();
+      }, 1000);
     } catch (err) {
       console.error("Error creating component allocation:", err);
       toast({
@@ -1273,11 +1278,18 @@ export default function AllocationForm({
                     <div className="space-y-2">
                       <Label>Tag Number *</Label>
                       <Input
-                        placeholder="Enter tag number"
+                        placeholder="Enter 12-character tag number"
                         value={hgmData.tagNumber}
-                        onChange={(e) => handleTagChange(e.target.value, "hgm")}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 12).toLocaleUpperCase();
+                          handleTagChange(value, "hgm");
+                        }}
+                        maxLength={12}
                         data-testid="input-hgm-tag"
                       />
+                      {tagError && (
+                        <p className="text-xs text-destructive">{tagError}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label>Digital Collar Number</Label>

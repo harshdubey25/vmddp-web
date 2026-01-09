@@ -5,8 +5,14 @@ import { useFrappeGetDoc } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileText, MapPin, User, Stethoscope, Pill, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ArrowLeft, FileText, MapPin, User, Stethoscope, Pill, Loader2, Image } from "lucide-react";
+import { useState } from "react";
 export const runtime = 'edge';
+
+interface ImageTableEntry {
+  image: string;
+}
 
 interface TreatmentDoc {
   name: string;
@@ -29,9 +35,13 @@ interface TreatmentDoc {
   treatment_given?: string;
   treatment_date?: string;
   follow_up_observations?: string;
+  gallery_table?: ImageTableEntry[];
   medicine?: Array<{
     date?: string;
     medicine_name?: string;
+    dose?: string;
+    schedule?: string;
+    route_of_administration?: string;
     batch_number?: string;
     expiry_date?: string;
     price?: number;
@@ -41,6 +51,7 @@ interface TreatmentDoc {
 export default function ViewTreatmentApplication() {
   const router = useRouter();
   const params = useParams();
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const applicationId = params?.id ? decodeURIComponent(Array.isArray(params.id) ? params.id[0] : params.id) : null;
 
@@ -80,6 +91,9 @@ export default function ViewTreatmentApplication() {
         medicines: treatmentDoc.medicine ? treatmentDoc.medicine.map((m: any) => ({
           date: m.date || "-",
           name: m.medicine_name || "-",
+          dose: m.dose || "-",
+          schedule: m.schedule || "-",
+          routeOfAdministration: m.route_of_administration || "-",
           batchNumber: m.batch_number || "-",
           expiryDate: m.expiry_date || "-",
           price: m.price ? m.price.toString() : "0",
@@ -295,16 +309,22 @@ export default function ViewTreatmentApplication() {
                             <tr>
                               <th className="text-left p-3 text-sm font-medium">Date</th>
                               <th className="text-left p-3 text-sm font-medium">Medicine Name</th>
+                              <th className="text-left p-3 text-sm font-medium">Dose</th>
+                              <th className="text-left p-3 text-sm font-medium">Schedule</th>
+                              <th className="text-left p-3 text-sm font-medium">Route</th>
                               <th className="text-left p-3 text-sm font-medium">Batch Number</th>
                               <th className="text-left p-3 text-sm font-medium">Expiry Date</th>
                               <th className="text-left p-3 text-sm font-medium">Price (₹)</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {application.treatmentDetails.medicines.map((medicine: { date: string; name: string; batchNumber: string; expiryDate: string; price: string; }, idx: number) => (
+                            {application.treatmentDetails.medicines.map((medicine: { date: string; name: string; dose: string; schedule: string; routeOfAdministration: string; batchNumber: string; expiryDate: string; price: string; }, idx: number) => (
                               <tr key={idx} className="border-b">
                                 <td className="p-3 text-sm">{medicine.date}</td>
                                 <td className="p-3 text-sm">{medicine.name}</td>
+                                <td className="p-3 text-sm">{medicine.dose}</td>
+                                <td className="p-3 text-sm">{medicine.schedule}</td>
+                                <td className="p-3 text-sm">{medicine.routeOfAdministration}</td>
                                 <td className="p-3 text-sm font-mono">{medicine.batchNumber}</td>
                                 <td className="p-3 text-sm">{medicine.expiryDate}</td>
                                 <td className="p-3 text-sm">₹{medicine.price}</td>
@@ -318,6 +338,54 @@ export default function ViewTreatmentApplication() {
                     )}
                   </CardContent>
                 </Card>
+
+                {treatmentDoc?.gallery_table && treatmentDoc.gallery_table.length > 0 && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Image className="w-4 h-4" />
+                        Gallery Images
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        {treatmentDoc.gallery_table.map((entry, idx) => {
+                          const imageUrl = entry.image.startsWith('http') ? entry.image : `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${entry.image}`;
+                          return (
+                            <div 
+                              key={idx} 
+                              className="border rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                              onClick={() => setPreviewImage(imageUrl)}
+                            >
+                              <img 
+                                src={imageUrl}
+                                alt={`Gallery ${idx + 1}`}
+                                className="w-full h-32 object-cover"
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+                  <DialogContent className="max-w-4xl max-h-[90vh]">
+                    <DialogHeader>
+                      <DialogTitle>Image Preview</DialogTitle>
+                    </DialogHeader>
+                    <div className="relative w-full h-full flex items-center justify-center">
+                      {previewImage && (
+                        <img 
+                          src={previewImage} 
+                          alt="Preview" 
+                          className="max-w-full max-h-[70vh] object-contain"
+                        />
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </>
             )}
           </div>

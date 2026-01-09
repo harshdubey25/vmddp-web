@@ -193,7 +193,7 @@ export default function TreatmentPage() {
               Treatment of Infertile Animal
             </h1>
             <p className="text-sm text-muted-foreground">
-              Manage applications for {assignedZone.district} - {assignedZone.taluka}
+              Manage applications 
             </p>
           </div>
           <Button variant="outline" className="gap-2" data-testid="button-export" onClick={handleExport}>
