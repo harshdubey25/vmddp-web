@@ -541,7 +541,7 @@ export default function AdminApplicationsClient({ applications, currentPage, pag
                                         <tbody>
                                             {applications.map((app, index) => (
                                                 <tr
-                                                    key={app.id}
+                                                    key={`${app.id}-${index}`}
                                                     className="border-b hover:bg-muted/30 transition-colors cursor-pointer"
                                                     data-testid={`application-row-${index}`}
                                                     onClick={(e) => handleViewDetails(app)}

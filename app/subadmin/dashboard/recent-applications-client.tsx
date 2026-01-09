@@ -23,9 +23,9 @@ export default function RecentApplicationsClient({ applications }: RecentApplica
     return (
         <>
             <div className="space-y-3 sm:space-y-4">
-                {applications.map((app) => (
+                {applications.map((app, index) => (
                     <div
-                        key={app.id}
+                        key={`${app.id}-${index}`}
                         className="flex flex-col p-3 sm:p-4 border rounded-lg hover:bg-muted/30 transition-colors cursor-pointer"
                         data-testid={`application-${app.id}`}
                         onClick={() => {

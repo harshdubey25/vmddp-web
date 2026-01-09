@@ -241,7 +241,7 @@ export default function Report({
                                         ) : (
                                             applications.map((app, index) => (
                                                 <tr
-                                                    key={app.id}
+                                                    key={`${app.id}-${index}`}
                                                     className="border-b hover:bg-muted/30 transition-colors"
                                                     data-testid={`application-row-${index}`}
                                                 >
