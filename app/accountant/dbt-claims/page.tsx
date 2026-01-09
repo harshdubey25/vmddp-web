@@ -45,9 +45,11 @@ interface DBTBeneficiary {
 export default function DBTClaims() {
     const { data: components } = useFrappeGetDocList<Pick<Component, 'name' | 'subsidy_percent' | 'maximum_subsidy_amount' | 'rate_per_kg' | 'max_quantity'>>("Component", { fields: ['name', 'subsidy_percent', 'maximum_subsidy_amount', 'rate_per_kg', 'max_quantity'], filters: [['for_dbt_claims', '=', '1']] });
     const [selectedComponent, setSelectedComponent] = useState<{ name: string, subsidy_percent: number, maximum_subsidy_amount: number, rate_per_kg: number, max_quantity: number } | null>(null);
-    const { data: beneficiariesResponse } = useFrappeGetCall<{ message: DBTBeneficiary[] }>("vmddp_app.api.v1.accountant.dbt_application_list", {
-        component_filter: selectedComponent?.name
-    });
+    const { data: beneficiariesResponse } = useFrappeGetCall<{ message: DBTBeneficiary[] }>(
+        "vmddp_app.api.v1.accountant.dbt_application_list",
+        { component_filter: selectedComponent?.name },
+        selectedComponent ? `dbt_application_list_${selectedComponent.name}` : null
+    );
     const beneficiaries = beneficiariesResponse?.message || [];
 
     // Fetch disbursed claims (docstatus=1 means submitted)
