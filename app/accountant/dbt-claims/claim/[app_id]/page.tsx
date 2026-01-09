@@ -99,7 +99,7 @@ export default function ClaimForm({
         : 0;
 
     const isQuotaExhausted = quota
-        ? quota.remaining_subsidy <= 0
+        ? (quota.max_quantity > 0 && quota.remaining_quantity <= 0) || quota.remaining_subsidy <= 0
         : false;
 
     // Calculate eligible DBT amount based on form input and subsidy percent
@@ -146,6 +146,16 @@ export default function ClaimForm({
 
     // Submit claim
     const handleSubmit = async () => {
+        // Check if quota is exhausted
+        if (isQuotaExhausted) {
+            toast({
+                title: "Quota Exhausted",
+                description: "Maximum quantity or subsidy amount has been reached. No more claims can be submitted.",
+                variant: "destructive",
+            });
+            return;
+        }
+
         // Validate required fields
         if (!formData.invoiceNumber || !formData.purchaseDate || !formData.quantity || !formData.totalAmount) {
             toast({
@@ -559,6 +569,8 @@ export default function ClaimForm({
                                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                                 Submitting...
                                             </>
+                                        ) : isQuotaExhausted ? (
+                                            "Quota Exhausted"
                                         ) : (
                                             <>
                                                 <Check className="h-4 w-4 mr-2" />
