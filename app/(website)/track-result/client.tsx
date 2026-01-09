@@ -23,6 +23,11 @@ import {
 import { frappePublic } from "@/lib/frappe";
 import { getStatusBadge } from "@/lib/status-utils";
 
+interface ComponentStatus {
+  name: string;
+  status: string;
+}
+
 interface Application {
   id: string;
   applicantName: string;
@@ -34,6 +39,8 @@ interface Application {
   status: "pending" | "approved" | "selected" | "rejected";
   submittedDate: string;
   rejectionReason?: string;
+  selectedComponents?: ComponentStatus[];
+  allComponents?: ComponentStatus[];
 }
 
 export default function TrackResultPage() {
@@ -219,6 +226,29 @@ export default function TrackResultPage() {
           </>
         )}
 
+        {/* Selected Components */}
+        {app.selectedComponents && app.selectedComponents.length > 0 && (
+          <>
+            <div className="p-4 border border-green-200 rounded-lg bg-green-50 dark:bg-green-950/20 dark:border-green-800">
+              <div className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-semibold text-sm text-green-900 dark:text-green-100 mb-2">Selected Components</p>
+                  <div className="space-y-1.5">
+                    {app.selectedComponents.map((comp, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <span className="text-sm font-medium text-green-800 dark:text-green-200">{comp.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Separator />
+          </>
+        )}
+
         {/* Application Details */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex items-start gap-3">
@@ -239,11 +269,27 @@ export default function TrackResultPage() {
             </div>
           </div>
 
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-3 sm:col-span-2">
             <Package className="w-5 h-5 text-muted-foreground mt-0.5" />
-            <div>
-              <p className="text-sm text-muted-foreground">Component</p>
-              <p className="font-medium">{app.component.replace(/'/g, "&apos")}</p>
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground mb-2">Components</p>
+              {app.allComponents && app.allComponents.length > 0 ? (
+                <div className="space-y-2">
+                  {app.allComponents.map((comp, idx) => (
+                    <div key={idx} className="flex items-center justify-between gap-2 p-2 rounded-md bg-muted/50">
+                      <span className="font-medium text-sm">{comp.name}</span>
+                      <Badge 
+                        variant={comp.status === "Selected" ? "default" : "secondary"}
+                        className={comp.status === "Selected" ? "bg-green-600" : ""}
+                      >
+                        {comp.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="font-medium">{app.component.replace(/'/g, "&apos")}</p>
+              )}
             </div>
           </div>
 
