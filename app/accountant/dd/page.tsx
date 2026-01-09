@@ -482,6 +482,7 @@ export default function DDCollection() {
                                                                 <div className="flex flex-wrap gap-1">
                                                                     <Badge variant="outline" className="text-xs">{app.district}</Badge>
                                                                     <Badge variant="outline" className="text-xs">{app.taluka}</Badge>
+                                                                    <Badge variant="outline" className="text-xs">{app.village}</Badge>
                                                                 </div>
                                                             </TableCell>
                                                             <TableCell>
