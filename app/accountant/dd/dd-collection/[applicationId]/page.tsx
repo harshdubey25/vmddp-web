@@ -184,8 +184,11 @@ export default function DDCollectionForm({
                 throw new Error(response?.message || "Failed to submit DD");
             }
         } catch (error: any) {
-            console.error("DD Submission Error:", error);
-            // Error is already handled by useEffect
+            toast({
+                title: "Submission Failed",
+                description: error.message || "Failed to record DD. Please try again.",
+                variant: "destructive",
+            })
         }
     };
 

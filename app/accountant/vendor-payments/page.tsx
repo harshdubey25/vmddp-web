@@ -97,6 +97,11 @@ export default function VendorPayments() {
         ? vendorPayments.find((p) => p.component_allocation_id === selectedPaymentIds[0])?.vendor_name || "-"
         : "-";
 
+    // Get the vendor of the first selected payment (used to restrict selection to same vendor)
+    const firstSelectedVendor = selectedPaymentIds.length > 0
+        ? vendorPayments.find((p) => p.component_allocation_id === selectedPaymentIds[0])?.vendor
+        : null;
+
     // Handler for toggling payment selection
     const handleTogglePayment = (paymentId: string, checked: boolean) => {
         if (checked) {
@@ -104,6 +109,12 @@ export default function VendorPayments() {
         } else {
             setSelectedPaymentIds((prev) => prev.filter((id) => id !== paymentId));
         }
+    };
+
+    // Check if a payment can be selected (must be same vendor as first selection)
+    const canSelectPayment = (payment: PendingVendorPayment) => {
+        if (selectedPaymentIds.length === 0) return true;
+        return payment.vendor === firstSelectedVendor;
     };
 
     // Reset form state
@@ -324,6 +335,7 @@ export default function VendorPayments() {
                                                     <TableCell>
                                                         <Checkbox
                                                             checked={isSelected}
+                                                            disabled={!isSelected && !canSelectPayment(payment)}
                                                             onCheckedChange={(checked) => handleTogglePayment(payment.component_allocation_id, !!checked)}
                                                             data-testid={`checkbox-${payment.component_allocation_id}`}
                                                         />

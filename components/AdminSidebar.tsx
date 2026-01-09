@@ -20,6 +20,7 @@ import {
   Stethoscope,
   FileCheck,
   Building2,
+  RefreshCcw
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -81,6 +82,12 @@ const accountantMenuItems: MenuItem[] = [
     icon: Banknote,
     label: "DBT Claims",
     path: "/accountant/dbt-claims",
+  },
+  {
+    icon: RefreshCcw,
+    label: "Refund Module",
+    path: "/accountant/refunds",
+
   },
   { icon: FileCheck, label: "Parantage Confirmation", path: "/accountant/parantage-confirmation" },
   { icon: TargetIcon, label: "Admin Expenses", path: "/accountant/admin-expenses" }
