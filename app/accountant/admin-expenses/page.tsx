@@ -154,7 +154,6 @@ export default function AdminExpenses() {
                                         <TableHead>Date</TableHead>
                                         <TableHead>Head</TableHead>
                                         <TableHead>Reason</TableHead>
-                                        <TableHead>User</TableHead>
                                         <TableHead>Amount</TableHead>
                                         <TableHead>Status</TableHead>
                                     </TableRow>
@@ -169,7 +168,6 @@ export default function AdminExpenses() {
                                                     <Badge variant="outline">{expense.head}</Badge>
                                                 </TableCell>
                                                 <TableCell className="max-w-[200px] truncate">{expense.reason}</TableCell>
-                                                <TableCell>{expense.user}</TableCell>
                                                 <TableCell className="font-medium">₹{(expense.amount || 0).toLocaleString("en-IN")}</TableCell>
                                                 <TableCell>{getStatusBadge(expense.docstatus)}</TableCell>
                                             </TableRow>

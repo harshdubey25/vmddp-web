@@ -79,6 +79,12 @@ const accountantMenuItems: MenuItem[] = [
 
   },
   {
+    icon: Building2,
+    label: "Vendor Payments Report",
+    path: "/accountant/vendor-payments-report",
+
+  },
+  {
     icon: Banknote,
     label: "DBT Claims",
     path: "/accountant/dbt-claims",
