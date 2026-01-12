@@ -64,9 +64,9 @@ export default function AdminExpenses() {
     }
 
     return (
-        <div className="h-screen bg-background">
-            <div className="overflow-auto h-screen">
-                <div className="p-6 space-y-6">
+        <div className="h-screen bg-background w-full">
+            <div className="overflow-auto h-screen w-full">
+                <div className="p-6 space-y-6 max-w-full">
                     {/* Header */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
