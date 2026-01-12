@@ -44,6 +44,8 @@ interface Application {
   id: string;
   applicantName: string;
   aadharNumber?: string;
+  district: string;
+  taluka: string;
   village: string;
   component: string;
   submittedDate: string;
@@ -100,6 +102,8 @@ export default function TreatmentPage() {
     id: doc.name,
     applicantName: `${doc.first_name} ${doc.middle_name ? doc.middle_name + " " : ""}${doc.surname}`,
     aadharNumber: doc.aadhar_number, 
+    district: doc.district,
+    taluka: doc.taluka,
     village: doc.village,
     component: "Treatment of Infertile Animal",
     submittedDate: doc.creation ? new Date(doc.creation).toLocaleDateString("en-GB") : "",
@@ -140,6 +144,8 @@ export default function TreatmentPage() {
         'Application ID': app.id,
         'Applicant Name': app.applicantName,
         'Aadhar Number': app.aadharNumber || '-',
+        'District': app.district,
+        'Taluka': app.taluka,
         'Village': app.village,
         'Component': app.component,
         'Submitted Date': app.submittedDate,
@@ -255,6 +261,8 @@ export default function TreatmentPage() {
                             <th className="text-left p-3 text-sm font-medium">Application ID</th>
                             <th className="text-left p-3 text-sm font-medium">Applicant Name</th>
                             <th className="text-left p-3 text-sm font-medium">Aadhar Number</th>
+                            <th className="text-left p-3 text-sm font-medium">District</th>
+                            <th className="text-left p-3 text-sm font-medium">Taluka</th>
                             <th className="text-left p-3 text-sm font-medium">Village</th>
                             <th className="text-left p-3 text-sm font-medium">Submitted Date</th>
                             <th className="text-left p-3 text-sm font-medium">Actions</th>
@@ -266,6 +274,8 @@ export default function TreatmentPage() {
                               <td className="p-3 text-sm font-mono">{app.id}</td>
                               <td className="p-3 text-sm font-medium">{app.applicantName}</td>
                               <td className="p-3 text-sm">{app.aadharNumber || "-"}</td>
+                              <td className="p-3 text-sm">{app.district}</td>
+                              <td className="p-3 text-sm">{app.taluka}</td>
                               <td className="p-3 text-sm">{app.village}</td>
                               <td className="p-3 text-sm text-muted-foreground">{app.submittedDate}</td>
                               <td className="p-3 text-sm">

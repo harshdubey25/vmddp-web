@@ -61,7 +61,10 @@ export default function ComponentAllocation() {
         }
     }>('vmddp_app.api.v1.accountant.get_component_allocation_stats')
 
-    console.log('dd completed applications', ddCompletedApplications);
+    const pendingApplications = ddCompletedApplications?.message?.filter(
+        app => app.component_status !== 'Component Allocated'
+    ) || [];
+
     return (
         <div className="w-full bg-background overflow-y-scroll">
             <div className="">
@@ -69,11 +72,11 @@ export default function ComponentAllocation() {
                     {/* Header */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <Link href="/accountant/dashboard">
+                            {/* <Link href="/accountant/dashboard">
                                 <Button variant="ghost" size="icon" data-testid="button-back">
                                     <ArrowLeft className="h-5 w-5" />
                                 </Button>
-                            </Link>
+                            </Link> */}
                             <div>
                                 <h1 className="text-2xl font-display font-bold" data-testid="text-page-title">
                                     Component Allocation
@@ -194,20 +197,26 @@ export default function ComponentAllocation() {
                                                 <TableHead>Aadhaar</TableHead>
                                                 <TableHead>District</TableHead>
                                                 <TableHead>Component</TableHead>
+                                                <TableHead>Status</TableHead>
                                                 <TableHead>Action</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {ddCompletedApplications?.message?.map((app) => (
+                                            {pendingApplications.map((app) => (
                                                 <TableRow key={app.name} data-testid={`row-pending-${app.name}`}>
                                                     <TableCell className="font-medium">{app.name}</TableCell>
-                                                    <TableCell>{app.first_name + app.mid_name + app.last_name}</TableCell>
+                                                    <TableCell>{app.first_name} {app.mid_name} {app.last_name}</TableCell>
                                                     <TableCell className="font-mono text-xs">{app.aadhar_number}</TableCell>
                                                     <TableCell>{app.district}</TableCell>
                                                     <TableCell>
                                                         <Badge variant="outline" className="gap-1">
                                                             {getComponentIcon(app.component_name)}
                                                             {app.component_name}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={app.component_status === 'DD Completed' ? 'secondary' : 'default'}>
+                                                            {app.component_status}
                                                         </Badge>
                                                     </TableCell>
                                                     <TableCell>
@@ -224,7 +233,7 @@ export default function ComponentAllocation() {
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
-                                            {ddCompletedApplications?.message?.length === 0 && (
+                                            {pendingApplications.length === 0 && (
                                                 <TableRow>
                                                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                                                         No applications awaiting allocation
@@ -244,6 +253,7 @@ export default function ComponentAllocation() {
                                                 <TableHead>Aadhaar</TableHead>
                                                 <TableHead>District</TableHead>
                                                 <TableHead>Component</TableHead>
+                                                <TableHead>Status</TableHead>
                                                 <TableHead>Animal/Item</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -257,6 +267,11 @@ export default function ComponentAllocation() {
                                                     <TableCell>
                                                         <Badge variant="outline">
                                                             {alloc.component_name}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant="default" className="bg-green-600">
+                                                            {alloc.component_status}
                                                         </Badge>
                                                     </TableCell>
                                                     <TableCell>
@@ -289,7 +304,7 @@ interface ComponentAllocationItem {
     first_name: string;
     last_name: string;
     mid_name: string;
-    component_status: "DD Completed" | "Pending" | "Approved" | "Rejected";
+    component_status: "DD Completed" | "Pending" | "Approved" | "Rejected" | "Component Allocated";
     aadhar_number: string;
     component_name: string;
     amount: number;

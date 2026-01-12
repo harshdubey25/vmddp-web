@@ -112,11 +112,11 @@ export default function DBTClaims() {
                 <div className="p-6 space-y-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <Link href="/accountant/dashboard">
+                            {/* <Link href="/accountant/dashboard">
                                 <Button variant="ghost" size="icon" data-testid="button-back">
                                     <ArrowLeft className="h-5 w-5" />
                                 </Button>
-                            </Link>
+                            </Link> */}
                             <div>
                                 <h1 className="text-2xl font-display font-bold" data-testid="text-page-title">
                                     DBT Claims
