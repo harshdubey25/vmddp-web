@@ -46,12 +46,14 @@ interface TargetAllocation {
 interface AdminExpenseTarget {
     date: string;
     amount: number | null;
+    event_name?: string;
     allocater?: string;
     docstatus?: number;
 }
 const initialExpense: AdminExpenseTarget = {
     date: "",
     amount: null,
+    event_name: "",
 };
 
 export default function TargetAllocation() {
@@ -82,7 +84,7 @@ export default function TargetAllocation() {
     const handleExpenseChange = (field: keyof AdminExpenseTarget, value: string) => {
         setAdminExpense({ ...adminExpense, [field]: field === "amount" ? (value === "" ? null : Number(value)) : value });
     };
-    const { data: adminExpensesData, mutate: mutateAdminExpenses } = useFrappeGetCall<FrappeCustomApiResponse<{ total_allocated: string, total_expenditure: string, targets_list: Array<{ name: string, amount: number, date: string, allocater: string }>, total_count: number }>>('vmddp_app.api.v1.admin.admin_expense_target')
+    const { data: adminExpensesData, mutate: mutateAdminExpenses } = useFrappeGetCall<FrappeCustomApiResponse<{ total_allocated: string, total_expenditure: string, targets_list: Array<{ name: string, amount: number, date: string, event_name: string, allocater: string }>, total_count: number }>>('vmddp_app.api.v1.admin.admin_expense_target')
     console.log("Admin Expenses Data:", adminExpensesData);
     const handleClearExpense = () => {
         setAdminExpense(initialExpense);
@@ -91,10 +93,10 @@ export default function TargetAllocation() {
 
     }, [selectionType])
     const handleSubmitAdminExpense = async () => {
-        if (!adminExpense.date || !adminExpense.amount) {
+        if (!adminExpense.date || !adminExpense.amount || !adminExpense.event_name) {
             toast({
                 title: "Validation Error",
-                description: "Please enter Date and Amount",
+                description: "Please enter Event Name, Date and Amount",
                 variant: "destructive",
             });
             return;
@@ -103,6 +105,7 @@ export default function TargetAllocation() {
             const doc = await createAdminExpense("Admin Expense Target", {
                 date: adminExpense.date,
                 amount: adminExpense.amount,
+                event_name: adminExpense.event_name,
                 allocater: user?.user,
             })
             await updateAdminExpense("Admin Expense Target", doc.name, {
@@ -119,7 +122,7 @@ export default function TargetAllocation() {
         }
         toast({
             title: "Expense Registered",
-            description: `Event "${adminExpense.date}" expense of ${formatCurrency(adminExpense.amount)} submitted successfully.`,
+            description: `Event "${adminExpense.event_name}" expense of ${formatCurrency(adminExpense.amount)} submitted successfully.`,
         });
         setAdminExpense(initialExpense);
         mutateAdminExpenses();
@@ -362,7 +365,18 @@ export default function TargetAllocation() {
                                                     </CardDescription>
                                                 </CardHeader>
                                                 <CardContent className="space-y-4">
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                        <div>
+                                                            <Label className="text-sm">Event Name</Label>
+                                                            <Input
+                                                                type="text"
+                                                                placeholder="Enter event name"
+                                                                value={adminExpense.event_name ?? ""}
+                                                                onChange={(e) => handleExpenseChange("event_name", e.target.value)}
+                                                                className="mt-1"
+                                                                data-testid="input-expense-event-name"
+                                                            />
+                                                        </div>
                                                         <div>
                                                             <Label className="text-sm">Date</Label>
                                                             <Input
@@ -428,7 +442,8 @@ export default function TargetAllocation() {
                                                                 data-testid={`expense-item-${item.name}`}
                                                             >
                                                                 <div className="flex flex-col gap-1">
-                                                                    <span className="text-sm font-medium">{item.name}</span>
+                                                                    <span className="text-base font-semibold">{item.event_name}</span>
+                                                                    <span className="text-xs text-muted-foreground font-mono">{item.name}</span>
                                                                     <span className="text-xs text-muted-foreground">
                                                                         {new Date(item.date).toLocaleDateString('en-IN', {
                                                                             day: '2-digit',
@@ -441,7 +456,7 @@ export default function TargetAllocation() {
                                                                     </span>
                                                                 </div>
                                                                 <div className="text-right">
-                                                                    <span className="text-base font-semibold text-primary">
+                                                                    <span className="text-lg font-bold text-primary">
                                                                         {formatCurrency(item.amount)}
                                                                     </span>
                                                                 </div>
