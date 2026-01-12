@@ -13,6 +13,8 @@ import {
     CreditCard,
     Check,
     Loader2,
+    TicketCheck,
+    CheckCheck,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -102,19 +104,16 @@ export default function VendorPayments() {
         ? vendorPayments.find((p) => p.component_allocation_id === selectedPaymentIds[0])?.vendor
         : null;
 
-    // Handler for toggling payment selection
     const handleTogglePayment = (paymentId: string, checked: boolean) => {
         if (checked) {
-            setSelectedPaymentIds((prev) => [...prev, paymentId]);
+            setSelectedPaymentIds([paymentId]);
         } else {
-            setSelectedPaymentIds((prev) => prev.filter((id) => id !== paymentId));
+            setSelectedPaymentIds([]);
         }
     };
 
-    // Check if a payment can be selected (must be same vendor as first selection)
     const canSelectPayment = (payment: PendingVendorPayment) => {
-        if (selectedPaymentIds.length === 0) return true;
-        return payment.vendor === firstSelectedVendor;
+        return selectedPaymentIds.length === 0;
     };
 
     // Reset form state
@@ -180,11 +179,11 @@ export default function VendorPayments() {
                 <div className="p-6 space-y-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <Link href="/accountant/dashboard">
+                            {/* <Link href="/accountant/dashboard">
                                 <Button variant="ghost" size="icon" data-testid="button-back">
                                     <ArrowLeft className="h-5 w-5" />
                                 </Button>
-                            </Link>
+                            </Link> */}
                             <div>
                                 <h1 className="text-2xl font-display font-bold" data-testid="text-page-title">
                                     Vendor Payments
@@ -274,7 +273,7 @@ export default function VendorPayments() {
                                             <CreditCard className="h-5 w-5 text-primary" />
                                         </div>
                                         <div>
-                                            <p className="font-medium">{selectedPaymentIds.length} payment(s) selected</p>
+                                            <p className="font-medium">1 Payment selected</p>
                                             <p className="text-sm text-muted-foreground">
                                                 Vendor: {selectedVendorName} | Total: ₹{selectedTotal.toLocaleString("en-IN")}
                                             </p>
@@ -298,7 +297,7 @@ export default function VendorPayments() {
                         <CardHeader>
                             <CardTitle>Pending Vendor Payments</CardTitle>
                             <CardDescription>
-                                Select multiple payments for the same vendor to issue a single cheque
+                                Select one payment at a time to issue a cheque
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -311,7 +310,7 @@ export default function VendorPayments() {
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead className="w-12">
-                                                <Checkbox data-testid="checkbox-select-all" />
+                                                <Check data-testid="checkbox-select-all" />
                                             </TableHead>
                                             <TableHead>Beneficiary</TableHead>
                                             <TableHead>Component</TableHead>
@@ -398,15 +397,15 @@ export default function VendorPayments() {
                     <DialogHeader>
                         <DialogTitle>Issue Cheque</DialogTitle>
                         <DialogDescription>
-                            Enter cheque details for {selectedPaymentIds.length} payment(s) to {selectedVendorName}
+                            Enter cheque details for payment to {selectedVendorName}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4 py-4">
                         <div className="p-3 bg-muted rounded-lg">
                             <div className="flex justify-between text-sm">
-                                <span>Selected Payments:</span>
-                                <span className="font-medium">{selectedPaymentIds.length}</span>
+                                <span>Payment ID:</span>
+                                <span className="font-medium">{selectedPaymentIds[0]}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span>Vendor:</span>

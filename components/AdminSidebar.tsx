@@ -83,13 +83,13 @@ const accountantMenuItems: MenuItem[] = [
     label: "DBT Claims",
     path: "/accountant/dbt-claims",
   },
+  { icon: FileCheck, label: "Parantage Confirmation", path: "/accountant/parantage-confirmation" },
   {
     icon: RefreshCcw,
     label: "Refund Module",
     path: "/accountant/refunds",
 
   },
-  { icon: FileCheck, label: "Parantage Confirmation", path: "/accountant/parantage-confirmation" },
   { icon: TargetIcon, label: "Admin Expenses", path: "/accountant/admin-expenses" }
 ]
 // { icon: LayoutDashboard, label: "Dashboard", path: "/accountant" },

@@ -91,11 +91,11 @@ export default function Parantage() {
                     {/* Header */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <Link href="/accountant/dashboard">
+                            {/* <Link href="/accountant/dashboard">
                                 <Button variant="ghost" size="icon" data-testid="button-back">
                                     <ArrowLeft className="h-5 w-5" />
                                 </Button>
-                            </Link>
+                            </Link> */}
                             <div>
                                 <h1 className="text-2xl font-display font-bold" data-testid="text-page-title">
                                     Parantage Confirmation
