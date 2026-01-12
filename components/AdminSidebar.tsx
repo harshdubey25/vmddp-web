@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
+
 import {
   FileText,
   LayoutDashboard,
@@ -11,13 +12,15 @@ import {
   Users,
   Package,
   BarChart3,
-  Settings,
+  Banknote,
   ChevronRight,
   ChevronLeft,
   TargetIcon,
   GraduationCap,
   Stethoscope,
-  FileCheck
+  FileCheck,
+  Building2,
+  RefreshCcw
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -65,10 +68,29 @@ const subAdminMenuItems: MenuItem[] = [
   { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/subadmin/treatment" }
 ]
 const accountantMenuItems: MenuItem[] = [
-  { icon: FileText, label: "DD Collection", path: "/accountant/dd" },
+
+  { icon: FileText, label: "DD Allocation", path: "/accountant/dd" },
   { icon: BarChart3, label: "DD Reports", path: "/accountant/dd-report" },
   { icon: Package, label: "Component Allocation", path: "/accountant/component-allocation" },
-  { icon: FileCheck, label: "Parantage Confirmation", path: "/accountant/parantage-confirmation" }
+  {
+    icon: Building2,
+    label: "Vendor Payments",
+    path: "/accountant/vendor-payments",
+
+  },
+  {
+    icon: Banknote,
+    label: "DBT Claims",
+    path: "/accountant/dbt-claims",
+  },
+  {
+    icon: RefreshCcw,
+    label: "Refund Module",
+    path: "/accountant/refunds",
+
+  },
+  { icon: FileCheck, label: "Parantage Confirmation", path: "/accountant/parantage-confirmation" },
+  { icon: TargetIcon, label: "Admin Expenses", path: "/accountant/admin-expenses" }
 ]
 // { icon: LayoutDashboard, label: "Dashboard", path: "/accountant" },
 // { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },;

@@ -84,7 +84,7 @@ export default function AdminExpenseForm() {
     };
 
     return (
-        <div className="h-screen bg-background">
+        <div className="h-screen bg-background w-full">
             <div className="overflow-auto h-screen">
                 <div className="p-6 space-y-6">
                     {/* Header */}
