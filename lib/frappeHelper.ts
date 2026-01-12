@@ -1,3 +1,4 @@
+"use server"
 import { FrappeApp } from "frappe-js-sdk";
 import { cookies } from "next/headers";
 

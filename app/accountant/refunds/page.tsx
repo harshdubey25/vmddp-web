@@ -1,0 +1,515 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import {
+    ArrowLeft,
+    RefreshCcw,
+    AlertCircle,
+    User,
+    Download,
+    Send,
+    Clock,
+    CheckCircle,
+    Loader2,
+    ChevronLeft,
+    ChevronRight,
+} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useFrappeGetCall, useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
+import { useToast } from "@/hooks/use-toast";
+
+// Types for API response
+interface PendingRefund {
+    application_id: string;
+    first_name: string;
+    mid_name: string | null;
+    last_name: string;
+    district: string;
+    village: string;
+    dd_amount: number;
+    component: string;
+    animal_cost: number;
+    collar_cost: number;
+    premium_paid: number;
+    transportation_cost: number;
+    refund_amount: number;
+    eligible_subsidy: number;
+}
+
+interface PendingRefundResponse {
+    refunds: PendingRefund[];
+    total_count: number;
+    page: number;
+    page_size: number;
+    total_pages: number;
+}
+
+const PAGE_SIZE = 20;
+
+const getStatusBadge = (status: string) => {
+    switch (status) {
+        case "pending":
+            return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">Pending</Badge>;
+        case "processed":
+            return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">Processing</Badge>;
+        case "paid":
+            return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Paid</Badge>;
+        default:
+            return <Badge variant="outline">{status}</Badge>;
+    }
+};
+
+// Helper to get full name
+const getFullName = (refund: PendingRefund) => {
+    return [refund.first_name, refund.mid_name, refund.last_name].filter(Boolean).join(" ");
+};
+
+export default function Refunds() {
+    const [showDBTDialog, setShowDBTDialog] = useState(false);
+    const [currentRefund, setCurrentRefund] = useState<PendingRefund | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
+    const [transactionId, setTransactionId] = useState("");
+    const [transactionDate, setTransactionDate] = useState("");
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
+    const { toast } = useToast();
+    const { createDoc, loading: submitting } = useFrappeCreateDoc();
+
+    // Fetch districts for filter
+    const { data: districts } = useFrappeGetDocList<{ name: string }>("District Master", { fields: ["name"], limit: 100 });
+
+    // Fetch pending refunds from API
+    const { data: refundsResponse, isLoading: loading, error, mutate } = useFrappeGetCall<{ message: PendingRefundResponse }>(
+        "vmddp_app.api.v1.accountant.pending_refund_list",
+        {
+            page: currentPage,
+            page_size: PAGE_SIZE,
+            district: selectedDistrict || undefined,
+        },
+        `pending_refund_list_${currentPage}_${selectedDistrict || 'all'}`
+    );
+
+    const pendingRefunds = refundsResponse?.message?.refunds || [];
+    const totalCount = refundsResponse?.message?.total_count || 0;
+    const totalPages = refundsResponse?.message?.total_pages || 1;
+
+    // Calculate totals
+    const totalPending = pendingRefunds.reduce((sum, r) => sum + (r.refund_amount || 0), 0);
+
+    const handleOpenDBTDialog = (refund: PendingRefund) => {
+        setCurrentRefund(refund);
+        setTransactionId("");
+        setTransactionDate("");
+        setSubmitError(null);
+        setShowDBTDialog(true);
+    };
+
+    const handleSubmitRefund = async () => {
+        if (!currentRefund) return;
+
+        if (!transactionId.trim()) {
+            setSubmitError("Transaction ID is required");
+            return;
+        }
+        if (!transactionDate) {
+            setSubmitError("Transaction Date is required");
+            return;
+        }
+
+        setSubmitError(null);
+
+        try {
+            await createDoc("Refund", {
+                application: currentRefund.application_id,
+                component: currentRefund.component,
+                transanction_id: transactionId.trim(),
+                transanction_date: transactionDate,
+                refund_amount: currentRefund.refund_amount,
+            });
+
+            toast({
+                title: "Refund Processed",
+                description: `Refund of ₹${currentRefund.refund_amount.toLocaleString("en-IN")} has been recorded successfully.`,
+            });
+
+            setShowDBTDialog(false);
+            setCurrentRefund(null);
+            // Refresh the list to remove processed refund
+            mutate();
+        } catch (err: any) {
+            const errorMessage = err?.message || err?._server_messages || "Failed to process refund";
+            setSubmitError(typeof errorMessage === "string" ? errorMessage : JSON.stringify(errorMessage));
+            toast({
+                title: "Error",
+                description: "Failed to process refund. Please try again.",
+                variant: "destructive",
+            });
+        }
+    };
+
+    const handleDistrictChange = (value: string) => {
+        setSelectedDistrict(value === "all" ? null : value);
+        setCurrentPage(1);
+    };
+
+    return (
+        <div className="h-screen bg-background w-full">
+            <div className="overflow-auto h-screen">
+                <div className="p-6 space-y-6">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <Link href="/accountant/dashboard">
+                                <Button variant="ghost" size="icon" data-testid="button-back">
+                                    <ArrowLeft className="h-5 w-5" />
+                                </Button>
+                            </Link>
+                            <div>
+                                <h1 className="text-2xl font-display font-bold" data-testid="text-page-title">
+                                    Refund Management
+                                </h1>
+                                <p className="text-muted-foreground">Process excess DD refunds via DBT</p>
+                            </div>
+                        </div>
+                        <Button variant="outline" data-testid="button-export">
+                            <Download className="h-4 w-4 mr-2" />
+                            Export
+                        </Button>
+                    </div>
+
+                    {/* Info Banner */}
+                    <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-3">
+                        <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5" />
+                        <div>
+                            <h4 className="font-medium text-blue-700 dark:text-blue-300">Auto-Calculated Refunds</h4>
+                            <p className="text-sm text-blue-600 dark:text-blue-400">
+                                Refunds are automatically calculated when the actual subsidy is less than the DD amount collected. The
+                                difference is refunded to the beneficiary via Direct Benefit Transfer (DBT).
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Card data-testid="card-pending-refunds">
+                            <CardContent className="pt-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 rounded-lg bg-yellow-500/10">
+                                        <Clock className="h-5 w-5 text-yellow-500" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Pending Refunds</p>
+                                        <p className="text-2xl font-bold">₹{totalPending.toLocaleString("en-IN")}</p>
+                                        <p className="text-xs text-muted-foreground">{totalCount} beneficiaries</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card data-testid="card-processing">
+                            <CardContent className="pt-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 rounded-lg bg-blue-500/10">
+                                        <RefreshCcw className="h-5 w-5 text-blue-500" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Processing</p>
+                                        <p className="text-2xl font-bold">₹0</p>
+                                        <p className="text-xs text-muted-foreground">0 in queue</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card data-testid="card-total-cases">
+                            <CardContent className="pt-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 rounded-lg bg-primary/10">
+                                        <User className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Total Cases</p>
+                                        <p className="text-2xl font-bold">{totalCount}</p>
+                                        <p className="text-xs text-muted-foreground">All refund cases</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Filter */}
+                    <Card data-testid="card-filter">
+                        <CardContent className="pt-6">
+                            <div className="flex items-center gap-4">
+                                <Label>Filter by District:</Label>
+                                <Select value={selectedDistrict || "all"} onValueChange={handleDistrictChange}>
+                                    <SelectTrigger className="w-48" data-testid="select-filter-district">
+                                        <SelectValue placeholder="All Districts" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Districts</SelectItem>
+                                        {districts?.map((d) => (
+                                            <SelectItem key={d.name} value={d.name}>
+                                                {d.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Refunds List */}
+                    <Card data-testid="card-refunds-list">
+                        <CardHeader>
+                            <CardTitle>Pending Refunds</CardTitle>
+                            <CardDescription>Process refunds for beneficiaries</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {loading ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                                </div>
+                            ) : error ? (
+                                <div className="text-center py-8 text-destructive">
+                                    <AlertCircle className="h-6 w-6 mx-auto mb-2" />
+                                    <p>Failed to load refunds. Please try again.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="overflow-x-auto">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Application ID</TableHead>
+                                                    <TableHead>Beneficiary</TableHead>
+                                                    <TableHead>District</TableHead>
+                                                    <TableHead>Village</TableHead>
+                                                    <TableHead>Component</TableHead>
+                                                    <TableHead className="text-right">DD Amount</TableHead>
+                                                    <TableHead className="text-right">Eligible Subsidy</TableHead>
+                                                    <TableHead className="text-right">Refund Amount</TableHead>
+                                                    <TableHead>Actions</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {pendingRefunds.map((refund) => (
+                                                    <TableRow key={refund.application_id} data-testid={`row-refund-${refund.application_id}`}>
+                                                        <TableCell>
+                                                            <span className="font-mono text-xs">{refund.application_id}</span>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <p className="font-medium">{getFullName(refund)}</p>
+                                                        </TableCell>
+                                                        <TableCell>{refund.district}</TableCell>
+                                                        <TableCell>{refund.village}</TableCell>
+                                                        <TableCell>
+                                                            <Badge variant="outline">{refund.component}</Badge>
+                                                        </TableCell>
+                                                        <TableCell className="text-right">₹{refund.dd_amount.toLocaleString("en-IN")}</TableCell>
+                                                        <TableCell className="text-right text-green-600">₹{refund.eligible_subsidy.toLocaleString("en-IN")}</TableCell>
+                                                        <TableCell className="text-right font-bold text-primary">
+                                                            ₹{refund.refund_amount.toLocaleString("en-IN")}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Button size="sm" onClick={() => handleOpenDBTDialog(refund)} data-testid={`button-dbt-${refund.application_id}`}>
+                                                                <Send className="h-4 w-4 mr-1" />
+                                                                DBT
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                                {pendingRefunds.length === 0 && (
+                                                    <TableRow>
+                                                        <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                                                            No pending refunds
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+
+                                    {/* Pagination */}
+                                    {totalPages > 1 && (
+                                        <div className="flex items-center justify-between pt-4">
+                                            <p className="text-sm text-muted-foreground">
+                                                Page {currentPage} of {totalPages} • {totalCount} total records
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                    disabled={currentPage === 1}
+                                                    data-testid="button-prev-page"
+                                                >
+                                                    <ChevronLeft className="h-4 w-4 mr-1" />
+                                                    Previous
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                    disabled={currentPage >= totalPages}
+                                                    data-testid="button-next-page"
+                                                >
+                                                    Next
+                                                    <ChevronRight className="h-4 w-4 ml-1" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+
+            {/* DBT Dialog */}
+            <Dialog open={showDBTDialog} onOpenChange={setShowDBTDialog}>
+                <DialogContent className="w-full max-w-md sm:max-w-lg" data-testid="dialog-dbt">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Send className="h-5 w-5" />
+                            Initiate DBT Transfer
+                        </DialogTitle>
+                        <DialogDescription>Process refund via Direct Benefit Transfer</DialogDescription>
+                    </DialogHeader>
+
+                    {currentRefund && (
+                        <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
+                            <div className="p-4 bg-muted/30 rounded-lg space-y-3">
+                                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                                    <span className="text-muted-foreground">Application ID</span>
+                                    <span className="font-mono text-sm">{currentRefund.application_id}</span>
+                                </div>
+                                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                                    <span className="text-muted-foreground">Beneficiary</span>
+                                    <span className="font-medium">{getFullName(currentRefund)}</span>
+                                </div>
+                                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                                    <span className="text-muted-foreground">Location</span>
+                                    <span className="font-medium">{currentRefund.village}, {currentRefund.district}</span>
+                                </div>
+                                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                                    <span className="text-muted-foreground">Component</span>
+                                    <span className="font-medium">{currentRefund.component}</span>
+                                </div>
+                            </div>
+
+                            {/* Cost Breakup */}
+                            <div className="p-4 border rounded-lg space-y-2 bg-card">
+                                <h4 className="font-medium text-sm mb-3">Cost Breakdown</h4>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Animal Cost</span>
+                                    <span>₹{currentRefund.animal_cost.toLocaleString("en-IN")}</span>
+                                </div>
+                                {currentRefund.collar_cost > 0 && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">Collar Cost</span>
+                                        <span>₹{currentRefund.collar_cost.toLocaleString("en-IN")}</span>
+                                    </div>
+                                )}
+                                {currentRefund.premium_paid > 0 && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">Premium Paid</span>
+                                        <span>₹{currentRefund.premium_paid.toLocaleString("en-IN")}</span>
+                                    </div>
+                                )}
+                                {currentRefund.transportation_cost > 0 && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">Transportation Cost</span>
+                                        <span>₹{currentRefund.transportation_cost.toLocaleString("en-IN")}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Refund Calculation */}
+                            <div className="p-4 border rounded-lg space-y-2 bg-card">
+                                <h4 className="font-medium text-sm mb-3">Refund Calculation</h4>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">DD Amount Collected</span>
+                                    <span>₹{currentRefund.dd_amount.toLocaleString("en-IN")}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Eligible Subsidy</span>
+                                    <span className="text-green-600">₹{currentRefund.eligible_subsidy.toLocaleString("en-IN")}</span>
+                                </div>
+                                <div className="border-t pt-2 mt-2 flex justify-between font-medium">
+                                    <span>Refund Amount</span>
+                                    <span className="text-primary">₹{currentRefund.refund_amount.toLocaleString("en-IN")}</span>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Transaction ID <span className="text-destructive">*</span></Label>
+                                    <Input
+                                        placeholder="Enter TXN ID"
+                                        value={transactionId}
+                                        onChange={(e) => setTransactionId(e.target.value)}
+                                        disabled={submitting}
+                                        data-testid="input-transaction-id"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Transaction Date <span className="text-destructive">*</span></Label>
+                                    <Input
+                                        type="date"
+                                        value={transactionDate}
+                                        onChange={(e) => setTransactionDate(e.target.value)}
+                                        disabled={submitting}
+                                        data-testid="input-transaction-date"
+                                    />
+                                </div>
+                            </div>
+
+                            {submitError && (
+                                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive flex items-start gap-2">
+                                    <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                    <span>{submitError}</span>
+                                </div>
+                            )}
+
+                            <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 rounded-lg text-sm text-blue-700 dark:text-blue-300 flex items-start gap-2">
+                                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                <span>
+                                    Please ensure the bank details are verified before proceeding with the transfer.
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
+                    <DialogFooter className="flex-col sm:flex-row gap-2 pt-2 border-t mt-2">
+                        <Button variant="outline" onClick={() => setShowDBTDialog(false)} disabled={submitting} className="w-full sm:w-auto order-2 sm:order-1" data-testid="button-cancel-dbt">
+                            Cancel
+                        </Button>
+                        <Button onClick={handleSubmitRefund} disabled={submitting} className="w-full sm:w-auto order-1 sm:order-2" data-testid="button-confirm-dbt">
+                            {submitting ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Processing...
+                                </>
+                            ) : (
+                                "Process Transfer"
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
+}

@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import Link from "next/link";
 import {
     ArrowLeft,
@@ -198,8 +198,8 @@ export default function Parantage() {
                                         </TableHeader>
                                         <TableBody>
                                             {pendingEntries.map((entry) => (
-                                                <>
-                                                    <TableRow key={entry.component_allocation_id} data-testid={`row-parantage-${entry.component_allocation_id}`}>
+                                                <Fragment key={entry.component_allocation_id}>
+                                                    <TableRow data-testid={`row-parantage-${entry.component_allocation_id}`}>
                                                         <TableCell>
                                                             <div>
                                                                 <p className="font-medium">{`${entry.first_name} ${entry.mid_name || ''} ${entry.last_name}`.trim()}</p>
@@ -233,7 +233,7 @@ export default function Parantage() {
                                                             </TableCell>
                                                         </TableRow>
                                                     )}
-                                                </>
+                                                </Fragment>
                                             ))}
                                         </TableBody>
                                     </Table>

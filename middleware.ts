@@ -7,7 +7,6 @@ export async function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
   const token = req.cookies.get("frappe_access_token")?.value;
 
-
   if (url.pathname.startsWith("/accountant")) {
     if (!token) {
       url.pathname = "/login";
@@ -18,18 +17,22 @@ export async function middleware(req: NextRequest) {
       url.pathname = "/login";
       return NextResponse.redirect(url);
     }
-    // Block subadmin from accessing admin routes
-    if (data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
-      url.pathname = "/accountant/dd";
+    // Block admin from accessing accountant routes
+    if (data.roles.includes(UserRole.VMDDP_ADMIN)) {
+      url.pathname = "/admin/dashboard";
       return NextResponse.redirect(url);
     }
-    // Only allow admin
-    // if (!data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
-    //   url.pathname = "/login";
-    //   return NextResponse.redirect(url);
-    // }
+    // Block subadmin from accessing accountant routes
+    if (data.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {
+      url.pathname = "/subadmin/dashboard";
+      return NextResponse.redirect(url);
+    }
+    // Only allow accountant
+    if (!data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
   }
-
 
   // 🔹 Protect /admin and /subadmin routes and block cross-access
   if (url.pathname.startsWith("/admin")) {
@@ -84,8 +87,7 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/admin/dashboard", req.url));
       } else if (data.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {
         return NextResponse.redirect(new URL("/subadmin/dashboard", req.url));
-      }
-      else if (data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
+      } else if (data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
         return NextResponse.redirect(new URL("/accountant/dd", req.url));
       }
     }
@@ -97,5 +99,10 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/admin/:path*", "/subadmin/:path*"],
+  matcher: [
+    "/login",
+    "/admin/:path*",
+    "/subadmin/:path*",
+    "/accountant/:path*",
+  ],
 };

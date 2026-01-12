@@ -1,3 +1,4 @@
+"use client"
 import {
     CheckCircle,
     Clock,
@@ -6,11 +7,29 @@ import {
     XCircle,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { getFrappeWithUserToken } from "@/lib/frappeHelper";
+import { useFrappeGetCall } from "frappe-react-sdk";
+import { CardSkeleton } from "@/components/LoadingSkeletons";
 
-export default async function SubAdminDashboardStats() {
-    const frappe = await getFrappeWithUserToken();
-    const response = await frappe.call().get('vmddp_app.api.v1.dashboard.subadmin_dashboard_data');
+interface DashboardData {
+    total_applications: number;
+    approved_applications: number;
+    pending_applications: number;
+    rejected_applications: number;
+    selected_applications: number;
+}
+
+export default function SubAdminDashboardStats() {
+    const { data: response, isLoading } = useFrappeGetCall<{ message: DashboardData }>(
+        'vmddp_app.api.v1.dashboard.subadmin_dashboard_data',
+        undefined,
+        undefined,
+        { revalidateOnFocus: false }
+    );
+
+    if (isLoading) {
+        return <CardSkeleton />;
+    }
+
     const stats = [
         {
             title: "Total Applications",
@@ -53,6 +72,7 @@ export default async function SubAdminDashboardStats() {
             bgColor: "bg-chart-1/10",
         },
     ];
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {stats.map((stat, index) => {
