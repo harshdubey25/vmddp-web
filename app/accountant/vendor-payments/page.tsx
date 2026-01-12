@@ -13,7 +13,6 @@ import {
     CreditCard,
     Check,
     Loader2,
-    TicketCheck,
     CheckCheck,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -106,14 +105,15 @@ export default function VendorPayments() {
 
     const handleTogglePayment = (paymentId: string, checked: boolean) => {
         if (checked) {
-            setSelectedPaymentIds([paymentId]);
+            setSelectedPaymentIds((prev) => [...prev, paymentId]);
         } else {
-            setSelectedPaymentIds([]);
+            setSelectedPaymentIds((prev) => prev.filter((id) => id !== paymentId));
         }
     };
 
     const canSelectPayment = (payment: PendingVendorPayment) => {
-        return selectedPaymentIds.length === 0;
+        if (selectedPaymentIds.length === 0) return true;
+        return payment.vendor === firstSelectedVendor;
     };
 
     // Reset form state
@@ -156,7 +156,11 @@ export default function VendorPayments() {
                 check_number: chequeNumber,
                 cheque_date: chequeDate,
                 cheque_amount: chequeAmount,
-                bank_name: bankName
+                bank_name: bankName,
+                component_allocations: selectedPaymentIds.map((id) => ({ 
+                    component_allocation: id,
+                    amount:vendorPayments.find((p) => p.component_allocation_id === id)?.total_cost || 0
+                 }))
             });
 
             toast({ title: "Success", description: "Vendor payment created successfully" });
@@ -273,7 +277,7 @@ export default function VendorPayments() {
                                             <CreditCard className="h-5 w-5 text-primary" />
                                         </div>
                                         <div>
-                                            <p className="font-medium">1 Payment selected</p>
+                                            <p className="font-medium">{selectedPaymentIds.length} payment(s) selected</p>
                                             <p className="text-sm text-muted-foreground">
                                                 Vendor: {selectedVendorName} | Total: ₹{selectedTotal.toLocaleString("en-IN")}
                                             </p>
@@ -297,7 +301,7 @@ export default function VendorPayments() {
                         <CardHeader>
                             <CardTitle>Pending Vendor Payments</CardTitle>
                             <CardDescription>
-                                Select one payment at a time to issue a cheque
+                                Select multiple payments for the same vendor to issue a single cheque
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -397,15 +401,15 @@ export default function VendorPayments() {
                     <DialogHeader>
                         <DialogTitle>Issue Cheque</DialogTitle>
                         <DialogDescription>
-                            Enter cheque details for payment to {selectedVendorName}
+                            Enter cheque details for {selectedPaymentIds.length} payment(s) to {selectedVendorName}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4 py-4">
                         <div className="p-3 bg-muted rounded-lg">
                             <div className="flex justify-between text-sm">
-                                <span>Payment ID:</span>
-                                <span className="font-medium">{selectedPaymentIds[0]}</span>
+                                <span>Selected Payments:</span>
+                                <span className="font-medium">{selectedPaymentIds.length}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span>Vendor:</span>
