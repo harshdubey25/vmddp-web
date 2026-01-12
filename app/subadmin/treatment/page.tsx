@@ -261,8 +261,8 @@ export default function TreatmentPage() {
                           </tr>
                         </thead>
                         <tbody>
-                          {filteredApplications.map((app) => (
-                            <tr key={app.id} className="border-b hover:bg-muted/30 transition-colors">
+                          {filteredApplications.map((app, index) => (
+                            <tr key={`${app.id}-${index}`} className="border-b hover:bg-muted/30 transition-colors">
                               <td className="p-3 text-sm font-mono">{app.id}</td>
                               <td className="p-3 text-sm font-medium">{app.applicantName}</td>
                               <td className="p-3 text-sm">{app.aadharNumber || "-"}</td>

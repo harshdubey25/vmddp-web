@@ -374,9 +374,9 @@ export default function TrackResultPage() {
             </div>
 
             <div className="grid gap-4">
-              {applications.map((app) => (
+              {applications.map((app, index) => (
                 <Card
-                  key={app.id}
+                  key={`${app.id}-${index}`}
                   className="cursor-pointer hover-elevate active-elevate-2 transition-colors"
                   onClick={() => setSelectedApp(app)}
                   data-testid={`card-application-${app.id}`}

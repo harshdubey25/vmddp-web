@@ -964,7 +964,7 @@ export default function AdminSelectionClient({
                                         <tbody>
                                             {filteredApplications.map((app, index) => (
                                                 <tr
-                                                    key={app.id}
+                                                    key={`${app.id}-${index}`}
                                                     className="border-b hover:bg-muted/30 transition-colors cursor-pointer"
                                                     data-testid={`application-row-${index}`}
                                                     onClick={() => {
