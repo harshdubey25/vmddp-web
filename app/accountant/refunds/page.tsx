@@ -167,7 +167,7 @@ export default function Refunds() {
             <div className="overflow-auto h-screen">
                 <div className="p-6 space-y-6">
                     {/* Header */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             {/* <Link href="/accountant/dashboard">
                                 <Button variant="ghost" size="icon" data-testid="button-back">
@@ -175,13 +175,13 @@ export default function Refunds() {
                                 </Button>
                             </Link> */}
                             <div>
-                                <h1 className="text-2xl font-display font-bold" data-testid="text-page-title">
+                                <h1 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-page-title">
                                     Refund Management
                                 </h1>
-                                <p className="text-muted-foreground">Process excess DD refunds via DBT</p>
+                                <p className="text-sm text-muted-foreground">Process excess DD refunds via DBT</p>
                             </div>
                         </div>
-                        <Button variant="outline" data-testid="button-export">
+                        <Button variant="outline" data-testid="button-export" className="w-full sm:w-auto">
                             <Download className="h-4 w-4 mr-2" />
                             Export
                         </Button>
@@ -250,10 +250,10 @@ export default function Refunds() {
                     {/* Filter */}
                     <Card data-testid="card-filter">
                         <CardContent className="pt-6">
-                            <div className="flex items-center gap-4">
-                                <Label>Filter by District:</Label>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                                <Label className="text-sm">Filter by District:</Label>
                                 <Select value={selectedDistrict || "all"} onValueChange={handleDistrictChange}>
-                                    <SelectTrigger className="w-48" data-testid="select-filter-district">
+                                    <SelectTrigger className="w-full sm:w-48" data-testid="select-filter-district">
                                         <SelectValue placeholder="All Districts" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -272,8 +272,8 @@ export default function Refunds() {
                     {/* Refunds List */}
                     <Card data-testid="card-refunds-list">
                         <CardHeader>
-                            <CardTitle>Pending Refunds</CardTitle>
-                            <CardDescription>Process refunds for beneficiaries</CardDescription>
+                            <CardTitle className="text-lg sm:text-xl">Pending Refunds</CardTitle>
+                            <CardDescription className="text-sm">Process refunds for beneficiaries</CardDescription>
                         </CardHeader>
                         <CardContent>
                             {loading ? (
@@ -283,23 +283,23 @@ export default function Refunds() {
                             ) : error ? (
                                 <div className="text-center py-8 text-destructive">
                                     <AlertCircle className="h-6 w-6 mx-auto mb-2" />
-                                    <p>Failed to load refunds. Please try again.</p>
+                                    <p className="text-sm">Failed to load refunds. Please try again.</p>
                                 </div>
                             ) : (
                                 <>
-                                    <div className="overflow-x-auto">
+                                    <div className="overflow-x-auto -mx-6 sm:mx-0">
                                         <Table>
                                             <TableHeader>
                                                 <TableRow>
-                                                    <TableHead>Application ID</TableHead>
-                                                    <TableHead>Beneficiary</TableHead>
-                                                    <TableHead>District</TableHead>
-                                                    <TableHead>Village</TableHead>
-                                                    <TableHead>Component</TableHead>
-                                                    <TableHead className="text-right">DD Amount</TableHead>
-                                                    <TableHead className="text-right">Eligible Subsidy</TableHead>
-                                                    <TableHead className="text-right">Refund Amount</TableHead>
-                                                    <TableHead>Actions</TableHead>
+                                                    <TableHead className="min-w-[120px]">Application ID</TableHead>
+                                                    <TableHead className="min-w-[150px]">Beneficiary</TableHead>
+                                                    <TableHead className="min-w-[120px]">District</TableHead>
+                                                    <TableHead className="min-w-[120px]">Village</TableHead>
+                                                    <TableHead className="min-w-[120px]">Component</TableHead>
+                                                    <TableHead className="text-right min-w-[100px]">DD Amount</TableHead>
+                                                    <TableHead className="text-right min-w-[120px]">Eligible Subsidy</TableHead>
+                                                    <TableHead className="text-right min-w-[120px]">Refund Amount</TableHead>
+                                                    <TableHead className="min-w-[100px]">Actions</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
@@ -322,7 +322,7 @@ export default function Refunds() {
                                                             ₹{refund.refund_amount.toLocaleString("en-IN")}
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Button size="sm" onClick={() => handleOpenDBTDialog(refund)} data-testid={`button-dbt-${refund.application_id}`}>
+                                                            <Button size="sm" onClick={() => handleOpenDBTDialog(refund)} data-testid={`button-dbt-${refund.application_id}`} className="whitespace-nowrap">
                                                                 <Send className="h-4 w-4 mr-1" />
                                                                 DBT
                                                             </Button>
@@ -342,8 +342,8 @@ export default function Refunds() {
 
                                     {/* Pagination */}
                                     {totalPages > 1 && (
-                                        <div className="flex items-center justify-between pt-4">
-                                            <p className="text-sm text-muted-foreground">
+                                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4">
+                                            <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
                                                 Page {currentPage} of {totalPages} • {totalCount} total records
                                             </p>
                                             <div className="flex items-center gap-2">
@@ -354,8 +354,8 @@ export default function Refunds() {
                                                     disabled={currentPage === 1}
                                                     data-testid="button-prev-page"
                                                 >
-                                                    <ChevronLeft className="h-4 w-4 mr-1" />
-                                                    Previous
+                                                    <ChevronLeft className="h-4 w-4 sm:mr-1" />
+                                                    <span className="hidden sm:inline">Previous</span>
                                                 </Button>
                                                 <Button
                                                     variant="outline"
@@ -364,8 +364,8 @@ export default function Refunds() {
                                                     disabled={currentPage >= totalPages}
                                                     data-testid="button-next-page"
                                                 >
-                                                    Next
-                                                    <ChevronRight className="h-4 w-4 ml-1" />
+                                                    <span className="hidden sm:inline">Next</span>
+                                                    <ChevronRight className="h-4 w-4 sm:ml-1" />
                                                 </Button>
                                             </div>
                                         </div>
@@ -379,18 +379,18 @@ export default function Refunds() {
 
             {/* DBT Dialog */}
             <Dialog open={showDBTDialog} onOpenChange={setShowDBTDialog}>
-                <DialogContent className="w-full max-w-md sm:max-w-lg" data-testid="dialog-dbt">
+                <DialogContent className="w-[95vw] sm:w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-y-auto" data-testid="dialog-dbt">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <Send className="h-5 w-5" />
+                        <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+                            <Send className="h-4 w-4 sm:h-5 sm:w-5" />
                             Initiate DBT Transfer
                         </DialogTitle>
-                        <DialogDescription>Process refund via Direct Benefit Transfer</DialogDescription>
+                        <DialogDescription className="text-sm">Process refund via Direct Benefit Transfer</DialogDescription>
                     </DialogHeader>
 
                     {currentRefund && (
-                        <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
-                            <div className="p-4 bg-muted/30 rounded-lg space-y-3">
+                        <div className="space-y-4 py-4">
+                            <div className="p-3 sm:p-4 bg-muted/30 rounded-lg space-y-3">
                                 <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                                     <span className="text-muted-foreground">Application ID</span>
                                     <span className="font-mono text-sm">{currentRefund.application_id}</span>
@@ -410,8 +410,8 @@ export default function Refunds() {
                             </div>
 
                             {/* Cost Breakup */}
-                            <div className="p-4 border rounded-lg space-y-2 bg-card">
-                                <h4 className="font-medium text-sm mb-3">Cost Breakdown</h4>
+                            <div className="p-3 sm:p-4 border rounded-lg space-y-2 bg-card">
+                                <h4 className="font-medium text-xs sm:text-sm mb-3">Cost Breakdown</h4>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Animal Cost</span>
                                     <span>₹{currentRefund.animal_cost.toLocaleString("en-IN")}</span>
@@ -437,8 +437,8 @@ export default function Refunds() {
                             </div>
 
                             {/* Refund Calculation */}
-                            <div className="p-4 border rounded-lg space-y-2 bg-card">
-                                <h4 className="font-medium text-sm mb-3">Refund Calculation</h4>
+                            <div className="p-3 sm:p-4 border rounded-lg space-y-2 bg-card">
+                                <h4 className="font-medium text-xs sm:text-sm mb-3">Refund Calculation</h4>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">DD Amount Collected</span>
                                     <span>₹{currentRefund.dd_amount.toLocaleString("en-IN")}</span>
