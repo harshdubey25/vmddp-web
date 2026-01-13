@@ -242,7 +242,7 @@ export default function DBTClaims() {
                                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                                                             <div>
                                                                 <p className="text-muted-foreground">Subsidy Percentage</p>
-                                                                <p className="font-bold text-lg">{selectedComponent?.subsidy_percent}%</p>
+                                                                <p className="font-bold text-lg">{selectedComponent?.subsidy_percent ? `${selectedComponent.subsidy_percent}%` : 'N/A'}</p>
                                                             </div>
                                                             <div>
                                                                 <p className="text-muted-foreground">Maximum Subsidy</p>
@@ -250,7 +250,7 @@ export default function DBTClaims() {
                                                             </div>
                                                             <div>
                                                                 <p className="text-muted-foreground">Maximum Quantity</p>
-                                                                <p className="font-bold text-lg">{selectedComponent?.max_quantity} kg</p>
+                                                                <p className="font-bold text-lg">{selectedComponent?.max_quantity ? `${selectedComponent.max_quantity} kg` : 'N/A'}</p>
                                                             </div>
                                                         </div>
                                                         <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20 mt-2">

@@ -452,7 +452,8 @@ export default function VendorPayments() {
                                 onChange={(e) => setChequeAmount(parseFloat(e.target.value) || 0)}
                                 placeholder="Enter cheque amount"
                                 data-testid="input-cheque-amount"
-                            />
+                                hideSpinners
+                         />
                         </div>
 
                         <div className="space-y-2">
