@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -21,10 +27,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import {
-    Download,
-    Search,
-} from "lucide-react";
+import { Download, Search } from "lucide-react";
 import * as XLSX from "xlsx";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -43,14 +46,14 @@ export default function DDReportPage() {
     const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
     const { data: apiResponse, isLoading } = useFrappeGetCall(
-        'vmddp_app.api.v1.accountant.get_completed_dd_list',
+        "vmddp_app.api.v1.accountant.get_completed_dd_list",
         {
             page: currentPage,
             limit: pageSize,
             search_text: debouncedSearchQuery || undefined,
             component: componentFilter !== "all" ? componentFilter : undefined,
             item: animalFilter !== "all" ? animalFilter : undefined,
-        }
+        },
     );
 
     const reports = apiResponse?.message || [];
@@ -68,24 +71,28 @@ export default function DDReportPage() {
             const params: Record<string, string> = {};
 
             if (debouncedSearchQuery) params.search_text = debouncedSearchQuery;
-            if (componentFilter !== 'all') params.component = componentFilter;
-            if (animalFilter !== 'all') params.item = animalFilter;
+            if (componentFilter !== "all") params.component = componentFilter;
+            if (animalFilter !== "all") params.item = animalFilter;
 
-            const axiosResponse = await frappeBrowser.call().axios.get(
-                '/api/method/vmddp_app.api.v1.accountant.export_completed_dd_list',
-                {
-                    params,
-                    responseType: 'blob',
-                }
-            );
+            const axiosResponse = await frappeBrowser
+                .call()
+                .axios.get(
+                    "/api/method/vmddp_app.api.v1.accountant.export_completed_dd_list",
+                    {
+                        params,
+                        responseType: "blob",
+                    },
+                );
 
             const blob = new Blob([axiosResponse.data], {
-                type: axiosResponse.headers['content-type'] || 'application/octet-stream',
+                type:
+                    axiosResponse.headers["content-type"] ||
+                    "application/octet-stream",
             });
             const downloadUrl = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
+            const link = document.createElement("a");
             link.href = downloadUrl;
-            link.download = `dd-reports-${new Date().toISOString().split('T')[0]}.xlsx`;
+            link.download = `dd-reports-${new Date().toISOString().split("T")[0]}.xlsx`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -96,7 +103,7 @@ export default function DDReportPage() {
                 description: "Report downloaded successfully.",
             });
         } catch (error) {
-            console.error('Export error:', error);
+            console.error("Export error:", error);
             toast({
                 title: "Export failed",
                 description: "Failed to export report. Please try again.",
@@ -144,7 +151,8 @@ export default function DDReportPage() {
                                         DD Collection Records
                                     </CardTitle>
                                     <CardDescription className="text-xs sm:text-sm">
-                                        {totalRecords} records found • Page {currentPage} of {totalPages}
+                                        {totalRecords} records found • Page{" "}
+                                        {currentPage} of {totalPages}
                                     </CardDescription>
                                 </div>
 
@@ -155,9 +163,11 @@ export default function DDReportPage() {
                                         <Input
                                             placeholder="Search by name, aadhar, or DD number..."
                                             value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            onChange={(e) =>
+                                                setSearchQuery(e.target.value)
+                                            }
                                             onKeyDown={(e) => {
-                                                if (e.key === 'Enter') {
+                                                if (e.key === "Enter") {
                                                     handleSearch();
                                                 }
                                             }}
@@ -166,33 +176,55 @@ export default function DDReportPage() {
                                         />
                                     </div>
 
-                                    <Select value={componentFilter} onValueChange={(value) => {
-                                        setComponentFilter(value);
-                                        setCurrentPage(1);
-                                    }}>
+                                    <Select
+                                        value={componentFilter}
+                                        onValueChange={(value) => {
+                                            setComponentFilter(value);
+                                            setCurrentPage(1);
+                                        }}
+                                    >
                                         <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
                                             <SelectValue placeholder="Filter by component" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="all">All Components</SelectItem>
-                                            <SelectItem value="Animal Induction">Animal Induction</SelectItem>
-                                            <SelectItem value="HGM (Pregnant cow)">HGM (Pregnant cow)</SelectItem>
+                                            <SelectItem value="all">
+                                                All Components
+                                            </SelectItem>
+                                            <SelectItem value="Animal Induction">
+                                                Animal Induction
+                                            </SelectItem>
+                                            <SelectItem value="HGM (Pregnant cow)">
+                                                HGM (Pregnant cow)
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
 
-                                    <Select value={animalFilter} onValueChange={(value) => {
-                                        setAnimalFilter(value);
-                                        setCurrentPage(1);
-                                    }}>
+                                    <Select
+                                        value={animalFilter}
+                                        onValueChange={(value) => {
+                                            setAnimalFilter(value);
+                                            setCurrentPage(1);
+                                        }}
+                                    >
                                         <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
                                             <SelectValue placeholder="Filter by animal" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="all">All Animals</SelectItem>
-                                            <SelectItem value="Desi Cow">Desi Cow</SelectItem>
-                                            <SelectItem value="CrossBreed">CrossBreed</SelectItem>
-                                            <SelectItem value="Buffalo">Buffalo</SelectItem>
-                                            <SelectItem value="Cow">Cow</SelectItem>
+                                            <SelectItem value="all">
+                                                All Animals
+                                            </SelectItem>
+                                            <SelectItem value="Desi Cow">
+                                                Desi Cow
+                                            </SelectItem>
+                                            <SelectItem value="CrossBreed">
+                                                CrossBreed
+                                            </SelectItem>
+                                            <SelectItem value="Buffalo">
+                                                Buffalo
+                                            </SelectItem>
+                                            <SelectItem value="Cow">
+                                                Cow
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -226,28 +258,49 @@ export default function DDReportPage() {
                                                 <th className="text-left p-3 text-xs sm:text-sm font-medium">
                                                     Component
                                                 </th>
-                                                <th className="text-center p-3 text-xs sm:text-sm font-medium">
-                                                    Status
-                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {isLoading ? (
-                                                Array.from({ length: 5 }).map((_, idx) => (
-                                                    <tr key={idx} className="border-b">
-                                                        <td className="p-3"><Skeleton className="h-5 w-full" /></td>
-                                                        <td className="p-3"><Skeleton className="h-5 w-full" /></td>
-                                                        <td className="p-3"><Skeleton className="h-5 w-full" /></td>
-                                                        <td className="p-3"><Skeleton className="h-5 w-full" /></td>
-                                                        <td className="p-3"><Skeleton className="h-5 w-full" /></td>
-                                                        <td className="p-3"><Skeleton className="h-5 w-16" /></td>
-                                                        <td className="p-3"><Skeleton className="h-5 w-full" /></td>
-                                                        <td className="p-3"><Skeleton className="h-5 w-20 mx-auto" /></td>
-                                                    </tr>
-                                                ))
+                                                Array.from({ length: 5 }).map(
+                                                    (_, idx) => (
+                                                        <tr
+                                                            key={idx}
+                                                            className="border-b"
+                                                        >
+                                                            <td className="p-3">
+                                                                <Skeleton className="h-5 w-full" />
+                                                            </td>
+                                                            <td className="p-3">
+                                                                <Skeleton className="h-5 w-full" />
+                                                            </td>
+                                                            <td className="p-3">
+                                                                <Skeleton className="h-5 w-full" />
+                                                            </td>
+                                                            <td className="p-3">
+                                                                <Skeleton className="h-5 w-full" />
+                                                            </td>
+                                                            <td className="p-3">
+                                                                <Skeleton className="h-5 w-full" />
+                                                            </td>
+                                                            <td className="p-3">
+                                                                <Skeleton className="h-5 w-16" />
+                                                            </td>
+                                                            <td className="p-3">
+                                                                <Skeleton className="h-5 w-full" />
+                                                            </td>
+                                                            <td className="p-3">
+                                                                <Skeleton className="h-5 w-20 mx-auto" />
+                                                            </td>
+                                                        </tr>
+                                                    ),
+                                                )
                                             ) : reports.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={8} className="text-center py-8 text-sm text-muted-foreground">
+                                                    <td
+                                                        colSpan={8}
+                                                        className="text-center py-8 text-sm text-muted-foreground"
+                                                    >
                                                         No reports found
                                                     </td>
                                                 </tr>
@@ -264,36 +317,55 @@ export default function DDReportPage() {
                                                         </td>
                                                         <td className="p-3 text-xs sm:text-sm">
                                                             <div className="font-mono text-muted-foreground">
-                                                                {report.aadhar_number?.startsWith('http')
+                                                                {report.aadhar_number?.startsWith(
+                                                                    "http",
+                                                                )
                                                                     ? "N/A"
-                                                                    : report.aadhar_number?.replace(/(\d{4})(?=\d)/g, "$1 ") || "N/A"}
+                                                                    : report.aadhar_number?.replace(
+                                                                          /(\d{4})(?=\d)/g,
+                                                                          "$1 ",
+                                                                      ) ||
+                                                                      "N/A"}
                                                             </div>
                                                         </td>
                                                         <td className="p-3 text-xs sm:text-sm">
-                                                            <div className="text-muted-foreground">{report.source_bank_name || "N/A"}</div>
+                                                            <div className="text-muted-foreground">
+                                                                {report.source_bank_name ||
+                                                                    "N/A"}
+                                                            </div>
                                                         </td>
                                                         <td className="p-3 text-xs sm:text-sm text-right">
                                                             <div className="font-semibold text-primary">
-                                                                ₹{(report.dd_amount || report.amount || 0).toLocaleString("en-IN")}
+                                                                ₹
+                                                                {(
+                                                                    report.dd_amount ||
+                                                                    report.amount ||
+                                                                    0
+                                                                ).toLocaleString(
+                                                                    "en-IN",
+                                                                )}
                                                             </div>
                                                         </td>
                                                         <td className="p-3 text-xs sm:text-sm">
-                                                            <div className="font-mono">{report.dd_number || "N/A"}</div>
+                                                            <div className="font-mono">
+                                                                {report.dd_number ||
+                                                                    "N/A"}
+                                                            </div>
                                                         </td>
                                                         <td className="p-3 text-xs sm:text-sm">
-                                                            <Badge variant="outline" className="text-xs">
-                                                                {report.item || "N/A"}
+                                                            <Badge
+                                                                variant="outline"
+                                                                className="text-xs"
+                                                            >
+                                                                {report.item ||
+                                                                    "N/A"}
                                                             </Badge>
                                                         </td>
                                                         <td className="p-3 text-xs sm:text-sm">
                                                             <div className="text-muted-foreground text-xs">
-                                                                {report.component_name || "N/A"}
+                                                                {report.component_name ||
+                                                                    "N/A"}
                                                             </div>
-                                                        </td>
-                                                        <td className="p-3 text-xs sm:text-sm text-center">
-                                                            <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20">
-                                                                {report.component_status || "DD Completed"}
-                                                            </Badge>
                                                         </td>
                                                     </tr>
                                                 ))
@@ -310,50 +382,94 @@ export default function DDReportPage() {
                                         <PaginationContent>
                                             <PaginationItem>
                                                 <PaginationPrevious
-                                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                                    onClick={() =>
+                                                        setCurrentPage((p) =>
+                                                            Math.max(1, p - 1),
+                                                        )
+                                                    }
+                                                    className={
+                                                        currentPage === 1
+                                                            ? "pointer-events-none opacity-50"
+                                                            : "cursor-pointer"
+                                                    }
                                                 />
                                             </PaginationItem>
 
-                                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                                let pageNum;
-                                                if (totalPages <= 5) {
-                                                    pageNum = i + 1;
-                                                } else if (currentPage <= 3) {
-                                                    pageNum = i + 1;
-                                                } else if (currentPage >= totalPages - 2) {
-                                                    pageNum = totalPages - 4 + i;
-                                                } else {
-                                                    pageNum = currentPage - 2 + i;
-                                                }
+                                            {Array.from(
+                                                {
+                                                    length: Math.min(
+                                                        5,
+                                                        totalPages,
+                                                    ),
+                                                },
+                                                (_, i) => {
+                                                    let pageNum;
+                                                    if (totalPages <= 5) {
+                                                        pageNum = i + 1;
+                                                    } else if (
+                                                        currentPage <= 3
+                                                    ) {
+                                                        pageNum = i + 1;
+                                                    } else if (
+                                                        currentPage >=
+                                                        totalPages - 2
+                                                    ) {
+                                                        pageNum =
+                                                            totalPages - 4 + i;
+                                                    } else {
+                                                        pageNum =
+                                                            currentPage - 2 + i;
+                                                    }
 
-                                                return (
-                                                    <PaginationItem key={pageNum}>
-                                                        <PaginationLink
-                                                            onClick={() => setCurrentPage(pageNum)}
-                                                            isActive={currentPage === pageNum}
-                                                            className="cursor-pointer"
+                                                    return (
+                                                        <PaginationItem
+                                                            key={pageNum}
                                                         >
-                                                            {pageNum}
-                                                        </PaginationLink>
-                                                    </PaginationItem>
-                                                );
-                                            })}
+                                                            <PaginationLink
+                                                                onClick={() =>
+                                                                    setCurrentPage(
+                                                                        pageNum,
+                                                                    )
+                                                                }
+                                                                isActive={
+                                                                    currentPage ===
+                                                                    pageNum
+                                                                }
+                                                                className="cursor-pointer"
+                                                            >
+                                                                {pageNum}
+                                                            </PaginationLink>
+                                                        </PaginationItem>
+                                                    );
+                                                },
+                                            )}
 
                                             <PaginationItem>
                                                 <PaginationNext
-                                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                                    onClick={() =>
+                                                        setCurrentPage((p) =>
+                                                            Math.min(
+                                                                totalPages,
+                                                                p + 1,
+                                                            ),
+                                                        )
+                                                    }
+                                                    className={
+                                                        currentPage ===
+                                                        totalPages
+                                                            ? "pointer-events-none opacity-50"
+                                                            : "cursor-pointer"
+                                                    }
                                                 />
                                             </PaginationItem>
                                         </PaginationContent>
                                     </Pagination>
                                 </div>
                             )}
-
                             {reports.length > 0 && (
                                 <div className="mt-4 text-xs sm:text-sm text-muted-foreground text-center">
-                                    Showing {reports.length} records on page {currentPage} of {totalPages}
+                                    Showing {reports.length} records on page{" "}
+                                    {currentPage} of {totalPages}
                                 </div>
                             )}
                         </CardContent>
