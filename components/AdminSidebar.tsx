@@ -51,6 +51,13 @@ const adminMenuItems: MenuItem[] = [
   { icon: Package, label: "Components", path: "/admin/components" },
   { icon: TargetIcon, label: "Target Allocation", path: "/admin/target-allocation" },
   { icon: BarChart3, label: "Reports", path: "/admin/reports" },
+  { icon: BarChart3, label: "DD Reports", path: "/admin/dd-report" },
+  {
+    icon: Building2,
+    label: "Vendor Payments Report",
+    path: "/admin/vendor-payments-report",
+
+  },
   { type: "separator", label: "Target Based Allocation" },
   { icon: GraduationCap, label: "Farmer Training", path: "/admin/farmer-training" },
   { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/admin/treatment" }
