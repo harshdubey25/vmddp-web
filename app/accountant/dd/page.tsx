@@ -3,12 +3,37 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Search, CreditCard, Check, AlertCircle, IndianRupee, ClipboardList, FileText, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    ArrowLeft,
+    Search,
+    CreditCard,
+    Check,
+    AlertCircle,
+    IndianRupee,
+    ClipboardList,
+    FileText,
+    X,
+    ChevronLeft,
+    ChevronRight,
+} from "lucide-react";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { frappeBrowser } from "@/lib/frappe";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -32,43 +57,57 @@ export default function DDCollection() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const [selectedApplications, setselectedApplications] = useState<DDApplication[]>([]);
-    const [ddCompletedApplications, setddCompletedApplications] = useState<DDApplication[]>([]);
+    const [selectedApplications, setselectedApplications] = useState<
+        DDApplication[]
+    >([]);
+    const [ddCompletedApplications, setddCompletedApplications] = useState<
+        DDApplication[]
+    >([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'approved');
+    const [activeTab, setActiveTab] = useState(
+        searchParams.get("tab") || "approved",
+    );
 
     // Filter states for Selected Applications tab
     const [approvedFilters, setApprovedFilters] = useState({
-        aadhaar: '',
-        district: '',
-        taluka: '',
-        village: ''
+        aadhaar: "",
+        district: "",
+        taluka: "",
+        village: "",
     });
 
     // Filter states for Collected DDs tab
     const [collectedFilters, setCollectedFilters] = useState({
-        aadhaar: '',
-        district: '',
-        taluka: '',
-        village: ''
+        aadhaar: "",
+        district: "",
+        taluka: "",
+        village: "",
     });
 
     // Pagination states
-    const initialApprovedPage = Number(searchParams.get('approvedPage') || searchParams.get('page') || 1);
-    const initialSelectedPage = Number(searchParams.get('collectedPage') || searchParams.get('page') || 1);
+    const initialApprovedPage = Number(
+        searchParams.get("approvedPage") || searchParams.get("page") || 1,
+    );
+    const initialSelectedPage = Number(
+        searchParams.get("collectedPage") || searchParams.get("page") || 1,
+    );
     const [approvedPage, setApprovedPage] = useState(initialApprovedPage);
     const [selectedPage, setSelectedPage] = useState(initialSelectedPage);
     const [approvedTotal, setApprovedTotal] = useState(0);
     const [selectedTotal, setSelectedTotal] = useState(0);
     const pageSize = 20;
 
-    const { data: statsData, isLoading: statsLoading, error: statsError } = useFrappeGetCall('vmddp_app.api.v1.accountant.get_dd_stats')
+    const {
+        data: statsData,
+        isLoading: statsLoading,
+        error: statsError,
+    } = useFrappeGetCall("vmddp_app.api.v1.accountant.get_dd_stats");
     // Fetch approved applications
     const fetchselectedApplications = async () => {
         setLoading(true);
         try {
             const params: any = {
-                component_status: 'Selected',
+                component_status: "Selected",
                 limit_start: (approvedPage - 1) * pageSize,
                 limit_page_length: pageSize,
             };
@@ -87,12 +126,14 @@ export default function DDCollection() {
                 params.Village = approvedFilters.village.trim();
             }
 
-            const response = await frappeBrowser.call().get('vmddp_app.api.v1.accountant.dd_applications', params);
+            const response = await frappeBrowser
+                .call()
+                .get("vmddp_app.api.v1.accountant.dd_applications", params);
             const data = response?.message || [];
             setselectedApplications(data);
             setApprovedTotal(data.length);
         } catch (error) {
-            console.error('Error fetching approved applications:', error);
+            console.error("Error fetching approved applications:", error);
             setselectedApplications([]);
         } finally {
             setLoading(false);
@@ -104,7 +145,7 @@ export default function DDCollection() {
         setLoading(true);
         try {
             const params: any = {
-                component_status: 'DD Completed',
+                component_status: "DD Completed",
                 limit_start: (selectedPage - 1) * pageSize,
                 limit_page_length: pageSize,
             };
@@ -123,12 +164,14 @@ export default function DDCollection() {
                 params.Village = collectedFilters.village.trim();
             }
 
-            const response = await frappeBrowser.call().get('vmddp_app.api.v1.accountant.dd_applications', params);
+            const response = await frappeBrowser
+                .call()
+                .get("vmddp_app.api.v1.accountant.dd_applications", params);
             const data = response?.message || [];
             setddCompletedApplications(data);
             setSelectedTotal(data.length);
         } catch (error) {
-            console.error('Error fetching selected applications:', error);
+            console.error("Error fetching selected applications:", error);
             setddCompletedApplications([]);
         } finally {
             setLoading(false);
@@ -137,71 +180,101 @@ export default function DDCollection() {
 
     // Fetch data when tab, pagination, or filters change
     useEffect(() => {
-        if (activeTab === 'approved') {
+        if (activeTab === "approved") {
             fetchselectedApplications();
         } else {
             fetchddCompletedApplications();
         }
-    }, [activeTab, approvedPage, selectedPage, approvedFilters, collectedFilters]);
+    }, [
+        activeTab,
+        approvedPage,
+        selectedPage,
+        approvedFilters,
+        collectedFilters,
+    ]);
 
     // Keep page numbers in the URL so refresh preserves the current page
     useEffect(() => {
         try {
             const params = new URLSearchParams(searchParams.toString());
             // ensure tab is preserved
-            params.set('tab', activeTab);
+            params.set("tab", activeTab);
 
             if (approvedPage && approvedPage > 1) {
-                params.set('approvedPage', String(approvedPage));
+                params.set("approvedPage", String(approvedPage));
             } else {
-                params.delete('approvedPage');
+                params.delete("approvedPage");
             }
 
             if (selectedPage && selectedPage > 1) {
-                params.set('collectedPage', String(selectedPage));
+                params.set("collectedPage", String(selectedPage));
             } else {
-                params.delete('collectedPage');
+                params.delete("collectedPage");
             }
 
             const query = params.toString();
             // Use replace to avoid adding history entries on every change
             router.replace(query ? `?${query}` : `/accountant/dd`);
         } catch (err) {
-            console.error('Error syncing page params to URL', err);
+            console.error("Error syncing page params to URL", err);
         }
     }, [approvedPage, selectedPage, activeTab]);
 
     const handleSelectApplication = (app: DDApplication) => {
-        router.push(`/accountant/dd/dd-collection/${encodeURIComponent(app.name)}`);
+        router.push(
+            `/accountant/dd/dd-collection/${encodeURIComponent(app.name)}`,
+        );
     };
 
     const handleTabChange = (value: string) => {
         setActiveTab(value);
         const params = new URLSearchParams(searchParams.toString());
-        params.set('tab', value);
+        params.set("tab", value);
         router.push(`?${params.toString()}`);
     };
 
-    const handleApprovedFilterChange = (filters: { aadhaar: string; district: string; taluka: string; village: string }) => {
+    const handleApprovedFilterChange = (filters: {
+        aadhaar: string;
+        district: string;
+        taluka: string;
+        village: string;
+    }) => {
         setApprovedPage(1); // Reset to first page on filter change
         setApprovedFilters(filters);
     };
 
-    const handleCollectedFilterChange = (filters: { aadhaar: string; district: string; taluka: string; village: string }) => {
+    const handleCollectedFilterChange = (filters: {
+        aadhaar: string;
+        district: string;
+        taluka: string;
+        village: string;
+    }) => {
         setSelectedPage(1); // Reset to first page on filter change
         setCollectedFilters(filters);
     };
 
     const getFullName = (app: DDApplication) => {
-        return [app.first_name, app.mid_name, app.last_name].filter(Boolean).join(' ') || 'N/A';
+        return (
+            [app.first_name, app.mid_name, app.last_name]
+                .filter(Boolean)
+                .join(" ") || "N/A"
+        );
     };
 
     const getStatusBadge = (status: string) => {
         switch (status.toLowerCase()) {
             case "approved":
-                return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Approved</Badge>;
+                return (
+                    <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
+                        Approved
+                    </Badge>
+                );
             case "selected":
-                return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">Selected</Badge>;
+                return (
+                    <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">
+                        Selected
+                    </Badge>
+                );
             default:
                 return <Badge variant="outline">{status}</Badge>;
         }
@@ -225,8 +298,16 @@ export default function DDCollection() {
                             </Button>
                         </Link> */}
                         <div>
-                            <h1 className="text-2xl font-display font-bold" data-testid="text-page-title">DD Collection</h1>
-                            <p className="text-muted-foreground">Collect Demand Drafts from approved beneficiaries</p>
+                            <h1
+                                className="text-2xl font-display font-bold"
+                                data-testid="text-page-title"
+                            >
+                                DD Collection
+                            </h1>
+                            <p className="text-muted-foreground">
+                                Collect Demand Drafts from approved
+                                beneficiaries
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -240,9 +321,15 @@ export default function DDCollection() {
                                     <IndianRupee className="h-5 w-5 text-primary" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Total Collected</p>
-                                    <p className="text-2xl font-bold" data-testid="text-total-amount">
-                                        ₹{totalCollected.toLocaleString("en-IN")}
+                                    <p className="text-sm text-muted-foreground">
+                                        Total Collected
+                                    </p>
+                                    <p
+                                        className="text-2xl font-bold"
+                                        data-testid="text-total-amount"
+                                    >
+                                        ₹
+                                        {totalCollected.toLocaleString("en-IN")}
                                     </p>
                                 </div>
                             </div>
@@ -256,8 +343,13 @@ export default function DDCollection() {
                                     <FileText className="h-5 w-5 text-blue-500" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Total DDs</p>
-                                    <p className="text-2xl font-bold" data-testid="text-total-count">
+                                    <p className="text-sm text-muted-foreground">
+                                        Total DDs
+                                    </p>
+                                    <p
+                                        className="text-2xl font-bold"
+                                        data-testid="text-total-count"
+                                    >
                                         {totalDDs}
                                     </p>
                                 </div>
@@ -272,8 +364,13 @@ export default function DDCollection() {
                                     <AlertCircle className="h-5 w-5 text-yellow-500" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Pending Collection</p>
-                                    <p className="text-2xl font-bold" data-testid="text-pending-count">
+                                    <p className="text-sm text-muted-foreground">
+                                        Pending Collection
+                                    </p>
+                                    <p
+                                        className="text-2xl font-bold"
+                                        data-testid="text-pending-count"
+                                    >
                                         {pendingCount}
                                     </p>
                                 </div>
@@ -288,8 +385,13 @@ export default function DDCollection() {
                                     <Check className="h-5 w-5 text-green-500" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Collected</p>
-                                    <p className="text-2xl font-bold" data-testid="text-verified-count">
+                                    <p className="text-sm text-muted-foreground">
+                                        Collected
+                                    </p>
+                                    <p
+                                        className="text-2xl font-bold"
+                                        data-testid="text-verified-count"
+                                    >
                                         {collectedDDs}
                                     </p>
                                 </div>
@@ -299,13 +401,25 @@ export default function DDCollection() {
                 </div>
 
                 {/* Tabs Section */}
-                <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                <Tabs
+                    value={activeTab}
+                    onValueChange={handleTabChange}
+                    className="w-full"
+                >
                     <TabsList className="grid w-full grid-cols-2 max-w-md">
-                        <TabsTrigger value="approved" className="flex items-center gap-2" data-testid="tab-approved">
+                        <TabsTrigger
+                            value="approved"
+                            className="flex items-center gap-2"
+                            data-testid="tab-approved"
+                        >
                             <ClipboardList className="h-4 w-4" />
                             Selected Applications
                         </TabsTrigger>
-                        <TabsTrigger value="collected" className="flex items-center gap-2" data-testid="tab-collected">
+                        <TabsTrigger
+                            value="collected"
+                            className="flex items-center gap-2"
+                            data-testid="tab-collected"
+                        >
                             <FileText className="h-4 w-4" />
                             Collected DDs
                         </TabsTrigger>
@@ -324,75 +438,145 @@ export default function DDCollection() {
                                 <div>
                                     <CardTitle className="flex items-center gap-2">
                                         <ClipboardList className="h-5 w-5" />
-                                        Selected Applications Awaiting DD Collection
+                                        Selected Applications Awaiting DD
+                                        Collection
                                     </CardTitle>
                                     <CardDescription>
-                                        {selectedApplications.length} selected applications pending DD collection
+                                        {selectedApplications.length} selected
+                                        applications pending DD collection
                                     </CardDescription>
                                 </div>
                             </CardHeader>
-                            <CardContent >
+                            <CardContent>
                                 {loading ? (
-                                    <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        Loading...
+                                    </div>
                                 ) : (
                                     <>
                                         <div className="overflow-x-auto overflow-y-auto h-full ">
                                             <Table>
                                                 <TableHeader>
                                                     <TableRow>
-                                                        <TableHead>Application ID</TableHead>
-                                                        <TableHead>Beneficiary</TableHead>
-                                                        <TableHead>Location</TableHead>
-                                                        <TableHead>Component</TableHead>
-                                                        <TableHead>Status</TableHead>
-                                                        <TableHead>DD Amount</TableHead>
-                                                        <TableHead>Action</TableHead>
+                                                        <TableHead>
+                                                            Application ID
+                                                        </TableHead>
+                                                        <TableHead>
+                                                            Beneficiary
+                                                        </TableHead>
+                                                        <TableHead>
+                                                            Location
+                                                        </TableHead>
+                                                        <TableHead>
+                                                            Component
+                                                        </TableHead>
+                                                        <TableHead>
+                                                            Status
+                                                        </TableHead>
+                                                        <TableHead>
+                                                            DD Amount
+                                                        </TableHead>
+                                                        <TableHead>
+                                                            Action
+                                                        </TableHead>
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
-                                                    {selectedApplications.map((app) => (
-                                                        <TableRow key={app.name} data-testid={`row-approved-${app.name}`}>
-                                                            <TableCell className="font-medium">{app.name}</TableCell>
-                                                            <TableCell>
-                                                                <div>
-                                                                    <p className="font-medium">{getFullName(app)}</p>
-                                                                    <p className="text-xs text-muted-foreground">{app.aadhar_number}</p>
-                                                                </div>
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <div className="flex flex-wrap gap-1">
-                                                                    <Badge variant="outline" className="text-xs">{app.district}</Badge>
-                                                                    <Badge variant="outline" className="text-xs">{app.taluka}</Badge>
-                                                                </div>
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <Badge variant="outline">{app.component_name}</Badge>
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                {getStatusBadge(app.component_status)}
-                                                            </TableCell>
-                                                            <TableCell className="font-semibold text-primary">
-                                                                ₹{(app.amount || 0).toLocaleString("en-IN")}
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <Button
-                                                                    size="sm"
-                                                                    onClick={() => handleSelectApplication(app)}
-                                                                    data-testid={`button-collect-${app.name}`}
-                                                                >
-                                                                    <CreditCard className="h-4 w-4 mr-1" />
-                                                                    Collect DD
-                                                                </Button>
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))}
-                                                    {selectedApplications.length === 0 && (
+                                                    {selectedApplications.map(
+                                                        (app) => (
+                                                            <TableRow
+                                                                key={app.name}
+                                                                data-testid={`row-approved-${app.name}`}
+                                                            >
+                                                                <TableCell className="font-medium">
+                                                                    {app.name}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div>
+                                                                        <p className="font-medium">
+                                                                            {getFullName(
+                                                                                app,
+                                                                            )}
+                                                                        </p>
+                                                                        <p className="text-xs text-muted-foreground">
+                                                                            {
+                                                                                app.aadhar_number
+                                                                            }
+                                                                        </p>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div className="flex flex-wrap gap-1">
+                                                                        <Badge
+                                                                            variant="outline"
+                                                                            className="text-xs"
+                                                                        >
+                                                                            {
+                                                                                app.district
+                                                                            }
+                                                                        </Badge>
+                                                                        <Badge
+                                                                            variant="outline"
+                                                                            className="text-xs"
+                                                                        >
+                                                                            {
+                                                                                app.taluka
+                                                                            }
+                                                                        </Badge>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Badge variant="outline">
+                                                                        {
+                                                                            app.component_name
+                                                                        }
+                                                                    </Badge>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {getStatusBadge(
+                                                                        app.component_status,
+                                                                    )}
+                                                                </TableCell>
+                                                                <TableCell className="font-semibold text-primary">
+                                                                    ₹
+                                                                    {(
+                                                                        app.amount ||
+                                                                        0
+                                                                    ).toLocaleString(
+                                                                        "en-IN",
+                                                                    )}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        onClick={() =>
+                                                                            handleSelectApplication(
+                                                                                app,
+                                                                            )
+                                                                        }
+                                                                        data-testid={`button-collect-${app.name}`}
+                                                                    >
+                                                                        <CreditCard className="h-4 w-4 mr-1" />
+                                                                        Collect
+                                                                        DD
+                                                                    </Button>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ),
+                                                    )}
+                                                    {selectedApplications.length ===
+                                                        0 && (
                                                         <TableRow>
-                                                            <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                                                {(approvedFilters.aadhaar || approvedFilters.district || approvedFilters.taluka || approvedFilters.village)
+                                                            <TableCell
+                                                                colSpan={7}
+                                                                className="text-center py-8 text-muted-foreground"
+                                                            >
+                                                                {approvedFilters.aadhaar ||
+                                                                approvedFilters.district ||
+                                                                approvedFilters.taluka ||
+                                                                approvedFilters.village
                                                                     ? "No applications found matching the selected filters"
-                                                                    : "No approved applications pending DD collection"
-                                                                }
+                                                                    : "No approved applications pending DD collection"}
                                                             </TableCell>
                                                         </TableRow>
                                                     )}
@@ -404,14 +588,28 @@ export default function DDCollection() {
                                         {selectedApplications.length > 0 && (
                                             <div className="flex items-center justify-between mt-4">
                                                 <div className="text-sm text-muted-foreground">
-                                                    Page {approvedPage} • {selectedApplications.length} items
+                                                    Page {approvedPage} •{" "}
+                                                    {
+                                                        selectedApplications.length
+                                                    }{" "}
+                                                    items
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => setApprovedPage(p => Math.max(1, p - 1))}
-                                                        disabled={approvedPage === 1}
+                                                        onClick={() =>
+                                                            setApprovedPage(
+                                                                (p) =>
+                                                                    Math.max(
+                                                                        1,
+                                                                        p - 1,
+                                                                    ),
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            approvedPage === 1
+                                                        }
                                                     >
                                                         <ChevronLeft className="h-4 w-4 mr-1" />
                                                         Previous
@@ -419,8 +617,15 @@ export default function DDCollection() {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => setApprovedPage(p => p + 1)}
-                                                        disabled={selectedApplications.length < pageSize}
+                                                        onClick={() =>
+                                                            setApprovedPage(
+                                                                (p) => p + 1,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            selectedApplications.length <
+                                                            pageSize
+                                                        }
                                                     >
                                                         Next
                                                         <ChevronRight className="h-4 w-4 ml-1" />
@@ -447,62 +652,132 @@ export default function DDCollection() {
                                 <div>
                                     <CardTitle>Collected DDs</CardTitle>
                                     <CardDescription>
-                                        {ddCompletedApplications.length} collected demand drafts (Selected applications)
+                                        {ddCompletedApplications.length}{" "}
+                                        collected demand drafts (Selected
+                                        applications)
                                     </CardDescription>
                                 </div>
                             </CardHeader>
                             <CardContent>
                                 {loading ? (
-                                    <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        Loading...
+                                    </div>
                                 ) : (
                                     <>
                                         <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
                                             <Table>
                                                 <TableHeader>
                                                     <TableRow>
-                                                        <TableHead>Application ID</TableHead>
-                                                        <TableHead>Beneficiary</TableHead>
-                                                        <TableHead>Location</TableHead>
-                                                        <TableHead>Component</TableHead>
-                                                        <TableHead>Amount</TableHead>
-                                                        <TableHead>Status</TableHead>
+                                                        <TableHead>
+                                                            Application ID
+                                                        </TableHead>
+                                                        <TableHead>
+                                                            Beneficiary
+                                                        </TableHead>
+                                                        <TableHead>
+                                                            Location
+                                                        </TableHead>
+                                                        <TableHead>
+                                                            Component
+                                                        </TableHead>
+                                                        <TableHead>
+                                                            Amount
+                                                        </TableHead>
+                                                        <TableHead>
+                                                            Status
+                                                        </TableHead>
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
-                                                    {ddCompletedApplications.map((app) => (
-                                                        <TableRow key={app.name} data-testid={`row-dd-${app.name}`}>
-                                                            <TableCell className="font-medium">{app.name}</TableCell>
-                                                            <TableCell>
-                                                                <div>
-                                                                    <p className="font-medium">{getFullName(app)}</p>
-                                                                    <p className="text-xs text-muted-foreground">{app.aadhar_number}</p>
-                                                                </div>
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <div className="flex flex-wrap gap-1">
-                                                                    <Badge variant="outline" className="text-xs">{app.district}</Badge>
-                                                                    <Badge variant="outline" className="text-xs">{app.taluka}</Badge>
-                                                                    <Badge variant="outline" className="text-xs">{app.village}</Badge>
-                                                                </div>
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <Badge variant="outline">{app.component_name}</Badge>
-                                                            </TableCell>
-                                                            <TableCell className="font-medium">
-                                                                ₹{(app.amount || 0).toLocaleString("en-IN")}
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                {getStatusBadge(app.component_status)}
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))}
-                                                    {ddCompletedApplications.length === 0 && (
+                                                    {ddCompletedApplications.map(
+                                                        (app) => (
+                                                            <TableRow
+                                                                key={app.name}
+                                                                data-testid={`row-dd-${app.name}`}
+                                                            >
+                                                                <TableCell className="font-medium">
+                                                                    {app.name}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div>
+                                                                        <p className="font-medium">
+                                                                            {getFullName(
+                                                                                app,
+                                                                            )}
+                                                                        </p>
+                                                                        <p className="text-xs text-muted-foreground">
+                                                                            {
+                                                                                app.aadhar_number
+                                                                            }
+                                                                        </p>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div className="flex flex-wrap gap-1">
+                                                                        <Badge
+                                                                            variant="outline"
+                                                                            className="text-xs"
+                                                                        >
+                                                                            {
+                                                                                app.district
+                                                                            }
+                                                                        </Badge>
+                                                                        <Badge
+                                                                            variant="outline"
+                                                                            className="text-xs"
+                                                                        >
+                                                                            {
+                                                                                app.taluka
+                                                                            }
+                                                                        </Badge>
+                                                                        <Badge
+                                                                            variant="outline"
+                                                                            className="text-xs"
+                                                                        >
+                                                                            {
+                                                                                app.village
+                                                                            }
+                                                                        </Badge>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Badge variant="outline">
+                                                                        {
+                                                                            app.component_name
+                                                                        }
+                                                                    </Badge>
+                                                                </TableCell>
+                                                                <TableCell className="font-medium">
+                                                                    ₹
+                                                                    {(
+                                                                        app.amount ||
+                                                                        0
+                                                                    ).toLocaleString(
+                                                                        "en-IN",
+                                                                    )}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {getStatusBadge(
+                                                                        app.component_status,
+                                                                    )}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ),
+                                                    )}
+                                                    {ddCompletedApplications.length ===
+                                                        0 && (
                                                         <TableRow>
-                                                            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                                                {(collectedFilters.aadhaar || collectedFilters.district || collectedFilters.taluka || collectedFilters.village)
+                                                            <TableCell
+                                                                colSpan={6}
+                                                                className="text-center py-8 text-muted-foreground"
+                                                            >
+                                                                {collectedFilters.aadhaar ||
+                                                                collectedFilters.district ||
+                                                                collectedFilters.taluka ||
+                                                                collectedFilters.village
                                                                     ? "No collected DDs found matching the selected filters"
-                                                                    : "No collected DD entries found"
-                                                                }
+                                                                    : "No collected DD entries found"}
                                                             </TableCell>
                                                         </TableRow>
                                                     )}
@@ -514,14 +789,28 @@ export default function DDCollection() {
                                         {ddCompletedApplications.length > 0 && (
                                             <div className="flex items-center justify-between mt-4">
                                                 <div className="text-sm text-muted-foreground">
-                                                    Page {selectedPage} • {ddCompletedApplications.length} items
+                                                    Page {selectedPage} •{" "}
+                                                    {
+                                                        ddCompletedApplications.length
+                                                    }{" "}
+                                                    items
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => setSelectedPage(p => Math.max(1, p - 1))}
-                                                        disabled={selectedPage === 1}
+                                                        onClick={() =>
+                                                            setSelectedPage(
+                                                                (p) =>
+                                                                    Math.max(
+                                                                        1,
+                                                                        p - 1,
+                                                                    ),
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            selectedPage === 1
+                                                        }
                                                     >
                                                         <ChevronLeft className="h-4 w-4 mr-1" />
                                                         Previous
@@ -529,8 +818,15 @@ export default function DDCollection() {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => setSelectedPage(p => p + 1)}
-                                                        disabled={ddCompletedApplications.length < pageSize}
+                                                        onClick={() =>
+                                                            setSelectedPage(
+                                                                (p) => p + 1,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            ddCompletedApplications.length <
+                                                            pageSize
+                                                        }
                                                     >
                                                         Next
                                                         <ChevronRight className="h-4 w-4 ml-1" />
