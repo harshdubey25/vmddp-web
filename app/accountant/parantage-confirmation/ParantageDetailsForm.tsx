@@ -3,7 +3,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { Check, Loader2 } from "lucide-react";
 import { useFrappeCreateDoc, useFrappeGetDocList } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
@@ -13,15 +19,26 @@ interface ParantageDetailsFormProps {
     applicationId: string;
     onCancel?: () => void;
     onSuccess?: () => void;
+    component_allocation_id: string;
 }
 
-export default function ParantageDetailsForm({ entryId, applicationId, onCancel, onSuccess }: ParantageDetailsFormProps) {
+export default function ParantageDetailsForm({
+    entryId,
+    applicationId,
+    onCancel,
+    onSuccess,
+    component_allocation_id,
+}: ParantageDetailsFormProps) {
     const { toast } = useToast();
     const { createDoc, loading } = useFrappeCreateDoc();
-    const { data: agencies } = useFrappeGetDocList<{ name: string; agency_name: string }>("Agency", {
+    const { data: agencies } = useFrappeGetDocList<{
+        name: string;
+        agency_name: string;
+    }>("Agency", {
         fields: ["name", "agency_name"],
     });
-
+    if (component_allocation_id == "")
+        throw new Error("component allocation id is empty");
     const [calfBorn, setCalfBorn] = useState<string>("");
     const [certifiedByAgency, setCertifiedByAgency] = useState<string>("");
 
@@ -41,6 +58,7 @@ export default function ParantageDetailsForm({ entryId, applicationId, onCancel,
                 calf_born: calfBorn === "male" ? "Male" : "Female",
                 certified_by_agency: certifiedByAgency,
                 status: "Pending Approval",
+                component_allocation: component_allocation_id,
             });
 
             toast({
@@ -65,7 +83,9 @@ export default function ParantageDetailsForm({ entryId, applicationId, onCancel,
                 <div className="space-y-1">
                     <Label className="text-xs">Calf Born *</Label>
                     <Select value={calfBorn} onValueChange={setCalfBorn}>
-                        <SelectTrigger data-testid={`select-calf-gender-${entryId}`}>
+                        <SelectTrigger
+                            data-testid={`select-calf-gender-${entryId}`}
+                        >
                             <SelectValue placeholder="Select gender" />
                         </SelectTrigger>
                         <SelectContent>
@@ -85,13 +105,19 @@ export default function ParantageDetailsForm({ entryId, applicationId, onCancel,
                 </div>
                 <div className="space-y-1">
                     <Label className="text-xs">Certified By Agency *</Label>
-                    <Select value={certifiedByAgency} onValueChange={setCertifiedByAgency}>
+                    <Select
+                        value={certifiedByAgency}
+                        onValueChange={setCertifiedByAgency}
+                    >
                         <SelectTrigger data-testid={`select-agency-${entryId}`}>
                             <SelectValue placeholder="Select agency" />
                         </SelectTrigger>
                         <SelectContent>
                             {agencies?.map((agency) => (
-                                <SelectItem key={agency.name} value={agency.name}>
+                                <SelectItem
+                                    key={agency.name}
+                                    value={agency.name}
+                                >
                                     {agency.agency_name}
                                 </SelectItem>
                             ))}

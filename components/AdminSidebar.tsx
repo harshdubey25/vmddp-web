@@ -50,22 +50,23 @@ const adminMenuItems: MenuItem[] = [
   { icon: Users, label: "Sub-Admins", path: "/admin/subadmins" },
   { icon: Package, label: "Components", path: "/admin/components" },
   { icon: TargetIcon, label: "Target Allocation", path: "/admin/target-allocation" },
+  { icon: FileCheck, label: "Parantage Confirmation", path: "/admin/parantage-confirmation" },
   { icon: BarChart3, label: "Reports", path: "/admin/reports" },
   { icon: BarChart3, label: "DD Reports", path: "/admin/dd-report" },
   { icon: BarChart3, label: "Component Allocation Report", path: "/admin/component-allocation-report" },
   { icon: BarChart3, label: "DBT Claims Report", path: "/admin/dbt-claims-report" },
-  { icon: BarChart3, label: "Parantage Confirmation Report", path: "/admin/parantage-confirmation-report" },
+
   {
     icon: Building2,
     label: "Vendor Payments Report",
     path: "/admin/vendor-payments-report",
-    
+
   },
   {
     icon: Building2,
     label: "Admin Expenses Report",
     path: "/admin/admin-expenses-report",
-    
+
   },
   { icon: BarChart3, label: "Refunds Report", path: "/admin/refunds-report" },
   { type: "separator", label: "Target Based Allocation" },
