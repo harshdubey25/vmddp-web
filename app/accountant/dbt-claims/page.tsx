@@ -25,6 +25,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFrappeGetCall, useFrappeGetDocCount, useFrappeGetDocList } from "frappe-react-sdk";
 import { Component, DBTClaim } from "@/types";
+import * as XLSX from "xlsx";
 interface DBTBeneficiary {
     name: string;
     first_name: string;
@@ -105,6 +106,39 @@ export default function DBTClaims() {
         setSearchText(value);
         handleFilterChange();
     }
+
+    const handleExport = () => {
+        if (!disbursedClaims || disbursedClaims.length === 0) return;
+
+        const exportData = disbursedClaims.map((claim) => ({
+            "Date": new Date(claim.creation).toLocaleDateString("en-IN"),
+            "Claim ID": claim.name,
+            "Application ID": claim.app_form,
+            "Component": claim.component,
+            "Invoice Number": claim.invoice_number,
+            "Purchase Date": claim.purchase_date,
+            "Quantity": claim.quantity,
+            "Total Amount": claim.total_amount,
+            "Subsidy Given": claim.subsidy_given ? parseFloat(claim.subsidy_given) : 0,
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        
+        const maxWidth = 50;
+        const colWidths = Object.keys(exportData[0] || {}).map(key => {
+            const maxLength = Math.max(
+                key.length,
+                ...exportData.map(row => String(row[key as keyof typeof row] || "").length)
+            );
+            return { wch: Math.min(maxLength + 2, maxWidth) };
+        });
+        worksheet["!cols"] = colWidths;
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "DBT Claims");
+        XLSX.writeFile(workbook, `dbt_claims_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
     return (
         <div className="h-screen bg-background  w-full">
 
@@ -124,7 +158,7 @@ export default function DBTClaims() {
                                 <p className="text-muted-foreground">Process Direct Benefit Transfer claims for beneficiaries</p>
                             </div>
                         </div>
-                        <Button variant="outline" data-testid="button-export">
+                        <Button variant="outline" data-testid="button-export" onClick={handleExport} disabled={!disbursedClaims || disbursedClaims.length === 0}>
                             <Download className="h-4 w-4 mr-2" />
                             Export
                         </Button>
