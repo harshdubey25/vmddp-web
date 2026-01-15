@@ -257,7 +257,7 @@ export default function VendorPaymentsReport() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div>
-                                                        <p className="font-medium">#{payment.check_number}</p>
+                                                        <p className="font-medium">{payment.check_number}</p>
                                                         <p className="text-xs text-muted-foreground">{payment.cheque_date}</p>
                                                     </div>
                                                 </TableCell>

@@ -107,6 +107,13 @@ export default function DBTClaims() {
         handleFilterChange();
     }
 
+    const stats = {
+        total_disbursed_amount: (disbursedClaims || []).reduce((sum, claim) => sum + (claim.total_amount || 0), 0),
+        total_claims_processed: disbursedClaims?.length || 0,
+        total_beneficiaries: new Set((disbursedClaims || []).map(c => c.app_form)).size,
+        total_components: new Set((disbursedClaims || []).map(c => c.component)).size,
+    };
+
     const handleExport = () => {
         if (!disbursedClaims || disbursedClaims.length === 0) return;
 
@@ -123,7 +130,7 @@ export default function DBTClaims() {
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(exportData);
-        
+
         const maxWidth = 50;
         const colWidths = Object.keys(exportData[0] || {}).map(key => {
             const maxLength = Math.max(
@@ -173,8 +180,8 @@ export default function DBTClaims() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Total Disbursed</p>
-                                        <p className="text-2xl font-bold">₹2,500</p>
-                                        <p className="text-xs text-muted-foreground">1 claims processed</p>
+                                        <p className="text-2xl font-bold">₹{stats.total_disbursed_amount}</p>
+                                        <p className="text-xs text-muted-foreground">{stats.total_claims_processed} claims processed</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -203,8 +210,8 @@ export default function DBTClaims() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Eligible Beneficiaries</p>
-                                        <p className="text-2xl font-bold">2</p>
-                                        <p className="text-xs text-muted-foreground">For selected component</p>
+                                        <p className="text-2xl font-bold">{stats.total_beneficiaries}</p>
+                                        <p className="text-xs text-muted-foreground">From disbursed claims</p>
                                     </div>
                                 </div>
                             </CardContent>
