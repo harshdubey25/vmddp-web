@@ -393,7 +393,6 @@ export default function AllocationForm({
     if (!data?.message) return false;
     if (data.message.component === ANIMAL_INDUCTION) {
       const tagValid = validateTagNumber(animalData.tagNumber);
-      return true
       return !!(
         animalData.dateOfPurchase &&
         animalData.animalType &&
@@ -404,11 +403,14 @@ export default function AllocationForm({
       );
     }
     if (data.message.component === HGM_PREGNANT_COW) {
+      const tagValid = validateTagNumber(hgmData.tagNumber);
       return !!(
         hgmData.dateOfPurchase &&
         hgmData.animalType &&
         hgmData.vendorName &&
-        hgmData.tagNumber
+        hgmData.tagNumber &&
+        tagValid &&
+        hgmData.animalCost
       );
     }
 
@@ -829,6 +831,7 @@ export default function AllocationForm({
                           })
                         }
                         data-testid="input-collar-cost"
+                        hideSpinners
                       />
                     </div>
                     <div className="space-y-2">
@@ -892,6 +895,7 @@ export default function AllocationForm({
                           })
                         }
                         data-testid="input-animal-cost"
+                        hideSpinners
                       />
                     </div>
                   </div>
@@ -984,6 +988,7 @@ export default function AllocationForm({
                           })
                         }
                         data-testid="input-sum-assured"
+                        hideSpinners
                       />
                     </div>
                     <div className="space-y-2">
@@ -999,6 +1004,7 @@ export default function AllocationForm({
                           })
                         }
                         data-testid="input-premium-paid"
+                        hideSpinners
                       />
                     </div>
                   </div>
@@ -1026,6 +1032,7 @@ export default function AllocationForm({
                           })
                         }
                         data-testid="input-transport-cost"
+                        hideSpinners
                       />
                     </div>
                     <div className="space-y-2">
@@ -1318,6 +1325,7 @@ export default function AllocationForm({
                           })
                         }
                         data-testid="input-hgm-collar-cost"
+                        hideSpinners
                       />
                     </div>
                     <div className="space-y-2">
