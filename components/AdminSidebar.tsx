@@ -61,6 +61,12 @@ const adminMenuItems: MenuItem[] = [
     path: "/admin/vendor-payments-report",
     
   },
+  {
+    icon: Building2,
+    label: "Admin Expenses Report",
+    path: "/admin/admin-expenses-report",
+    
+  },
   { icon: BarChart3, label: "Refunds Report", path: "/admin/refunds-report" },
   { type: "separator", label: "Target Based Allocation" },
   { icon: GraduationCap, label: "Farmer Training", path: "/admin/farmer-training" },
