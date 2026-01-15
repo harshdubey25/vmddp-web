@@ -23,7 +23,7 @@ export default function FarmerTraining() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const { data: dpoData } = useFrappeGetDoc("DPO", currentUser || undefined);
+  const { data: dpoData, isLoading: dpoLoading } = useFrappeGetDoc("DPO", currentUser || undefined);
   const assignedDistrict = dpoData?.district;
 
   const { data: applications, isLoading, error } = useFrappeGetDocList<Application>("Farmer Training Application", {
@@ -43,7 +43,7 @@ export default function FarmerTraining() {
       "docstatus",
       "creation"
     ],
-    filters: assignedDistrict ? [["district", "=", assignedDistrict]] : undefined,
+    filters: assignedDistrict ? [["district", "=", assignedDistrict]] : [["name", "=", ""]],
     orderBy: {
       field: "creation",
       order: "desc"
