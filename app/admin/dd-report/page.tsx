@@ -264,9 +264,7 @@ export default function DDReportPage() {
                                                         </td>
                                                         <td className="p-3 text-xs sm:text-sm">
                                                             <div className="font-mono text-muted-foreground">
-                                                                {report.aadhar_number?.startsWith('http')
-                                                                    ? "N/A"
-                                                                    : report.aadhar_number?.replace(/(\d{4})(?=\d)/g, "$1 ") || "N/A"}
+                                                                {report.aadhar_number || "N/A"}
                                                             </div>
                                                         </td>
                                                         <td className="p-3 text-xs sm:text-sm">

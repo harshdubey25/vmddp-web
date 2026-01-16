@@ -7,8 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, GraduationCap, Upload, Search, FileText, Loader2 } from "lucide-react";
 import { Application } from "@/types/subadmin";
 
@@ -43,7 +41,7 @@ export default function FarmerTraining() {
       "docstatus",
       "creation"
     ],
-    filters: assignedDistrict ? [["district", "=", assignedDistrict]] : [["name", "=", ""]],
+    filters: assignedDistrict ? [["district", "=", assignedDistrict]] : [],
     orderBy: {
       field: "creation",
       order: "desc"
