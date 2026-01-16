@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,7 +20,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Download, FileText, Printer, RefreshCw } from "lucide-react";
+import { Download, FileText, Printer, RefreshCw, Filter, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { frappeBrowser } from "@/lib/frappe";
@@ -30,6 +31,27 @@ import * as XLSX from "xlsx";
 interface ComponentData {
     beneficiary_share: number;
     subsidy: number;
+    for_component_allocation?: number;
+    animal_cost?: number;
+    collar_cost?: number;
+    insurance_cost?: number;
+    transportation_cost?: number;
+    total_allocation_subsidy?: number;
+    physical_achievement?: number;
+    is_hgm?: number;
+}
+
+interface ComponentTotalData {
+    beneficiary_share: number;
+    subsidy: number;
+    animal_cost: number;
+    collar_cost: number;
+    insurance_cost: number;
+    transportation_cost: number;
+    total_allocation_subsidy: number;
+    physical_achievement: number;
+    for_component_allocation: number;
+    is_hgm: number;
 }
 
 interface DistrictData {
@@ -38,8 +60,20 @@ interface DistrictData {
 
 interface MPRApiResponse {
     message: {
-        [districtName: string]: DistrictData;
+        district_data: {
+            [districtName: string]: DistrictData;
+        };
+        component_totals: {
+            [componentName: string]: ComponentTotalData;
+        };
     };
+}
+
+// Type for component info including allocation flag
+interface ComponentInfo {
+    name: string;
+    hasAllocation: boolean;
+    isHgm: boolean;
 }
 
 export default function MPRReportPage() {
@@ -47,6 +81,7 @@ export default function MPRReportPage() {
     const [selectedMonth, setSelectedMonth] = useState<string>("all");
     const [selectedYear, setSelectedYear] = useState<string>("2025-26");
     const [isExporting, setIsExporting] = useState(false);
+    const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
 
     // Fetch MPR report data
     const { data: apiResponse, isLoading: isLoadingReport, mutate } = useFrappeGetCall<MPRApiResponse>(
@@ -68,71 +103,103 @@ export default function MPRReportPage() {
 
     const isLoading = isLoadingReport || isLoadingDistricts || isLoadingComponents;
 
-    const reportData = apiResponse?.message || {};
+    const districtData = apiResponse?.message?.district_data || {};
+    const apiComponentTotals = apiResponse?.message?.component_totals || {};
 
-    // Get all districts from District Master
+    // Get all districts from the API response (not from District Master)
     const allDistricts = useMemo(() => {
-        return (districtDocs ?? [])
-            .map((doc: any) => doc?.name1)
-            .filter((name: string | undefined): name is string => Boolean(name))
-            .sort();
-    }, [districtDocs]);
+        return Object.keys(districtData).sort();
+    }, [districtData]);
 
-    // Get all components from Component doctype
-    const allComponents = useMemo(() => {
-        return (componentDocs ?? [])
-            .map((doc: any) => doc?.component_name)
-            .filter((name: string | undefined): name is string => Boolean(name))
-            .sort();
-    }, [componentDocs]);
+    // Get all components with their allocation info from the API response
+    const allComponents = useMemo((): ComponentInfo[] => {
+        const componentMap = new Map<string, ComponentInfo>();
 
-    // Calculate totals for each component
-    const componentTotals = useMemo(() => {
-        const totals: { [key: string]: { subsidy: number; beneficiary_share: number } } = {};
-
-        allComponents.forEach((component) => {
-            totals[component] = { subsidy: 0, beneficiary_share: 0 };
+        // Use component_totals to get component info
+        Object.entries(apiComponentTotals).forEach(([componentName, data]) => {
+            componentMap.set(componentName, {
+                name: componentName,
+                hasAllocation: data.for_component_allocation === 1,
+                isHgm: data.is_hgm === 1
+            });
         });
 
-        Object.values(reportData).forEach((districtData) => {
-            Object.entries(districtData).forEach(([componentName, data]) => {
-                if (totals[componentName]) {
-                    totals[componentName].subsidy += data.subsidy || 0;
-                    totals[componentName].beneficiary_share += data.beneficiary_share || 0;
-                }
-            });
+        return Array.from(componentMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+    }, [apiComponentTotals]);
+
+    // Filter components based on selection
+    const filteredComponents = useMemo((): ComponentInfo[] => {
+        if (selectedComponents.length === 0) {
+            return allComponents;
+        }
+        return allComponents.filter(c => selectedComponents.includes(c.name));
+    }, [allComponents, selectedComponents]);
+
+    // Handle component selection toggle
+    const toggleComponentSelection = (componentName: string) => {
+        setSelectedComponents(prev => {
+            if (prev.includes(componentName)) {
+                return prev.filter(c => c !== componentName);
+            } else {
+                return [...prev, componentName];
+            }
+        });
+    };
+
+    // Clear all component filters
+    const clearComponentFilters = () => {
+        setSelectedComponents([]);
+    };
+
+    // Get component totals from API (filtered by selected components)
+    const componentTotals = useMemo(() => {
+        const totals: {
+            [key: string]: ComponentTotalData;
+        } = {};
+
+        filteredComponents.forEach((component) => {
+            const apiTotal = apiComponentTotals[component.name];
+            if (apiTotal) {
+                totals[component.name] = apiTotal;
+            }
         });
 
         return totals;
-    }, [reportData, allComponents]);
+    }, [apiComponentTotals, filteredComponents]);
 
-    // Calculate grand totals
+    // Calculate grand totals from filtered component totals
     const grandTotals = useMemo(() => {
         let totalSubsidy = 0;
         let totalBeneficiaryShare = 0;
+        let totalAnimalCost = 0;
+        let totalCollarCost = 0;
+        let totalInsuranceCost = 0;
+        let totalTransportationCost = 0;
+        let totalAllocationSubsidy = 0;
+        let totalPhysicalAchievement = 0;
 
         Object.values(componentTotals).forEach((data) => {
-            totalSubsidy += data.subsidy;
-            totalBeneficiaryShare += data.beneficiary_share;
+            totalSubsidy += data.subsidy || 0;
+            totalBeneficiaryShare += data.beneficiary_share || 0;
+            totalAnimalCost += data.animal_cost || 0;
+            totalCollarCost += data.collar_cost || 0;
+            totalInsuranceCost += data.insurance_cost || 0;
+            totalTransportationCost += data.transportation_cost || 0;
+            totalAllocationSubsidy += data.total_allocation_subsidy || 0;
+            totalPhysicalAchievement += data.physical_achievement || 0;
         });
 
-        return { subsidy: totalSubsidy, beneficiary_share: totalBeneficiaryShare };
+        return {
+            subsidy: totalSubsidy,
+            beneficiary_share: totalBeneficiaryShare,
+            animal_cost: totalAnimalCost,
+            collar_cost: totalCollarCost,
+            insurance_cost: totalInsuranceCost,
+            transportation_cost: totalTransportationCost,
+            total_allocation_subsidy: totalAllocationSubsidy,
+            physical_achievement: totalPhysicalAchievement
+        };
     }, [componentTotals]);
-
-    // Calculate row totals for each district
-    const getDistrictTotals = (districtData: DistrictData | undefined) => {
-        let totalSubsidy = 0;
-        let totalBeneficiaryShare = 0;
-
-        if (districtData) {
-            Object.values(districtData).forEach((data) => {
-                totalSubsidy += data.subsidy || 0;
-                totalBeneficiaryShare += data.beneficiary_share || 0;
-            });
-        }
-
-        return { subsidy: totalSubsidy, beneficiary_share: totalBeneficiaryShare };
-    };
 
     // Format currency
     const formatCurrency = (amount: number) => {
@@ -145,6 +212,12 @@ export default function MPRReportPage() {
         }).format(amount);
     };
 
+    // Format number without currency
+    const formatNumber = (num: number) => {
+        if (num === 0) return "-";
+        return new Intl.NumberFormat('en-IN').format(num);
+    };
+
     // Export to Excel
     const handleExport = async () => {
         setIsExporting(true);
@@ -154,47 +227,92 @@ export default function MPRReportPage() {
         });
 
         try {
-            // Prepare data for Excel
-            const headers = ["Sr. No.", "District/Taluka"];
-            allComponents.forEach((component) => {
-                headers.push(`${component} - Subsidy`);
-                headers.push(`${component} - Beneficiary Share`);
+            // Prepare data for Excel - First row (component names)
+            const headers1 = ["Sr. No.", "District/Taluka"];
+            filteredComponents.forEach((component) => {
+                if (component.hasAllocation) {
+                    headers1.push(component.name, "", "", "", "", "", "");
+                } else {
+                    headers1.push(component.name, "");
+                }
             });
-            headers.push("Total Subsidy", "Total Beneficiary Share", "Grand Total");
+
+            // Second row (sub-headers)
+            const headers2 = ["", ""];
+            filteredComponents.forEach((component) => {
+                if (component.hasAllocation) {
+                    headers2.push(
+                        "Animal Cost",
+                        "Collar Cost",
+                        "Insurance Cost",
+                        "Transportation Cost",
+                        "Total",
+                        "Physical Achievement",
+                        "Beneficiary Share"
+                    );
+                } else {
+                    headers2.push("Subsidy", "Beneficiary Share");
+                }
+            });
 
             const rows: (string | number)[][] = [];
 
             allDistricts.forEach((district, index) => {
-                const districtData = reportData[district];
+                const districtInfo = districtData[district];
                 const row: (string | number)[] = [index + 1, district];
 
-                allComponents.forEach((component) => {
-                    const data = districtData[component] || { subsidy: 0, beneficiary_share: 0 };
-                    row.push(data.subsidy);
-                    row.push(data.beneficiary_share);
-                });
+                filteredComponents.forEach((component) => {
+                    const data = districtInfo?.[component.name] || {
+                        subsidy: 0,
+                        beneficiary_share: 0,
+                        animal_cost: 0,
+                        collar_cost: 0,
+                        insurance_cost: 0,
+                        transportation_cost: 0,
+                        total_allocation_subsidy: 0,
+                        physical_achievement: 0
+                    };
 
-                const districtTotals = getDistrictTotals(districtData);
-                row.push(districtTotals.subsidy);
-                row.push(districtTotals.beneficiary_share);
-                row.push(districtTotals.subsidy + districtTotals.beneficiary_share);
+                    if (component.hasAllocation) {
+                        row.push(
+                            data.animal_cost || 0,
+                            data.collar_cost || 0,
+                            data.insurance_cost || 0,
+                            data.transportation_cost || 0,
+                            data.total_allocation_subsidy || 0,
+                            data.physical_achievement || 0,
+                            data.beneficiary_share
+                        );
+                    } else {
+                        row.push(data.subsidy, data.beneficiary_share);
+                    }
+                });
 
                 rows.push(row);
             });
 
             // Add totals row
             const totalsRow: (string | number)[] = ["", "TOTAL"];
-            allComponents.forEach((component) => {
-                totalsRow.push(componentTotals[component].subsidy);
-                totalsRow.push(componentTotals[component].beneficiary_share);
+            filteredComponents.forEach((component) => {
+                const totals = componentTotals[component.name];
+                if (component.hasAllocation) {
+                    totalsRow.push(
+                        totals?.animal_cost || 0,
+                        totals?.collar_cost || 0,
+                        totals?.insurance_cost || 0,
+                        totals?.transportation_cost || 0,
+                        totals?.total_allocation_subsidy || 0,
+                        totals?.physical_achievement || 0,
+                        totals?.beneficiary_share || 0
+                    );
+                } else {
+                    totalsRow.push(totals?.subsidy || 0, totals?.beneficiary_share || 0);
+                }
             });
-            totalsRow.push(grandTotals.subsidy);
-            totalsRow.push(grandTotals.beneficiary_share);
-            totalsRow.push(grandTotals.subsidy + grandTotals.beneficiary_share);
             rows.push(totalsRow);
 
             // Create worksheet
-            const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+            const ws = XLSX.utils.aoa_to_sheet([headers1, headers2, ...rows]);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "MPR Report");
 
@@ -254,7 +372,7 @@ export default function MPRReportPage() {
     ];
 
     return (
-        <div className="p-6 space-y-6 print:p-0 overflow-scroll">
+        <div className="p-6 space-y-6 print:p-0 overflow-scroll w-full">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 print:hidden">
                 <div>
@@ -302,6 +420,49 @@ export default function MPRReportPage() {
                 </div>
             </div>
 
+            {/* Component Filter */}
+            <Card className="print:hidden">
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <Filter className="h-4 w-4" />
+                        Filter by Components
+                        {selectedComponents.length > 0 && (
+                            <Badge variant="secondary" className="ml-2">
+                                {selectedComponents.length} selected
+                            </Badge>
+                        )}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                    <div className="flex flex-wrap gap-2">
+                        {allComponents.map((component) => (
+                            <Badge
+                                key={component.name}
+                                variant={selectedComponents.includes(component.name) ? "default" : "outline"}
+                                className="cursor-pointer hover:bg-primary/80 transition-colors"
+                                onClick={() => toggleComponentSelection(component.name)}
+                            >
+                                {component.name}
+                                {component.hasAllocation && (
+                                    <span className="ml-1 text-[9px] opacity-70">●</span>
+                                )}
+                            </Badge>
+                        ))}
+                    </div>
+                    {selectedComponents.length > 0 && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="mt-3 text-muted-foreground"
+                            onClick={clearComponentFilters}
+                        >
+                            <X className="h-3 w-3 mr-1" />
+                            Clear filters
+                        </Button>
+                    )}
+                </CardContent>
+            </Card>
+
             {/* Print Header */}
             <div className="hidden print:block text-center mb-6">
                 <h1 className="text-xl font-bold">VIDARBHA MILK DEVELOPMENT PROJECT</h1>
@@ -338,6 +499,7 @@ export default function MPRReportPage() {
                         <div className="overflow-x-auto">
                             <Table className="text-xs">
                                 <TableHeader>
+                                    {/* First header row - Component names */}
                                     <TableRow className="bg-muted/50">
                                         <TableHead rowSpan={2} className="border text-center font-bold sticky left-0 bg-muted/50 z-10 min-w-[50px]">
                                             Sr. No.
@@ -345,41 +507,64 @@ export default function MPRReportPage() {
                                         <TableHead rowSpan={2} className="border text-center font-bold sticky left-[50px] bg-muted/50 z-10 min-w-[120px]">
                                             District/Taluka
                                         </TableHead>
-                                        {allComponents.map((component) => (
-                                            <TableHead key={component} colSpan={2} className="border text-center font-bold min-w-[180px]">
-                                                {component}
+                                        {filteredComponents.map((component) => (
+                                            <TableHead
+                                                key={component.name}
+                                                colSpan={component.hasAllocation ? 7 : 2}
+                                                className="border text-center font-bold min-w-[180px] bg-primary/5"
+                                            >
+                                                {component.name}
+                                                {component.hasAllocation && (
+                                                    <span className="ml-1 text-[9px] text-muted-foreground">
+                                                        {component.isHgm ? "(HGM)" : "(Allocation)"}
+                                                    </span>
+                                                )}
                                             </TableHead>
                                         ))}
-                                        <TableHead colSpan={3} className="border text-center font-bold bg-primary/10 min-w-[240px]">
-                                            Total
-                                        </TableHead>
                                     </TableRow>
+                                    {/* Second header row - Sub-columns */}
                                     <TableRow className="bg-muted/30">
-                                        {allComponents.map((component) => (
-                                            <>
-                                                <TableHead key={`${component}-subsidy`} className="border text-center text-[10px] min-w-[90px]">
-                                                    Subsidy (₹)
-                                                </TableHead>
-                                                <TableHead key={`${component}-beneficiary`} className="border text-center text-[10px] min-w-[90px]">
-                                                    Beneficiary Share (₹)
-                                                </TableHead>
-                                            </>
+                                        {filteredComponents.map((component) => (
+                                            component.hasAllocation ? (
+                                                <Fragment key={`header-${component.name}`}>
+                                                    <TableHead className="border text-center text-[9px] min-w-[80px] whitespace-nowrap">
+                                                        Animal Cost (₹)
+                                                    </TableHead>
+                                                    <TableHead className="border text-center text-[9px] min-w-[80px] whitespace-nowrap">
+                                                        Collar Cost (₹)
+                                                    </TableHead>
+                                                    <TableHead className="border text-center text-[9px] min-w-[80px] whitespace-nowrap">
+                                                        Insurance Cost (₹)
+                                                    </TableHead>
+                                                    <TableHead className="border text-center text-[9px] min-w-[80px] whitespace-nowrap">
+                                                        Transport Cost (₹)
+                                                    </TableHead>
+                                                    <TableHead className="border text-center text-[9px] min-w-[80px] whitespace-nowrap bg-green-50">
+                                                        Total (₹)
+                                                    </TableHead>
+                                                    <TableHead className="border text-center text-[9px] min-w-[60px] whitespace-nowrap">
+                                                        Physical Achievement
+                                                    </TableHead>
+                                                    <TableHead className="border text-center text-[9px] min-w-[90px] whitespace-nowrap bg-blue-50">
+                                                        Beneficiary Share (₹)
+                                                    </TableHead>
+                                                </Fragment>
+                                            ) : (
+                                                <Fragment key={`header-${component.name}`}>
+                                                    <TableHead className="border text-center text-[9px] min-w-[90px]">
+                                                        Subsidy (₹)
+                                                    </TableHead>
+                                                    <TableHead className="border text-center text-[9px] min-w-[90px]">
+                                                        Beneficiary Share (₹)
+                                                    </TableHead>
+                                                </Fragment>
+                                            )
                                         ))}
-                                        <TableHead className="border text-center text-[10px] bg-primary/10 min-w-[80px]">
-                                            Subsidy (₹)
-                                        </TableHead>
-                                        <TableHead className="border text-center text-[10px] bg-primary/10 min-w-[80px]">
-                                            Beneficiary Share (₹)
-                                        </TableHead>
-                                        <TableHead className="border text-center text-[10px] bg-primary/10 min-w-[80px]">
-                                            Grand Total (₹)
-                                        </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {allDistricts.map((district, index) => {
-                                        const districtData = reportData[district] || {};
-                                        const districtTotals = getDistrictTotals(districtData);
+                                        const districtInfo = districtData[district] || {};
 
                                         return (
                                             <TableRow key={district} className="hover:bg-muted/30">
@@ -389,28 +574,57 @@ export default function MPRReportPage() {
                                                 <TableCell className="border font-medium sticky left-[50px] bg-background z-10">
                                                     {district}
                                                 </TableCell>
-                                                {allComponents.map((component) => {
-                                                    const data = districtData[component] || { subsidy: 0, beneficiary_share: 0 };
-                                                    return (
-                                                        <>
-                                                            <TableCell key={`${district}-${component}-subsidy`} className="border text-right">
-                                                                {formatCurrency(data.subsidy)}
-                                                            </TableCell>
-                                                            <TableCell key={`${district}-${component}-beneficiary`} className="border text-right">
-                                                                {formatCurrency(data.beneficiary_share)}
-                                                            </TableCell>
-                                                        </>
-                                                    );
+                                                {filteredComponents.map((component) => {
+                                                    const data = districtInfo[component.name] || {
+                                                        subsidy: 0,
+                                                        beneficiary_share: 0,
+                                                        animal_cost: 0,
+                                                        collar_cost: 0,
+                                                        insurance_cost: 0,
+                                                        transportation_cost: 0,
+                                                        total_allocation_subsidy: 0,
+                                                        physical_achievement: 0
+                                                    };
+
+                                                    if (component.hasAllocation) {
+                                                        return (
+                                                            <Fragment key={`${district}-${component.name}`}>
+                                                                <TableCell className="border text-right">
+                                                                    {formatCurrency(data.animal_cost || 0)}
+                                                                </TableCell>
+                                                                <TableCell className="border text-right">
+                                                                    {formatCurrency(data.collar_cost || 0)}
+                                                                </TableCell>
+                                                                <TableCell className="border text-right">
+                                                                    {formatCurrency(data.insurance_cost || 0)}
+                                                                </TableCell>
+                                                                <TableCell className="border text-right">
+                                                                    {formatCurrency(data.transportation_cost || 0)}
+                                                                </TableCell>
+                                                                <TableCell className="border text-right font-semibold bg-green-50/50">
+                                                                    {formatCurrency(data.total_allocation_subsidy || 0)}
+                                                                </TableCell>
+                                                                <TableCell className="border text-center">
+                                                                    {formatNumber(data.physical_achievement || 0)}
+                                                                </TableCell>
+                                                                <TableCell className="border text-right bg-blue-50/50">
+                                                                    {formatCurrency(data.beneficiary_share)}
+                                                                </TableCell>
+                                                            </Fragment>
+                                                        );
+                                                    } else {
+                                                        return (
+                                                            <Fragment key={`${district}-${component.name}`}>
+                                                                <TableCell className="border text-right">
+                                                                    {formatCurrency(data.subsidy)}
+                                                                </TableCell>
+                                                                <TableCell className="border text-right">
+                                                                    {formatCurrency(data.beneficiary_share)}
+                                                                </TableCell>
+                                                            </Fragment>
+                                                        );
+                                                    }
                                                 })}
-                                                <TableCell className="border text-right font-semibold bg-primary/5">
-                                                    {formatCurrency(districtTotals.subsidy)}
-                                                </TableCell>
-                                                <TableCell className="border text-right font-semibold bg-primary/5">
-                                                    {formatCurrency(districtTotals.beneficiary_share)}
-                                                </TableCell>
-                                                <TableCell className="border text-right font-bold bg-primary/10">
-                                                    {formatCurrency(districtTotals.subsidy + districtTotals.beneficiary_share)}
-                                                </TableCell>
                                             </TableRow>
                                         );
                                     })}
@@ -418,30 +632,51 @@ export default function MPRReportPage() {
                                 <TableFooter>
                                     <TableRow className="bg-muted font-bold">
                                         <TableCell className="border text-center sticky left-0 bg-muted z-10" colSpan={1}>
-
                                         </TableCell>
                                         <TableCell className="border sticky left-[50px] bg-muted z-10">
                                             TOTAL
                                         </TableCell>
-                                        {allComponents.map((component) => (
-                                            <>
-                                                <TableCell key={`total-${component}-subsidy`} className="border text-right">
-                                                    {formatCurrency(componentTotals[component]?.subsidy || 0)}
-                                                </TableCell>
-                                                <TableCell key={`total-${component}-beneficiary`} className="border text-right">
-                                                    {formatCurrency(componentTotals[component]?.beneficiary_share || 0)}
-                                                </TableCell>
-                                            </>
-                                        ))}
-                                        <TableCell className="border text-right bg-primary/10">
-                                            {formatCurrency(grandTotals.subsidy)}
-                                        </TableCell>
-                                        <TableCell className="border text-right bg-primary/10">
-                                            {formatCurrency(grandTotals.beneficiary_share)}
-                                        </TableCell>
-                                        <TableCell className="border text-right bg-primary/20 text-base">
-                                            {formatCurrency(grandTotals.subsidy + grandTotals.beneficiary_share)}
-                                        </TableCell>
+                                        {filteredComponents.map((component) => {
+                                            const totals = componentTotals[component.name];
+                                            if (component.hasAllocation) {
+                                                return (
+                                                    <Fragment key={`total-${component.name}`}>
+                                                        <TableCell className="border text-right">
+                                                            {formatCurrency(totals?.animal_cost || 0)}
+                                                        </TableCell>
+                                                        <TableCell className="border text-right">
+                                                            {formatCurrency(totals?.collar_cost || 0)}
+                                                        </TableCell>
+                                                        <TableCell className="border text-right">
+                                                            {formatCurrency(totals?.insurance_cost || 0)}
+                                                        </TableCell>
+                                                        <TableCell className="border text-right">
+                                                            {formatCurrency(totals?.transportation_cost || 0)}
+                                                        </TableCell>
+                                                        <TableCell className="border text-right font-bold bg-green-50">
+                                                            {formatCurrency(totals?.total_allocation_subsidy || 0)}
+                                                        </TableCell>
+                                                        <TableCell className="border text-center">
+                                                            {formatNumber(totals?.physical_achievement || 0)}
+                                                        </TableCell>
+                                                        <TableCell className="border text-right bg-blue-50">
+                                                            {formatCurrency(totals?.beneficiary_share || 0)}
+                                                        </TableCell>
+                                                    </Fragment>
+                                                );
+                                            } else {
+                                                return (
+                                                    <Fragment key={`total-${component.name}`}>
+                                                        <TableCell className="border text-right">
+                                                            {formatCurrency(totals?.subsidy || 0)}
+                                                        </TableCell>
+                                                        <TableCell className="border text-right">
+                                                            {formatCurrency(totals?.beneficiary_share || 0)}
+                                                        </TableCell>
+                                                    </Fragment>
+                                                );
+                                            }
+                                        })}
                                     </TableRow>
                                 </TableFooter>
                             </Table>
@@ -452,7 +687,7 @@ export default function MPRReportPage() {
 
             {/* Summary Cards */}
             {!isLoading && allDistricts.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 print:hidden">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 print:hidden">
                     <Card>
                         <CardHeader className="pb-2">
                             <CardDescription>Total Districts</CardDescription>
@@ -461,15 +696,22 @@ export default function MPRReportPage() {
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Total Components</CardDescription>
-                            <CardTitle className="text-2xl">{allComponents.length}</CardTitle>
+                            <CardDescription>
+                                {selectedComponents.length > 0 ? "Filtered Components" : "Total Components"}
+                            </CardDescription>
+                            <CardTitle className="text-2xl">
+                                {filteredComponents.length}
+                                {selectedComponents.length > 0 && (
+                                    <span className="text-sm text-muted-foreground ml-1">/ {allComponents.length}</span>
+                                )}
+                            </CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Total Subsidy</CardDescription>
+                            <CardDescription>Total Allocation Subsidy</CardDescription>
                             <CardTitle className="text-2xl text-green-600">
-                                {formatCurrency(grandTotals.subsidy)}
+                                {formatCurrency(grandTotals.total_allocation_subsidy)}
                             </CardTitle>
                         </CardHeader>
                     </Card>
@@ -478,6 +720,38 @@ export default function MPRReportPage() {
                             <CardDescription>Total Beneficiary Share</CardDescription>
                             <CardTitle className="text-2xl text-blue-600">
                                 {formatCurrency(grandTotals.beneficiary_share)}
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Animal Cost</CardDescription>
+                            <CardTitle className="text-xl">
+                                {formatCurrency(grandTotals.animal_cost)}
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Insurance Cost</CardDescription>
+                            <CardTitle className="text-xl">
+                                {formatCurrency(grandTotals.insurance_cost)}
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Collar Cost</CardDescription>
+                            <CardTitle className="text-xl">
+                                {formatCurrency(grandTotals.collar_cost)}
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Physical Achievement</CardDescription>
+                            <CardTitle className="text-xl">
+                                {formatNumber(grandTotals.physical_achievement)}
                             </CardTitle>
                         </CardHeader>
                     </Card>

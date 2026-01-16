@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFrappeGetCall, useFrappeFileUpload, useFrappeCreateDoc, useFrappeGetDocList } from "frappe-react-sdk";
 import { use, useState, useRef } from 'react'
@@ -48,6 +49,8 @@ export default function ClaimForm({
         totalAmount: "",
         acknowledgement: false,
         component: component,
+        typeOfAnimal: "",
+        numberOfAnimalsBenefitted: "",
     });
     const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -137,6 +140,8 @@ export default function ClaimForm({
             totalAmount: "",
             acknowledgement: false,
             component: component,
+            typeOfAnimal: "",
+            numberOfAnimalsBenefitted: "",
         });
         setInvoiceFile(null);
         if (fileInputRef.current) {
@@ -157,7 +162,7 @@ export default function ClaimForm({
         }
 
         // Validate required fields
-        if (!formData.invoiceNumber || !formData.purchaseDate || !formData.quantity || !formData.totalAmount) {
+        if (!formData.invoiceNumber || !formData.purchaseDate || !formData.quantity || !formData.totalAmount || !formData.typeOfAnimal || !formData.numberOfAnimalsBenefitted) {
             toast({
                 title: "Missing Fields",
                 description: "Please fill all required fields.",
@@ -215,6 +220,8 @@ export default function ClaimForm({
                 purchase_date: formData.purchaseDate,
                 quantity: parseFloat(formData.quantity),
                 total_amount: parseFloat(formData.totalAmount),
+                type_of_animal: formData.typeOfAnimal,
+                number_of_animals_benefitted: parseInt(formData.numberOfAnimalsBenefitted),
             });
 
             toast({
@@ -524,6 +531,32 @@ export default function ClaimForm({
                                         value={formData.totalAmount}
                                         onChange={(e) => handleInputChange("totalAmount", e.target.value)}
                                         data-testid="input-total-amount"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Type of Animal *</Label>
+                                    <Select
+                                        value={formData.typeOfAnimal}
+                                        onValueChange={(value) => handleInputChange("typeOfAnimal", value)}
+                                    >
+                                        <SelectTrigger data-testid="select-type-of-animal">
+                                            <SelectValue placeholder="Select animal type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Cow">Cow</SelectItem>
+                                            <SelectItem value="Buffalo">Buffalo</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Number of Animals Benefitted *</Label>
+                                    <Input
+                                        type="number"
+                                        placeholder="Enter number of animals"
+                                        value={formData.numberOfAnimalsBenefitted}
+                                        onChange={(e) => handleInputChange("numberOfAnimalsBenefitted", e.target.value)}
+                                        min="1"
+                                        data-testid="input-number-of-animals"
                                     />
                                 </div>
                             </div>

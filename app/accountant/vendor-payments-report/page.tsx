@@ -22,6 +22,7 @@ import { useState } from "react";
 import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { FrappeCustomApiResponse } from "@/types";
 
+
 interface VendorPaymentReport {
     name: string;
     vendor: string;
@@ -49,7 +50,9 @@ export default function VendorPaymentsReport() {
         {
             limit_page_length: 1000,
             vendor_name: selectedVendor || undefined,
-            search_text: searchText || undefined
+            search_text: searchText || undefined,
+            start_date: startDate || undefined,
+            end_date: endDate || undefined
         },
         undefined,
         { revalidateOnFocus: false }
