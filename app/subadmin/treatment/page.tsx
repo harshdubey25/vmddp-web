@@ -90,7 +90,7 @@ export default function TreatmentPage() {
         "creation",
         "modified",
       ],
-      filters: assignedDistrict ? [["district", "=", assignedDistrict]] : [["name", "=", ""]],
+      filters: assignedDistrict ? [["district", "=", assignedDistrict]] : [],
       orderBy: {
         field: "creation",
         order: "desc",

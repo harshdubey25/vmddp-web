@@ -218,7 +218,7 @@ export default function DBTClaimsReport() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
+                            {/* <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
                                 <SelectTrigger className="w-full sm:w-36 text-xs sm:text-sm" data-testid="select-district">
                                     <SelectValue placeholder="District" />
                                 </SelectTrigger>
@@ -230,7 +230,7 @@ export default function DBTClaimsReport() {
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
-                            </Select>
+                            </Select> */}
                         </div>
 
                         {/* Table */}

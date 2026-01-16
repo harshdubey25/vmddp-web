@@ -28,7 +28,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Download, Search } from "lucide-react";
-import * as XLSX from "xlsx";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -317,15 +316,8 @@ export default function DDReportPage() {
                                                         </td>
                                                         <td className="p-3 text-xs sm:text-sm">
                                                             <div className="font-mono text-muted-foreground">
-                                                                {report.aadhar_number?.startsWith(
-                                                                    "http",
-                                                                )
-                                                                    ? "N/A"
-                                                                    : report.aadhar_number?.replace(
-                                                                          /(\d{4})(?=\d)/g,
-                                                                          "$1 ",
-                                                                      ) ||
-                                                                      "N/A"}
+                                                                {report.aadhar_number ||
+                                                                    "N/A"}
                                                             </div>
                                                         </td>
                                                         <td className="p-3 text-xs sm:text-sm">
@@ -456,7 +448,7 @@ export default function DDReportPage() {
                                                     }
                                                     className={
                                                         currentPage ===
-                                                        totalPages
+                                                            totalPages
                                                             ? "pointer-events-none opacity-50"
                                                             : "cursor-pointer"
                                                     }
