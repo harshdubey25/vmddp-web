@@ -12,9 +12,21 @@ import { FileText, Target, ArrowRight } from "lucide-react";
 
 const reports = [
     {
-        title: "MPR Report",
+        title: "Animal Induction MPR Report",
         description: "Monthly Progress Report - Track monthly progress and submissions",
-        href: "/accountant/mpr",
+        href: "/accountant/mpr/animal-induction",
+        icon: FileText,
+    },
+    {
+        title: "HGM (Pregnant Cow) MPR Report",
+        description: "Monthly Progress Report for High Genetic Merit Pregnant Heifers (IVF/ETT)",
+        href: "/accountant/mpr/hgm",
+        icon: FileText,
+    },
+    {
+        title: "DBT Claims MPR Report",
+        description: "Monthly Progress Report for DBT Claims components",
+        href: "/accountant/mpr/dbt-claims-mpr",
         icon: FileText,
     },
     {
