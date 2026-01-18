@@ -29,12 +29,12 @@ const reports = [
         href: "/accountant/mpr/dbt-claims-mpr",
         icon: FileText,
     },
-    {
-        title: "Target & Achievement",
-        description: "View physical and financial targets vs achievements",
-        href: "/accountant/target-achievement",
-        icon: Target,
-    },
+    // {
+    //     title: "Target & Achievement",
+    //     description: "View physical and financial targets vs achievements",
+    //     href: "/accountant/target-achievement",
+    //     icon: Target,
+    // },
 ];
 
 export default function ReportsPage() {
