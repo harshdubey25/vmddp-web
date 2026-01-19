@@ -297,7 +297,7 @@ export default function AnimalInductionMPRPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Link href="/accountant/mpr">
+                    <Link href="/accountant/reports">
                         <Button variant="ghost" size="icon">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
