@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
     Table,
     TableBody,
@@ -10,6 +10,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
+    TableFooter,
 } from "@/components/ui/table";
 import {
     Select,
@@ -18,250 +19,190 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-
-import { Target, TrendingUp, IndianRupee, BarChart3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Target, TrendingUp, IndianRupee, BarChart3, RefreshCw, Download } from "lucide-react";
+import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
+import { useToast } from "@/hooks/use-toast";
+import * as XLSX from "xlsx";
 
 // Types
-interface PhysicalData {
-    total: number;
-    [key: string]: number;
-}
-
-interface FinancialData {
-    beneficiaryShare: number;
+interface DistrictData {
+    physical_target: number;
+    financial_target: number;
+    physical_achievement: number;
+    beneficiary_share: number;
     subsidy: number;
-    total: number;
+    financial_achievement: number;
 }
 
-interface ComponentTargetData {
-    district: string;
-    componentId: string;
-    talukaCount: number;
-    villageCount: number;
-    physicalTarget: PhysicalData;
-    physicalAchievement: PhysicalData;
-    financialTarget: FinancialData;
-    financialAchievement: FinancialData;
+interface Totals {
+    total_physical_target: number;
+    total_financial_target: number;
+    total_physical_achievement: number;
+    total_beneficiary_share: number;
+    total_subsidy: number;
+    total_financial_achievement: number;
 }
 
-interface ComponentConfig {
+interface TargetAchievementResponse {
+    message: {
+        component: string;
+        is_hgm: number;
+        districts: {
+            [districtName: string]: DistrictData;
+        };
+        totals: Totals;
+    };
+}
+
+interface Component {
     name: string;
-    physicalLabel: string;
-    columns: string[];
-    isSingleCategory: boolean;
-    data: ComponentTargetData[];
 }
-
-// Dummy Data
-const dummyDistrictData: ComponentTargetData[] = [
-    {
-        district: "Indore",
-        componentId: "animal-induction",
-        talukaCount: 8,
-        villageCount: 245,
-        physicalTarget: { total: 500 },
-        physicalAchievement: { total: 320 },
-        financialTarget: { beneficiaryShare: 2500000, subsidy: 7500000, total: 10000000 },
-        financialAchievement: { beneficiaryShare: 1600000, subsidy: 4800000, total: 6400000 },
-    },
-    {
-        district: "Bhopal",
-        componentId: "animal-induction",
-        talukaCount: 6,
-        villageCount: 180,
-        physicalTarget: { total: 400 },
-        physicalAchievement: { total: 280 },
-        financialTarget: { beneficiaryShare: 2000000, subsidy: 6000000, total: 8000000 },
-        financialAchievement: { beneficiaryShare: 1400000, subsidy: 4200000, total: 5600000 },
-    },
-    {
-        district: "Jabalpur",
-        componentId: "animal-induction",
-        talukaCount: 7,
-        villageCount: 210,
-        physicalTarget: { total: 450 },
-        physicalAchievement: { total: 300 },
-        financialTarget: { beneficiaryShare: 2250000, subsidy: 6750000, total: 9000000 },
-        financialAchievement: { beneficiaryShare: 1500000, subsidy: 4500000, total: 6000000 },
-    },
-    {
-        district: "Gwalior",
-        componentId: "animal-induction",
-        talukaCount: 5,
-        villageCount: 150,
-        physicalTarget: { total: 350 },
-        physicalAchievement: { total: 220 },
-        financialTarget: { beneficiaryShare: 1750000, subsidy: 5250000, total: 7000000 },
-        financialAchievement: { beneficiaryShare: 1100000, subsidy: 3300000, total: 4400000 },
-    },
-];
-
-const dummyHGMData: ComponentTargetData[] = [
-    {
-        district: "Indore",
-        componentId: "hgm",
-        talukaCount: 8,
-        villageCount: 245,
-        physicalTarget: { total: 200 },
-        physicalAchievement: { total: 150 },
-        financialTarget: { beneficiaryShare: 1000000, subsidy: 3000000, total: 4000000 },
-        financialAchievement: { beneficiaryShare: 750000, subsidy: 2250000, total: 3000000 },
-    },
-    {
-        district: "Bhopal",
-        componentId: "hgm",
-        talukaCount: 6,
-        villageCount: 180,
-        physicalTarget: { total: 180 },
-        physicalAchievement: { total: 130 },
-        financialTarget: { beneficiaryShare: 900000, subsidy: 2700000, total: 3600000 },
-        financialAchievement: { beneficiaryShare: 650000, subsidy: 1950000, total: 2600000 },
-    },
-];
-
-const dummySingleCategoryData: ComponentTargetData[] = [
-    {
-        district: "Indore",
-        componentId: "fertility",
-        talukaCount: 8,
-        villageCount: 245,
-        physicalTarget: { total: 1000 },
-        physicalAchievement: { total: 750 },
-        financialTarget: { beneficiaryShare: 500000, subsidy: 1500000, total: 2000000 },
-        financialAchievement: { beneficiaryShare: 375000, subsidy: 1125000, total: 1500000 },
-    },
-    {
-        district: "Bhopal",
-        componentId: "fertility",
-        talukaCount: 6,
-        villageCount: 180,
-        physicalTarget: { total: 800 },
-        physicalAchievement: { total: 600 },
-        financialTarget: { beneficiaryShare: 400000, subsidy: 1200000, total: 1600000 },
-        financialAchievement: { beneficiaryShare: 300000, subsidy: 900000, total: 1200000 },
-    },
-    {
-        district: "Jabalpur",
-        componentId: "fertility",
-        talukaCount: 7,
-        villageCount: 210,
-        physicalTarget: { total: 900 },
-        physicalAchievement: { total: 650 },
-        financialTarget: { beneficiaryShare: 450000, subsidy: 1350000, total: 1800000 },
-        financialAchievement: { beneficiaryShare: 325000, subsidy: 975000, total: 1300000 },
-    },
-];
-
-const allComponentData: Record<string, ComponentConfig> = {
-    "animal-induction": {
-        name: "Animal Induction",
-        physicalLabel: "Animals",
-        columns: [],
-        isSingleCategory: true,
-        data: dummyDistrictData,
-    },
-    "hgm": {
-        name: "HGM (High Genetic Merit)",
-        physicalLabel: "Animals",
-        columns: [],
-        isSingleCategory: true,
-        data: dummyHGMData,
-    },
-    "fertility": {
-        name: "Fertility Feed",
-        physicalLabel: "Beneficiaries",
-        columns: [],
-        isSingleCategory: true,
-        data: dummySingleCategoryData,
-    },
-    "fatsnf": {
-        name: "Fat & SNF Feed",
-        physicalLabel: "Beneficiaries",
-        columns: [],
-        isSingleCategory: true,
-        data: dummySingleCategoryData.map(d => ({ ...d, componentId: "fatsnf" })),
-    },
-    "silage": {
-        name: "Silage Making Unit",
-        physicalLabel: "Units",
-        columns: [],
-        isSingleCategory: true,
-        data: dummySingleCategoryData.map(d => ({ ...d, componentId: "silage" })),
-    },
-    "chaffcutter": {
-        name: "Chaff Cutter",
-        physicalLabel: "Units",
-        columns: [],
-        isSingleCategory: true,
-        data: dummySingleCategoryData.map(d => ({ ...d, componentId: "chaffcutter" })),
-    },
-};
 
 export default function TargetAchievement() {
-    const [selectedDistrict, setSelectedDistrict] = useState<string>("all");
-    const [selectedComponent, setSelectedComponent] = useState<string>("animal-induction");
+    const { toast } = useToast();
+    const [selectedComponent, setSelectedComponent] = useState<string>("all");
+    const [isExporting, setIsExporting] = useState(false);
 
-    const currentComponent = allComponentData[selectedComponent];
+    // Fetch components list
+    const { data: componentsData } = useFrappeGetDocList<Component>("Component", {
+        fields: ["name"],
+        filters: [["subadmin_component", "=", 0]],
+        orderBy: { field: "name", order: "asc" },
+    });
 
+    const components = componentsData || [];
 
-
-
-
-    const filteredData =
-        selectedDistrict === "all"
-            ? currentComponent.data
-            : currentComponent.data.filter((d) => d.district === selectedDistrict);
-
-    const districts = Array.from(
-        new Set(currentComponent.data.map((d) => d.district))
+    // Fetch target and achievement data
+    const { data: apiResponse, isLoading, mutate } = useFrappeGetCall<TargetAchievementResponse>(
+        'vmddp_app.api.v1.accountant.target_and_achievement',
+        selectedComponent !== "all" ? { component: selectedComponent } : {},
+        undefined,
+        { revalidateOnFocus: false }
     );
 
+    const reportData = apiResponse?.message || {
+        component: "",
+        is_hgm: 0,
+        districts: {},
+        totals: {
+            total_physical_target: 0,
+            total_financial_target: 0,
+            total_physical_achievement: 0,
+            total_beneficiary_share: 0,
+            total_subsidy: 0,
+            total_financial_achievement: 0,
+        }
+    };
+
+    // Extract district data
+    const districtData = useMemo(() => {
+        const districts: { name: string; data: DistrictData }[] = [];
+        if (reportData.districts) {
+            Object.entries(reportData.districts).forEach(([key, value]) => {
+                districts.push({ name: key, data: value });
+            });
+        }
+        return districts.sort((a, b) => a.name.localeCompare(b.name));
+    }, [reportData]);
+
+    const totals = reportData.totals;
+
     const formatCurrency = (amount: number) => {
+        if (amount === 0) return "₹0";
         if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(2)} Cr`;
         if (amount >= 100000) return `₹${(amount / 100000).toFixed(2)} L`;
-        return `₹${amount.toLocaleString("en-IN")}`;
+        return `₹${new Intl.NumberFormat('en-IN').format(amount)}`;
     };
 
     const getPercentage = (achieved: number, target: number) => {
-        if (target === 0) return 0;
-        return Math.round((achieved / target) * 100);
+        if (target === 0) return achieved > 0 ? 100 : 0;
+        return Math.min(Math.round((achieved / target) * 100), 100);
     };
 
-    const calculateTotals = (data: ComponentTargetData[]) => {
-        return data.reduce(
-            (acc, d) => ({
-                physicalTarget: acc.physicalTarget + d.physicalTarget.total,
-                physicalAchievement: acc.physicalAchievement + d.physicalAchievement.total,
-                financialTarget: acc.financialTarget + d.financialTarget.total,
-                financialAchievement: acc.financialAchievement + d.financialAchievement.total,
-            }),
-            {
-                physicalTarget: 0,
-                physicalAchievement: 0,
-                financialTarget: 0,
-                financialAchievement: 0,
-            }
-        );
+    const handleRefresh = () => {
+        mutate();
+        toast({
+            title: "Refreshing",
+            description: "Fetching latest data...",
+        });
     };
 
-    const totals = calculateTotals(filteredData);
+    const handleExport = async () => {
+        setIsExporting(true);
+        toast({
+            title: "Export started",
+            description: "Generating report...",
+        });
 
-    const getPhysicalValue = (data: ComponentTargetData, key: string, isAchievement: boolean) => {
-        if (isAchievement) {
-            return data.physicalAchievement[key] || 0;
+        try {
+            const headers = [
+                "Sr. No.",
+                "District",
+                "Physical Target",
+                "Physical Achievement",
+                "Financial Target (Rs.)",
+                "Beneficiary Share (Rs.)",
+                "Subsidy (Rs.)",
+                "Financial Achievement (Rs.)",
+            ];
+
+            const rows: (string | number)[][] = [];
+
+            districtData.forEach(({ name, data }, index) => {
+                rows.push([
+                    index + 1,
+                    name,
+                    data.physical_target,
+                    data.physical_achievement,
+                    data.financial_target,
+                    data.beneficiary_share,
+                    data.subsidy,
+                    data.financial_achievement,
+                ]);
+            });
+
+            // Total row
+            rows.push([
+                "",
+                "TOTAL",
+                totals.total_physical_target,
+                totals.total_physical_achievement,
+                totals.total_financial_target,
+                totals.total_beneficiary_share,
+                totals.total_subsidy,
+                totals.total_financial_achievement,
+            ]);
+
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Target & Achievement");
+
+            const componentName = selectedComponent === "all" ? "All_Components" : selectedComponent.replace(/\s+/g, '_');
+            XLSX.writeFile(wb, `Target_Achievement_${componentName}.xlsx`);
+
+            toast({
+                title: "Export completed",
+                description: "Report downloaded successfully.",
+            });
+        } catch (error) {
+            console.error('Export error:', error);
+            toast({
+                title: "Export failed",
+                description: "Failed to generate report. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsExporting(false);
         }
-        return data.physicalTarget[key] || 0;
     };
 
     return (
         <div className="min-h-screen bg-background overflow-y-scroll">
-
-
             <main className="overflow-auto min-h-screen">
                 <div className="p-6 space-y-6">
-                    <div className="flex items-center justify-between flex-wrap gap-4">
+                    {/* Header */}
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
                             <h1 className="text-2xl font-display font-bold" data-testid="heading-target-achievement">
                                 Target & Achievement
@@ -270,19 +211,28 @@ export default function TargetAchievement() {
                                 Track physical and financial targets across all components
                             </p>
                         </div>
-                        <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
-                            <SelectTrigger className="w-48" data-testid="select-district-filter">
-                                <SelectValue placeholder="Select District" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Districts</SelectItem>
-                                {districts.map((d) => (
-                                    <SelectItem key={d} value={d}>
-                                        {d}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Select value={selectedComponent} onValueChange={setSelectedComponent}>
+                                <SelectTrigger className="w-[200px]" data-testid="select-component-filter">
+                                    <SelectValue placeholder="Select Component" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Components</SelectItem>
+                                    {components.map((c) => (
+                                        <SelectItem key={c.name} value={c.name}>
+                                            {c.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button variant="outline" size="icon" onClick={handleRefresh}>
+                                <RefreshCw className="h-4 w-4" />
+                            </Button>
+                            <Button onClick={handleExport} disabled={isExporting || isLoading}>
+                                <Download className="h-4 w-4 mr-2" />
+                                {isExporting ? "Exporting..." : "Export Excel"}
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Summary Cards */}
@@ -293,8 +243,14 @@ export default function TargetAchievement() {
                                 <Target className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{totals.physicalTarget.toLocaleString()}</div>
-                                <p className="text-xs text-muted-foreground">Total target</p>
+                                {isLoading ? (
+                                    <Skeleton className="h-8 w-24" />
+                                ) : (
+                                    <>
+                                        <div className="text-2xl font-bold">{totals.total_physical_target.toLocaleString()}</div>
+                                        <p className="text-xs text-muted-foreground">Total target</p>
+                                    </>
+                                )}
                             </CardContent>
                         </Card>
 
@@ -304,16 +260,22 @@ export default function TargetAchievement() {
                                 <TrendingUp className="h-4 w-4 text-primary" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold text-primary">
-                                    {totals.physicalAchievement.toLocaleString()}
-                                </div>
-                                <Progress
-                                    value={getPercentage(totals.physicalAchievement, totals.physicalTarget)}
-                                    className="mt-2"
-                                />
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    {getPercentage(totals.physicalAchievement, totals.physicalTarget)}% achieved
-                                </p>
+                                {isLoading ? (
+                                    <Skeleton className="h-8 w-24" />
+                                ) : (
+                                    <>
+                                        <div className="text-2xl font-bold text-primary">
+                                            {totals.total_physical_achievement.toLocaleString()}
+                                        </div>
+                                        <Progress
+                                            value={getPercentage(totals.total_physical_achievement, totals.total_physical_target)}
+                                            className="mt-2"
+                                        />
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            {getPercentage(totals.total_physical_achievement, totals.total_physical_target)}% achieved
+                                        </p>
+                                    </>
+                                )}
                             </CardContent>
                         </Card>
 
@@ -323,8 +285,14 @@ export default function TargetAchievement() {
                                 <IndianRupee className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{formatCurrency(totals.financialTarget)}</div>
-                                <p className="text-xs text-muted-foreground">Total budget allocation</p>
+                                {isLoading ? (
+                                    <Skeleton className="h-8 w-24" />
+                                ) : (
+                                    <>
+                                        <div className="text-2xl font-bold">{formatCurrency(totals.total_financial_target)}</div>
+                                        <p className="text-xs text-muted-foreground">Total budget allocation</p>
+                                    </>
+                                )}
                             </CardContent>
                         </Card>
 
@@ -334,267 +302,119 @@ export default function TargetAchievement() {
                                 <BarChart3 className="h-4 w-4 text-primary" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold text-primary">
-                                    {formatCurrency(totals.financialAchievement)}
-                                </div>
-                                <Progress
-                                    value={getPercentage(totals.financialAchievement, totals.financialTarget)}
-                                    className="mt-2"
-                                />
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    {getPercentage(totals.financialAchievement, totals.financialTarget)}% achieved
-                                </p>
+                                {isLoading ? (
+                                    <Skeleton className="h-8 w-24" />
+                                ) : (
+                                    <>
+                                        <div className="text-2xl font-bold text-primary">
+                                            {formatCurrency(totals.total_financial_achievement)}
+                                        </div>
+                                        <Progress
+                                            value={getPercentage(totals.total_financial_achievement, totals.total_financial_target)}
+                                            className="mt-2"
+                                        />
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            {getPercentage(totals.total_financial_achievement, totals.total_financial_target)}% achieved
+                                        </p>
+                                    </>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
 
-                    {/* Component Tabs */}
-                    <Tabs value={selectedComponent} onValueChange={setSelectedComponent} className="w-full">
-                        <TabsList className="grid w-full grid-cols-6" data-testid="tabs-component-selector">
-                            <TabsTrigger value="animal-induction" data-testid="tab-animal-induction">Animal Induction</TabsTrigger>
-                            <TabsTrigger value="hgm" data-testid="tab-hgm">HGM</TabsTrigger>
-                            <TabsTrigger value="fertility" data-testid="tab-fertility">Fertility Feed</TabsTrigger>
-                            <TabsTrigger value="fatsnf" data-testid="tab-fatsnf">Fat & SNF</TabsTrigger>
-                            <TabsTrigger value="silage" data-testid="tab-silage">Silage</TabsTrigger>
-                            <TabsTrigger value="chaffcutter" data-testid="tab-chaffcutter">Chaff Cutter</TabsTrigger>
-                        </TabsList>
-
-                        {Object.entries(allComponentData).map(([key, component]) => (
-                            <TabsContent key={key} value={key} className="space-y-4">
-                                {/* Component-Specific Table */}
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>{component.name} - Target & Achievement</CardTitle>
-                                        <CardDescription>
-                                            District-wise targets and achievements for {component.name}
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="rounded-md border overflow-x-auto">
-                                            <Table>
-                                                <TableHeader>
-                                                    {component.isSingleCategory ? (
-                                                        <TableRow>
-                                                            <TableHead className="align-bottom">District</TableHead>
-                                                            <TableHead className="text-center align-bottom border-l">Talukas</TableHead>
-                                                            <TableHead className="text-center align-bottom border-l">Villages</TableHead>
-                                                            <TableHead className="text-center align-bottom border-l bg-blue-50 dark:bg-blue-950/30">
-                                                                Target ({component.physicalLabel})
-                                                            </TableHead>
-                                                            <TableHead className="text-center align-bottom border-l bg-green-50 dark:bg-green-950/30">
-                                                                Achievement ({component.physicalLabel})
-                                                            </TableHead>
-                                                            <TableHead className="text-center border-l bg-orange-50 dark:bg-orange-950/30 text-xs">Ben. Share</TableHead>
-                                                            <TableHead className="text-center bg-orange-50 dark:bg-orange-950/30 text-xs">Subsidy</TableHead>
-                                                            <TableHead className="text-center bg-orange-50 dark:bg-orange-950/30 text-xs">Total (Target)</TableHead>
-                                                            <TableHead className="text-center border-l bg-purple-50 dark:bg-purple-950/30 text-xs">Ben. Share</TableHead>
-                                                            <TableHead className="text-center bg-purple-50 dark:bg-purple-950/30 text-xs">Subsidy</TableHead>
-                                                            <TableHead className="text-center bg-purple-50 dark:bg-purple-950/30 text-xs">Total (Ach.)</TableHead>
-                                                            <TableHead className="text-center bg-purple-50 dark:bg-purple-950/30 text-xs">Balance</TableHead>
-                                                        </TableRow>
-                                                    ) : (
-                                                        <>
-                                                            <TableRow>
-                                                                <TableHead rowSpan={2} className="align-bottom">District</TableHead>
-                                                                <TableHead rowSpan={2} className="text-center align-bottom border-l">Talukas</TableHead>
-                                                                <TableHead rowSpan={2} className="text-center align-bottom border-l">Villages</TableHead>
-                                                                <TableHead colSpan={component.columns.length + 1} className="text-center border-l bg-blue-50 dark:bg-blue-950/30">
-                                                                    Target – Physical ({component.physicalLabel})
-                                                                </TableHead>
-                                                                <TableHead colSpan={component.columns.length + 1} className="text-center border-l bg-green-50 dark:bg-green-950/30">
-                                                                    Achievement – Physical ({component.physicalLabel})
-                                                                </TableHead>
-                                                                <TableHead colSpan={3} className="text-center border-l bg-orange-50 dark:bg-orange-950/30">
-                                                                    Target – Financial
-                                                                </TableHead>
-                                                                <TableHead colSpan={4} className="text-center border-l bg-purple-50 dark:bg-purple-950/30">
-                                                                    Achievement – Financial
-                                                                </TableHead>
-                                                            </TableRow>
-                                                            <TableRow>
-                                                                {component.columns.map((col) => (
-                                                                    <TableHead key={`target-${col}`} className="text-center border-l text-xs">
-                                                                        {col}
-                                                                    </TableHead>
-                                                                ))}
-                                                                <TableHead className="text-center border-l text-xs font-bold">Total</TableHead>
-                                                                {component.columns.map((col) => (
-                                                                    <TableHead key={`achieve-${col}`} className="text-center border-l text-xs">
-                                                                        {col}
-                                                                    </TableHead>
-                                                                ))}
-                                                                <TableHead className="text-center border-l text-xs font-bold">Total</TableHead>
-                                                                <TableHead className="text-center border-l text-xs">Ben. Share</TableHead>
-                                                                <TableHead className="text-center text-xs">Subsidy</TableHead>
-                                                                <TableHead className="text-center text-xs">Total</TableHead>
-                                                                <TableHead className="text-center border-l text-xs">Ben. Share</TableHead>
-                                                                <TableHead className="text-center text-xs">Subsidy</TableHead>
-                                                                <TableHead className="text-center text-xs">Total</TableHead>
-                                                                <TableHead className="text-center text-xs">Balance</TableHead>
-                                                            </TableRow>
-                                                        </>
-                                                    )}
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {filteredData.map((row) => {
-                                                        const balance = row.financialTarget.total - row.financialAchievement.total;
-                                                        return (
-                                                            <TableRow key={`${row.district}-${row.componentId}`} data-testid={`row-${key}-${row.district}`}>
-                                                                <TableCell className="font-medium">{row.district}</TableCell>
-                                                                <TableCell className="text-center border-l text-sm">
-                                                                    {row.talukaCount}
-                                                                </TableCell>
-                                                                <TableCell className="text-center border-l text-sm">
-                                                                    {row.villageCount.toLocaleString()}
-                                                                </TableCell>
-                                                                {component.isSingleCategory ? (
-                                                                    <>
-                                                                        <TableCell className="text-center border-l font-semibold text-sm">
-                                                                            {row.physicalTarget.total}
-                                                                        </TableCell>
-                                                                        <TableCell className="text-center border-l text-green-600 font-bold text-sm">
-                                                                            {row.physicalAchievement.total}
-                                                                        </TableCell>
-                                                                    </>
-                                                                ) : (
-                                                                    <>
-                                                                        {component.columns.map((col) => {
-                                                                            const colKey = col.toLowerCase();
-                                                                            return (
-                                                                                <TableCell key={`target-${col}`} className="text-center border-l text-sm">
-                                                                                    {getPhysicalValue(row, colKey, false)}
-                                                                                </TableCell>
-                                                                            );
-                                                                        })}
-                                                                        <TableCell className="text-center border-l font-semibold text-sm">
-                                                                            {row.physicalTarget.total}
-                                                                        </TableCell>
-                                                                        {component.columns.map((col) => {
-                                                                            const colKey = col.toLowerCase();
-                                                                            return (
-                                                                                <TableCell key={`achieve-${col}`} className="text-center border-l text-green-600 font-medium text-sm">
-                                                                                    {getPhysicalValue(row, colKey, true)}
-                                                                                </TableCell>
-                                                                            );
-                                                                        })}
-                                                                        <TableCell className="text-center border-l text-green-600 font-bold text-sm">
-                                                                            {row.physicalAchievement.total}
-                                                                        </TableCell>
-                                                                    </>
-                                                                )}
-                                                                <TableCell className="text-center border-l text-xs">
-                                                                    {formatCurrency(row.financialTarget.beneficiaryShare)}
-                                                                </TableCell>
-                                                                <TableCell className="text-center text-xs">
-                                                                    {formatCurrency(row.financialTarget.subsidy)}
-                                                                </TableCell>
-                                                                <TableCell className="text-center text-xs font-semibold">
-                                                                    {formatCurrency(row.financialTarget.total)}
-                                                                </TableCell>
-                                                                <TableCell className="text-center border-l text-xs text-purple-600 font-medium">
-                                                                    {formatCurrency(row.financialAchievement.beneficiaryShare)}
-                                                                </TableCell>
-                                                                <TableCell className="text-center text-xs text-purple-600 font-medium">
-                                                                    {formatCurrency(row.financialAchievement.subsidy)}
-                                                                </TableCell>
-                                                                <TableCell className="text-center text-xs text-purple-600 font-bold">
-                                                                    {formatCurrency(row.financialAchievement.total)}
-                                                                </TableCell>
-                                                                <TableCell className="text-center text-xs text-muted-foreground">
-                                                                    {formatCurrency(balance)}
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        );
-                                                    })}
-                                                    <TableRow className="bg-muted/50 font-bold">
-                                                        <TableCell>Total</TableCell>
-                                                        <TableCell className="text-center border-l">
-                                                            {filteredData.reduce((sum, d) => sum + d.talukaCount, 0)}
+                    {/* Data Table */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>
+                                {selectedComponent === "all" ? "All Components" : reportData.component} - Target & Achievement
+                            </CardTitle>
+                            <CardDescription>
+                                District-wise physical and financial targets and achievements
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {isLoading ? (
+                                <div className="space-y-3">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Skeleton key={i} className="h-12 w-full" />
+                                    ))}
+                                </div>
+                            ) : districtData.length === 0 ? (
+                                <div className="text-center py-10 text-muted-foreground">
+                                    No data available for the selected component.
+                                </div>
+                            ) : (
+                                <div className="rounded-md border overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="text-center w-[60px]">Sr. No.</TableHead>
+                                                <TableHead className="min-w-[150px]">District</TableHead>
+                                                <TableHead className="text-center bg-blue-50 dark:bg-blue-950/30">Physical Target</TableHead>
+                                                <TableHead className="text-center bg-green-50 dark:bg-green-950/30">Physical Achievement</TableHead>
+                                                <TableHead className="text-right bg-orange-50 dark:bg-orange-950/30">Financial Target</TableHead>
+                                                <TableHead className="text-right bg-purple-50 dark:bg-purple-950/30">Beneficiary Share</TableHead>
+                                                <TableHead className="text-right bg-purple-50 dark:bg-purple-950/30">Subsidy</TableHead>
+                                                <TableHead className="text-right bg-purple-50 dark:bg-purple-950/30">Financial Achievement</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {districtData.map(({ name, data }, index) => {
+                                                return (
+                                                    <TableRow key={name}>
+                                                        <TableCell className="text-center">{index + 1}</TableCell>
+                                                        <TableCell className="font-medium">{name}</TableCell>
+                                                        <TableCell className="text-center bg-blue-50/50 dark:bg-blue-950/20">
+                                                            {data.physical_target.toLocaleString()}
                                                         </TableCell>
-                                                        <TableCell className="text-center border-l">
-                                                            {filteredData.reduce((sum, d) => sum + d.villageCount, 0).toLocaleString()}
+                                                        <TableCell className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold">
+                                                            {data.physical_achievement.toLocaleString()}
                                                         </TableCell>
-                                                        {component.isSingleCategory ? (
-                                                            <>
-                                                                <TableCell className="text-center border-l">
-                                                                    {totals.physicalTarget}
-                                                                </TableCell>
-                                                                <TableCell className="text-center border-l text-green-600">
-                                                                    {totals.physicalAchievement}
-                                                                </TableCell>
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                {component.columns.map((col) => {
-                                                                    const colKey = col.toLowerCase();
-                                                                    let colTotal = 0;
-                                                                    filteredData.forEach((d) => {
-                                                                        colTotal += getPhysicalValue(d, colKey, false);
-                                                                    });
-                                                                    return (
-                                                                        <TableCell key={`total-target-${col}`} className="text-center border-l">
-                                                                            {colTotal}
-                                                                        </TableCell>
-                                                                    );
-                                                                })}
-                                                                <TableCell className="text-center border-l">
-                                                                    {totals.physicalTarget}
-                                                                </TableCell>
-                                                                {component.columns.map((col) => {
-                                                                    const colKey = col.toLowerCase();
-                                                                    let colTotal = 0;
-                                                                    filteredData.forEach((d) => {
-                                                                        colTotal += getPhysicalValue(d, colKey, true);
-                                                                    });
-                                                                    return (
-                                                                        <TableCell key={`total-achieve-${col}`} className="text-center border-l text-green-600">
-                                                                            {colTotal}
-                                                                        </TableCell>
-                                                                    );
-                                                                })}
-                                                                <TableCell className="text-center border-l text-green-600">
-                                                                    {totals.physicalAchievement}
-                                                                </TableCell>
-                                                            </>
-                                                        )}
-                                                        <TableCell className="text-center border-l text-xs">
-                                                            {formatCurrency(
-                                                                filteredData.reduce((sum, d) => sum + d.financialTarget.beneficiaryShare, 0)
-                                                            )}
+                                                        <TableCell className="text-right bg-orange-50/50 dark:bg-orange-950/20">
+                                                            {formatCurrency(data.financial_target)}
                                                         </TableCell>
-                                                        <TableCell className="text-center text-xs">
-                                                            {formatCurrency(
-                                                                filteredData.reduce((sum, d) => sum + d.financialTarget.subsidy, 0)
-                                                            )}
+                                                        <TableCell className="text-right bg-purple-50/50 dark:bg-purple-950/20">
+                                                            {formatCurrency(data.beneficiary_share)}
                                                         </TableCell>
-                                                        <TableCell className="text-center text-xs">
-                                                            {formatCurrency(totals.financialTarget)}
+                                                        <TableCell className="text-right bg-purple-50/50 dark:bg-purple-950/20">
+                                                            {formatCurrency(data.subsidy)}
                                                         </TableCell>
-                                                        <TableCell className="text-center border-l text-xs text-purple-600">
-                                                            {formatCurrency(
-                                                                filteredData.reduce((sum, d) => sum + d.financialAchievement.beneficiaryShare, 0)
-                                                            )}
-                                                        </TableCell>
-                                                        <TableCell className="text-center text-xs text-purple-600">
-                                                            {formatCurrency(
-                                                                filteredData.reduce((sum, d) => sum + d.financialAchievement.subsidy, 0)
-                                                            )}
-                                                        </TableCell>
-                                                        <TableCell className="text-center text-xs text-purple-600">
-                                                            {formatCurrency(totals.financialAchievement)}
-                                                        </TableCell>
-                                                        <TableCell className="text-center text-xs text-muted-foreground">
-                                                            {formatCurrency(totals.financialTarget - totals.financialAchievement)}
+                                                        <TableCell className="text-right bg-purple-50/50 dark:bg-purple-950/20 text-purple-600 font-semibold">
+                                                            {formatCurrency(data.financial_achievement)}
                                                         </TableCell>
                                                     </TableRow>
-                                                </TableBody>
-                                            </Table>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </TabsContent>
-                        ))}
-                    </Tabs>
+                                                );
+                                            })}
+                                        </TableBody>
+                                        <TableFooter>
+                                            <TableRow className="bg-muted font-bold">
+                                                <TableCell></TableCell>
+                                                <TableCell>TOTAL</TableCell>
+                                                <TableCell className="text-center">
+                                                    {totals.total_physical_target.toLocaleString()}
+                                                </TableCell>
+                                                <TableCell className="text-center text-green-600">
+                                                    {totals.total_physical_achievement.toLocaleString()}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {formatCurrency(totals.total_financial_target)}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {formatCurrency(totals.total_beneficiary_share)}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {formatCurrency(totals.total_subsidy)}
+                                                </TableCell>
+                                                <TableCell className="text-right text-purple-600">
+                                                    {formatCurrency(totals.total_financial_achievement)}
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableFooter>
+                                    </Table>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
 
                     {/* Info Note */}
                     <Card className="bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">

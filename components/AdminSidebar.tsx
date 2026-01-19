@@ -20,7 +20,8 @@ import {
   Stethoscope,
   FileCheck,
   Building2,
-  RefreshCcw
+  RefreshCcw,
+  Target
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -69,7 +70,7 @@ const subAdminMenuItems: MenuItem[] = [
   { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/subadmin/treatment" }
 ]
 const accountantMenuItems: MenuItem[] = [
-  { icon: BarChart3, label: "Reports", path: "/accountant/reports" },
+  { icon: Target, label: "Target and Achievement", path: "/accountant/target-achievement" },
   { icon: FileText, label: "DD Allocation", path: "/accountant/dd" },
   { icon: BarChart3, label: "DD Reports", path: "/accountant/dd-report" },
   { icon: Package, label: "Component Allocation", path: "/accountant/component-allocation" },
@@ -97,7 +98,8 @@ const accountantMenuItems: MenuItem[] = [
     path: "/accountant/refunds",
 
   },
-  { icon: TargetIcon, label: "Admin Expenses", path: "/accountant/admin-expenses" }
+  { icon: TargetIcon, label: "Admin Expenses", path: "/accountant/admin-expenses" },
+  { icon: BarChart3, label: "Reports", path: "/accountant/reports" },
 ]
 // { icon: LayoutDashboard, label: "Dashboard", path: "/accountant" },
 // { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },;
