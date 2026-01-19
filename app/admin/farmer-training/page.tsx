@@ -9,6 +9,14 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Download, GraduationCap, Upload, Search, FileText, Loader2 } from "lucide-react";
 import { Application } from "@/types/subadmin";
 
@@ -22,6 +30,8 @@ export default function FarmerTraining() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
 
   const { data: applications, isLoading, error } = useFrappeGetDocList<Application>("Farmer Training Application", {
     fields: [
@@ -46,7 +56,6 @@ export default function FarmerTraining() {
       field: "creation",
       order: "desc"
     },
-    limit: 1000,
   });
 
   const filteredApplications = (applications || []).filter((app) => {
@@ -56,6 +65,12 @@ export default function FarmerTraining() {
     const matchesStatus = statusFilter === "all" || app.docstatus.toString() === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const totalRecords = filteredApplications.length;
+  const totalPages = Math.ceil(totalRecords / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedApplications = filteredApplications.slice(startIndex, endIndex);
 
 
 
@@ -184,12 +199,19 @@ export default function FarmerTraining() {
                     <Input
                       placeholder="Search by ID or event name..."
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setCurrentPage(1);
+                      }}
                       className="pl-10"
                       data-testid="input-search"
                     />
                   </div>
                 </div>
+
+                <p className="text-sm text-muted-foreground">
+                  {totalRecords} applications found • Page {currentPage} of {totalPages || 1}
+                </p>
 
                 {isLoading ? (
                   <div className="flex items-center justify-center py-12">
@@ -209,6 +231,7 @@ export default function FarmerTraining() {
                       <table className="w-full">
                         <thead className="bg-muted/50 border-b">
                           <tr>
+                            <th className="text-left p-3 text-sm font-medium">#</th>
                             <th className="text-left p-3 text-sm font-medium">Application ID</th>
                             <th className="text-left p-3 text-sm font-medium">Event Name</th>
                             <th className="text-left p-3 text-sm font-medium">Date</th>
@@ -219,8 +242,9 @@ export default function FarmerTraining() {
                           </tr>
                         </thead>
                         <tbody>
-                          {filteredApplications.map((app) => (
+                          {paginatedApplications.map((app, idx) => (
                             <tr key={app.name} className="border-b hover:bg-muted/30">
+                              <td className="p-3 text-sm text-muted-foreground">{startIndex + idx + 1}</td>
                               <td className="p-3 text-sm font-mono">{app.name}</td>
                               <td className="p-3 text-sm">{app.event_name}</td>
                               <td className="p-3 text-sm">{new Date(app.event_date).toLocaleDateString()}</td>
@@ -243,6 +267,55 @@ export default function FarmerTraining() {
                         </tbody>
                       </table>
                     </div>
+                  </div>
+                )
+                }
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center mt-4 pt-4 border-t">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+
+                          return (
+                            <PaginationItem key={pageNum}>
+                              <PaginationLink
+                                onClick={() => setCurrentPage(pageNum)}
+                                isActive={currentPage === pageNum}
+                                className="cursor-pointer"
+                              >
+                                {pageNum}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        })}
+
+                        <PaginationItem>
+                          <PaginationNext
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
                   </div>
                 )}
               </CardContent>

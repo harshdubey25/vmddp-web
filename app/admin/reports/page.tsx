@@ -16,7 +16,10 @@ import {
 import { Label } from "@/components/ui/label";
 import {
     Download,
+    BarChart3,
+    Building2,
 } from "lucide-react";
+import Link from "next/link";
 
 import { frappeBrowser } from "@/lib/frappe";
 
@@ -945,6 +948,90 @@ export default function AdminReports() {
                             )}
                         </CardContent>
                     </Card> */}
+                    <div>
+                        <h2 className="text-lg font-semibold mb-3">Report Pages</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <Link href="/admin/dd-report" className="block h-full">
+                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                                    <CardContent className="p-4 flex items-center gap-3 h-full">
+                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-sm">DD Reports</h3>
+                                            <p className="text-xs text-muted-foreground">View DD collection reports</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                            <Link href="/admin/component-allocation-report" className="block h-full">
+                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                                    <CardContent className="p-4 flex items-center gap-3 h-full">
+                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-sm">Component Allocation Report</h3>
+                                            <p className="text-xs text-muted-foreground">Track component allocations</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                            <Link href="/admin/dbt-claims-report" className="block h-full">
+                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                                    <CardContent className="p-4 flex items-center gap-3 h-full">
+                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-sm">DBT Claims Report</h3>
+                                            <p className="text-xs text-muted-foreground">View DBT claims data</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                            <Link href="/admin/vendor-payments-report" className="block h-full">
+                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                                    <CardContent className="p-4 flex items-center gap-3 h-full">
+                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                                            <Building2 className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-sm">Vendor Payments Report</h3>
+                                            <p className="text-xs text-muted-foreground">Monitor vendor payments</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                            <Link href="/admin/admin-expenses-report" className="block h-full">
+                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                                    <CardContent className="p-4 flex items-center gap-3 h-full">
+                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                                            <Building2 className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-sm">Admin Expenses Report</h3>
+                                            <p className="text-xs text-muted-foreground">Track administrative expenses</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                            <Link href="/admin/refunds-report" className="block h-full">
+                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                                    <CardContent className="p-4 flex items-center gap-3 h-full">
+                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-sm">Refunds Report</h3>
+                                            <p className="text-xs text-muted-foreground">View refund transactions</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        </div>
+                    </div>
+
                 </div>
             </main>
         </div>

@@ -8,7 +8,9 @@ import {
     Download,
     Clock,
     Loader2,
+    ArrowLeft,
 } from "lucide-react";
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -112,11 +114,18 @@ export default function RefundsReport() {
             <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
                 {/* Header */}
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex flex-col gap-1">
-                        <h1 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-page-title">
-                            Refunds Report
-                        </h1>
-                        <p className="text-xs sm:text-sm text-muted-foreground">Track excess DD refunds via DBT</p>
+                    <div className="flex items-center gap-3">
+                        <Link href="/admin/reports">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+                                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                            </Button>
+                        </Link>
+                        <div className="flex flex-col gap-1">
+                            <h1 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-page-title">
+                                Refunds Report
+                            </h1>
+                            <p className="text-xs sm:text-sm text-muted-foreground">Track excess DD refunds via DBT</p>
+                        </div>
                     </div>
                     <Button
                         variant="outline"

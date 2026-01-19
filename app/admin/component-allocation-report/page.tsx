@@ -9,13 +9,25 @@ import {
     Leaf,
     Scissors,
     Search,
+    Link as LinkIcon,
+    ArrowLeft,
 } from "lucide-react";
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Button } from "@/components/ui/button";
 
 const getComponentIcon = (component: string) => {
     if (component === "Animal Induction") return <Tag className="h-5 w-5" />;
@@ -32,6 +44,8 @@ export default function ComponentAllocation() {
     const [districtFilter, setDistrictFilter] = useState("all")
     const [aadharFilter, setAadharFilter] = useState("")
     const [componentFilter, setComponentFilter] = useState("all")
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 20;
     const { data: districts } = useFrappeGetDocList('District Master')
     const { data: components } = useFrappeGetDocList('Component', {
         fields: ['name'],
@@ -61,17 +75,37 @@ export default function ComponentAllocation() {
         app => app.component_status !== 'Component Allocated'
     ) || [];
 
+    const totalPendingRecords = pendingApplications.length;
+    const totalPendingPages = Math.ceil(totalPendingRecords / pageSize);
+    const pendingStartIndex = (currentPage - 1) * pageSize;
+    const pendingEndIndex = pendingStartIndex + pageSize;
+    const paginatedPending = pendingApplications.slice(pendingStartIndex, pendingEndIndex);
+
+    const completedApplications = completedAllocations?.message || [];
+    const totalCompletedRecords = completedApplications.length;
+    const totalCompletedPages = Math.ceil(totalCompletedRecords / pageSize);
+    const completedStartIndex = (currentPage - 1) * pageSize;
+    const completedEndIndex = completedStartIndex + pageSize;
+    const paginatedCompleted = completedApplications.slice(completedStartIndex, completedEndIndex);
+
     return (
         <div className="w-full bg-background min-h-screen overflow-y-auto">
             <div className="">
                 <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
                     {/* Header */}
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex flex-col gap-1">
-                            <h1 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-page-title">
-                                Component Allocation
-                            </h1>
-                            <p className="text-xs sm:text-sm text-muted-foreground">View component allocations to approved beneficiaries</p>
+                        <div className="flex items-center gap-3">
+                            <Link href="/admin/reports">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+                                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                                </Button>
+                            </Link>
+                            <div className="flex flex-col gap-1">
+                                <h1 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-page-title">
+                                    Component Allocation
+                                </h1>
+                                <p className="text-xs sm:text-sm text-muted-foreground">View component allocations to approved beneficiaries</p>
+                            </div>
                         </div>
                     </div>
 
@@ -129,7 +163,10 @@ export default function ComponentAllocation() {
                             <CardDescription className="text-xs sm:text-sm">View and monitor component allocations</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Tabs value={activeTab} onValueChange={setActiveTab}>
+                            <Tabs value={activeTab} onValueChange={(value) => {
+                                setActiveTab(value);
+                                setCurrentPage(1);
+                            }}>
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
                                     <TabsList className="w-full sm:w-auto">
                                         <TabsTrigger value="pending" data-testid="tab-pending" className="text-xs sm:text-sm">
@@ -147,12 +184,18 @@ export default function ComponentAllocation() {
                                             <Input
                                                 placeholder="Search Aadhaar..."
                                                 value={aadharFilter}
-                                                onChange={(e) => setAadharFilter(e.target.value.replace(/\D/g, ""))}
+                                                onChange={(e) => {
+                                                    setAadharFilter(e.target.value.replace(/\D/g, ""));
+                                                    setCurrentPage(1);
+                                                }}
                                                 className="pl-9 w-full text-xs sm:text-sm"
                                                 data-testid="input-list-search-aadhaar"
                                             />
                                         </div>
-                                        <Select value={districtFilter} onValueChange={setDistrictFilter}>
+                                        <Select value={districtFilter} onValueChange={(value) => {
+                                            setDistrictFilter(value);
+                                            setCurrentPage(1);
+                                        }}>
                                             <SelectTrigger className="w-full sm:w-36 text-xs sm:text-sm" data-testid="select-filter-district">
                                                 <SelectValue placeholder="District" />
                                             </SelectTrigger>
@@ -163,7 +206,10 @@ export default function ComponentAllocation() {
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <Select value={componentFilter} onValueChange={setComponentFilter}>
+                                        <Select value={componentFilter} onValueChange={(value) => {
+                                            setComponentFilter(value);
+                                            setCurrentPage(1);
+                                        }}>
                                             <SelectTrigger className="w-full sm:w-40 text-xs sm:text-sm" data-testid="select-filter-component">
                                                 <SelectValue placeholder="Component" />
                                             </SelectTrigger>
@@ -182,6 +228,7 @@ export default function ComponentAllocation() {
                                         <Table className="text-xs sm:text-sm">
                                             <TableHeader>
                                                 <TableRow>
+                                                    <TableHead className="w-12">#</TableHead>
                                                     <TableHead className="min-w-20 sm:min-w-28">Application ID</TableHead>
                                                     <TableHead className="min-w-24 sm:min-w-32">Beneficiary</TableHead>
                                                     <TableHead className="min-w-20 sm:min-w-24">Aadhaar</TableHead>
@@ -191,8 +238,9 @@ export default function ComponentAllocation() {
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {pendingApplications.map((app) => (
+                                                {paginatedPending.map((app, idx) => (
                                                     <TableRow key={app.name} data-testid={`row-pending-${app.name}`}>
+                                                        <TableCell className="text-xs sm:text-sm text-muted-foreground">{pendingStartIndex + idx + 1}</TableCell>
                                                         <TableCell className="font-medium text-xs sm:text-sm">{app.name}</TableCell>
                                                         <TableCell className="text-xs sm:text-sm">{app.first_name} {app.mid_name} {app.last_name}</TableCell>
                                                         <TableCell className="font-mono text-xs">{app.aadhar_number}</TableCell>
@@ -211,9 +259,9 @@ export default function ComponentAllocation() {
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}
-                                                {pendingApplications.length === 0 && (
+                                                {paginatedPending.length === 0 && (
                                                     <TableRow>
-                                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground text-xs sm:text-sm">
+                                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground text-xs sm:text-sm">
                                                             No applications awaiting allocation
                                                         </TableCell>
                                                     </TableRow>
@@ -221,6 +269,55 @@ export default function ComponentAllocation() {
                                             </TableBody>
                                         </Table>
                                     </div>
+                                    {totalPendingPages > 1 && (
+                                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t">
+                                            <p className="text-xs sm:text-sm text-muted-foreground">
+                                                Showing {paginatedPending.length} of {totalPendingRecords} records • Page {currentPage} of {totalPendingPages}
+                                            </p>
+                                            <Pagination>
+                                                <PaginationContent>
+                                                    <PaginationItem>
+                                                        <PaginationPrevious
+                                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                                        />
+                                                    </PaginationItem>
+
+                                                    {Array.from({ length: Math.min(5, totalPendingPages) }, (_, i) => {
+                                                        let pageNum;
+                                                        if (totalPendingPages <= 5) {
+                                                            pageNum = i + 1;
+                                                        } else if (currentPage <= 3) {
+                                                            pageNum = i + 1;
+                                                        } else if (currentPage >= totalPendingPages - 2) {
+                                                            pageNum = totalPendingPages - 4 + i;
+                                                        } else {
+                                                            pageNum = currentPage - 2 + i;
+                                                        }
+
+                                                        return (
+                                                            <PaginationItem key={pageNum}>
+                                                                <PaginationLink
+                                                                    onClick={() => setCurrentPage(pageNum)}
+                                                                    isActive={currentPage === pageNum}
+                                                                    className="cursor-pointer"
+                                                                >
+                                                                    {pageNum}
+                                                                </PaginationLink>
+                                                            </PaginationItem>
+                                                        );
+                                                    })}
+
+                                                    <PaginationItem>
+                                                        <PaginationNext
+                                                            onClick={() => setCurrentPage(p => Math.min(totalPendingPages, p + 1))}
+                                                            className={currentPage === totalPendingPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                                        />
+                                                    </PaginationItem>
+                                                </PaginationContent>
+                                            </Pagination>
+                                        </div>
+                                    )}
                                 </TabsContent>
 
                                 <TabsContent value="completed">
@@ -228,6 +325,7 @@ export default function ComponentAllocation() {
                                         <Table className="text-xs sm:text-sm">
                                             <TableHeader>
                                                 <TableRow>
+                                                    <TableHead className="w-12">#</TableHead>
                                                     <TableHead className="min-w-20 sm:min-w-28">Application ID</TableHead>
                                                     <TableHead className="min-w-24 sm:min-w-32">Beneficiary</TableHead>
                                                     <TableHead className="min-w-20 sm:min-w-24">Aadhaar</TableHead>
@@ -238,8 +336,9 @@ export default function ComponentAllocation() {
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {completedAllocations?.message?.map((alloc) => (
+                                                {paginatedCompleted.map((alloc, idx) => (
                                                     <TableRow key={alloc.name} data-testid={`row-allocation-${alloc.name}`}>
+                                                        <TableCell className="text-xs sm:text-sm text-muted-foreground">{completedStartIndex + idx + 1}</TableCell>
                                                         <TableCell className="font-medium text-xs sm:text-sm">{alloc.name}</TableCell>
                                                         <TableCell className="text-xs sm:text-sm">{alloc.first_name} {alloc.mid_name} {alloc.last_name}</TableCell>
                                                         <TableCell className="font-mono text-xs">{alloc.aadhar_number}</TableCell>
@@ -259,9 +358,9 @@ export default function ComponentAllocation() {
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}
-                                                {completedAllocations?.message?.length === 0 && (
+                                                {paginatedCompleted.length === 0 && (
                                                     <TableRow>
-                                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground text-xs sm:text-sm">
+                                                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground text-xs sm:text-sm">
                                                             No completed allocations
                                                         </TableCell>
                                                     </TableRow>
@@ -269,6 +368,55 @@ export default function ComponentAllocation() {
                                             </TableBody>
                                         </Table>
                                     </div>
+                                    {totalCompletedPages > 1 && (
+                                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t">
+                                            <p className="text-xs sm:text-sm text-muted-foreground">
+                                                Showing {paginatedCompleted.length} of {totalCompletedRecords} records • Page {currentPage} of {totalCompletedPages}
+                                            </p>
+                                            <Pagination>
+                                                <PaginationContent>
+                                                    <PaginationItem>
+                                                        <PaginationPrevious
+                                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                                        />
+                                                    </PaginationItem>
+
+                                                    {Array.from({ length: Math.min(5, totalCompletedPages) }, (_, i) => {
+                                                        let pageNum;
+                                                        if (totalCompletedPages <= 5) {
+                                                            pageNum = i + 1;
+                                                        } else if (currentPage <= 3) {
+                                                            pageNum = i + 1;
+                                                        } else if (currentPage >= totalCompletedPages - 2) {
+                                                            pageNum = totalCompletedPages - 4 + i;
+                                                        } else {
+                                                            pageNum = currentPage - 2 + i;
+                                                        }
+
+                                                        return (
+                                                            <PaginationItem key={pageNum}>
+                                                                <PaginationLink
+                                                                    onClick={() => setCurrentPage(pageNum)}
+                                                                    isActive={currentPage === pageNum}
+                                                                    className="cursor-pointer"
+                                                                >
+                                                                    {pageNum}
+                                                                </PaginationLink>
+                                                            </PaginationItem>
+                                                        );
+                                                    })}
+
+                                                    <PaginationItem>
+                                                        <PaginationNext
+                                                            onClick={() => setCurrentPage(p => Math.min(totalCompletedPages, p + 1))}
+                                                            className={currentPage === totalCompletedPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                                        />
+                                                    </PaginationItem>
+                                                </PaginationContent>
+                                            </Pagination>
+                                        </div>
+                                    )}
                                 </TabsContent>
                             </Tabs>
                         </CardContent>

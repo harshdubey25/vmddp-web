@@ -8,6 +8,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Download, Stethoscope, Upload, Search, FileText, Loader2 } from "lucide-react";
 import { TreatmentDoc } from "@/types/subadmin";
 
@@ -62,6 +70,8 @@ export default function TreatmentPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
 
  
 
@@ -119,6 +129,12 @@ export default function TreatmentPage() {
       app.aadharNumber?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
+
+  const totalRecords = filteredApplications.length;
+  const totalPages = Math.ceil(totalRecords / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedApplications = filteredApplications.slice(startIndex, endIndex);
 
 
   const handleViewDetails = (app: Application) => {
@@ -209,7 +225,7 @@ export default function TreatmentPage() {
                   <div>
                     <h2 className="text-lg font-semibold">Treatment Applications</h2>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Total {filteredApplications.length} applications found
+                      Total {filteredApplications.length} applications found • Page {currentPage} of {totalPages || 1}
                     </p>
                   </div>
                 </div>
@@ -221,7 +237,10 @@ export default function TreatmentPage() {
                     <Input
                       placeholder="Search by ID or name..."
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setCurrentPage(1);
+                      }}
                       className="pl-10"
                       data-testid="input-search"
                     />
@@ -247,6 +266,7 @@ export default function TreatmentPage() {
                       <table className="w-full">
                         <thead className="bg-muted/50 border-b">
                           <tr>
+                            <th className="text-left p-3 text-sm font-medium w-12">#</th>
                             <th className="text-left p-3 text-sm font-medium">Application ID</th>
                             <th className="text-left p-3 text-sm font-medium">Applicant Name</th>
                             <th className="text-left p-3 text-sm font-medium">Aadhar Number</th>
@@ -258,8 +278,9 @@ export default function TreatmentPage() {
                           </tr>
                         </thead>
                         <tbody>
-                          {filteredApplications.map((app, index) => (
+                          {paginatedApplications.map((app, index) => (
                             <tr key={`${app.id}-${index}`} className="border-b hover:bg-muted/30 transition-colors">
+                              <td className="p-3 text-sm text-muted-foreground">{startIndex + index + 1}</td>
                               <td className="p-3 text-sm font-mono">{app.id}</td>
                               <td className="p-3 text-sm font-medium">{app.applicantName}</td>
                               <td className="p-3 text-sm">{app.aadharNumber || "-"}</td>
@@ -283,6 +304,57 @@ export default function TreatmentPage() {
                         </tbody>
                       </table>
                     </div>
+                  </div>
+                )}
+
+                {/* Pagination */}
+                {totalPages > 1 && paginatedApplications.length > 0 && (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t">
+                    <p className="text-sm text-muted-foreground">
+                      Showing {paginatedApplications.length} of {totalRecords} records • Page {currentPage} of {totalPages}
+                    </p>
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+
+                          return (
+                            <PaginationItem key={pageNum}>
+                              <PaginationLink
+                                onClick={() => setCurrentPage(pageNum)}
+                                isActive={currentPage === pageNum}
+                                className="cursor-pointer"
+                              >
+                                {pageNum}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        })}
+
+                        <PaginationItem>
+                          <PaginationNext
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
                   </div>
                 )}
               </CardContent>
