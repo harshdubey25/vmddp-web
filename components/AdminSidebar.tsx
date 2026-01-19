@@ -72,7 +72,7 @@ const subAdminMenuItems: MenuItem[] = [
 ]
 const accountantMenuItems: MenuItem[] = [
   { icon: Target, label: "Target and Achievement", path: "/accountant/target-achievement" },
-  { icon: FileText, label: "DD Allocation", path: "/accountant/dd" },
+  { icon: FileText, label: "DD Collection", path: "/accountant/dd" },
   { icon: BarChart3, label: "DD Reports", path: "/accountant/dd-report" },
   { icon: Package, label: "Component Allocation", path: "/accountant/component-allocation" },
   {
