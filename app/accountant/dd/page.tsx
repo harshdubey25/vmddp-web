@@ -523,6 +523,14 @@ export default function DDCollection() {
                                                                                 app.taluka
                                                                             }
                                                                         </Badge>
+                                                                        <Badge
+                                                                            variant="outline"
+                                                                            className="text-xs"
+                                                                        >
+                                                                            {
+                                                                                app.village
+                                                                            }
+                                                                        </Badge>
                                                                     </div>
                                                                 </TableCell>
                                                                 <TableCell>
