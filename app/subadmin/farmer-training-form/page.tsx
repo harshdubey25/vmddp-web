@@ -83,6 +83,8 @@ export default function FarmerTrainingForm() {
     venueType: "",
     venueName: "",
     numberOfParticipants: "",
+    numberOfMale: "",
+    numberOfFemale: "",
     participantListImages: [],
     galleryImages: [],
     trainingMaterial: "",
@@ -359,6 +361,8 @@ export default function FarmerTrainingForm() {
         venue_type: formData.venueType,
         venue_name: formData.venueName,
         number_of_participants: parseInt(formData.numberOfParticipants),
+        no_of_male: formData.numberOfMale ? parseInt(formData.numberOfMale) : 0,
+        no_of_female: formData.numberOfFemale ? parseInt(formData.numberOfFemale) : 0,
         images_table: imageTableEntries,
         gallery_table: galleryTableEntries,
         training_material: parseFloat(formData.trainingMaterial) || 0,
@@ -607,18 +611,44 @@ export default function FarmerTrainingForm() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="participants">Number of Participants *</Label>
-                  <Input
-                    id="participants"
-                    type="number"
-                    min="1"
-                    max="30"
-                    value={formData.numberOfParticipants}
-                    onChange={(e) => handleInputChange("numberOfParticipants", e.target.value)}
-                    placeholder="Enter number (max 30)"
-                    data-testid="input-participants"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="participants">Total Participants *</Label>
+                    <Input
+                      id="participants"
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={formData.numberOfParticipants}
+                      onChange={(e) => handleInputChange("numberOfParticipants", e.target.value)}
+                      placeholder="Enter number (max 30)"
+                      data-testid="input-participants"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="male-participants">Male Participants</Label>
+                    <Input
+                      id="male-participants"
+                      type="number"
+                      min="0"
+                      value={formData.numberOfMale}
+                      onChange={(e) => handleInputChange("numberOfMale", e.target.value)}
+                      placeholder="Enter male participants"
+                      data-testid="input-male-participants"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="female-participants">Female Participants</Label>
+                    <Input
+                      id="female-participants"
+                      type="number"
+                      min="0"
+                      value={formData.numberOfFemale}
+                      onChange={(e) => handleInputChange("numberOfFemale", e.target.value)}
+                      placeholder="Enter female participants"
+                      data-testid="input-female-participants"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="images">Participant List Images (Max {MAX_IMAGES})</Label>
