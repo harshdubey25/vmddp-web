@@ -10,8 +10,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Check, Loader2 } from "lucide-react";
-import { useFrappeCreateDoc, useFrappeGetDocList } from "frappe-react-sdk";
+import { Check, Loader2, Upload } from "lucide-react";
+import { useFrappeCreateDoc, useFrappeFileUpload, useFrappeGetDocList } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
 
 interface ParantageDetailsFormProps {
@@ -31,6 +31,7 @@ export default function ParantageDetailsForm({
 }: ParantageDetailsFormProps) {
     const { toast } = useToast();
     const { createDoc, loading } = useFrappeCreateDoc();
+    const { upload, loading: uploading, progress } = useFrappeFileUpload();
     const { data: agencies } = useFrappeGetDocList<{
         name: string;
         agency_name: string;
@@ -41,6 +42,36 @@ export default function ParantageDetailsForm({
         throw new Error("component allocation id is empty");
     const [calfBorn, setCalfBorn] = useState<string>("");
     const [certifiedByAgency, setCertifiedByAgency] = useState<string>("");
+    const [certificateFile, setCertificateFile] = useState<File | null>(null);
+    const [certificateUrl, setCertificateUrl] = useState<string>("");
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setCertificateFile(file);
+
+        try {
+            const response = await upload(file, {
+                isPrivate: false,
+                doctype: "Parantage Confirmation",
+                fieldname: "certificate",
+            });
+
+            setCertificateUrl(response.file_url);
+            toast({
+                title: "Success",
+                description: "Certificate uploaded successfully",
+            });
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to upload certificate",
+                variant: "destructive",
+            });
+            setCertificateFile(null);
+        }
+    };
 
     const handleSubmit = async () => {
         if (!calfBorn || !certifiedByAgency) {
@@ -59,6 +90,7 @@ export default function ParantageDetailsForm({
                 certified_by_agency: certifiedByAgency,
                 status: "Pending Approval",
                 component_allocation: component_allocation_id,
+                certificate: certificateUrl,
             });
 
             toast({
@@ -96,12 +128,28 @@ export default function ParantageDetailsForm({
                 </div>
                 <div className="space-y-1">
                     <Label className="text-xs">Certificate Upload</Label>
-                    <Input
-                        type="file"
-                        accept=".pdf,.jpg,.png"
-                        className="text-xs"
-                        data-testid={`input-certificate-${entryId}`}
-                    />
+                    <div className="relative">
+                        <Input
+                            type="file"
+                            accept=".pdf,.jpg,.png"
+                            className="text-xs"
+                            onChange={handleFileChange}
+                            disabled={uploading}
+                            data-testid={`input-certificate-${entryId}`}
+                        />
+                        {uploading && (
+                            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                <span>Uploading... {Math.round(progress)}%</span>
+                            </div>
+                        )}
+                        {certificateUrl && !uploading && (
+                            <div className="flex items-center gap-1 mt-1 text-xs text-green-600">
+                                <Check className="h-3 w-3" />
+                                <span>Uploaded</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
                 <div className="space-y-1">
                     <Label className="text-xs">Certified By Agency *</Label>
@@ -129,7 +177,7 @@ export default function ParantageDetailsForm({
                 <Button
                     size="sm"
                     onClick={handleSubmit}
-                    disabled={loading}
+                    disabled={loading || uploading}
                     data-testid={`button-submit-${entryId}`}
                 >
                     {loading ? (

@@ -86,7 +86,7 @@ const subAdminMenuItems: MenuItem[] = [
   { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/subadmin/treatment" }
 ]
 const accountantMenuItems: MenuItem[] = [
-
+  { icon: BarChart3, label: "Reports", path: "/accountant/reports" },
   { icon: FileText, label: "DD Allocation", path: "/accountant/dd" },
   { icon: BarChart3, label: "DD Reports", path: "/accountant/dd-report" },
   { icon: Package, label: "Component Allocation", path: "/accountant/component-allocation" },

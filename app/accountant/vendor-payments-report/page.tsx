@@ -22,6 +22,7 @@ import { useState } from "react";
 import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { FrappeCustomApiResponse } from "@/types";
 
+
 interface VendorPaymentReport {
     name: string;
     vendor: string;
