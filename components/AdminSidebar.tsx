@@ -51,6 +51,7 @@ const adminMenuItems: MenuItem[] = [
   { icon: Users, label: "Sub-Admins", path: "/admin/subadmins" },
   { icon: Package, label: "Components", path: "/admin/components" },
   { icon: TargetIcon, label: "Target Allocation", path: "/admin/target-allocation" },
+  { icon: Target, label: "Target and Achievement", path: "/admin/target-achievement" },
   { icon: FileCheck, label: "Parantage Confirmation", path: "/admin/parantage-confirmation" },
   { icon: BarChart3, label: "Reports", path: "/admin/reports" },
   { type: "separator", label: "Target Based Allocation" },
