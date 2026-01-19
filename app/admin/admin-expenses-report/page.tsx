@@ -5,12 +5,24 @@ import {
     IndianRupee,
     Search,
     Loader2,
+    Link as LinkIcon,
+    ArrowLeft,
 } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 
 interface AdminExpense {
@@ -26,11 +38,12 @@ interface AdminExpense {
 export default function AdminExpensesReport() {
     const [searchText, setSearchText] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 20;
 
     const { data: expenses, isLoading: loading } = useFrappeGetDocList<AdminExpense>("Admin Expense", {
         fields: ["name", "head", "amount", "date", "user", "reason", "docstatus"],
         orderBy: { field: "date", order: "desc" },
-        limit: 500,
     });
 
     const filteredExpenses = (expenses || []).filter(expense => {
@@ -43,6 +56,12 @@ export default function AdminExpensesReport() {
 
         return matchesSearch && matchesStatus;
     });
+
+    const totalRecords = filteredExpenses.length;
+    const totalPages = Math.ceil(totalRecords / pageSize);
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedExpenses = filteredExpenses.slice(startIndex, endIndex);
 
     // Calculate stats
     const totalAmount = filteredExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
@@ -67,11 +86,18 @@ export default function AdminExpensesReport() {
             <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
                 {/* Header */}
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                        <Link href="/admin/reports">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+                                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                            </Button>
+                        </Link>
                     <div className="flex flex-col gap-1">
                         <h1 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-page-title">
                             Admin Expenses Report
                         </h1>
                         <p className="text-xs sm:text-sm text-muted-foreground">View and analyze all administrative expenses</p>
+                    </div>
                     </div>
                 </div>
 
@@ -138,11 +164,17 @@ export default function AdminExpensesReport() {
                                     placeholder="Search ID, head, reason..."
                                     className="pl-9 w-full text-xs sm:text-sm"
                                     value={searchText}
-                                    onChange={(e) => setSearchText(e.target.value)}
+                                    onChange={(e) => {
+                                        setSearchText(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
                                     data-testid="input-search"
                                 />
                             </div>
-                            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <Select value={statusFilter} onValueChange={(value) => {
+                                setStatusFilter(value);
+                                setCurrentPage(1);
+                            }}>
                                 <SelectTrigger className="w-full text-xs sm:text-sm" data-testid="select-status">
                                     <SelectValue placeholder="Status" />
                                 </SelectTrigger>
@@ -165,6 +197,7 @@ export default function AdminExpensesReport() {
                                 <Table className="text-xs sm:text-sm">
                                     <TableHeader>
                                         <TableRow>
+                                            <TableHead className="w-12">#</TableHead>
                                             <TableHead className="min-w-14 sm:min-w-20">ID</TableHead>
                                             <TableHead className="min-w-18 sm:min-w-24">Date</TableHead>
                                             <TableHead className="min-w-18 sm:min-w-28">Head</TableHead>
@@ -174,8 +207,9 @@ export default function AdminExpensesReport() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {filteredExpenses.map((expense) => (
+                                        {paginatedExpenses.map((expense, idx) => (
                                             <TableRow key={expense.name} data-testid={`row-expense-${expense.name}`}>
+                                                <TableCell className="text-xs sm:text-sm text-muted-foreground">{startIndex + idx + 1}</TableCell>
                                                 <TableCell className="font-mono text-xs sm:text-sm">{expense.name}</TableCell>
                                                 <TableCell className="font-mono text-xs sm:text-sm">{expense.date}</TableCell>
                                                 <TableCell>
@@ -191,6 +225,56 @@ export default function AdminExpensesReport() {
                             </div>
                         ) : (
                             <p className="text-center text-muted-foreground py-8 text-xs sm:text-sm">No expenses found</p>
+                        )}
+
+                        {totalPages > 1 && paginatedExpenses.length > 0 && (
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t">
+                                <p className="text-xs sm:text-sm text-muted-foreground">
+                                    Showing {paginatedExpenses.length} of {totalRecords} records • Page {currentPage} of {totalPages}
+                                </p>
+                                <Pagination>
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                            />
+                                        </PaginationItem>
+
+                                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                            let pageNum;
+                                            if (totalPages <= 5) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage <= 3) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage >= totalPages - 2) {
+                                                pageNum = totalPages - 4 + i;
+                                            } else {
+                                                pageNum = currentPage - 2 + i;
+                                            }
+
+                                            return (
+                                                <PaginationItem key={pageNum}>
+                                                    <PaginationLink
+                                                        onClick={() => setCurrentPage(pageNum)}
+                                                        isActive={currentPage === pageNum}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        {pageNum}
+                                                    </PaginationLink>
+                                                </PaginationItem>
+                                            );
+                                        })}
+
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
+                            </div>
                         )}
                     </CardContent>
                 </Card>

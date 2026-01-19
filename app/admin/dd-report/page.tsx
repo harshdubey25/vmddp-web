@@ -22,9 +22,12 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import {
+    ArrowLeft,
     Download,
+    LinkIcon,
     Search,
 } from "lucide-react";
+import Link from "next/link";
 import * as XLSX from "xlsx";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -113,13 +116,20 @@ export default function DDReportPage() {
         <div className="flex-1 flex flex-col overflow-hidden bg-background">
             {/* Header */}
             <header className="flex h-14 sm:h-16 items-center justify-between border-b px-4 sm:px-6 py-3 bg-background">
-                <div>
-                    <h1 className="font-display font-semibold text-base sm:text-lg md:text-xl">
-                        DD Collection Reports
-                    </h1>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                        View and export beneficiary payment reports
-                    </p>
+                <div className="flex items-center gap-3">
+                    <Link href="/admin/reports">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+                            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </Button>
+                    </Link>
+                    <div>
+                        <h1 className="font-display font-semibold text-base sm:text-lg md:text-xl">
+                            DD Collection Reports
+                        </h1>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                            View and export beneficiary payment reports
+                        </p>
+                    </div>
                 </div>
                 <Button
                     variant="default"
