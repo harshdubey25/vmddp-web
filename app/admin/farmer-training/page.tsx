@@ -34,6 +34,8 @@ export default function FarmerTraining() {
       "venue_name",
       "venue_type",
       "number_of_participants",
+      "no_of_male",
+      "no_of_female",
       "training_material",
       "logistics",
       "refreshment",

@@ -52,7 +52,7 @@ export default function VendorPaymentsReport() {
             vendor_name: selectedVendor || undefined,
             search_text: searchText || undefined,
             start_date: startDate || undefined,
-            end_date: endDate || undefined
+            end_date: endDate || undefined,
         },
         undefined,
         { revalidateOnFocus: false }
@@ -86,7 +86,6 @@ export default function VendorPaymentsReport() {
             "Cheque Amount": payment.cheque_amount,
             "Component Allocations": payment.component_allocations?.map(a => a.component_allocation).join(", ") || "None",
             "Allocation Count": payment.component_allocations?.length || 0,
-            "Created On": new Date(payment.creation).toLocaleDateString("en-IN")
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -245,7 +244,6 @@ export default function VendorPaymentsReport() {
                                             <TableHead>Cheque Details</TableHead>
                                             <TableHead>Bank</TableHead>
                                             <TableHead className="text-right">Amount</TableHead>
-                                            <TableHead>Date</TableHead>
                                             <TableHead>Status</TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -261,7 +259,7 @@ export default function VendorPaymentsReport() {
                                                 <TableCell>
                                                     <div>
                                                         <p className="font-medium">{payment.check_number}</p>
-                                                        <p className="text-xs text-muted-foreground">{payment.cheque_date}</p>
+                                                        <p className="text-xs text-muted-foreground">{new Date(payment.cheque_date).toLocaleDateString("en-GB")}</p>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
@@ -271,9 +269,6 @@ export default function VendorPaymentsReport() {
                                                     <span className="font-bold text-green-600">
                                                         ₹{payment.cheque_amount.toLocaleString("en-IN")}
                                                     </span>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <p className="text-sm">{new Date(payment.creation).toLocaleDateString("en-IN")}</p>
                                                 </TableCell>
                                                 <TableCell>
                                                     <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">

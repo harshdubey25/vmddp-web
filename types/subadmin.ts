@@ -44,6 +44,8 @@ export interface FarmerTrainingFormData {
     venueName: string;
     numberOfParticipants: string;
     participantListImages: File[];
+    numberOfMale: string;
+    numberOfFemale: string;
     galleryImages: File[];
     trainingMaterial: string;
     logistics: string;
@@ -102,24 +104,26 @@ export interface TargetData {
 }
 
 export interface Application {
-  name: string;
-  event_name: string;
-  event_date: string;
-  district: string;
-  taluka: string;
-  village: string;
-  venue_name: string;
-  venue_type: string;
-  number_of_participants: number;
-  training_material: number;
-  logistics: number;
-  refreshment: number;
-  total_budget: number;
-  docstatus: number;
-  creation: string;
+    name: string;
+    event_name: string;
+    event_date: string;
+    district: string;
+    taluka: string;
+    village: string;
+    venue_name: string;
+    venue_type: string;
+    number_of_participants: number;
+    no_of_male: number;
+    no_of_female: number;               
+    training_material: number;
+    logistics: number;
+    refreshment: number;
+    total_budget: number;
+    docstatus: number;
+    creation: string;
 }
 
-export  interface TreatmentDoc {
+export interface TreatmentDoc {
     name: string;
     first_name: string;
     middle_name?: string;
@@ -139,5 +143,5 @@ export  interface TreatmentDoc {
     actual_treatment_outcome?: string;
     creation: string;
     modified: string;
-  }
+}
 

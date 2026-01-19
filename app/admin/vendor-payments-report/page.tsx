@@ -242,7 +242,6 @@ export default function VendorPaymentsReport() {
                                             <TableHead>Cheque Details</TableHead>
                                             <TableHead>Bank</TableHead>
                                             <TableHead className="text-right">Amount</TableHead>
-                                            <TableHead>Date</TableHead>
                                             <TableHead>Status</TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -258,7 +257,7 @@ export default function VendorPaymentsReport() {
                                                 <TableCell>
                                                     <div>
                                                         <p className="font-medium">{payment.check_number}</p>
-                                                        <p className="text-xs text-muted-foreground">{payment.cheque_date}</p>
+                                                        <p className="text-xs text-muted-foreground">{new Date(payment.cheque_date).toLocaleDateString("en-GB")}</p>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
@@ -268,9 +267,6 @@ export default function VendorPaymentsReport() {
                                                     <span className="font-bold text-green-600">
                                                         ₹{payment.cheque_amount.toLocaleString("en-IN")}
                                                     </span>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <p className="text-sm">{new Date(payment.creation).toLocaleDateString("en-IN")}</p>
                                                 </TableCell>
                                                 <TableCell>
                                                     <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">

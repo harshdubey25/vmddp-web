@@ -136,22 +136,24 @@ export default function FarmerTrainingForm() {
 
     const safeTargetData = mounted ? targetData : { physical: 0, achieved: 0 };
 
-    const [formData, setFormData] = useState<FarmerTrainingFormData>({
-        eventName: "",
-        eventDate: undefined,
-        district: "",
-        taluka: "",
-        village: "",
-        venueType: "",
-        venueName: "",
-        numberOfParticipants: "",
-        participantListImages: [],
-        galleryImages: [],
-        trainingMaterial: "",
-        logistics: "",
-        refreshment: "",
-        totalAmount: "0",
-    });
+  const [formData, setFormData] = useState<FarmerTrainingFormData>({
+    eventName: "",
+    eventDate: undefined,
+    district: "",
+    taluka: "",
+    village: "",
+    venueType: "",
+    venueName: "",
+    numberOfParticipants: "",
+    numberOfMale: "",
+    numberOfFemale: "",
+    participantListImages: [],
+    galleryImages: [],
+    trainingMaterial: "",
+    logistics: "",
+    refreshment: "",
+    totalAmount: "0",
+  });
 
     const { data: districtData } = useFrappeGetDocList("District Master", {
         fields: ["name", "name1"],
@@ -478,21 +480,23 @@ export default function FarmerTrainingForm() {
 
             setUploadingImages(false);
 
-            await createDoc("Farmer Training Application", {
-                event_name: formData.eventName,
-                event_date: format(formData.eventDate!, "yyyy-MM-dd"),
-                district: formData.district,
-                taluka: formData.taluka,
-                village: formData.village,
-                venue_type: formData.venueType,
-                venue_name: formData.venueName,
-                number_of_participants: parseInt(formData.numberOfParticipants),
-                images_table: imageTableEntries,
-                gallery_table: galleryTableEntries,
-                training_material: parseFloat(formData.trainingMaterial) || 0,
-                logistics: parseFloat(formData.logistics) || 0,
-                refreshment: parseFloat(formData.refreshment) || 0,
-            });
+      await createDoc('Farmer Training Application', {
+        event_name: formData.eventName,
+        event_date: format(formData.eventDate!, 'yyyy-MM-dd'),
+        district: formData.district,
+        taluka: formData.taluka,
+        village: formData.village,
+        venue_type: formData.venueType,
+        venue_name: formData.venueName,
+        number_of_participants: parseInt(formData.numberOfParticipants),
+        no_of_male: formData.numberOfMale ? parseInt(formData.numberOfMale) : 0,
+        no_of_female: formData.numberOfFemale ? parseInt(formData.numberOfFemale) : 0,
+        images_table: imageTableEntries,
+        gallery_table: galleryTableEntries,
+        training_material: parseFloat(formData.trainingMaterial) || 0,
+        logistics: parseFloat(formData.logistics) || 0,
+        refreshment: parseFloat(formData.refreshment) || 0,
+      });
 
             toast({
                 title: "Application Submitted",
@@ -866,124 +870,116 @@ export default function FarmerTrainingForm() {
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Upload className="w-5 h-5" />
-                                    Participants
-                                </CardTitle>
-                                <CardDescription>
-                                    Enter number of participants (Maximum 30 per
-                                    session)
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="participants">
-                                        Number of Participants *
-                                    </Label>
-                                    <Input
-                                        id="participants"
-                                        type="number"
-                                        min="1"
-                                        max="30"
-                                        value={formData.numberOfParticipants}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "numberOfParticipants",
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="Enter number (max 30)"
-                                        data-testid="input-participants"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="images">
-                                        Participant List Images (Max{" "}
-                                        {MAX_IMAGES})
-                                    </Label>
-                                    <Input
-                                        id="images"
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        onChange={handleImageUpload}
-                                        data-testid="input-images"
-                                    />
-                                    {formData.participantListImages.length >
-                                        0 && (
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                                                {formData.participantListImages.map(
-                                                    (img, idx) => (
-                                                        <div
-                                                            key={idx}
-                                                            className="relative border rounded p-2"
-                                                        >
-                                                            <p className="text-xs truncate">
-                                                                {img.name}
-                                                            </p>
-                                                            <Button
-                                                                type="button"
-                                                                variant="destructive"
-                                                                size="sm"
-                                                                className="mt-1"
-                                                                onClick={() =>
-                                                                    removeImage(idx)
-                                                                }
-                                                            >
-                                                                Remove
-                                                            </Button>
-                                                        </div>
-                                                    ),
-                                                )}
-                                            </div>
-                                        )}
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="gallery-images">
-                                        Gallery Images (Max {MAX_IMAGES})
-                                    </Label>
-                                    <Input
-                                        id="gallery-images"
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        onChange={handleGalleryUpload}
-                                        data-testid="input-gallery-images"
-                                    />
-                                    {formData.galleryImages.length > 0 && (
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                                            {formData.galleryImages.map(
-                                                (img, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        className="relative border rounded p-2"
-                                                    >
-                                                        <p className="text-xs truncate">
-                                                            {img.name}
-                                                        </p>
-                                                        <Button
-                                                            type="button"
-                                                            variant="destructive"
-                                                            size="sm"
-                                                            className="mt-1"
-                                                            onClick={() =>
-                                                                removeGalleryImage(
-                                                                    idx,
-                                                                )
-                                                            }
-                                                        >
-                                                            Remove
-                                                        </Button>
-                                                    </div>
-                                                ),
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Upload className="w-5 h-5" />
+                  Participants
+                </CardTitle>
+                <CardDescription>
+                  Enter number of participants (Maximum 30 per session)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="participants">Total Participants *</Label>
+                    <Input
+                      id="participants"
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={formData.numberOfParticipants}
+                      onChange={(e) => handleInputChange("numberOfParticipants", e.target.value)}
+                      placeholder="Enter number (max 30)"
+                      data-testid="input-participants"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="male-participants">Male Participants</Label>
+                    <Input
+                      id="male-participants"
+                      type="number"
+                      min="0"
+                      value={formData.numberOfMale}
+                      onChange={(e) => handleInputChange("numberOfMale", e.target.value)}
+                      placeholder="Enter male participants"
+                      data-testid="input-male-participants"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="female-participants">Female Participants</Label>
+                    <Input
+                      id="female-participants"
+                      type="number"
+                      min="0"
+                      value={formData.numberOfFemale}
+                      onChange={(e) => handleInputChange("numberOfFemale", e.target.value)}
+                      placeholder="Enter female participants"
+                      data-testid="input-female-participants"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="images">Participant List Images (Max {MAX_IMAGES})</Label>
+                  <Input
+                    id="images"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageUpload}
+                    data-testid="input-images"
+                  />
+                  {formData.participantListImages.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                      {formData.participantListImages.map((img, idx) => (
+                        <div key={idx} className="relative border rounded p-2">
+                          <p className="text-xs truncate">{img.name}</p>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="mt-1"
+                            onClick={() => removeImage(idx)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gallery-images">Gallery Images (Max {MAX_IMAGES})</Label>
+                  <Input
+                    id="gallery-images"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleGalleryUpload}
+                    data-testid="input-gallery-images"
+                  />
+                  {formData.galleryImages.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                      {formData.galleryImages.map((img, idx) => (
+                        <div key={idx} className="relative border rounded p-2">
+                          <p className="text-xs truncate">{img.name}</p>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="mt-1"
+                            onClick={() => removeGalleryImage(idx)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
                         <Card>
                             <CardHeader>

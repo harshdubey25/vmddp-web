@@ -26,6 +26,8 @@ interface Application {
   venue_type: string;
   venue_name: string;
   number_of_participants: number;
+  no_of_male?: number;
+  no_of_female?: number;
   images_table?: ImageTableEntry[];
   gallery_table?: ImageTableEntry[];
   training_material: number;
@@ -49,6 +51,7 @@ export default function ViewFarmerTrainingApplication() {
     applicationId || "",
     applicationId ? undefined : null
   );
+  console.log('application', application)
 
 
   const formatCurrency = (amount: number) => {
@@ -213,8 +216,18 @@ export default function ViewFarmerTrainingApplication() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div>
-                    <p className="text-sm text-muted-foreground">Number of Participants</p>
+                    <p className="text-sm text-muted-foreground">Total Participants</p>
                     <p className="font-medium text-2xl">{application.number_of_participants}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Male Participants</p>
+                      <p className="font-medium text-lg">{application.no_of_male || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Female Participants</p>
+                      <p className="font-medium text-lg">{application.no_of_female || 0}</p>
+                    </div>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Total Budget</p>
