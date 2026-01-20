@@ -30,6 +30,7 @@ import Link from "next/link";
 interface DistrictData {
     cow_count: number;
     buffalo_count: number;
+    crossbreed_count?: number;
     beneficiary_share: number;
     subsidy: number;
     total: number;
@@ -38,6 +39,7 @@ interface DistrictData {
 interface Totals {
     total_cows: number;
     total_buffaloes: number;
+    total_crossbreeds?: number;
     total_beneficiary_share: number;
     total_subsidy: number;
     grand_total: number;
@@ -86,6 +88,7 @@ export default function HGMMPRPage() {
     // Get totals from API
     const totals = reportData.totals || {
         total_cows: 0,
+        total_crossbreeds: 0,
         total_buffaloes: 0,
         total_beneficiary_share: 0,
         total_subsidy: 0,
@@ -345,23 +348,26 @@ export default function HGMMPRPage() {
                                         <TableHead rowSpan={3} className="border text-center font-bold min-w-[70px]">
 
                                         </TableHead>
-                                        <TableHead colSpan={7} className="border text-center font-bold bg-blue-50">
+                                        <TableHead colSpan={9} className="border text-center font-bold bg-blue-50">
                                             Supply Of High Genetic Merit Pregnant Heifers (IVF/ETT)
                                         </TableHead>
                                     </TableRow>
                                     {/* Second header row - Sub categories */}
                                     <TableRow className="bg-muted/30">
+                                        <TableHead rowSpan={2} className="border text-center font-bold min-w-[80px] bg-blue-100">
+                                            Target
+                                        </TableHead>
                                         <TableHead colSpan={2} className="border text-center font-bold min-w-[140px] bg-yellow-50">
                                             Physical Achievement
                                         </TableHead>
-                                        <TableHead rowSpan={2} className="border text-center font-bold min-w-[80px]">
+                                        <TableHead rowSpan={2} className="border text-center font-bold min-w-[80px] bg-blue-100">
                                             Target
                                         </TableHead>
                                         <TableHead colSpan={3} className="border text-center font-bold min-w-[240px] bg-green-50">
                                             Financial Achievement
                                         </TableHead>
-                                        <TableHead rowSpan={2} className="border text-center font-bold min-w-[80px]">
-                                            Target
+                                        <TableHead rowSpan={2} className="border text-center font-bold bg-orange-100 min-w-[100px]">
+                                            Balance
                                         </TableHead>
                                     </TableRow>
                                     {/* Third header row - Detail columns */}
@@ -397,30 +403,36 @@ export default function HGMMPRPage() {
                                                     {name}
                                                 </TableCell>
                                                 <TableCell className="border text-center text-[10px]">Monthly</TableCell>
+                                                {/* Target (Physical) */}
+                                                <TableCell className="border text-center bg-blue-50">0</TableCell>
                                                 {/* Physical Achievement */}
                                                 <TableCell className="border text-center bg-yellow-50/50">{data.cow_count || 0}</TableCell>
                                                 <TableCell className="border text-center bg-yellow-50/50">{data.buffalo_count || 0}</TableCell>
-                                                {/* Target */}
-                                                <TableCell className="border text-center">0</TableCell>
+                                                {/* Target (Financial) */}
+                                                <TableCell className="border text-center bg-blue-50">0</TableCell>
                                                 {/* Financial Achievement */}
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.beneficiary_share || 0)}</TableCell>
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.subsidy || 0)}</TableCell>
                                                 <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total || 0)}</TableCell>
-                                                <TableCell className="border text-center">0</TableCell>
+                                                {/* Balance */}
+                                                <TableCell className="border text-right bg-orange-50/50 font-semibold">0</TableCell>
                                             </TableRow>
                                             {/* Progress Row */}
                                             <TableRow className="hover:bg-muted/30 bg-muted/10">
                                                 <TableCell className="border text-center text-[10px]">Progress</TableCell>
+                                                {/* Target (Physical) */}
+                                                <TableCell className="border text-center bg-blue-50">0</TableCell>
                                                 {/* Physical Achievement */}
                                                 <TableCell className="border text-center bg-yellow-50/50">{data.cow_count || 0}</TableCell>
                                                 <TableCell className="border text-center bg-yellow-50/50">{data.buffalo_count || 0}</TableCell>
-                                                {/* Target */}
-                                                <TableCell className="border text-center">0</TableCell>
+                                                {/* Target (Financial) */}
+                                                <TableCell className="border text-center bg-blue-50">0</TableCell>
                                                 {/* Financial Achievement */}
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.beneficiary_share || 0)}</TableCell>
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.subsidy || 0)}</TableCell>
                                                 <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total || 0)}</TableCell>
-                                                <TableCell className="border text-center">0</TableCell>
+                                                {/* Balance */}
+                                                <TableCell className="border text-right bg-orange-50/50 font-semibold">0</TableCell>
                                             </TableRow>
                                         </Fragment>
                                     ))}
@@ -430,16 +442,19 @@ export default function HGMMPRPage() {
                                         <TableCell className="border text-center sticky left-0 bg-muted z-10" colSpan={1}></TableCell>
                                         <TableCell className="border sticky left-[50px] bg-muted z-10">TOTAL</TableCell>
                                         <TableCell className="border"></TableCell>
+                                        {/* Target (Physical) */}
+                                        <TableCell className="border text-center bg-blue-100">0</TableCell>
                                         {/* Physical Achievement */}
                                         <TableCell className="border text-center bg-yellow-100">{totals.total_cows}</TableCell>
                                         <TableCell className="border text-center bg-yellow-100">{totals.total_buffaloes}</TableCell>
-                                        {/* Target */}
-                                        <TableCell className="border text-center">0</TableCell>
+                                        {/* Target (Financial) */}
+                                        <TableCell className="border text-center bg-blue-100">0</TableCell>
                                         {/* Financial Achievement */}
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_beneficiary_share)}</TableCell>
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_subsidy)}</TableCell>
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.grand_total)}</TableCell>
-                                        <TableCell className="border text-center">0</TableCell>
+                                        {/* Balance */}
+                                        <TableCell className="border text-right bg-orange-100 font-bold">0</TableCell>
                                     </TableRow>
                                 </TableFooter>
                             </Table>
