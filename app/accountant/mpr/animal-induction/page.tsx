@@ -344,6 +344,39 @@ export default function AnimalInductionMPRPage() {
                 </div>
             </div>
 
+
+            {/* Summary Cards */}
+            {!isLoading && districtData.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 print:hidden">
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Districts</CardDescription>
+                            <CardTitle className="text-2xl">{districtData.length}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Cows</CardDescription>
+                            <CardTitle className="text-2xl text-blue-600">{totals.cow_count}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Buffaloes</CardDescription>
+                            <CardTitle className="text-2xl text-purple-600">{totals.buffalo_count}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Expenditure</CardDescription>
+                            <CardTitle className="text-2xl text-green-600">
+                                ₹{formatCurrency(totals.total_expenditure.total)}
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                </div>
+            )}
+
             {/* Report Card */}
             <Card>
                 <CardHeader>
@@ -574,37 +607,7 @@ export default function AnimalInductionMPRPage() {
                 </CardContent>
             </Card>
 
-            {/* Summary Cards */}
-            {!isLoading && districtData.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 print:hidden">
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Total Districts</CardDescription>
-                            <CardTitle className="text-2xl">{districtData.length}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Total Cows</CardDescription>
-                            <CardTitle className="text-2xl text-blue-600">{totals.cow_count}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Total Buffaloes</CardDescription>
-                            <CardTitle className="text-2xl text-purple-600">{totals.buffalo_count}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Total Expenditure</CardDescription>
-                            <CardTitle className="text-2xl text-green-600">
-                                ₹{formatCurrency(totals.total_expenditure.total)}
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
-                </div>
-            )}
+
         </div>
     );
 }

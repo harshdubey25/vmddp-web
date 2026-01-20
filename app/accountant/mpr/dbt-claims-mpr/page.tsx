@@ -330,6 +330,52 @@ export default function DBTClaimsMPRPage() {
                 </div>
             </div>
 
+            {/* Summary Cards */}
+            {!isLoading && districtData.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Districts</CardDescription>
+                            <CardTitle className="text-2xl">{districtData.filter(d => d.data.total > 0).length}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Cows</CardDescription>
+                            <CardTitle className="text-2xl text-blue-600">{totals.total_cows}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Buffaloes</CardDescription>
+                            <CardTitle className="text-2xl text-purple-600">{totals.total_buffaloes}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Quantity</CardDescription>
+                            <CardTitle className="text-2xl text-amber-600">{formatCurrency(totals.total_quantity)} Kg</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Subsidy</CardDescription>
+                            <CardTitle className="text-2xl text-orange-600">
+                                ₹{formatCurrency(totals.total_subsidy)}
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Grand Total</CardDescription>
+                            <CardTitle className="text-2xl text-green-600">
+                                ₹{formatCurrency(totals.grand_total)}
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                </div>
+            )}
+
             {/* Report Card */}
             <Card>
                 <CardHeader>
@@ -472,51 +518,7 @@ export default function DBTClaimsMPRPage() {
                 </CardContent>
             </Card>
 
-            {/* Summary Cards */}
-            {!isLoading && districtData.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Total Districts</CardDescription>
-                            <CardTitle className="text-2xl">{districtData.filter(d => d.data.total > 0).length}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Total Cows</CardDescription>
-                            <CardTitle className="text-2xl text-blue-600">{totals.total_cows}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Total Buffaloes</CardDescription>
-                            <CardTitle className="text-2xl text-purple-600">{totals.total_buffaloes}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Total Quantity</CardDescription>
-                            <CardTitle className="text-2xl text-amber-600">{formatCurrency(totals.total_quantity)} Kg</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Total Subsidy</CardDescription>
-                            <CardTitle className="text-2xl text-orange-600">
-                                ₹{formatCurrency(totals.total_subsidy)}
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Grand Total</CardDescription>
-                            <CardTitle className="text-2xl text-green-600">
-                                ₹{formatCurrency(totals.grand_total)}
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
-                </div>
-            )}
+
         </div>
     );
 }
