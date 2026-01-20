@@ -253,6 +253,40 @@ export default function AllTargetsReportPage() {
                 </div>
             </div>
 
+            {/* Summary Cards */}
+            {!isLoading && districtNames.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Districts</CardDescription>
+                            <CardTitle className="text-2xl">{districtNames.length}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Components</CardDescription>
+                            <CardTitle className="text-2xl text-blue-600">{componentNames.length}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Physical Target</CardDescription>
+                            <CardTitle className="text-2xl text-orange-600">
+                                {targetsData.totals?.total_physical_target || 0}
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Financial Target</CardDescription>
+                            <CardTitle className="text-2xl text-green-600">
+                                {formatCurrency(targetsData.totals?.total_financial_target || 0)}
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                </div>
+            )}
+
             {/* Report Card */}
             <Card>
                 <CardHeader>
@@ -380,39 +414,7 @@ export default function AllTargetsReportPage() {
                 </CardContent>
             </Card>
 
-            {/* Summary Cards */}
-            {!isLoading && districtNames.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Total Districts</CardDescription>
-                            <CardTitle className="text-2xl">{districtNames.length}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Total Components</CardDescription>
-                            <CardTitle className="text-2xl text-blue-600">{componentNames.length}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Total Physical Target</CardDescription>
-                            <CardTitle className="text-2xl text-orange-600">
-                                {targetsData.totals?.total_physical_target || 0}
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Total Financial Target</CardDescription>
-                            <CardTitle className="text-2xl text-green-600">
-                                {formatCurrency(targetsData.totals?.total_financial_target || 0)}
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
-                </div>
-            )}
+
         </div>
     );
 }
