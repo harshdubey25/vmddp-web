@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, Fragment } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -333,14 +333,14 @@ export default function AllTargetsReportPage() {
                                     {/* Physical/Financial sub-header row */}
                                     <TableRow className="bg-muted/30">
                                         {componentNames.map((name) => (
-                                            <>
-                                                <TableHead key={`${name}-phy`} className="border text-center font-semibold min-w-[80px] bg-orange-50">
+                                            <Fragment key={`${name}-header`}>
+                                                <TableHead className="border text-center font-semibold min-w-[80px] bg-orange-50">
                                                     Physical
                                                 </TableHead>
-                                                <TableHead key={`${name}-fin`} className="border text-center font-semibold min-w-[80px] bg-blue-50">
+                                                <TableHead className="border text-center font-semibold min-w-[80px] bg-blue-50">
                                                     Financial (₹ Lakhs)
                                                 </TableHead>
-                                            </>
+                                            </Fragment>
                                         ))}
                                         <TableHead className="border text-center font-semibold min-w-[80px] bg-orange-100">
                                             Physical
@@ -366,14 +366,14 @@ export default function AllTargetsReportPage() {
                                                     const physicalValue = physicalData?.components?.[compName] || 0;
                                                     const financialValue = financialData?.components?.[compName] || 0;
                                                     return (
-                                                        <>
-                                                            <TableCell key={`${compName}-phy`} className="border text-right bg-orange-50/30">
+                                                        <Fragment key={`${districtName}-${compName}`}>
+                                                            <TableCell className="border text-right bg-orange-50/30">
                                                                 {physicalValue}
                                                             </TableCell>
-                                                            <TableCell key={`${compName}-fin`} className="border text-right">
+                                                            <TableCell className="border text-right">
                                                                 {formatInLakhs(financialValue)}
                                                             </TableCell>
-                                                        </>
+                                                        </Fragment>
                                                     );
                                                 })}
                                                 <TableCell className="border text-right font-bold bg-orange-50">
@@ -391,14 +391,14 @@ export default function AllTargetsReportPage() {
                                         <TableCell className="border text-center sticky left-0 bg-muted z-10"></TableCell>
                                         <TableCell className="border sticky left-[50px] bg-muted z-10">TOTAL</TableCell>
                                         {componentNames.map((compName) => (
-                                            <>
-                                                <TableCell key={`${compName}-phy-total`} className="border text-right bg-orange-100">
+                                            <Fragment key={`${compName}-total`}>
+                                                <TableCell className="border text-right bg-orange-100">
                                                     {componentTotals[compName]?.physical || 0}
                                                 </TableCell>
-                                                <TableCell key={`${compName}-fin-total`} className="border text-right">
+                                                <TableCell className="border text-right">
                                                     {formatInLakhs(componentTotals[compName]?.financial || 0)}
                                                 </TableCell>
-                                            </>
+                                            </Fragment>
                                         ))}
                                         <TableCell className="border text-right bg-orange-100">
                                             {targetsData.totals?.total_physical_target || 0}
