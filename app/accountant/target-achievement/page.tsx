@@ -145,6 +145,7 @@ export default function TargetAchievement() {
                 "Beneficiary Share (Rs.)",
                 "Subsidy (Rs.)",
                 "Financial Achievement (Rs.)",
+                "Balance",
             ];
 
             const rows: (string | number)[][] = [];
@@ -159,6 +160,7 @@ export default function TargetAchievement() {
                     data.beneficiary_share,
                     data.subsidy,
                     data.financial_achievement,
+                    0,
                 ]);
             });
 
@@ -172,6 +174,7 @@ export default function TargetAchievement() {
                 totals.total_beneficiary_share,
                 totals.total_subsidy,
                 totals.total_financial_achievement,
+                0,
             ]);
 
             const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
@@ -356,6 +359,7 @@ export default function TargetAchievement() {
                                                 <TableHead className="text-right bg-purple-50 dark:bg-purple-950/30">Beneficiary Share</TableHead>
                                                 <TableHead className="text-right bg-purple-50 dark:bg-purple-950/30">Subsidy</TableHead>
                                                 <TableHead className="text-right bg-purple-50 dark:bg-purple-950/30">Financial Achievement</TableHead>
+                                                <TableHead className="text-right bg-orange-50 dark:bg-orange-950/30">Balance</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -382,6 +386,9 @@ export default function TargetAchievement() {
                                                         <TableCell className="text-right bg-purple-50/50 dark:bg-purple-950/20 text-purple-600 font-semibold">
                                                             {formatCurrency(data.financial_achievement)}
                                                         </TableCell>
+                                                        <TableCell className="text-right bg-orange-50/50 dark:bg-orange-950/20 font-semibold">
+                                                            0
+                                                        </TableCell>
                                                     </TableRow>
                                                 );
                                             })}
@@ -407,6 +414,9 @@ export default function TargetAchievement() {
                                                 </TableCell>
                                                 <TableCell className="text-right text-purple-600">
                                                     {formatCurrency(totals.total_financial_achievement)}
+                                                </TableCell>
+                                                <TableCell className="text-right bg-orange-100">
+                                                    0
                                                 </TableCell>
                                             </TableRow>
                                         </TableFooter>
