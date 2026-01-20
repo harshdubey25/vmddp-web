@@ -145,33 +145,32 @@ export default function DDCollection() {
         setLoading(true);
         try {
             const params: any = {
-                component_status: "DD Completed",
-                limit_start: (selectedPage - 1) * pageSize,
-                limit_page_length: pageSize,
+                page: selectedPage,
+                limit: pageSize,
             };
 
             // Add all filter parameters
             if (collectedFilters.aadhaar && collectedFilters.aadhaar.trim()) {
-                params.aadhar_number = collectedFilters.aadhaar.trim();
+                params.search_text = collectedFilters.aadhaar.trim();
             }
             if (collectedFilters.district && collectedFilters.district.trim()) {
                 params.district = collectedFilters.district.trim();
             }
             if (collectedFilters.taluka && collectedFilters.taluka.trim()) {
-                params.Taluka = collectedFilters.taluka.trim();
+                params.taluka = collectedFilters.taluka.trim();
             }
             if (collectedFilters.village && collectedFilters.village.trim()) {
-                params.Village = collectedFilters.village.trim();
+                params.village = collectedFilters.village.trim();
             }
 
             const response = await frappeBrowser
                 .call()
-                .get("vmddp_app.api.v1.accountant.dd_applications", params);
+                .get("vmddp_app.api.v1.accountant.get_completed_dd_list", params);
             const data = response?.message || [];
             setddCompletedApplications(data);
-            setSelectedTotal(data.length);
+            setSelectedTotal(response?.total || data.length);
         } catch (error) {
-            console.error("Error fetching selected applications:", error);
+            console.error("Error fetching completed DD applications:", error);
             setddCompletedApplications([]);
         } finally {
             setLoading(false);

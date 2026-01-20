@@ -42,6 +42,7 @@ interface TotalExpenditure {
 interface DistrictData {
     cow_count: number;
     buffalo_count: number;
+    crossbreed_count: number;
     animal_cost: CostBreakdown;
     collar_cost: CostBreakdown;
     premium_paid: CostBreakdown;
@@ -93,6 +94,7 @@ export default function AnimalInductionMPRPage() {
         const result = {
             cow_count: 0,
             buffalo_count: 0,
+            crossbreed_count: 0,
             animal_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
             collar_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
             premium_paid: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
@@ -103,7 +105,7 @@ export default function AnimalInductionMPRPage() {
         districtData.forEach(({ data }) => {
             result.cow_count += data.cow_count || 0;
             result.buffalo_count += data.buffalo_count || 0;
-
+            result.crossbreed_count += data.crossbreed_count || 0;
             result.animal_cost.beneficiary_share += data.animal_cost?.beneficiary_share || 0;
             result.animal_cost.subsidy_share += data.animal_cost?.subsidy_share || 0;
             result.animal_cost.total += data.animal_cost?.total || 0;
@@ -160,6 +162,7 @@ export default function AnimalInductionMPRPage() {
                 "Transportation - Subsidy (Rs.)",
                 "Transportation - Total (Rs.)",
                 "No. of Cow",
+                "No. of Cross-breed",
                 "No. of Buffalo",
                 "Total Expenditure - Beneficiary Share (Rs.)",
                 "Total Expenditure - Subsidy (Rs.)",
@@ -187,6 +190,7 @@ export default function AnimalInductionMPRPage() {
                     data.transportation_cost?.subsidy_share || 0,
                     data.transportation_cost?.total || 0,
                     data.cow_count || 0,
+                    data.crossbreed_count || 0,
                     data.buffalo_count || 0,
                     data.total_expenditure?.benenficiary_share_total || 0,
                     data.total_expenditure?.subsidy_share_total || 0,
@@ -210,6 +214,7 @@ export default function AnimalInductionMPRPage() {
                     data.transportation_cost?.subsidy_share || 0,
                     data.transportation_cost?.total || 0,
                     data.cow_count || 0,
+                    data.crossbreed_count || 0,
                     data.buffalo_count || 0,
                     data.total_expenditure?.benenficiary_share_total || 0,
                     data.total_expenditure?.subsidy_share_total || 0,
@@ -235,6 +240,7 @@ export default function AnimalInductionMPRPage() {
                 totals.transportation_cost.subsidy_share,
                 totals.transportation_cost.total,
                 totals.cow_count,
+                totals.crossbreed_count,
                 totals.buffalo_count,
                 totals.total_expenditure.benenficiary_share_total,
                 totals.total_expenditure.subsidy_share_total,
@@ -414,23 +420,29 @@ export default function AnimalInductionMPRPage() {
                                         <TableHead rowSpan={4} className="border text-center font-bold min-w-[70px]">
 
                                         </TableHead>
-                                        <TableHead colSpan={17} className="border text-center font-bold bg-blue-50">
+                                        <TableHead colSpan={19} className="border text-center font-bold bg-blue-50">
                                             Induction of High Genetic Merit Dairy Animals
                                         </TableHead>
                                     </TableRow>
                                     {/* Second header row - Physical & Financial Achievement */}
                                     <TableRow className="bg-muted/40">
-                                        <TableHead colSpan={2} className="border text-center font-bold bg-yellow-100">
+                                        <TableHead colSpan={3} className="border text-center font-bold bg-yellow-100">
                                             Physical Achievement
                                         </TableHead>
                                         <TableHead colSpan={15} className="border text-center font-bold bg-purple-100">
                                             Financial Achievement
+                                        </TableHead>
+                                        <TableHead rowSpan={3} className="border text-center font-bold bg-orange-100 min-w-[100px]">
+                                            Balance
                                         </TableHead>
                                     </TableRow>
                                     {/* Third header row - Sub categories */}
                                     <TableRow className="bg-muted/30">
                                         <TableHead rowSpan={2} className="border text-center font-bold min-w-[60px] bg-yellow-50">
                                             No. of Cow
+                                        </TableHead>
+                                        <TableHead rowSpan={2} className="border text-center font-bold min-w-[60px] bg-yellow-50">
+                                            No. of Cross-breed
                                         </TableHead>
                                         <TableHead rowSpan={2} className="border text-center font-bold min-w-[60px] bg-yellow-50">
                                             No. of Buffalo
@@ -519,6 +531,7 @@ export default function AnimalInductionMPRPage() {
                                                 <TableCell className="border text-center text-[10px]">Monthly</TableCell>
                                                 {/* Physical Achievement */}
                                                 <TableCell className="border text-center bg-yellow-50">{data.cow_count || 0}</TableCell>
+                                                <TableCell className="border text-center bg-yellow-50">{data.crossbreed_count || 0}</TableCell>
                                                 <TableCell className="border text-center bg-yellow-50">{data.buffalo_count || 0}</TableCell>
                                                 {/* Animal Cost */}
                                                 <TableCell className="border text-right">{formatCurrency(data.animal_cost?.beneficiary_share || 0)}</TableCell>
@@ -540,12 +553,17 @@ export default function AnimalInductionMPRPage() {
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.total_expenditure?.benenficiary_share_total || 0)}</TableCell>
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.total_expenditure?.subsidy_share_total || 0)}</TableCell>
                                                 <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total_expenditure?.total || 0)}</TableCell>
+                                                {/* Balance */}
+                                                <TableCell className="border text-right bg-orange-50/50 font-semibold">
+                                                    {0}
+                                                </TableCell>
                                             </TableRow>
                                             {/* Progress Row */}
                                             <TableRow className="hover:bg-muted/30 bg-muted/10">
                                                 <TableCell className="border text-center text-[10px]">Progress</TableCell>
                                                 {/* Physical Achievement */}
                                                 <TableCell className="border text-center bg-yellow-50/50">{data.cow_count || 0}</TableCell>
+                                                <TableCell className="border text-center bg-yellow-50/50">{data.crossbreed_count || 0}</TableCell>
                                                 <TableCell className="border text-center bg-yellow-50/50">{data.buffalo_count || 0}</TableCell>
                                                 {/* Animal Cost */}
                                                 <TableCell className="border text-right">{formatCurrency(data.animal_cost?.beneficiary_share || 0)}</TableCell>
@@ -567,6 +585,10 @@ export default function AnimalInductionMPRPage() {
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.total_expenditure?.benenficiary_share_total || 0)}</TableCell>
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.total_expenditure?.subsidy_share_total || 0)}</TableCell>
                                                 <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total_expenditure?.total || 0)}</TableCell>
+                                                {/* Balance */}
+                                                <TableCell className="border text-right bg-orange-50/50 font-semibold">
+                                                    {0} 
+                                                </TableCell>
                                             </TableRow>
                                         </Fragment>
                                     ))}
@@ -578,6 +600,7 @@ export default function AnimalInductionMPRPage() {
                                         <TableCell className="border"></TableCell>
                                         {/* Physical Achievement */}
                                         <TableCell className="border text-center bg-yellow-100">{totals.cow_count}</TableCell>
+                                        <TableCell className="border text-center bg-yellow-100">{totals.crossbreed_count || 0}</TableCell>
                                         <TableCell className="border text-center bg-yellow-100">{totals.buffalo_count}</TableCell>
                                         {/* Animal Cost */}
                                         <TableCell className="border text-right">{formatCurrency(totals.animal_cost.beneficiary_share)}</TableCell>
@@ -599,6 +622,10 @@ export default function AnimalInductionMPRPage() {
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_expenditure.benenficiary_share_total)}</TableCell>
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_expenditure.subsidy_share_total)}</TableCell>
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_expenditure.total)}</TableCell>
+                                        {/* Balance */}
+                                        <TableCell className="border text-right bg-orange-100 font-bold">
+                                            {0}
+                                        </TableCell>
                                     </TableRow>
                                 </TableFooter>
                             </Table>

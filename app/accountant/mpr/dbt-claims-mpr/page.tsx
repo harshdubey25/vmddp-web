@@ -418,7 +418,7 @@ export default function DBTClaimsMPRPage() {
                                         <TableHead rowSpan={3} className="border text-center font-bold min-w-[70px]">
 
                                         </TableHead>
-                                        <TableHead colSpan={7} className="border text-center font-bold bg-blue-50">
+                                        <TableHead colSpan={8} className="border text-center font-bold bg-blue-50">
                                             DBT Claims - {selectedComponent !== "all" ? (components.find(c => c.name === selectedComponent)?.component_name || selectedComponent) : "All Components"}
                                         </TableHead>
                                     </TableRow>
@@ -432,6 +432,9 @@ export default function DBTClaimsMPRPage() {
                                         </TableHead>
                                         <TableHead colSpan={3} className="border text-center font-bold min-w-[240px] bg-green-50">
                                             Financial Achievement
+                                        </TableHead>
+                                        <TableHead rowSpan={2} className="border text-center font-bold bg-orange-100 min-w-[100px]">
+                                            Balance
                                         </TableHead>
                                     </TableRow>
                                     {/* Third header row - Detail columns */}
@@ -479,6 +482,8 @@ export default function DBTClaimsMPRPage() {
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.beneficiary_share || 0)}</TableCell>
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.subsidy || 0)}</TableCell>
                                                 <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total || 0)}</TableCell>
+                                                {/* Balance */}
+                                                <TableCell className="border text-right bg-orange-50/50 font-semibold">0</TableCell>
                                             </TableRow>
                                             {/* Progress Row */}
                                             <TableRow className="hover:bg-muted/30 bg-muted/10">
@@ -492,6 +497,8 @@ export default function DBTClaimsMPRPage() {
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.beneficiary_share || 0)}</TableCell>
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.subsidy || 0)}</TableCell>
                                                 <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total || 0)}</TableCell>
+                                                {/* Balance */}
+                                                <TableCell className="border text-right bg-orange-50/50 font-semibold">0</TableCell>
                                             </TableRow>
                                         </Fragment>
                                     ))}
@@ -510,6 +517,8 @@ export default function DBTClaimsMPRPage() {
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_beneficiary_share)}</TableCell>
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_subsidy)}</TableCell>
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.grand_total)}</TableCell>
+                                        {/* Balance */}
+                                        <TableCell className="border text-right bg-orange-100 font-bold">0</TableCell>
                                     </TableRow>
                                 </TableFooter>
                             </Table>
