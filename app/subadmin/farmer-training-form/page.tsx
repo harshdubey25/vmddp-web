@@ -224,6 +224,10 @@ export default function FarmerTrainingForm() {
     const remainingBudget = expectedBudget - allocatedBudget;
     const exceedsTotal = allocatedBudget > expectedBudget;
 
+    const totalGenderCount = (parseInt(formData.numberOfMale) || 0) + (parseInt(formData.numberOfFemale) || 0);
+    const totalParticipants = parseInt(formData.numberOfParticipants) || 0;
+    const genderExceedsTotal = totalGenderCount > totalParticipants;
+
     const handleInputChange = (
         field: keyof FarmerTrainingFormData,
         value: string | Date | undefined,
@@ -244,6 +248,21 @@ export default function FarmerTrainingForm() {
                 village: "",
             }));
             mutateVillage();
+        } else if (field === "numberOfMale" || field === "numberOfFemale") {
+            const newValue = parseInt(value as string) || 0;
+            const otherField = field === "numberOfMale" ? "numberOfFemale" : "numberOfMale";
+            const otherValue = parseInt(formData[otherField]) || 0;
+            const total = parseInt(formData.numberOfParticipants) || 0;
+            
+            if (newValue + otherValue > total && total > 0) {
+                toast({
+                    title: "Invalid Input",
+                    description: `Male + Female participants cannot exceed total participants (${total})`,
+                    variant: "destructive",
+                });
+                return;
+            }
+            setFormData((prev) => ({ ...prev, [field]: value }));
         } else {
             setFormData((prev) => ({ ...prev, [field]: value }));
         }
@@ -881,6 +900,14 @@ export default function FarmerTrainingForm() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {genderExceedsTotal && totalParticipants > 0 && totalGenderCount > 0 && (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      Male + Female participants ({totalGenderCount}) exceeds total participants ({totalParticipants})
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="participants">Total Participants *</Label>
@@ -901,10 +928,12 @@ export default function FarmerTrainingForm() {
                       id="male-participants"
                       type="number"
                       min="0"
+                      max={totalParticipants || 30}
                       value={formData.numberOfMale}
                       onChange={(e) => handleInputChange("numberOfMale", e.target.value)}
                       placeholder="Enter male participants"
                       data-testid="input-male-participants"
+                      className={genderExceedsTotal ? "border-red-500" : ""}
                     />
                   </div>
                   <div className="space-y-2">
@@ -913,10 +942,12 @@ export default function FarmerTrainingForm() {
                       id="female-participants"
                       type="number"
                       min="0"
+                      max={totalParticipants || 30}
                       value={formData.numberOfFemale}
                       onChange={(e) => handleInputChange("numberOfFemale", e.target.value)}
                       placeholder="Enter female participants"
                       data-testid="input-female-participants"
+                      className={genderExceedsTotal ? "border-red-500" : ""}
                     />
                   </div>
                 </div>
