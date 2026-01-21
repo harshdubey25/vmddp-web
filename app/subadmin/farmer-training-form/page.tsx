@@ -451,6 +451,20 @@ export default function FarmerTrainingForm() {
             return;
         }
 
+        const maleCount = parseInt(formData.numberOfMale) || 0;
+        const femaleCount = parseInt(formData.numberOfFemale) || 0;
+        const totalGender = maleCount + femaleCount;
+
+        if (totalGender !== participants) {
+            toast({
+                title: "Validation Error",
+                description:
+                    `Male (${maleCount}) + Female (${femaleCount}) participants must equal Total Participants (${participants})`,
+                variant: "destructive",
+            });
+            return;
+        }
+
         if (wouldExceedTarget) {
             toast({
                 title: "Target Exceeded",
