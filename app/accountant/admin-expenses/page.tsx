@@ -23,6 +23,14 @@ interface AdminExpense {
     docstatus: number;
 }
 
+interface AdminExpenseTarget {
+    name: string;
+    amount: number;
+    date: string;
+    allocater: string;
+    docstatus: number;
+}
+
 export default function AdminExpenses() {
     const { data: expenses, isLoading, error } = useFrappeGetDocList<AdminExpense>("Admin Expense", {
         fields: ["name", "head", "amount", "date", "user", "reason", "docstatus"],
@@ -30,9 +38,17 @@ export default function AdminExpenses() {
         limit: 100,
     });
 
-    const totalExpenses = expenses?.reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0;
-    const submittedExpenses = expenses?.filter(exp => exp.docstatus === 1).reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0;
-    const draftExpenses = expenses?.filter(exp => exp.docstatus === 0).reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0;
+    const { data: targetData, isLoading: targetLoading } = useFrappeGetDocList<AdminExpenseTarget>("Admin Expense Target", {
+        fields: ["name", "amount", "date", "allocater", "docstatus"],
+        filters: [["docstatus", "=", 1]],
+        orderBy: { field: "date", order: "desc" },
+    });
+
+    const totalTarget = targetData?.reduce((sum, target) => sum + (target.amount || 0), 0) || 0;
+    
+    const totalSubmittedExpenses = expenses?.reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0;
+    
+    const balance = totalTarget - totalSubmittedExpenses;
 
     const getStatusBadge = (docstatus: number) => {
         switch (docstatus) {
@@ -47,7 +63,7 @@ export default function AdminExpenses() {
         }
     };
 
-    if (isLoading) {
+    if (isLoading || targetLoading) {
         return (
             <div className="h-screen bg-background flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -94,16 +110,16 @@ export default function AdminExpenses() {
 
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card data-testid="card-total-expenses">
+                        <Card data-testid="card-total-target">
                             <CardContent className="pt-6">
                                 <div className="flex items-center gap-4">
                                     <div className="p-3 rounded-lg bg-blue-500/10">
                                         <IndianRupee className="h-5 w-5 text-blue-500" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Total Expenses</p>
-                                        <p className="text-2xl font-bold">₹{totalExpenses.toLocaleString("en-IN")}</p>
-                                        <p className="text-xs text-muted-foreground">{expenses?.length || 0} entries</p>
+                                        <p className="text-sm text-muted-foreground">Total Target</p>
+                                        <p className="text-2xl font-bold">₹{totalTarget.toLocaleString("en-IN")}</p>
+                                        <p className="text-xs text-muted-foreground">{targetData?.length || 0} allocations</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -116,24 +132,26 @@ export default function AdminExpenses() {
                                         <IndianRupee className="h-5 w-5 text-green-500" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Submitted</p>
-                                        <p className="text-2xl font-bold">₹{submittedExpenses.toLocaleString("en-IN")}</p>
-                                        <p className="text-xs text-muted-foreground">{expenses?.filter(e => e.docstatus === 1).length || 0} entries</p>
+                                        <p className="text-sm text-muted-foreground">Submitted Expenses</p>
+                                        <p className="text-2xl font-bold">₹{totalSubmittedExpenses.toLocaleString("en-IN")}</p>
+                                        <p className="text-xs text-muted-foreground">{expenses?.length || 0} expenses</p>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card data-testid="card-draft-expenses">
+                        <Card data-testid="card-balance">
                             <CardContent className="pt-6">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-yellow-500/10">
-                                        <IndianRupee className="h-5 w-5 text-yellow-500" />
+                                    <div className={`p-3 rounded-lg ${balance >= 0 ? 'bg-yellow-500/10' : 'bg-red-500/10'}`}>
+                                        <IndianRupee className={`h-5 w-5 ${balance >= 0 ? 'text-yellow-500' : 'text-red-500'}`} />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Draft</p>
-                                        <p className="text-2xl font-bold">₹{draftExpenses.toLocaleString("en-IN")}</p>
-                                        <p className="text-xs text-muted-foreground">{expenses?.filter(e => e.docstatus === 0).length || 0} entries</p>
+                                        <p className="text-sm text-muted-foreground">Balance Remaining</p>
+                                        <p className="text-2xl font-bold">₹{balance.toLocaleString("en-IN")}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {balance >= 0 ? 'Available' : 'Over budget'}
+                                        </p>
                                     </div>
                                 </div>
                             </CardContent>
