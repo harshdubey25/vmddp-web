@@ -58,9 +58,14 @@ interface Component {
     name: string;
 }
 
+interface District {
+    name: string;
+}
+
 export default function TargetAchievement() {
     const { toast } = useToast();
     const [selectedComponent, setSelectedComponent] = useState<string>("");
+    const [selectedDistrict, setSelectedDistrict] = useState<string>("all");
     const [isExporting, setIsExporting] = useState(false);
 
     // Fetch components list
@@ -70,7 +75,14 @@ export default function TargetAchievement() {
         orderBy: { field: "name", order: "asc" },
     });
 
+    // Fetch districts list
+    const { data: districtsData } = useFrappeGetDocList<District>("District Master", {
+        fields: ["name"],
+        orderBy: { field: "name", order: "asc" },
+    });
+
     const components = componentsData || [];
+    const districts = districtsData || [];
 
     // Set first component as default when components are loaded
     useEffect(() => {
@@ -82,7 +94,10 @@ export default function TargetAchievement() {
     // Fetch target and achievement data
     const { data: apiResponse, isLoading, mutate } = useFrappeGetCall<TargetAchievementResponse>(
         'vmddp_app.api.v1.accountant.target_and_achievement',
-        selectedComponent ? { component: selectedComponent } : undefined,
+        selectedComponent ? {
+            component: selectedComponent,
+            ...(selectedDistrict !== "all" && { district: selectedDistrict })
+        } : undefined,
         undefined,
         { revalidateOnFocus: false }
     );
@@ -217,6 +232,19 @@ export default function TargetAchievement() {
                                     {components.map((c) => (
                                         <SelectItem key={c.name} value={c.name}>
                                             {c.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
+                                <SelectTrigger className="w-[180px]" data-testid="select-district-filter">
+                                    <SelectValue placeholder="Select District" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Districts</SelectItem>
+                                    {districts.map((d) => (
+                                        <SelectItem key={d.name} value={d.name}>
+                                            {d.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
