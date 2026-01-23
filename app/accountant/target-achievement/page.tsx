@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,30 +27,29 @@ import * as XLSX from "xlsx";
 
 // Types
 interface DistrictData {
+    district: string;
     physical_target: number;
     financial_target: number;
     physical_achievement: number;
-    beneficiary_share: number;
-    subsidy: number;
     financial_achievement: number;
+    beneficiary_share: number;
+    physical_balance: number;
+    financial_balance: number;
 }
 
 interface Totals {
-    total_physical_target: number;
-    total_financial_target: number;
-    total_physical_achievement: number;
-    total_beneficiary_share: number;
-    total_subsidy: number;
-    total_financial_achievement: number;
+    physical_target: number;
+    financial_target: number;
+    physical_achievement: number;
+    financial_achievement: number;
+    beneficiary_share: number;
+    physical_balance: number;
+    financial_balance: number;
 }
 
 interface TargetAchievementResponse {
     message: {
-        component: string;
-        is_hgm: number;
-        districts: {
-            [districtName: string]: DistrictData;
-        };
+        districts: DistrictData[];
         totals: Totals;
     };
 }
@@ -61,7 +60,7 @@ interface Component {
 
 export default function TargetAchievement() {
     const { toast } = useToast();
-    const [selectedComponent, setSelectedComponent] = useState<string>("all");
+    const [selectedComponent, setSelectedComponent] = useState<string>("");
     const [isExporting, setIsExporting] = useState(false);
 
     // Fetch components list
@@ -73,40 +72,35 @@ export default function TargetAchievement() {
 
     const components = componentsData || [];
 
+    // Set first component as default when components are loaded
+    useEffect(() => {
+        if (components.length > 0 && !selectedComponent) {
+            setSelectedComponent(components[0].name);
+        }
+    }, [components, selectedComponent]);
+
     // Fetch target and achievement data
     const { data: apiResponse, isLoading, mutate } = useFrappeGetCall<TargetAchievementResponse>(
         'vmddp_app.api.v1.accountant.target_and_achievement',
-        selectedComponent !== "all" ? { component: selectedComponent } : {},
+        selectedComponent ? { component: selectedComponent } : undefined,
         undefined,
         { revalidateOnFocus: false }
     );
 
-    const reportData = apiResponse?.message || {
-        component: "",
-        is_hgm: 0,
-        districts: {},
-        totals: {
-            total_physical_target: 0,
-            total_financial_target: 0,
-            total_physical_achievement: 0,
-            total_beneficiary_share: 0,
-            total_subsidy: 0,
-            total_financial_achievement: 0,
-        }
-    };
-
-    // Extract district data
     const districtData = useMemo(() => {
-        const districts: { name: string; data: DistrictData }[] = [];
-        if (reportData.districts) {
-            Object.entries(reportData.districts).forEach(([key, value]) => {
-                districts.push({ name: key, data: value });
-            });
-        }
-        return districts.sort((a, b) => a.name.localeCompare(b.name));
-    }, [reportData]);
+        const data = apiResponse?.message?.districts || [];
+        return [...data].sort((a, b) => a.district.localeCompare(b.district));
+    }, [apiResponse]);
 
-    const totals = reportData.totals;
+    const totals = apiResponse?.message?.totals || {
+        physical_target: 0,
+        financial_target: 0,
+        physical_achievement: 0,
+        financial_achievement: 0,
+        beneficiary_share: 0,
+        physical_balance: 0,
+        financial_balance: 0,
+    };
 
     const formatCurrency = (amount: number) => {
         if (amount === 0) return "₹0";
@@ -140,27 +134,27 @@ export default function TargetAchievement() {
                 "Sr. No.",
                 "District",
                 "Physical Target",
-                "Physical Achievement",
                 "Financial Target (Rs.)",
+                "Physical Achievement",
                 "Beneficiary Share (Rs.)",
                 "Subsidy (Rs.)",
-                "Financial Achievement (Rs.)",
-                "Balance",
+                "Physical Balance",
+                "Financial Balance",
             ];
 
             const rows: (string | number)[][] = [];
 
-            districtData.forEach(({ name, data }, index) => {
+            districtData.forEach((item, index) => {
                 rows.push([
                     index + 1,
-                    name,
-                    data.physical_target,
-                    data.physical_achievement,
-                    data.financial_target,
-                    data.beneficiary_share,
-                    data.subsidy,
-                    data.financial_achievement,
-                    0,
+                    item.district,
+                    item.physical_target,
+                    item.financial_target,
+                    item.physical_achievement,
+                    item.beneficiary_share,
+                    item.financial_achievement,
+                    item.physical_balance,
+                    item.financial_balance,
                 ]);
             });
 
@@ -168,20 +162,20 @@ export default function TargetAchievement() {
             rows.push([
                 "",
                 "TOTAL",
-                totals.total_physical_target,
-                totals.total_physical_achievement,
-                totals.total_financial_target,
-                totals.total_beneficiary_share,
-                totals.total_subsidy,
-                totals.total_financial_achievement,
-                0,
+                totals.physical_target,
+                totals.financial_target,
+                totals.physical_achievement,
+                totals.beneficiary_share,
+                totals.financial_achievement,
+                totals.physical_balance,
+                totals.financial_balance,
             ]);
 
             const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Target & Achievement");
 
-            const componentName = selectedComponent === "all" ? "All_Components" : selectedComponent.replace(/\s+/g, '_');
+            const componentName = selectedComponent ? selectedComponent.replace(/\s+/g, '_') : 'Component';
             XLSX.writeFile(wb, `Target_Achievement_${componentName}.xlsx`);
 
             toast({
@@ -220,7 +214,6 @@ export default function TargetAchievement() {
                                     <SelectValue placeholder="Select Component" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Components</SelectItem>
                                     {components.map((c) => (
                                         <SelectItem key={c.name} value={c.name}>
                                             {c.name}
@@ -250,7 +243,7 @@ export default function TargetAchievement() {
                                     <Skeleton className="h-8 w-24" />
                                 ) : (
                                     <>
-                                        <div className="text-2xl font-bold">{totals.total_physical_target.toLocaleString()}</div>
+                                        <div className="text-2xl font-bold">{totals.physical_target.toLocaleString()}</div>
                                         <p className="text-xs text-muted-foreground">Total target</p>
                                     </>
                                 )}
@@ -268,14 +261,14 @@ export default function TargetAchievement() {
                                 ) : (
                                     <>
                                         <div className="text-2xl font-bold text-primary">
-                                            {totals.total_physical_achievement.toLocaleString()}
+                                            {totals.physical_achievement.toLocaleString()}
                                         </div>
                                         <Progress
-                                            value={getPercentage(totals.total_physical_achievement, totals.total_physical_target)}
+                                            value={getPercentage(totals.physical_achievement, totals.physical_target)}
                                             className="mt-2"
                                         />
                                         <p className="text-xs text-muted-foreground mt-1">
-                                            {getPercentage(totals.total_physical_achievement, totals.total_physical_target)}% achieved
+                                            {getPercentage(totals.physical_achievement, totals.physical_target)}% achieved
                                         </p>
                                     </>
                                 )}
@@ -292,7 +285,7 @@ export default function TargetAchievement() {
                                     <Skeleton className="h-8 w-24" />
                                 ) : (
                                     <>
-                                        <div className="text-2xl font-bold">{formatCurrency(totals.total_financial_target)}</div>
+                                        <div className="text-2xl font-bold">{formatCurrency(totals.financial_target)}</div>
                                         <p className="text-xs text-muted-foreground">Total budget allocation</p>
                                     </>
                                 )}
@@ -310,14 +303,14 @@ export default function TargetAchievement() {
                                 ) : (
                                     <>
                                         <div className="text-2xl font-bold text-primary">
-                                            {formatCurrency(totals.total_financial_achievement)}
+                                            {formatCurrency(totals.financial_achievement)}
                                         </div>
                                         <Progress
-                                            value={getPercentage(totals.total_financial_achievement, totals.total_financial_target)}
+                                            value={getPercentage(totals.financial_achievement, totals.financial_target)}
                                             className="mt-2"
                                         />
                                         <p className="text-xs text-muted-foreground mt-1">
-                                            {getPercentage(totals.total_financial_achievement, totals.total_financial_target)}% achieved
+                                            {getPercentage(totals.financial_achievement, totals.financial_target)}% achieved
                                         </p>
                                     </>
                                 )}
@@ -329,7 +322,7 @@ export default function TargetAchievement() {
                     <Card>
                         <CardHeader>
                             <CardTitle>
-                                {selectedComponent === "all" ? "All Components" : reportData.component} - Target & Achievement
+                                {selectedComponent || "Select Component"} - Target & Achievement
                             </CardTitle>
                             <CardDescription>
                                 District-wise physical and financial targets and achievements
@@ -350,44 +343,58 @@ export default function TargetAchievement() {
                                 <div className="rounded-md border overflow-x-auto">
                                     <Table>
                                         <TableHeader>
+                                            {/* First header row - Parent columns */}
                                             <TableRow>
-                                                <TableHead className="text-center w-[60px]">Sr. No.</TableHead>
-                                                <TableHead className="min-w-[150px]">District</TableHead>
-                                                <TableHead className="text-center bg-blue-50 dark:bg-blue-950/30">Physical Target</TableHead>
-                                                <TableHead className="text-center bg-green-50 dark:bg-green-950/30">Physical Achievement</TableHead>
-                                                <TableHead className="text-right bg-orange-50 dark:bg-orange-950/30">Financial Target</TableHead>
-                                                <TableHead className="text-right bg-purple-50 dark:bg-purple-950/30">Beneficiary Share</TableHead>
-                                                <TableHead className="text-right bg-purple-50 dark:bg-purple-950/30">Subsidy</TableHead>
-                                                <TableHead className="text-right bg-purple-50 dark:bg-purple-950/30">Financial Achievement</TableHead>
-                                                <TableHead className="text-right bg-orange-50 dark:bg-orange-950/30">Balance</TableHead>
+                                                <TableHead rowSpan={2} className="text-center w-[60px] border-r align-middle">Sr. No.</TableHead>
+                                                <TableHead rowSpan={2} className="min-w-[150px] border-r align-middle">District</TableHead>
+                                                <TableHead colSpan={2} className="text-center bg-blue-50 dark:bg-blue-950/30 border-r border-b">Target</TableHead>
+                                                <TableHead colSpan={3} className="text-center bg-green-50 dark:bg-green-950/30 border-r border-b">Achievement</TableHead>
+                                                <TableHead colSpan={2} className="text-center bg-orange-50 dark:bg-orange-950/30 border-b">Balance</TableHead>
+                                            </TableRow>
+                                            {/* Second header row - Sub columns */}
+                                            <TableRow>
+                                                <TableHead className="text-center bg-blue-50 dark:bg-blue-950/30">Physical</TableHead>
+                                                <TableHead className="text-center bg-blue-50 dark:bg-blue-950/30 border-r">Financial</TableHead>
+                                                <TableHead className="text-center bg-green-50 dark:bg-green-950/30">Physical</TableHead>
+                                                <TableHead className="text-center bg-green-50 dark:bg-green-950/30">Beneficiary Share</TableHead>
+                                                <TableHead className="text-center bg-green-50 dark:bg-green-950/30 border-r">Subsidy</TableHead>
+                                                <TableHead className="text-center bg-orange-50 dark:bg-orange-950/30">Physical</TableHead>
+                                                <TableHead className="text-center bg-orange-50 dark:bg-orange-950/30">Financial</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {districtData.map(({ name, data }, index) => {
+                                            {districtData.map((item, index) => {
                                                 return (
-                                                    <TableRow key={name}>
-                                                        <TableCell className="text-center">{index + 1}</TableCell>
-                                                        <TableCell className="font-medium">{name}</TableCell>
+                                                    <TableRow key={item.district}>
+                                                        <TableCell className="text-center border-r">{index + 1}</TableCell>
+                                                        <TableCell className="font-medium border-r">{item.district}</TableCell>
+                                                        {/* Target - Physical */}
                                                         <TableCell className="text-center bg-blue-50/50 dark:bg-blue-950/20">
-                                                            {data.physical_target.toLocaleString()}
+                                                            {item.physical_target.toLocaleString()}
                                                         </TableCell>
+                                                        {/* Target - Financial */}
+                                                        <TableCell className="text-center bg-blue-50/50 dark:bg-blue-950/20 border-r">
+                                                            {formatCurrency(item.financial_target)}
+                                                        </TableCell>
+                                                        {/* Achievement - Physical */}
                                                         <TableCell className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold">
-                                                            {data.physical_achievement.toLocaleString()}
+                                                            {item.physical_achievement.toLocaleString()}
                                                         </TableCell>
-                                                        <TableCell className="text-right bg-orange-50/50 dark:bg-orange-950/20">
-                                                            {formatCurrency(data.financial_target)}
+                                                        {/* Achievement - Beneficiary Share */}
+                                                        <TableCell className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold">
+                                                            {formatCurrency(item.beneficiary_share)}
                                                         </TableCell>
-                                                        <TableCell className="text-right bg-purple-50/50 dark:bg-purple-950/20">
-                                                            {formatCurrency(data.beneficiary_share)}
+                                                        {/* Achievement - Subsidy */}
+                                                        <TableCell className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold border-r">
+                                                            {formatCurrency(item.financial_achievement)}
                                                         </TableCell>
-                                                        <TableCell className="text-right bg-purple-50/50 dark:bg-purple-950/20">
-                                                            {formatCurrency(data.subsidy)}
+                                                        {/* Balance - Physical */}
+                                                        <TableCell className="text-center bg-orange-50/50 dark:bg-orange-950/20 font-semibold">
+                                                            {item.physical_balance.toLocaleString()}
                                                         </TableCell>
-                                                        <TableCell className="text-right bg-purple-50/50 dark:bg-purple-950/20 text-purple-600 font-semibold">
-                                                            {formatCurrency(data.financial_achievement)}
-                                                        </TableCell>
-                                                        <TableCell className="text-right bg-orange-50/50 dark:bg-orange-950/20 font-semibold">
-                                                            0
+                                                        {/* Balance - Financial */}
+                                                        <TableCell className="text-center bg-orange-50/50 dark:bg-orange-950/20 font-semibold">
+                                                            {formatCurrency(item.financial_balance)}
                                                         </TableCell>
                                                     </TableRow>
                                                 );
@@ -395,28 +402,35 @@ export default function TargetAchievement() {
                                         </TableBody>
                                         <TableFooter>
                                             <TableRow className="bg-muted font-bold">
-                                                <TableCell></TableCell>
-                                                <TableCell>TOTAL</TableCell>
+                                                <TableCell className="border-r"></TableCell>
+                                                <TableCell className="border-r">TOTAL</TableCell>
+                                                {/* Target - Physical */}
                                                 <TableCell className="text-center">
-                                                    {totals.total_physical_target.toLocaleString()}
+                                                    {totals.physical_target.toLocaleString()}
                                                 </TableCell>
+                                                {/* Target - Financial */}
+                                                <TableCell className="text-center border-r">
+                                                    {formatCurrency(totals.financial_target)}
+                                                </TableCell>
+                                                {/* Achievement - Physical */}
                                                 <TableCell className="text-center text-green-600">
-                                                    {totals.total_physical_achievement.toLocaleString()}
+                                                    {totals.physical_achievement.toLocaleString()}
                                                 </TableCell>
-                                                <TableCell className="text-right">
-                                                    {formatCurrency(totals.total_financial_target)}
+                                                {/* Achievement - Beneficiary Share */}
+                                                <TableCell className="text-center text-green-600">
+                                                    {formatCurrency(totals.beneficiary_share)}
                                                 </TableCell>
-                                                <TableCell className="text-right">
-                                                    {formatCurrency(totals.total_beneficiary_share)}
+                                                {/* Achievement - Subsidy */}
+                                                <TableCell className="text-center text-green-600 border-r">
+                                                    {formatCurrency(totals.financial_achievement)}
                                                 </TableCell>
-                                                <TableCell className="text-right">
-                                                    {formatCurrency(totals.total_subsidy)}
+                                                {/* Balance - Physical */}
+                                                <TableCell className="text-center">
+                                                    {totals.physical_balance.toLocaleString()}
                                                 </TableCell>
-                                                <TableCell className="text-right text-purple-600">
-                                                    {formatCurrency(totals.total_financial_achievement)}
-                                                </TableCell>
-                                                <TableCell className="text-right bg-orange-100">
-                                                    0
+                                                {/* Balance - Financial */}
+                                                <TableCell className="text-center">
+                                                    {formatCurrency(totals.financial_balance)}
                                                 </TableCell>
                                             </TableRow>
                                         </TableFooter>
