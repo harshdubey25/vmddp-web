@@ -447,13 +447,14 @@ export default function VendorPayments() {
                             <Label htmlFor="chequeAmount">Cheque Amount *</Label>
                             <Input
                                 id="chequeAmount"
-                                type="number"
-                                value={chequeAmount}
-                                onChange={(e) => setChequeAmount(parseFloat(e.target.value) || 0)}
+                                type="text"
+                                value={`₹${chequeAmount.toLocaleString("en-IN")}`}
                                 placeholder="Enter cheque amount"
                                 data-testid="input-cheque-amount"
-                                hideSpinners
+                                disabled
+                                className="bg-muted"
                          />
+                            <p className="text-xs text-muted-foreground">Amount is auto-calculated from selected payments</p>
                         </div>
 
                         <div className="space-y-2">
