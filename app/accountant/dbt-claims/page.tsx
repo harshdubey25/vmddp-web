@@ -195,7 +195,7 @@ export default function DBTClaims() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">DBT Components</p>
-                                        <p className="text-2xl font-bold">3</p>
+                                        <p className="text-2xl font-bold">5</p>
                                         <p className="text-xs text-muted-foreground">Available for claims</p>
                                     </div>
                                 </div>

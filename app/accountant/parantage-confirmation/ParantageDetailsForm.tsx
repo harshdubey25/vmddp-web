@@ -41,6 +41,7 @@ export default function ParantageDetailsForm({
     if (component_allocation_id == "")
         throw new Error("component allocation id is empty");
     const [calfBorn, setCalfBorn] = useState<string>("");
+    const [calfDateOfBirth, setCalfDateOfBirth] = useState<string>("");
     const [certifiedByAgency, setCertifiedByAgency] = useState<string>("");
     const [certificateFile, setCertificateFile] = useState<File | null>(null);
     const [certificateUrl, setCertificateUrl] = useState<string>("");
@@ -55,7 +56,7 @@ export default function ParantageDetailsForm({
             const response = await upload(file, {
                 isPrivate: false,
                 doctype: "Parantage Confirmation",
-                fieldname: "certificate",
+                fieldname: "certficate",
             });
 
             setCertificateUrl(response.file_url);
@@ -74,7 +75,7 @@ export default function ParantageDetailsForm({
     };
 
     const handleSubmit = async () => {
-        if (!calfBorn || !certifiedByAgency) {
+        if (!calfBorn || !calfDateOfBirth || !certifiedByAgency) {
             toast({
                 title: "Validation Error",
                 description: "Please fill in all required fields",
@@ -87,10 +88,11 @@ export default function ParantageDetailsForm({
             await createDoc("Parantage Confirmation", {
                 app_form: applicationId,
                 calf_born: calfBorn === "male" ? "Male" : "Female",
+                calf_date_of_birth: calfDateOfBirth,
                 certified_by_agency: certifiedByAgency,
                 status: "Pending Approval",
                 component_allocation: component_allocation_id,
-                certificate: certificateUrl,
+                certficate: certificateUrl,
             });
 
             toast({
@@ -125,6 +127,16 @@ export default function ParantageDetailsForm({
                             <SelectItem value="female">Female</SelectItem>
                         </SelectContent>
                     </Select>
+                </div>
+                <div className="space-y-1">
+                    <Label className="text-xs">Calf Date of Birth *</Label>
+                    <Input
+                        type="date"
+                        value={calfDateOfBirth}
+                        onChange={(e) => setCalfDateOfBirth(e.target.value)}
+                        data-testid={`input-dob-${entryId}`}
+                        className="text-xs"
+                    />
                 </div>
                 <div className="space-y-1">
                     <Label className="text-xs">Certificate Upload</Label>
