@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useFrappeCreateDoc, useFrappeGetDocList } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
+import { parseFrappeError } from "@/lib/frappe-error-parser";
 
 interface AdminExpenseHead {
     name: string;
@@ -27,7 +28,7 @@ interface AdminExpenseHead {
 export default function AdminExpenseForm() {
     const router = useRouter();
     const { toast } = useToast();
-    const { createDoc, loading: isSubmitting } = useFrappeCreateDoc();
+    const { createDoc, loading: isSubmitting, error: submitError } = useFrappeCreateDoc();
 
     const [formData, setFormData] = useState({
         head: "",
@@ -75,9 +76,10 @@ export default function AdminExpenseForm() {
 
             router.push("/accountant/admin-expenses");
         } catch (error: any) {
+            const { title, message } = parseFrappeError(error, "Error", "Failed to create expense");
             toast({
-                title: "Error",
-                description: error.message || "Failed to create expense",
+                title,
+                description: message,
                 variant: "destructive",
             });
         }
