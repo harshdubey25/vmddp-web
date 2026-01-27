@@ -108,10 +108,17 @@ export default function Parantage() {
     >("vmddp_app.api.v1.accountant.get_parantage_confirmation_list", {
         status: "approved",
     });
+    
+    const { data: rejectData } = useFrappeGetCall<
+        FrappeCustomApiResponse<ParantageEntry[]>
+    >("vmddp_app.api.v1.accountant.get_parantage_confirmation_list", {
+        status: "rejected",
+    });
 
     const pendingEntries = pendingData?.message || [];
     const pendingApprovalEntries = pendingApprovalData?.message || [];
     const approvedEntries = approvedData?.message || [];
+    const rejectedEntries = rejectData?.message || [];
 
     return (
         <div className="h-screen bg-background">
@@ -248,6 +255,12 @@ export default function Parantage() {
                                         data-testid="tab-completed"
                                     >
                                         Approved
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="rejected"
+                                        data-testid="tab-rejected"
+                                    >
+                                        Rejected
                                     </TabsTrigger>
                                 </TabsList>
 
@@ -503,6 +516,96 @@ export default function Parantage() {
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
+                                        </TableBody>
+                                    </Table>
+                                </TabsContent>
+
+                                <TabsContent value="rejected">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>
+                                                    Beneficiary
+                                                </TableHead>
+                                                <TableHead>District</TableHead>
+                                                <TableHead>
+                                                    Calf Gender
+                                                </TableHead>
+                                                <TableHead>
+                                                    Certified By
+                                                </TableHead>
+                                                <TableHead>
+                                                    Pending Amount
+                                                </TableHead>
+                                                <TableHead>
+                                                    Status
+                                                </TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {rejectedEntries.length === 0 ? (
+                                                <TableRow>
+                                                    <TableCell
+                                                        colSpan={6}
+                                                        className="text-center py-8 text-muted-foreground"
+                                                    >
+                                                        No rejected entries found
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : (
+                                                rejectedEntries.map((entry) => (
+                                                    <TableRow
+                                                        key={
+                                                            entry.parantage_confirmation_id
+                                                        }
+                                                        data-testid={`row-rejected-${entry.parantage_confirmation_id}`}
+                                                    >
+                                                        <TableCell>
+                                                            <div>
+                                                                <p className="font-medium">
+                                                                    {`${entry.first_name} ${entry.mid_name || ""} ${entry.last_name}`.trim()}
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    {
+                                                                        entry.aadhar_number
+                                                                    }
+                                                                </p>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {entry.district}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Badge
+                                                                variant="outline"
+                                                                className="capitalize"
+                                                            >
+                                                                {
+                                                                    entry.calf_born
+                                                                }
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {entry.agency_name ||
+                                                                entry.certified_by_agency}
+                                                        </TableCell>
+                                                        <TableCell className="font-medium text-primary">
+                                                            ₹
+                                                            {entry.pending_amount?.toLocaleString(
+                                                                "en-IN",
+                                                            ) || 0}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Badge
+                                                                variant="outline"
+                                                                className="bg-red-500/10 text-red-600 border-red-500/20"
+                                                            >
+                                                                Rejected
+                                                            </Badge>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TabsContent>
