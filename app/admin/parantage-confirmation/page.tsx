@@ -750,7 +750,7 @@ export default function AdminParantageConfirmation() {
 
                             {selectedEntry.reason && (
                                 <div className="border-t pt-4">
-                                    <h4 className="font-semibold mb-3">Admin Remarks</h4>
+                                    <h4 className="font-semibold mb-3">Remarks</h4>
                                     <div className="p-3 bg-muted/50 rounded-lg">
                                         <p className="text-sm">{selectedEntry.reason}</p>
                                     </div>

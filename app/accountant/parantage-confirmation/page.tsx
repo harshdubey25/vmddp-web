@@ -108,7 +108,7 @@ export default function Parantage() {
     >("vmddp_app.api.v1.accountant.get_parantage_confirmation_list", {
         status: "approved",
     });
-    
+
     const { data: rejectData } = useFrappeGetCall<
         FrappeCustomApiResponse<ParantageEntry[]>
     >("vmddp_app.api.v1.accountant.get_parantage_confirmation_list", {
@@ -350,34 +350,34 @@ export default function Parantage() {
                                                     </TableRow>
                                                     {openFormId ===
                                                         entry.component_allocation_id && (
-                                                        <TableRow className="bg-muted/30">
-                                                            <TableCell
-                                                                colSpan={6}
-                                                            >
-                                                                <ParantageDetailsForm
-                                                                    entryId={
-                                                                        entry.component_allocation_id
-                                                                    }
-                                                                    applicationId={
-                                                                        entry.application_id
-                                                                    }
-                                                                    onCancel={() =>
-                                                                        setOpenFormId(
-                                                                            null,
-                                                                        )
-                                                                    }
-                                                                    onSuccess={() =>
-                                                                        setOpenFormId(
-                                                                            null,
-                                                                        )
-                                                                    }
-                                                                    component_allocation_id={
-                                                                        entry.component_allocation_id
-                                                                    }
-                                                                />
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    )}
+                                                            <TableRow className="bg-muted/30">
+                                                                <TableCell
+                                                                    colSpan={6}
+                                                                >
+                                                                    <ParantageDetailsForm
+                                                                        entryId={
+                                                                            entry.component_allocation_id
+                                                                        }
+                                                                        applicationId={
+                                                                            entry.application_id
+                                                                        }
+                                                                        onCancel={() =>
+                                                                            setOpenFormId(
+                                                                                null,
+                                                                            )
+                                                                        }
+                                                                        onSuccess={() =>
+                                                                            setOpenFormId(
+                                                                                null,
+                                                                            )
+                                                                        }
+                                                                        component_allocation_id={
+                                                                            entry.component_allocation_id
+                                                                        }
+                                                                    />
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        )}
                                                 </Fragment>
                                             ))}
                                         </TableBody>
@@ -772,7 +772,7 @@ export default function Parantage() {
                             {/* Admin Remarks - only show if reason exists */}
                             {selectedEntry.reason && (
                                 <div className="border-t pt-4">
-                                    <h4 className="font-semibold mb-3">Admin Remarks</h4>
+                                    <h4 className="font-semibold mb-3">Remarks</h4>
                                     <div className="p-3 bg-muted/50 rounded-lg">
                                         <p className="text-sm">{selectedEntry.reason}</p>
                                     </div>

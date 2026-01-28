@@ -348,6 +348,32 @@ export default function DDCollectionForm({
                                 </div>
                             </div>
                         </div>
+
+                        {application?.response && (() => {
+                            try {
+                                const responses = JSON.parse(application.response);
+                                return (
+                                    <div className="mt-6 pt-6 border-t">
+                                        <p className="text-sm font-medium mb-3">Component Details</p>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {responses.map((item: any, index: number) => (
+                                                <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                                                    <div className="p-2 rounded-lg bg-primary/10">
+                                                        <FileText className="h-4 w-4 text-primary" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-muted-foreground">{item.question}</p>
+                                                        <p className="font-medium">{item.value || "-"}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            } catch (e) {
+                                return null;
+                            }
+                        })()}
                     </CardContent>
                 </Card>
 
