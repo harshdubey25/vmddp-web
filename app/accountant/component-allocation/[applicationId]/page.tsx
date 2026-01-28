@@ -4,6 +4,7 @@ import { useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FrappeCustomApiResponse, ComponentStatus } from "@/types";
+import { parseFrappeError } from "@/lib/frappe-error-parser";
 import {
   ArrowLeft,
   User,
@@ -505,16 +506,17 @@ export default function AllocationForm({
         description: `Allocation recorded for ${data.message.first_name}. Ledger updated automatically.`,
       });
       setShowConfirmation(false);
-      
+
       setTimeout(() => {
         router.push("/accountant/component-allocation");
         router.refresh();
       }, 1000);
     } catch (err) {
       console.error("Error creating component allocation:", err);
+      const { title, message } = parseFrappeError(err, "Allocation Failed", "Failed to create component allocation. Please try again.");
       toast({
-        title: "Allocation Failed",
-        description: err instanceof Error ? err.message : "Failed to create component allocation. Please try again.",
+        title,
+        description: message,
         variant: "destructive",
       });
     } finally {

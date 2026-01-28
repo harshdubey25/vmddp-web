@@ -2,6 +2,7 @@
 export const runtime = 'edge';
 import Link from "next/link";
 import { ArrowLeft, FileText, Upload, Check, User, Building2, MapPin, CreditCard, ExternalLink, Loader2 } from "lucide-react";
+import { parseFrappeError } from "@/lib/frappe-error-parser";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -233,10 +234,10 @@ export default function ClaimForm({
             router.push("/accountant/dbt-claims");
 
         } catch (err: any) {
-            console.error("Error submitting claim:", err);
+            const { title, message } = parseFrappeError(err, "Submission Failed", "Failed to submit claim. Please try again.");
             toast({
-                title: "Submission Failed",
-                description: err?.message || "Failed to submit claim. Please try again.",
+                title,
+                description: message,
                 variant: "destructive",
             });
         } finally {
