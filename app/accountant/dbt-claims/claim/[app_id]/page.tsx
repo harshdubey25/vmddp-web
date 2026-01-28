@@ -106,6 +106,20 @@ export default function ClaimForm({
         ? (quota.max_quantity > 0 && quota.remaining_quantity <= 0) || quota.remaining_subsidy <= 0
         : false;
 
+    // Check if all required fields are filled
+    const isFormValid = () => {
+        return !!(
+            formData.invoiceNumber &&
+            formData.purchaseDate &&
+            formData.quantity &&
+            formData.totalAmount &&
+            formData.typeOfAnimal &&
+            formData.numberOfAnimalsBenefitted &&
+            formData.acknowledgement &&
+            invoiceFile
+        );
+    };
+
     // Calculate eligible DBT amount based on form input and subsidy percent
     const eligibleDbtAmount = quota && formData.totalAmount
         ? Math.min(
@@ -167,6 +181,16 @@ export default function ClaimForm({
             toast({
                 title: "Missing Fields",
                 description: "Please fill all required fields.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        // Validate invoice upload
+        if (!invoiceFile) {
+            toast({
+                title: "Invoice Required",
+                description: "Please upload an invoice file.",
                 variant: "destructive",
             });
             return;
@@ -491,7 +515,7 @@ export default function ClaimForm({
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Invoice Upload</Label>
+                                    <Label>Invoice Upload *</Label>
                                     <div className="flex items-center gap-2">
                                         <Input
                                             ref={fileInputRef}
@@ -595,7 +619,7 @@ export default function ClaimForm({
                                 <div className="flex gap-3">
                                     <Button
                                         onClick={handleSubmit}
-                                        disabled={isQuotaExhausted || isSubmitting || uploadLoading || createLoading}
+                                        disabled={!isFormValid() || isQuotaExhausted || isSubmitting || uploadLoading || createLoading}
                                         data-testid="button-submit-claim"
                                     >
                                         {(isSubmitting || uploadLoading || createLoading) ? (
