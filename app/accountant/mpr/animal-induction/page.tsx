@@ -39,6 +39,16 @@ interface TotalExpenditure {
     total: number;
 }
 
+interface Target {
+    financial_target: number;
+    physical_target: number;
+}
+
+interface Balance {
+    financial_balance: number;
+    physical_balance: number;
+}
+
 interface DistrictData {
     cow_count: number;
     buffalo_count: number;
@@ -48,6 +58,8 @@ interface DistrictData {
     premium_paid: CostBreakdown;
     transportation_cost: CostBreakdown;
     total_expenditure: TotalExpenditure;
+    target: Target;
+    balance: Balance;
 }
 
 interface AnimalInductionMPRResponse {
@@ -100,6 +112,7 @@ export default function AnimalInductionMPRPage() {
             premium_paid: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
             transportation_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
             total_expenditure: { benenficiary_share_total: 0, subsidy_share_total: 0, total: 0 },
+            balance: { financial_balance: 0, physical_balance: 0 },
         };
 
         districtData.forEach(({ data }) => {
@@ -125,6 +138,9 @@ export default function AnimalInductionMPRPage() {
             result.total_expenditure.benenficiary_share_total += data.total_expenditure?.benenficiary_share_total || 0;
             result.total_expenditure.subsidy_share_total += data.total_expenditure?.subsidy_share_total || 0;
             result.total_expenditure.total += data.total_expenditure?.total || 0;
+
+            result.balance.financial_balance += data.balance?.financial_balance || 0;
+            result.balance.physical_balance += data.balance?.physical_balance || 0;
         });
 
         return result;
@@ -555,7 +571,7 @@ export default function AnimalInductionMPRPage() {
                                                 <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total_expenditure?.total || 0)}</TableCell>
                                                 {/* Balance */}
                                                 <TableCell className="border text-right bg-orange-50/50 font-semibold">
-                                                    {0}
+                                                    {formatCurrency(data.balance?.financial_balance || 0)}
                                                 </TableCell>
                                             </TableRow>
                                             {/* Progress Row */}
@@ -587,7 +603,7 @@ export default function AnimalInductionMPRPage() {
                                                 <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total_expenditure?.total || 0)}</TableCell>
                                                 {/* Balance */}
                                                 <TableCell className="border text-right bg-orange-50/50 font-semibold">
-                                                    {0} 
+                                                    {formatCurrency(data.balance?.financial_balance || 0)}
                                                 </TableCell>
                                             </TableRow>
                                         </Fragment>
@@ -624,7 +640,7 @@ export default function AnimalInductionMPRPage() {
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_expenditure.total)}</TableCell>
                                         {/* Balance */}
                                         <TableCell className="border text-right bg-orange-100 font-bold">
-                                            {0}
+                                            {formatCurrency(totals.balance.financial_balance)}
                                         </TableCell>
                                     </TableRow>
                                 </TableFooter>
