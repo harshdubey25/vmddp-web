@@ -25,13 +25,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {
     Table,
     TableBody,
     TableCell,
@@ -80,6 +73,7 @@ export type ParantageEntry = {
     certified_by_agency?: string;
     agency_name?: string;
     parantage_status?: string;
+    reason?: string;
 };
 
 type ParantageStats = FrappeCustomApiResponse<{
@@ -142,7 +136,7 @@ export default function AdminParantageConfirmation() {
         );
     };
 
-    const handleViewDetails = (entry: ParantageEntry) => {
+    const  handleViewDetails = (entry: ParantageEntry) => {
         setSelectedEntry(entry);
         setIsDetailsOpen(true);
     };
@@ -168,6 +162,7 @@ export default function AdminParantageConfirmation() {
             await updateDoc("Parantage Confirmation", selectedEntry.parantage_confirmation_id, {
                 status: "Approved",
                 docstatus: 1,
+                reason: remarks || "",
             });
 
             // Submit the document
@@ -204,6 +199,7 @@ export default function AdminParantageConfirmation() {
             await updateDoc("Parantage Confirmation", selectedEntry.parantage_confirmation_id, {
                 status: "Rejected",
                 docstatus: 1,
+                reason: remarks || "",
             });
 
             toast({
@@ -751,6 +747,15 @@ export default function AdminParantageConfirmation() {
                                     </div>
                                 </div>
                             </div>
+
+                            {selectedEntry.reason && (
+                                <div className="border-t pt-4">
+                                    <h4 className="font-semibold mb-3">Admin Remarks</h4>
+                                    <div className="p-3 bg-muted/50 rounded-lg">
+                                        <p className="text-sm">{selectedEntry.reason}</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                     <DialogFooter>
