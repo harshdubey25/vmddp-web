@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
     Card,
     CardContent,
@@ -13,32 +14,29 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination";
-import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Download, Search } from "lucide-react";
+import { Download, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useDebounce } from "@/hooks/use-debounce";
 import { frappeBrowser } from "@/lib/frappe";
 
 export default function DDReportPage() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState("");
     const [componentFilter, setComponentFilter] = useState("all");
     const [animalFilter, setAnimalFilter] = useState("all");
-    const [currentPage, setCurrentPage] = useState(1);
+
+    // Initialize page from URL params
+    const initialPage = Number(searchParams.get("page") || 1);
+    const [currentPage, setCurrentPage] = useState(initialPage);
     const pageSize = 20;
 
     // Debounce search query
@@ -47,8 +45,8 @@ export default function DDReportPage() {
     const { data: apiResponse, isLoading } = useFrappeGetCall(
         "vmddp_app.api.v1.accountant.get_completed_dd_list",
         {
-            page: currentPage,
-            limit: pageSize,
+            limit_start: (currentPage - 1) * pageSize,
+            limit_page_length: pageSize,
             search_text: debouncedSearchQuery || undefined,
             component: componentFilter !== "all" ? componentFilter : undefined,
             item: animalFilter !== "all" ? animalFilter : undefined,
@@ -58,6 +56,25 @@ export default function DDReportPage() {
     const reports = apiResponse?.message || [];
     const totalRecords = apiResponse?.total || reports.length;
     const totalPages = Math.ceil(totalRecords / pageSize);
+
+    // Keep page number in the URL so refresh preserves the current page
+    useEffect(() => {
+        try {
+            const params = new URLSearchParams(searchParams.toString());
+
+            if (currentPage && currentPage > 1) {
+                params.set("page", String(currentPage));
+            } else {
+                params.delete("page");
+            }
+
+            const query = params.toString();
+            // Use replace to avoid adding history entries on every change
+            router.replace(query ? `?${query}` : `/accountant/dd-report`);
+        } catch (err) {
+            console.error("Error syncing page params to URL", err);
+        }
+    }, [currentPage, router, searchParams]);
 
     // Export to Excel
     const handleExport = async () => {
@@ -368,100 +385,43 @@ export default function DDReportPage() {
                             </div>
 
                             {/* Pagination */}
-                            {totalPages > 1 && (
-                                <div className="flex items-center justify-center mt-4 pt-4 border-t">
-                                    <Pagination>
-                                        <PaginationContent>
-                                            <PaginationItem>
-                                                <PaginationPrevious
-                                                    onClick={() =>
-                                                        setCurrentPage((p) =>
-                                                            Math.max(1, p - 1),
-                                                        )
-                                                    }
-                                                    className={
-                                                        currentPage === 1
-                                                            ? "pointer-events-none opacity-50"
-                                                            : "cursor-pointer"
-                                                    }
-                                                />
-                                            </PaginationItem>
-
-                                            {Array.from(
-                                                {
-                                                    length: Math.min(
-                                                        5,
-                                                        totalPages,
-                                                    ),
-                                                },
-                                                (_, i) => {
-                                                    let pageNum;
-                                                    if (totalPages <= 5) {
-                                                        pageNum = i + 1;
-                                                    } else if (
-                                                        currentPage <= 3
-                                                    ) {
-                                                        pageNum = i + 1;
-                                                    } else if (
-                                                        currentPage >=
-                                                        totalPages - 2
-                                                    ) {
-                                                        pageNum =
-                                                            totalPages - 4 + i;
-                                                    } else {
-                                                        pageNum =
-                                                            currentPage - 2 + i;
-                                                    }
-
-                                                    return (
-                                                        <PaginationItem
-                                                            key={pageNum}
-                                                        >
-                                                            <PaginationLink
-                                                                onClick={() =>
-                                                                    setCurrentPage(
-                                                                        pageNum,
-                                                                    )
-                                                                }
-                                                                isActive={
-                                                                    currentPage ===
-                                                                    pageNum
-                                                                }
-                                                                className="cursor-pointer"
-                                                            >
-                                                                {pageNum}
-                                                            </PaginationLink>
-                                                        </PaginationItem>
-                                                    );
-                                                },
-                                            )}
-
-                                            <PaginationItem>
-                                                <PaginationNext
-                                                    onClick={() =>
-                                                        setCurrentPage((p) =>
-                                                            Math.min(
-                                                                totalPages,
-                                                                p + 1,
-                                                            ),
-                                                        )
-                                                    }
-                                                    className={
-                                                        currentPage ===
-                                                            totalPages
-                                                            ? "pointer-events-none opacity-50"
-                                                            : "cursor-pointer"
-                                                    }
-                                                />
-                                            </PaginationItem>
-                                        </PaginationContent>
-                                    </Pagination>
-                                </div>
-                            )}
                             {reports.length > 0 && (
-                                <div className="mt-4 text-xs sm:text-sm text-muted-foreground text-center">
-                                    Showing {reports.length} records on page{" "}
-                                    {currentPage} of {totalPages}
+                                <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                                    <div className="text-sm text-muted-foreground">
+                                        Page {currentPage} of {totalPages} •{" "}
+                                        {reports.length} items
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                setCurrentPage((p) =>
+                                                    Math.max(1, p - 1)
+                                                )
+                                            }
+                                            disabled={currentPage === 1}
+                                        >
+                                            <ChevronLeft className="h-4 w-4 mr-1" />
+                                            Previous
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                setCurrentPage((p) =>
+                                                    Math.min(totalPages, p + 1)
+                                                )
+                                            }
+                                            disabled={
+                                                currentPage === totalPages ||
+                                                reports.length < pageSize
+                                            }
+                                        >
+                                            Next
+                                            <ChevronRight className="h-4 w-4 ml-1" />
+                                        </Button>
+                                    </div>
                                 </div>
                             )}
                         </CardContent>
