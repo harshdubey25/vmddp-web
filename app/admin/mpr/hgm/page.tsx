@@ -220,25 +220,25 @@ export default function HGMMPRPage() {
     ];
 
     return (
-        <div className="p-6 space-y-6 overflow-auto w-full">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-auto w-full">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
                 <div className="flex items-center gap-4">
-                    <Link href="/accountant/reports">
+                    <Link href="/admin/reports">
                         <Button variant="ghost" size="icon">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                     </Link>
                     <div>
-                        <h1 className="text-2xl font-bold">HGM (Pregnant Cow) MPR</h1>
-                        <p className="text-muted-foreground">
+                        <h1 className="text-xl sm:text-2xl font-bold">HGM (Pregnant Cow) MPR</h1>
+                        <p className="text-sm sm:text-base text-muted-foreground">
                             Supply Of High Genetic Merit Pregnant Heifers (IVF/ETT)
                         </p>
                     </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                        <SelectTrigger className="w-[140px]">
+                        <SelectTrigger className="w-[120px] sm:w-[140px]">
                             <SelectValue placeholder="Select Month" />
                         </SelectTrigger>
                         <SelectContent>
@@ -250,7 +250,7 @@ export default function HGMMPRPage() {
                         </SelectContent>
                     </Select>
                     <Select value={selectedYear} onValueChange={setSelectedYear}>
-                        <SelectTrigger className="w-[100px]">
+                        <SelectTrigger className="w-[90px] sm:w-[100px]">
                             <SelectValue placeholder="Year" />
                         </SelectTrigger>
                         <SelectContent>
@@ -264,46 +264,47 @@ export default function HGMMPRPage() {
                     <Button variant="outline" size="icon" onClick={handleRefresh}>
                         <RefreshCw className="h-4 w-4" />
                     </Button>
-                    <Button onClick={handleExport} disabled={isExporting || isLoading}>
-                        <Download className="h-4 w-4 mr-2" />
-                        {isExporting ? "Exporting..." : "Export Excel"}
+                    <Button onClick={handleExport} disabled={isExporting || isLoading} className="w-full sm:w-auto">
+                        <Download className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">{isExporting ? "Exporting..." : "Export Excel"}</span>
+                        <span className="sm:hidden">{isExporting ? "Export" : "Export"}</span>
                     </Button>
                 </div>
             </div>
 
                 {/* Summary Cards */}
             {!isLoading && districtData.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Total Districts</CardDescription>
-                            <CardTitle className="text-2xl">{districtData.length}</CardTitle>
+                            <CardDescription className="text-xs sm:text-sm">Total Districts</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl">{districtData.length}</CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Total Cows</CardDescription>
-                            <CardTitle className="text-2xl text-blue-600">{totals.total_cows}</CardTitle>
+                            <CardDescription className="text-xs sm:text-sm">Total Cows</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-blue-600">{totals.total_cows}</CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Total Buffaloes</CardDescription>
-                            <CardTitle className="text-2xl text-purple-600">{totals.total_buffaloes}</CardTitle>
+                            <CardDescription className="text-xs sm:text-sm">Total Buffaloes</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-purple-600">{totals.total_buffaloes}</CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Total Subsidy</CardDescription>
-                            <CardTitle className="text-2xl text-orange-600">
+                            <CardDescription className="text-xs sm:text-sm">Total Subsidy</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-orange-600">
                                 ₹{formatCurrency(totals.total_subsidy)}
                             </CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Grand Total</CardDescription>
-                            <CardTitle className="text-2xl text-green-600">
+                            <CardDescription className="text-xs sm:text-sm">Grand Total</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-green-600">
                                 ₹{formatCurrency(totals.grand_total)}
                             </CardTitle>
                         </CardHeader>
@@ -419,7 +420,7 @@ export default function HGMMPRPage() {
                                             </TableRow>
                                             {/* Progress Row */}
                                             <TableRow className="hover:bg-muted/30 bg-muted/10">
-                                                <TableCell className="border text-center text-[10px]">Progress</TableCell>
+                                                <TableCell className="border text-center text-[10px]">Progressive</TableCell>
                                                 {/* Target (Physical) */}
                                                 <TableCell className="border text-center bg-blue-50">0</TableCell>
                                                 {/* Physical Achievement */}
