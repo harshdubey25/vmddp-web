@@ -34,6 +34,7 @@ interface DistrictData {
     beneficiary_share: number;
     subsidy: number;
     total: number;
+    financial_balance: number;
 }
 
 interface Totals {
@@ -43,6 +44,7 @@ interface Totals {
     total_beneficiary_share: number;
     total_subsidy: number;
     grand_total: number;
+    total_financial_balance: number;
 }
 
 interface DBTClaimsMPRResponse {
@@ -114,6 +116,7 @@ export default function DBTClaimsMPRPage() {
                 beneficiary_share: 0,
                 subsidy: 0,
                 total: 0,
+                financial_balance: 0,
             };
             districts.push({ name: districtName, data });
         });
@@ -138,6 +141,7 @@ export default function DBTClaimsMPRPage() {
         total_beneficiary_share: 0,
         total_subsidy: 0,
         grand_total: 0,
+        total_financial_balance: 0,
     };
 
     // Format currency
@@ -159,10 +163,7 @@ export default function DBTClaimsMPRPage() {
                 "Sr. No.",
                 "Name of District",
                 "Type",
-                "Target",
-                "No. of Cow",
-                "No. of Buffalo",
-                "Quantity (Kg)",
+                "Quantity (No.)",
                 "Beneficiary Share (Rs.)",
                 "Subsidy (Rs.)",
                 "Total (Rs.)",
@@ -176,9 +177,6 @@ export default function DBTClaimsMPRPage() {
                     index + 1,
                     name,
                     "Monthly",
-                    0, // Target placeholder
-                    data.cow_count || 0,
-                    data.buffalo_count || 0,
                     data.quantity || 0,
                     data.beneficiary_share || 0,
                     data.subsidy || 0,
@@ -189,9 +187,6 @@ export default function DBTClaimsMPRPage() {
                     "",
                     "",
                     "Progress",
-                    0,
-                    data.cow_count || 0,
-                    data.buffalo_count || 0,
                     data.quantity || 0,
                     data.beneficiary_share || 0,
                     data.subsidy || 0,
@@ -204,9 +199,6 @@ export default function DBTClaimsMPRPage() {
                 "",
                 "TOTAL",
                 "",
-                0,
-                totals.total_cows,
-                totals.total_buffaloes,
                 totals.total_quantity,
                 totals.total_beneficiary_share,
                 totals.total_subsidy,
@@ -332,7 +324,7 @@ export default function DBTClaimsMPRPage() {
 
             {/* Summary Cards */}
             {!isLoading && districtData.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     <Card>
                         <CardHeader className="pb-2">
                             <CardDescription>Total Districts</CardDescription>
@@ -341,20 +333,16 @@ export default function DBTClaimsMPRPage() {
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Total Cows</CardDescription>
-                            <CardTitle className="text-2xl text-blue-600">{totals.total_cows}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Total Buffaloes</CardDescription>
-                            <CardTitle className="text-2xl text-purple-600">{totals.total_buffaloes}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
                             <CardDescription>Total Quantity</CardDescription>
-                            <CardTitle className="text-2xl text-amber-600">{formatCurrency(totals.total_quantity)} Kg</CardTitle>
+                            <CardTitle className="text-2xl text-amber-600">{formatCurrency(totals.total_quantity)}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total Beneficiary Share</CardDescription>
+                            <CardTitle className="text-2xl text-blue-600">
+                                ₹{formatCurrency(totals.total_beneficiary_share)}
+                            </CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
@@ -418,16 +406,13 @@ export default function DBTClaimsMPRPage() {
                                         <TableHead rowSpan={3} className="border text-center font-bold min-w-[70px]">
 
                                         </TableHead>
-                                        <TableHead colSpan={8} className="border text-center font-bold bg-blue-50">
+                                        <TableHead colSpan={5} className="border text-center font-bold bg-blue-50">
                                             DBT Claims - {selectedComponent !== "all" ? (components.find(c => c.name === selectedComponent)?.component_name || selectedComponent) : "All Components"}
                                         </TableHead>
                                     </TableRow>
                                     {/* Second header row - Sub categories */}
                                     <TableRow className="bg-muted/30">
-                                        <TableHead rowSpan={2} className="border text-center font-bold min-w-[80px]">
-                                            Target
-                                        </TableHead>
-                                        <TableHead colSpan={3} className="border text-center font-bold min-w-[200px] bg-yellow-50">
+                                        <TableHead colSpan={1} className="border text-center font-bold min-w-[100px] bg-yellow-50">
                                             Physical Achievement
                                         </TableHead>
                                         <TableHead colSpan={3} className="border text-center font-bold min-w-[240px] bg-green-50">
@@ -440,14 +425,8 @@ export default function DBTClaimsMPRPage() {
                                     {/* Third header row - Detail columns */}
                                     <TableRow className="bg-muted/20">
                                         {/* Physical Achievement */}
-                                        <TableHead className="border text-center text-[9px] min-w-[70px] bg-yellow-50">
-                                            No. of Cow
-                                        </TableHead>
-                                        <TableHead className="border text-center text-[9px] min-w-[70px] bg-yellow-50">
-                                            No. of Buffalo
-                                        </TableHead>
                                         <TableHead className="border text-center text-[9px] min-w-[80px] bg-yellow-50">
-                                            Quantity (Kg)
+                                            Quantity (No.)
                                         </TableHead>
                                         {/* Financial Achievement */}
                                         <TableHead className="border text-center text-[9px] min-w-[100px] bg-green-50">
@@ -473,32 +452,26 @@ export default function DBTClaimsMPRPage() {
                                                     {name}
                                                 </TableCell>
                                                 <TableCell className="border text-center text-[10px]">Monthly</TableCell>
-                                                <TableCell className="border text-center">0</TableCell>
                                                 {/* Physical Achievement */}
-                                                <TableCell className="border text-center bg-yellow-50/50">{data.cow_count || 0}</TableCell>
-                                                <TableCell className="border text-center bg-yellow-50/50">{data.buffalo_count || 0}</TableCell>
-                                                <TableCell className="border text-right bg-yellow-50/50">{formatCurrency(data.quantity || 0)}</TableCell>
+                                                <TableCell className="border text-center bg-yellow-50/50">{data.quantity || 0}</TableCell>
                                                 {/* Financial Achievement */}
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.beneficiary_share || 0)}</TableCell>
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.subsidy || 0)}</TableCell>
                                                 <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total || 0)}</TableCell>
                                                 {/* Balance */}
-                                                <TableCell className="border text-right bg-orange-50/50 font-semibold">0</TableCell>
+                                                <TableCell className="border text-right bg-orange-50/50 font-semibold">{formatCurrency(data.financial_balance || 0)}</TableCell>
                                             </TableRow>
                                             {/* Progress Row */}
                                             <TableRow className="hover:bg-muted/30 bg-muted/10">
                                                 <TableCell className="border text-center text-[10px]">Progress</TableCell>
-                                                <TableCell className="border text-center">0</TableCell>
                                                 {/* Physical Achievement */}
-                                                <TableCell className="border text-center bg-yellow-50/50">{data.cow_count || 0}</TableCell>
-                                                <TableCell className="border text-center bg-yellow-50/50">{data.buffalo_count || 0}</TableCell>
-                                                <TableCell className="border text-right bg-yellow-50/50">{formatCurrency(data.quantity || 0)}</TableCell>
+                                                <TableCell className="border text-center bg-yellow-50/50">{data.quantity || 0}</TableCell>
                                                 {/* Financial Achievement */}
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.beneficiary_share || 0)}</TableCell>
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.subsidy || 0)}</TableCell>
                                                 <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total || 0)}</TableCell>
                                                 {/* Balance */}
-                                                <TableCell className="border text-right bg-orange-50/50 font-semibold">0</TableCell>
+                                                <TableCell className="border text-right bg-orange-50/50 font-semibold">{formatCurrency(data.financial_balance || 0)}</TableCell>
                                             </TableRow>
                                         </Fragment>
                                     ))}
@@ -508,17 +481,14 @@ export default function DBTClaimsMPRPage() {
                                         <TableCell className="border text-center sticky left-0 bg-muted z-10" colSpan={1}></TableCell>
                                         <TableCell className="border sticky left-[50px] bg-muted z-10">TOTAL</TableCell>
                                         <TableCell className="border"></TableCell>
-                                        <TableCell className="border text-center">0</TableCell>
                                         {/* Physical Achievement */}
-                                        <TableCell className="border text-center bg-yellow-100">{totals.total_cows}</TableCell>
-                                        <TableCell className="border text-center bg-yellow-100">{totals.total_buffaloes}</TableCell>
-                                        <TableCell className="border text-right bg-yellow-100">{formatCurrency(totals.total_quantity)}</TableCell>
+                                        <TableCell className="border text-center bg-yellow-100">{totals.total_quantity}</TableCell>
                                         {/* Financial Achievement */}
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_beneficiary_share)}</TableCell>
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_subsidy)}</TableCell>
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.grand_total)}</TableCell>
                                         {/* Balance */}
-                                        <TableCell className="border text-right bg-orange-100 font-bold">0</TableCell>
+                                        <TableCell className="border text-right bg-orange-100 font-bold">{formatCurrency(totals.total_financial_balance)}</TableCell>
                                     </TableRow>
                                 </TableFooter>
                             </Table>
