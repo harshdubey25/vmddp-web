@@ -74,7 +74,7 @@ export default function DBTClaimsMPRPage() {
     // Fetch components (for_component_allocation: false)
     const { data: componentsData } = useFrappeGetDocList<Component>("Component", {
         fields: ["name", "component_name"],
-        filters: [["for_component_allocation", "=", 0]],
+        filters: [["for_component_allocation", "=", 0], ["subadmin_component", "=", 0], ["for_dbt_claims", "=", 1]],
         limit: 100,
     });
 
