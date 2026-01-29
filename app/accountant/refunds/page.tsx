@@ -22,7 +22,6 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useFrappeGetCall, useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +43,10 @@ interface PendingRefund {
     transportation_cost: number;
     refund_amount: number;
     eligible_subsidy: number;
+    account_holder_name?: string;
+    bank_name?: string;
+    account_number?: string;
+    ifsc_code?: string;
 }
 
 interface PendingRefundResponse {
@@ -56,22 +59,16 @@ interface PendingRefundResponse {
 
 const PAGE_SIZE = 20;
 
-const getStatusBadge = (status: string) => {
-    switch (status) {
-        case "pending":
-            return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">Pending</Badge>;
-        case "processed":
-            return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">Processing</Badge>;
-        case "paid":
-            return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Paid</Badge>;
-        default:
-            return <Badge variant="outline">{status}</Badge>;
-    }
-};
 
 // Helper to get full name
 const getFullName = (refund: PendingRefund) => {
     return [refund.first_name, refund.mid_name, refund.last_name].filter(Boolean).join(" ");
+};
+
+const maskAccountNumber = (accountNumber?: string) => {
+    if (!accountNumber) return "N/A";
+    if (accountNumber.length <= 4) return accountNumber;
+    return "X".repeat(accountNumber.length - 4) + accountNumber.slice(-4);
 };
 
 export default function Refunds() {
@@ -416,6 +413,31 @@ export default function Refunds() {
                                         {currentRefund.component === "Animal Induction" && currentRefund.type_of_animal && (
                                             <span className="text-xs text-muted-foreground">{currentRefund.type_of_animal}</span>
                                         )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-3 sm:p-4 border rounded-lg space-y-3 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+                                <h4 className="font-medium text-xs sm:text-sm mb-2 flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                                    <User className="h-4 w-4" />
+                                    Bank Account Details
+                                </h4>
+                                <div className="space-y-2">
+                                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                                        <span className="text-muted-foreground text-sm">Account Holder</span>
+                                        <span className="font-medium text-sm">{currentRefund.account_holder_name || "N/A"}</span>
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                                        <span className="text-muted-foreground text-sm">Bank Name</span>
+                                        <span className="font-medium text-sm">{currentRefund.bank_name || "N/A"}</span>
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                                        <span className="text-muted-foreground text-sm">Account Number</span>
+                                        <span className="font-mono text-sm">{maskAccountNumber(currentRefund.account_number)}</span>
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                                        <span className="text-muted-foreground text-sm">IFSC Code</span>
+                                        <span className="font-mono text-sm">{currentRefund.ifsc_code || "N/A"}</span>
                                     </div>
                                 </div>
                             </div>
