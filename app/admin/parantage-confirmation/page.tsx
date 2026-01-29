@@ -25,13 +25,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {
     Table,
     TableBody,
     TableCell,
@@ -80,6 +73,7 @@ export type ParantageEntry = {
     certified_by_agency?: string;
     agency_name?: string;
     parantage_status?: string;
+    reason?: string;
 };
 
 type ParantageStats = FrappeCustomApiResponse<{
@@ -117,8 +111,15 @@ export default function AdminParantageConfirmation() {
         status: "approved",
     });
 
+    const { data: rejectedData, mutate: mutateRejected } = useFrappeGetCall<
+        FrappeCustomApiResponse<ParantageEntry[]>
+    >("vmddp_app.api.v1.accountant.get_parantage_confirmation_list", {
+        status: "rejected",
+    });
+
     const pendingApprovalEntries = pendingApprovalData?.message || [];
     const approvedEntries = approvedData?.message || [];
+    const rejectedEntries = rejectedData?.message || [];
 
     // Filter entries based on search query
     const filterEntries = (entries: ParantageEntry[]) => {
@@ -135,7 +136,7 @@ export default function AdminParantageConfirmation() {
         );
     };
 
-    const handleViewDetails = (entry: ParantageEntry) => {
+    const  handleViewDetails = (entry: ParantageEntry) => {
         setSelectedEntry(entry);
         setIsDetailsOpen(true);
     };
@@ -161,6 +162,7 @@ export default function AdminParantageConfirmation() {
             await updateDoc("Parantage Confirmation", selectedEntry.parantage_confirmation_id, {
                 status: "Approved",
                 docstatus: 1,
+                reason: remarks || "",
             });
 
             // Submit the document
@@ -193,18 +195,21 @@ export default function AdminParantageConfirmation() {
 
         setIsSubmitting(true);
         try {
-            // Update status back to Pending (rejected by admin)
+            // Update status to Rejected and submit the document
             await updateDoc("Parantage Confirmation", selectedEntry.parantage_confirmation_id, {
-                status: "Pending Approval",
+                status: "Rejected",
+                docstatus: 1,
+                reason: remarks || "",
             });
 
             toast({
                 title: "Rejected",
-                description: "Parantage confirmation has been rejected and sent back for review",
+                description: "Parantage confirmation has been rejected",
             });
 
             // Refresh data
             mutatePendingApproval();
+            mutateRejected();
             mutateStats();
             setIsRejectDialogOpen(false);
             setSelectedEntry(null);
@@ -233,6 +238,13 @@ export default function AdminParantageConfirmation() {
                     <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
                         <CheckCircle className="w-3 h-3 mr-1" />
                         Approved
+                    </Badge>
+                );
+            case "Rejected":
+                return (
+                    <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20">
+                        <XCircle className="w-3 h-3 mr-1" />
+                        Rejected
                     </Badge>
                 );
             default:
@@ -364,6 +376,9 @@ export default function AdminParantageConfirmation() {
                                     </TabsTrigger>
                                     <TabsTrigger value="approved" data-testid="tab-approved">
                                         Approved ({filterEntries(approvedEntries).length})
+                                    </TabsTrigger>
+                                    <TabsTrigger value="rejected" data-testid="tab-rejected">
+                                        Rejected ({filterEntries(rejectedEntries).length})
                                     </TabsTrigger>
                                 </TabsList>
 
@@ -539,6 +554,84 @@ export default function AdminParantageConfirmation() {
                                         </Table>
                                     </div>
                                 </TabsContent>
+
+                                <TabsContent value="rejected">
+                                    <div className="border rounded-lg overflow-hidden">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow className="bg-muted/50">
+                                                    <TableHead>ID</TableHead>
+                                                    <TableHead>Beneficiary</TableHead>
+                                                    <TableHead>District</TableHead>
+                                                    <TableHead>Calf Gender</TableHead>
+                                                    <TableHead>Certified By</TableHead>
+                                                    <TableHead>Pending Amount</TableHead>
+                                                    <TableHead>Status</TableHead>
+                                                    <TableHead>Actions</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {filterEntries(rejectedEntries).length === 0 ? (
+                                                    <TableRow>
+                                                        <TableCell
+                                                            colSpan={8}
+                                                            className="text-center py-8 text-muted-foreground"
+                                                        >
+                                                            No rejected entries found
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ) : (
+                                                    filterEntries(rejectedEntries).map((entry) => (
+                                                        <TableRow
+                                                            key={entry.parantage_confirmation_id}
+                                                            data-testid={`row-rejected-${entry.parantage_confirmation_id}`}
+                                                        >
+                                                            <TableCell className="font-mono text-xs">
+                                                                {entry.parantage_confirmation_id}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <div>
+                                                                    <p className="font-medium">
+                                                                        {`${entry.first_name} ${entry.mid_name || ""} ${entry.last_name}`.trim()}
+                                                                    </p>
+                                                                    <p className="text-xs text-muted-foreground">
+                                                                        {entry.aadhar_number}
+                                                                    </p>
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell>{entry.district}</TableCell>
+                                                            <TableCell>
+                                                                <Badge variant="outline" className="capitalize">
+                                                                    {entry.calf_born}
+                                                                </Badge>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {entry.agency_name || entry.certified_by_agency}
+                                                            </TableCell>
+                                                            <TableCell className="font-medium text-primary">
+                                                                ₹{entry.pending_amount?.toLocaleString("en-IN") || 0}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {getStatusBadge(entry.parantage_status || "Rejected")}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={() => handleViewDetails(entry)}
+                                                                    data-testid={`button-view-rejected-${entry.parantage_confirmation_id}`}
+                                                                >
+                                                                    <Eye className="h-4 w-4 mr-2" />
+                                                                    View
+                                                                </Button>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))
+                                                )}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </TabsContent>
                             </Tabs>
                         </CardContent>
                     </Card>
@@ -654,6 +747,15 @@ export default function AdminParantageConfirmation() {
                                     </div>
                                 </div>
                             </div>
+
+                            {selectedEntry.reason && (
+                                <div className="border-t pt-4">
+                                    <h4 className="font-semibold mb-3">Remarks</h4>
+                                    <div className="p-3 bg-muted/50 rounded-lg">
+                                        <p className="text-sm">{selectedEntry.reason}</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                     <DialogFooter>

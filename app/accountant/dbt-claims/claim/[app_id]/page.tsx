@@ -2,6 +2,7 @@
 export const runtime = 'edge';
 import Link from "next/link";
 import { ArrowLeft, FileText, Upload, Check, User, Building2, MapPin, CreditCard, ExternalLink, Loader2 } from "lucide-react";
+import { parseFrappeError } from "@/lib/frappe-error-parser";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -105,6 +106,20 @@ export default function ClaimForm({
         ? (quota.max_quantity > 0 && quota.remaining_quantity <= 0) || quota.remaining_subsidy <= 0
         : false;
 
+    // Check if all required fields are filled
+    const isFormValid = () => {
+        return !!(
+            formData.invoiceNumber &&
+            formData.purchaseDate &&
+            formData.quantity &&
+            formData.totalAmount &&
+            formData.typeOfAnimal &&
+            formData.numberOfAnimalsBenefitted &&
+            formData.acknowledgement &&
+            invoiceFile
+        );
+    };
+
     // Calculate eligible DBT amount based on form input and subsidy percent
     const eligibleDbtAmount = quota && formData.totalAmount
         ? Math.min(
@@ -166,6 +181,16 @@ export default function ClaimForm({
             toast({
                 title: "Missing Fields",
                 description: "Please fill all required fields.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        // Validate invoice upload
+        if (!invoiceFile) {
+            toast({
+                title: "Invoice Required",
+                description: "Please upload an invoice file.",
                 variant: "destructive",
             });
             return;
@@ -233,10 +258,10 @@ export default function ClaimForm({
             router.push("/accountant/dbt-claims");
 
         } catch (err: any) {
-            console.error("Error submitting claim:", err);
+            const { title, message } = parseFrappeError(err, "Submission Failed", "Failed to submit claim. Please try again.");
             toast({
-                title: "Submission Failed",
-                description: err?.message || "Failed to submit claim. Please try again.",
+                title,
+                description: message,
                 variant: "destructive",
             });
         } finally {
@@ -490,7 +515,7 @@ export default function ClaimForm({
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Invoice Upload</Label>
+                                    <Label>Invoice Upload *</Label>
                                     <div className="flex items-center gap-2">
                                         <Input
                                             ref={fileInputRef}
@@ -594,7 +619,7 @@ export default function ClaimForm({
                                 <div className="flex gap-3">
                                     <Button
                                         onClick={handleSubmit}
-                                        disabled={isQuotaExhausted || isSubmitting || uploadLoading || createLoading}
+                                        disabled={!isFormValid() || isQuotaExhausted || isSubmitting || uploadLoading || createLoading}
                                         data-testid="button-submit-claim"
                                     >
                                         {(isSubmitting || uploadLoading || createLoading) ? (

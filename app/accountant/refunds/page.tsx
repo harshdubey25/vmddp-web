@@ -36,6 +36,7 @@ interface PendingRefund {
     village: string;
     dd_amount: number;
     component: string;
+    type_of_animal: string;
     animal_cost: number;
     collar_cost: number;
     premium_paid: number;
@@ -311,7 +312,12 @@ export default function Refunds() {
                                                         <TableCell>{refund.district}</TableCell>
                                                         <TableCell>{refund.village}</TableCell>
                                                         <TableCell>
-                                                            <Badge variant="outline">{refund.component}</Badge>
+                                                            <div className="flex flex-col gap-1">
+                                                                <Badge variant="outline" className="w-fit">{refund.component}</Badge>
+                                                                {refund.component === "Animal Induction" && refund.type_of_animal && (
+                                                                    <span className="text-xs font-medium text-primary/70">{refund.type_of_animal}</span>
+                                                                )}
+                                                            </div>
                                                         </TableCell>
                                                         <TableCell className="text-right">₹{refund.dd_amount.toLocaleString("en-IN")}</TableCell>
                                                         <TableCell className="text-right text-green-600">₹{refund.eligible_subsidy.toLocaleString("en-IN")}</TableCell>
@@ -402,7 +408,12 @@ export default function Refunds() {
                                 </div>
                                 <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                                     <span className="text-muted-foreground">Component</span>
-                                    <span className="font-medium">{currentRefund.component}</span>
+                                    <div className="flex flex-col items-start sm:items-end gap-0.5">
+                                        <span className="font-medium">{currentRefund.component}</span>
+                                        {currentRefund.component === "Animal Induction" && currentRefund.type_of_animal && (
+                                            <span className="text-xs text-muted-foreground">{currentRefund.type_of_animal}</span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 

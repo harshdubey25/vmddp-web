@@ -9,6 +9,9 @@ import {
     IndianRupee,
     Clock,
     ChevronRight,
+    Eye,
+    FileText,
+    ExternalLink,
 } from "lucide-react";
 import {
     Card,
@@ -21,13 +24,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import {
     Table,
     TableBody,
@@ -72,10 +68,12 @@ export type ParantageEntry = {
     // Additional fields for pending_approval and approved statuses
     parantage_confirmation_id?: string;
     calf_born?: string;
+    calf_date_of_birth?: string;
     certficate?: string;
     certified_by_agency?: string;
     agency_name?: string;
     parantage_status?: string;
+    reason?: string;
 };
 
 type ParantageStats = FrappeCustomApiResponse<{
@@ -86,6 +84,8 @@ type ParantageStats = FrappeCustomApiResponse<{
 
 export default function Parantage() {
     const [openFormId, setOpenFormId] = useState<string | null>(null);
+    const [selectedEntry, setSelectedEntry] = useState<ParantageEntry | null>(null);
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
     const { data: parantageStats } = useFrappeGetCall<ParantageStats>(
         "vmddp_app.api.v1.accountant.parantage_confirmation_stats",
@@ -109,9 +109,21 @@ export default function Parantage() {
         status: "approved",
     });
 
+    const { data: rejectData } = useFrappeGetCall<
+        FrappeCustomApiResponse<ParantageEntry[]>
+    >("vmddp_app.api.v1.accountant.get_parantage_confirmation_list", {
+        status: "rejected",
+    });
+
     const pendingEntries = pendingData?.message || [];
     const pendingApprovalEntries = pendingApprovalData?.message || [];
     const approvedEntries = approvedData?.message || [];
+    const rejectedEntries = rejectData?.message || [];
+
+    const handleViewDetails = (entry: ParantageEntry) => {
+        setSelectedEntry(entry);
+        setIsDetailsOpen(true);
+    };
 
     return (
         <div className="h-screen bg-background">
@@ -249,6 +261,12 @@ export default function Parantage() {
                                     >
                                         Approved
                                     </TabsTrigger>
+                                    <TabsTrigger
+                                        value="rejected"
+                                        data-testid="tab-rejected"
+                                    >
+                                        Rejected
+                                    </TabsTrigger>
                                 </TabsList>
 
                                 <TabsContent value="pending">
@@ -332,34 +350,34 @@ export default function Parantage() {
                                                     </TableRow>
                                                     {openFormId ===
                                                         entry.component_allocation_id && (
-                                                        <TableRow className="bg-muted/30">
-                                                            <TableCell
-                                                                colSpan={6}
-                                                            >
-                                                                <ParantageDetailsForm
-                                                                    entryId={
-                                                                        entry.component_allocation_id
-                                                                    }
-                                                                    applicationId={
-                                                                        entry.application_id
-                                                                    }
-                                                                    onCancel={() =>
-                                                                        setOpenFormId(
-                                                                            null,
-                                                                        )
-                                                                    }
-                                                                    onSuccess={() =>
-                                                                        setOpenFormId(
-                                                                            null,
-                                                                        )
-                                                                    }
-                                                                    component_allocation_id={
-                                                                        entry.component_allocation_id
-                                                                    }
-                                                                />
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    )}
+                                                            <TableRow className="bg-muted/30">
+                                                                <TableCell
+                                                                    colSpan={6}
+                                                                >
+                                                                    <ParantageDetailsForm
+                                                                        entryId={
+                                                                            entry.component_allocation_id
+                                                                        }
+                                                                        applicationId={
+                                                                            entry.application_id
+                                                                        }
+                                                                        onCancel={() =>
+                                                                            setOpenFormId(
+                                                                                null,
+                                                                            )
+                                                                        }
+                                                                        onSuccess={() =>
+                                                                            setOpenFormId(
+                                                                                null,
+                                                                            )
+                                                                        }
+                                                                        component_allocation_id={
+                                                                            entry.component_allocation_id
+                                                                        }
+                                                                    />
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        )}
                                                 </Fragment>
                                             ))}
                                         </TableBody>
@@ -383,6 +401,7 @@ export default function Parantage() {
                                                 <TableHead>
                                                     Pending Amount
                                                 </TableHead>
+                                                <TableHead>Actions</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -429,6 +448,17 @@ export default function Parantage() {
                                                                 "en-IN",
                                                             ) || 0}
                                                         </TableCell>
+                                                        <TableCell>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => handleViewDetails(entry)}
+                                                                data-testid={`button-view-pending-approval-${entry.parantage_confirmation_id}`}
+                                                            >
+                                                                <Eye className="h-4 w-4 mr-2" />
+                                                                View
+                                                            </Button>
+                                                        </TableCell>
                                                     </TableRow>
                                                 ),
                                             )}
@@ -453,6 +483,7 @@ export default function Parantage() {
                                                 <TableHead>
                                                     Total Paid
                                                 </TableHead>
+                                                <TableHead>Actions</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -501,8 +532,121 @@ export default function Parantage() {
                                                             "en-IN",
                                                         )}
                                                     </TableCell>
+                                                    <TableCell>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => handleViewDetails(entry)}
+                                                            data-testid={`button-view-approved-${entry.parantage_confirmation_id}`}
+                                                        >
+                                                            <Eye className="h-4 w-4 mr-2" />
+                                                            View
+                                                        </Button>
+                                                    </TableCell>
                                                 </TableRow>
                                             ))}
+                                        </TableBody>
+                                    </Table>
+                                </TabsContent>
+
+                                <TabsContent value="rejected">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>
+                                                    Beneficiary
+                                                </TableHead>
+                                                <TableHead>District</TableHead>
+                                                <TableHead>
+                                                    Calf Gender
+                                                </TableHead>
+                                                <TableHead>
+                                                    Certified By
+                                                </TableHead>
+                                                <TableHead>
+                                                    Pending Amount
+                                                </TableHead>
+                                                <TableHead>
+                                                    Status
+                                                </TableHead>
+                                                <TableHead>Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {rejectedEntries.length === 0 ? (
+                                                <TableRow>
+                                                    <TableCell
+                                                        colSpan={6}
+                                                        className="text-center py-8 text-muted-foreground"
+                                                    >
+                                                        No rejected entries found
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : (
+                                                rejectedEntries.map((entry) => (
+                                                    <TableRow
+                                                        key={
+                                                            entry.parantage_confirmation_id
+                                                        }
+                                                        data-testid={`row-rejected-${entry.parantage_confirmation_id}`}
+                                                    >
+                                                        <TableCell>
+                                                            <div>
+                                                                <p className="font-medium">
+                                                                    {`${entry.first_name} ${entry.mid_name || ""} ${entry.last_name}`.trim()}
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    {
+                                                                        entry.aadhar_number
+                                                                    }
+                                                                </p>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {entry.district}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Badge
+                                                                variant="outline"
+                                                                className="capitalize"
+                                                            >
+                                                                {
+                                                                    entry.calf_born
+                                                                }
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {entry.agency_name ||
+                                                                entry.certified_by_agency}
+                                                        </TableCell>
+                                                        <TableCell className="font-medium text-primary">
+                                                            ₹
+                                                            {entry.pending_amount?.toLocaleString(
+                                                                "en-IN",
+                                                            ) || 0}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Badge
+                                                                variant="outline"
+                                                                className="bg-red-500/10 text-red-600 border-red-500/20"
+                                                            >
+                                                                Rejected
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => handleViewDetails(entry)}
+                                                                data-testid={`button-view-rejected-${entry.parantage_confirmation_id}`}
+                                                            >
+                                                                <Eye className="h-4 w-4 mr-2" />
+                                                                View
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </TabsContent>
@@ -511,6 +655,138 @@ export default function Parantage() {
                     </Card>
                 </div>
             </div>
+
+            <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Parantage Confirmation Details</DialogTitle>
+                        <DialogDescription>
+                            Review the parantage confirmation information
+                        </DialogDescription>
+                    </DialogHeader>
+                    {selectedEntry && (
+                        <div className="space-y-6">
+                            {/* IDs */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label className="text-xs text-muted-foreground">Confirmation ID</Label>
+                                    <p className="font-mono text-sm">{selectedEntry.parantage_confirmation_id || "N/A"}</p>
+                                </div>
+                                <div>
+                                    <Label className="text-xs text-muted-foreground">Application ID</Label>
+                                    <p className="font-mono text-sm">{selectedEntry.application_id}</p>
+                                </div>
+                            </div>
+
+                            <div className="border-t pt-4">
+                                <h4 className="font-semibold mb-3">Beneficiary Information</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground">Name</Label>
+                                        <p className="font-medium">
+                                            {`${selectedEntry.first_name} ${selectedEntry.mid_name || ""} ${selectedEntry.last_name}`.trim()}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground">Aadhaar Number</Label>
+                                        <p className="font-medium">{selectedEntry.aadhar_number}</p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground">District</Label>
+                                        <p className="font-medium">{selectedEntry.district}</p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground">Taluka</Label>
+                                        <p className="font-medium">{selectedEntry.taluka}</p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground">Village</Label>
+                                        <p className="font-medium">{selectedEntry.village}</p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground">Vendor</Label>
+                                        <p className="font-medium">{selectedEntry.vendor_name || selectedEntry.vendor}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Calf Information - only show if parantage_confirmation_id exists */}
+                            {selectedEntry.parantage_confirmation_id && (
+                                <div className="border-t pt-4">
+                                    <h4 className="font-semibold mb-3">Calf Information</h4>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <Label className="text-xs text-muted-foreground">Calf Gender</Label>
+                                            <Badge variant="outline" className="capitalize mt-1">
+                                                {selectedEntry.calf_born || "N/A"}
+                                            </Badge>
+                                        </div>
+                                        <div>
+                                            <Label className="text-xs text-muted-foreground">Date of Birth</Label>
+                                            <p className="font-medium">{selectedEntry.calf_date_of_birth || "N/A"}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-xs text-muted-foreground">Certified By Agency</Label>
+                                            <p className="font-medium">{selectedEntry.agency_name || selectedEntry.certified_by_agency || "N/A"}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-xs text-muted-foreground">Certificate</Label>
+                                            {selectedEntry.certficate ? (
+                                                <a
+                                                    href={selectedEntry.certficate}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-1 text-primary hover:underline"
+                                                >
+                                                    <FileText className="h-4 w-4" />
+                                                    View Certificate
+                                                    <ExternalLink className="h-3 w-3" />
+                                                </a>
+                                            ) : (
+                                                <p className="text-muted-foreground">Not uploaded</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Payment Information */}
+                            <div className="border-t pt-4">
+                                <h4 className="font-semibold mb-3">Payment Information</h4>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground">Animal Cost</Label>
+                                        <p className="font-medium">₹{selectedEntry.animal_cost?.toLocaleString("en-IN") || 0}</p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground">Paid Amount (75%)</Label>
+                                        <p className="font-medium text-green-600">₹{selectedEntry.paid_payment?.toLocaleString("en-IN") || 0}</p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground">Pending Amount (25%)</Label>
+                                        <p className="font-medium text-primary">₹{selectedEntry.pending_amount?.toLocaleString("en-IN") || 0}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Admin Remarks - only show if reason exists */}
+                            {selectedEntry.reason && (
+                                <div className="border-t pt-4">
+                                    <h4 className="font-semibold mb-3">Remarks</h4>
+                                    <div className="p-3 bg-muted/50 rounded-lg">
+                                        <p className="text-sm">{selectedEntry.reason}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsDetailsOpen(false)}>
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

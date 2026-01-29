@@ -317,37 +317,47 @@ export default function DDCollectionForm({
                             </div>
                         </div>
 
-                        <div className="mt-6 pt-6 border-t grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-blue-500/10">
+                        <div className="mt-6 pt-6 border-t grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 rounded-lg bg-blue-500/10 shrink-0">
                                     <Package className="h-4 w-4 text-blue-500" />
                                 </div>
-                                <div>
+                                <div className="min-w-0 flex-1">
                                     <p className="text-xs text-muted-foreground">Component</p>
-                                    <div className="flex flex-wrap gap-1">
-                                        <Badge variant="outline">{application?.component_name}</Badge>
-                                    </div>
+                                    <p className="font-medium">{application?.component_name}</p>
+                                    {application?.response && application.component_name === "Animal Induction" && (() => {
+                                        try {
+                                            const responses = JSON.parse(application.response);
+                                            const animals = responses.map((item: any) => item.value).filter(Boolean).join(", ");
+                                            return animals ? (
+                                                <p className="text-sm text-muted-foreground mt-1">{animals}</p>
+                                            ) : null;
+                                        } catch (e) {
+                                            return null;
+                                        }
+                                    })()}
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-green-500/10">
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 rounded-lg bg-green-500/10 shrink-0">
                                     <IndianRupee className="h-4 w-4 text-green-500" />
                                 </div>
-                                <div>
+                                <div className="min-w-0 flex-1">
                                     <p className="text-xs text-muted-foreground">DD Required</p>
                                     <p className="font-bold text-lg text-primary">₹{application?.amount?.toLocaleString("en-IN") || "0"}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-orange-500/10">
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 rounded-lg bg-orange-500/10 shrink-0">
                                     <Check className="h-4 w-4 text-orange-500" />
                                 </div>
-                                <div>
+                                <div className="min-w-0 flex-1">
                                     <p className="text-xs text-muted-foreground">Status</p>
-                                    <Badge variant="secondary">{application?.component_status}</Badge>
+                                    <Badge variant="secondary" className="mt-1">{application?.component_status}</Badge>
                                 </div>
                             </div>
                         </div>
+
                     </CardContent>
                 </Card>
 
@@ -400,8 +410,8 @@ export default function DDCollectionForm({
                                     placeholder="Enter DD number"
                                     value={ddFormData.ddNumber}
                                     onChange={(e) => {
-                                        const value= e.target.value.replace(/[^0-9]/g, '');
-                                        setDdFormData({ ...ddFormData, ddNumber:value });
+                                        const value = e.target.value.replace(/[^0-9]/g, '');
+                                        setDdFormData({ ...ddFormData, ddNumber: value });
                                     }}
                                     data-testid="input-dd-number"
                                 />

@@ -226,18 +226,18 @@ export default function AllTargetsReportPage() {
     };
 
     return (
-        <div className="p-6 space-y-6 overflow-auto w-full">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-auto w-full">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
                 <div className="flex items-center gap-4">
-                    <Link href="/accountant/reports">
+                    <Link href="/admin/reports">
                         <Button variant="ghost" size="icon">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                     </Link>
                     <div>
-                        <h1 className="text-2xl font-bold">All Targets Report</h1>
-                        <p className="text-muted-foreground">
+                        <h1 className="text-xl sm:text-2xl font-bold">All Targets Report</h1>
+                        <p className="text-sm sm:text-base text-muted-foreground">
                             District-wise physical and financial targets for all components
                         </p>
                     </div>
@@ -246,40 +246,41 @@ export default function AllTargetsReportPage() {
                     <Button variant="outline" size="icon" onClick={handleRefresh}>
                         <RefreshCw className="h-4 w-4" />
                     </Button>
-                    <Button onClick={handleExport} disabled={isExporting || isLoading}>
-                        <Download className="h-4 w-4 mr-2" />
-                        {isExporting ? "Exporting..." : "Export Excel"}
+                    <Button onClick={handleExport} disabled={isExporting || isLoading} className="w-full sm:w-auto">
+                        <Download className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">{isExporting ? "Exporting..." : "Export Excel"}</span>
+                        <span className="sm:hidden">{isExporting ? "Export" : "Export"}</span>
                     </Button>
                 </div>
             </div>
 
             {/* Summary Cards */}
             {!isLoading && districtNames.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Total Districts</CardDescription>
-                            <CardTitle className="text-2xl">{districtNames.length}</CardTitle>
+                            <CardDescription className="text-xs sm:text-sm">Total Districts</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl">{districtNames.length}</CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Total Components</CardDescription>
-                            <CardTitle className="text-2xl text-blue-600">{componentNames.length}</CardTitle>
+                            <CardDescription className="text-xs sm:text-sm">Total Components</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-blue-600">{componentNames.length}</CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Total Physical Target</CardDescription>
-                            <CardTitle className="text-2xl text-orange-600">
+                            <CardDescription className="text-xs sm:text-sm">Total Physical Target</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-orange-600">
                                 {targetsData.totals?.total_physical_target || 0}
                             </CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Total Financial Target</CardDescription>
-                            <CardTitle className="text-2xl text-green-600">
+                            <CardDescription className="text-xs sm:text-sm">Total Financial Target</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-green-600">
                                 {formatCurrency(targetsData.totals?.total_financial_target || 0)}
                             </CardTitle>
                         </CardHeader>

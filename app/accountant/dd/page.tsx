@@ -2,10 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import {
-    ArrowLeft,
-    Search,
     CreditCard,
     Check,
     AlertCircle,
@@ -24,7 +21,6 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
     Table,
@@ -145,8 +141,8 @@ export default function DDCollection() {
         setLoading(true);
         try {
             const params: any = {
-                page: selectedPage,
-                limit: pageSize,
+                limit_start: (selectedPage - 1) * pageSize,
+                limit_page_length: pageSize,
             };
 
             // Add all filter parameters
@@ -573,20 +569,20 @@ export default function DDCollection() {
                                                     )}
                                                     {selectedApplications.length ===
                                                         0 && (
-                                                        <TableRow>
-                                                            <TableCell
-                                                                colSpan={7}
-                                                                className="text-center py-8 text-muted-foreground"
-                                                            >
-                                                                {approvedFilters.aadhaar ||
-                                                                approvedFilters.district ||
-                                                                approvedFilters.taluka ||
-                                                                approvedFilters.village
-                                                                    ? "No applications found matching the selected filters"
-                                                                    : "No approved applications pending DD collection"}
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    )}
+                                                            <TableRow>
+                                                                <TableCell
+                                                                    colSpan={7}
+                                                                    className="text-center py-8 text-muted-foreground"
+                                                                >
+                                                                    {approvedFilters.aadhaar ||
+                                                                        approvedFilters.district ||
+                                                                        approvedFilters.taluka ||
+                                                                        approvedFilters.village
+                                                                        ? "No applications found matching the selected filters"
+                                                                        : "No approved applications pending DD collection"}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        )}
                                                 </TableBody>
                                             </Table>
                                         </div>
@@ -774,20 +770,20 @@ export default function DDCollection() {
                                                     )}
                                                     {ddCompletedApplications.length ===
                                                         0 && (
-                                                        <TableRow>
-                                                            <TableCell
-                                                                colSpan={6}
-                                                                className="text-center py-8 text-muted-foreground"
-                                                            >
-                                                                {collectedFilters.aadhaar ||
-                                                                collectedFilters.district ||
-                                                                collectedFilters.taluka ||
-                                                                collectedFilters.village
-                                                                    ? "No collected DDs found matching the selected filters"
-                                                                    : "No collected DD entries found"}
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    )}
+                                                            <TableRow>
+                                                                <TableCell
+                                                                    colSpan={6}
+                                                                    className="text-center py-8 text-muted-foreground"
+                                                                >
+                                                                    {collectedFilters.aadhaar ||
+                                                                        collectedFilters.district ||
+                                                                        collectedFilters.taluka ||
+                                                                        collectedFilters.village
+                                                                        ? "No collected DDs found matching the selected filters"
+                                                                        : "No collected DD entries found"}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        )}
                                                 </TableBody>
                                             </Table>
                                         </div>

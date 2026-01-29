@@ -39,6 +39,16 @@ interface TotalExpenditure {
     total: number;
 }
 
+interface Target {
+    financial_target: number;
+    physical_target: number;
+}
+
+interface Balance {
+    financial_balance: number;
+    physical_balance: number;
+}
+
 interface DistrictData {
     cow_count: number;
     buffalo_count: number;
@@ -48,6 +58,8 @@ interface DistrictData {
     premium_paid: CostBreakdown;
     transportation_cost: CostBreakdown;
     total_expenditure: TotalExpenditure;
+    target: Target;
+    balance: Balance;
 }
 
 interface AnimalInductionMPRResponse {
@@ -100,6 +112,7 @@ export default function AnimalInductionMPRPage() {
             premium_paid: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
             transportation_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
             total_expenditure: { benenficiary_share_total: 0, subsidy_share_total: 0, total: 0 },
+            balance: { financial_balance: 0, physical_balance: 0 },
         };
 
         districtData.forEach(({ data }) => {
@@ -125,6 +138,9 @@ export default function AnimalInductionMPRPage() {
             result.total_expenditure.benenficiary_share_total += data.total_expenditure?.benenficiary_share_total || 0;
             result.total_expenditure.subsidy_share_total += data.total_expenditure?.subsidy_share_total || 0;
             result.total_expenditure.total += data.total_expenditure?.total || 0;
+
+            result.balance.financial_balance += data.balance?.financial_balance || 0;
+            result.balance.physical_balance += data.balance?.physical_balance || 0;
         });
 
         return result;
@@ -299,25 +315,25 @@ export default function AnimalInductionMPRPage() {
     ];
 
     return (
-        <div className="p-6 space-y-6 overflow-auto w-full">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-auto w-full">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
                 <div className="flex items-center gap-4">
-                    <Link href="/accountant/reports">
+                    <Link href="/admin/reports">
                         <Button variant="ghost" size="icon">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                     </Link>
                     <div>
-                        <h1 className="text-2xl font-bold">Animal Induction MPR</h1>
-                        <p className="text-muted-foreground">
+                        <h1 className="text-xl sm:text-2xl font-bold">Animal Induction MPR</h1>
+                        <p className="text-sm sm:text-base text-muted-foreground">
                             Induction of High Genetic Merit Dairy Animals
                         </p>
                     </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                        <SelectTrigger className="w-[140px]">
+                        <SelectTrigger className="w-[120px] sm:w-[140px]">
                             <SelectValue placeholder="Select Month" />
                         </SelectTrigger>
                         <SelectContent>
@@ -329,7 +345,7 @@ export default function AnimalInductionMPRPage() {
                         </SelectContent>
                     </Select>
                     <Select value={selectedYear} onValueChange={setSelectedYear}>
-                        <SelectTrigger className="w-[100px]">
+                        <SelectTrigger className="w-[90px] sm:w-[100px]">
                             <SelectValue placeholder="Year" />
                         </SelectTrigger>
                         <SelectContent>
@@ -343,9 +359,10 @@ export default function AnimalInductionMPRPage() {
                     <Button variant="outline" size="icon" onClick={handleRefresh}>
                         <RefreshCw className="h-4 w-4" />
                     </Button>
-                    <Button onClick={handleExport} disabled={isExporting || isLoading}>
-                        <Download className="h-4 w-4 mr-2" />
-                        {isExporting ? "Exporting..." : "Export Excel"}
+                    <Button onClick={handleExport} disabled={isExporting || isLoading} className="w-full sm:w-auto">
+                        <Download className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">{isExporting ? "Exporting..." : "Export Excel"}</span>
+                        <span className="sm:hidden">{isExporting ? "Export" : "Export"}</span>
                     </Button>
                 </div>
             </div>
@@ -353,29 +370,29 @@ export default function AnimalInductionMPRPage() {
 
             {/* Summary Cards */}
             {!isLoading && districtData.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 print:hidden">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 print:hidden">
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Total Districts</CardDescription>
-                            <CardTitle className="text-2xl">{districtData.length}</CardTitle>
+                            <CardDescription className="text-xs sm:text-sm">Total Districts</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl">{districtData.length}</CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Total Cows</CardDescription>
-                            <CardTitle className="text-2xl text-blue-600">{totals.cow_count}</CardTitle>
+                            <CardDescription className="text-xs sm:text-sm">Total Cows</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-blue-600">{totals.cow_count}</CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Total Buffaloes</CardDescription>
-                            <CardTitle className="text-2xl text-purple-600">{totals.buffalo_count}</CardTitle>
+                            <CardDescription className="text-xs sm:text-sm">Total Buffaloes</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-purple-600">{totals.buffalo_count}</CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription>Total Expenditure</CardDescription>
-                            <CardTitle className="text-2xl text-green-600">
+                            <CardDescription className="text-xs sm:text-sm">Total Expenditure</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-green-600">
                                 ₹{formatCurrency(totals.total_expenditure.total)}
                             </CardTitle>
                         </CardHeader>
@@ -555,12 +572,12 @@ export default function AnimalInductionMPRPage() {
                                                 <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total_expenditure?.total || 0)}</TableCell>
                                                 {/* Balance */}
                                                 <TableCell className="border text-right bg-orange-50/50 font-semibold">
-                                                    {0}
+                                                    {formatCurrency(data.balance?.financial_balance || 0)}
                                                 </TableCell>
                                             </TableRow>
                                             {/* Progress Row */}
                                             <TableRow className="hover:bg-muted/30 bg-muted/10">
-                                                <TableCell className="border text-center text-[10px]">Progress</TableCell>
+                                                <TableCell className="border text-center text-[10px]">Progressive</TableCell>
                                                 {/* Physical Achievement */}
                                                 <TableCell className="border text-center bg-yellow-50/50">{data.cow_count || 0}</TableCell>
                                                 <TableCell className="border text-center bg-yellow-50/50">{data.crossbreed_count || 0}</TableCell>
@@ -587,7 +604,7 @@ export default function AnimalInductionMPRPage() {
                                                 <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total_expenditure?.total || 0)}</TableCell>
                                                 {/* Balance */}
                                                 <TableCell className="border text-right bg-orange-50/50 font-semibold">
-                                                    {0} 
+                                                    {formatCurrency(data.balance?.financial_balance || 0)}
                                                 </TableCell>
                                             </TableRow>
                                         </Fragment>
@@ -624,7 +641,7 @@ export default function AnimalInductionMPRPage() {
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_expenditure.total)}</TableCell>
                                         {/* Balance */}
                                         <TableCell className="border text-right bg-orange-100 font-bold">
-                                            {0}
+                                            {formatCurrency(totals.balance.financial_balance)}
                                         </TableCell>
                                     </TableRow>
                                 </TableFooter>

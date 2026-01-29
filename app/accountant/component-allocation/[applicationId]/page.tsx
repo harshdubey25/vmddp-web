@@ -4,6 +4,7 @@ import { useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FrappeCustomApiResponse, ComponentStatus } from "@/types";
+import { parseFrappeError } from "@/lib/frappe-error-parser";
 import {
   ArrowLeft,
   User,
@@ -172,6 +173,7 @@ export default function AllocationForm({
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tagError, setTagError] = useState("");
+  const [sumAssuredError, setSumAssuredError] = useState("");
 
   // File upload state tracking
   const [uploadingFiles, setUploadingFiles] = useState<{
@@ -440,6 +442,37 @@ export default function AllocationForm({
       });
       return;
     }
+
+    // Validate that animal cost equals sum assured
+    if (data?.message.component === ANIMAL_INDUCTION) {
+      const animalCost = parseFloat(animalData.animalCost) || 0;
+      const sumAssured = parseFloat(animalData.sumAssured) || 0;
+      if (animalData.sumAssured && animalCost !== sumAssured) {
+        setSumAssuredError("Animal Cost and Sum Assured must be the same");
+        toast({
+          title: "Validation Error",
+          description: "Animal Cost and Sum Assured must be the same",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    if (data?.message.component === HGM_PREGNANT_COW) {
+      const animalCost = parseFloat(hgmData.animalCost) || 0;
+      const sumAssured = parseFloat(hgmData.sumAssured) || 0;
+      if (hgmData.sumAssured && animalCost !== sumAssured) {
+        setSumAssuredError("Animal Cost and Sum Assured must be the same");
+        toast({
+          title: "Validation Error",
+          description: "Animal Cost and Sum Assured must be the same",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    setSumAssuredError("");
     setShowConfirmation(true);
   };
 
@@ -505,16 +538,17 @@ export default function AllocationForm({
         description: `Allocation recorded for ${data.message.first_name}. Ledger updated automatically.`,
       });
       setShowConfirmation(false);
-      
+
       setTimeout(() => {
         router.push("/accountant/component-allocation");
         router.refresh();
       }, 1000);
     } catch (err) {
       console.error("Error creating component allocation:", err);
+      const { title, message } = parseFrappeError(err, "Allocation Failed", "Failed to create component allocation. Please try again.");
       toast({
-        title: "Allocation Failed",
-        description: err instanceof Error ? err.message : "Failed to create component allocation. Please try again.",
+        title,
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -981,15 +1015,20 @@ export default function AllocationForm({
                         type="number"
                         placeholder="Enter sum assured"
                         value={animalData.sumAssured}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           setAnimalData({
                             ...animalData,
                             sumAssured: e.target.value,
-                          })
-                        }
+                          });
+                          // Clear error when user modifies the field
+                          if (sumAssuredError) setSumAssuredError("");
+                        }}
                         data-testid="input-sum-assured"
                         hideSpinners
                       />
+                      {sumAssuredError && (
+                        <p className="text-xs text-destructive">{sumAssuredError}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label>Premium Paid (₹)</Label>
@@ -1474,11 +1513,16 @@ export default function AllocationForm({
                         type="number"
                         placeholder="Enter sum assured"
                         value={hgmData.sumAssured}
-                        onChange={(e) =>
-                          setHgmData({ ...hgmData, sumAssured: e.target.value })
-                        }
+                        onChange={(e) => {
+                          setHgmData({ ...hgmData, sumAssured: e.target.value });
+                          // Clear error when user modifies the field
+                          if (sumAssuredError) setSumAssuredError("");
+                        }}
                         data-testid="input-hgm-sum-assured"
                       />
+                      {sumAssuredError && (
+                        <p className="text-xs text-destructive">{sumAssuredError}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label>Premium Paid (₹)</Label>
