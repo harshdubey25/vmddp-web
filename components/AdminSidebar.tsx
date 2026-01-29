@@ -100,7 +100,6 @@ const accountantMenuItems: MenuItem[] = [
 
   },
   { icon: TargetIcon, label: "Admin Expenses", path: "/accountant/admin-expenses" },
-  { icon: BarChart3, label: "Reports", path: "/accountant/reports" },
 ]
 // { icon: LayoutDashboard, label: "Dashboard", path: "/accountant" },
 // { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },;

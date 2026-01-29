@@ -464,7 +464,7 @@ export default function DBTClaimsMPRPage() {
                                             </TableRow>
                                             {/* Progress Row */}
                                             <TableRow className="hover:bg-muted/30 bg-muted/10">
-                                                <TableCell className="border text-center text-[10px]">Progress</TableCell>
+                                                <TableCell className="border text-center text-[10px]">Progressive</TableCell>
                                                 {/* Physical Achievement */}
                                                 <TableCell className="border text-center bg-yellow-50/50">{data.quantity || 0}</TableCell>
                                                 {/* Financial Achievement */}
