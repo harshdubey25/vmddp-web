@@ -1029,6 +1029,58 @@ export default function AdminReports() {
                                     </CardContent>
                                 </Card>
                             </Link>
+                            <Link href="/admin/mpr/animal-induction" className="block h-full">
+                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                                    <CardContent className="p-4 flex items-center gap-3 h-full">
+                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-sm">Animal Induction MPR</h3>
+                                            <p className="text-xs text-muted-foreground">View animal induction monthly progress report</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                            <Link href="/admin/mpr/dbt-claims-mpr" className="block h-full">
+                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                                    <CardContent className="p-4 flex items-center gap-3 h-full">
+                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-sm">DBT Claims MPR</h3>
+                                            <p className="text-xs text-muted-foreground">View DBT claims monthly progress report</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                            <Link href="/admin/mpr/hgm" className="block h-full">
+                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                                    <CardContent className="p-4 flex items-center gap-3 h-full">
+                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-sm">HGM MPR</h3>
+                                            <p className="text-xs text-muted-foreground">View HGM monthly progress report</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                            <Link href="/admin/mpr/all-targets" className="block h-full">
+                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                                    <CardContent className="p-4 flex items-center gap-3 h-full">
+                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-sm">All Targets Report</h3>
+                                            <p className="text-xs text-muted-foreground">View all targets report</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
                         </div>
                     </div>
 
