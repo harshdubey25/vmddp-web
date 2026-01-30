@@ -7,6 +7,7 @@ import {
     Check,
     AlertCircle,
     ChevronRight,
+    ChevronLeft,
     Tag,
     Leaf,
     Scissors,
@@ -31,11 +32,17 @@ const getComponentIcon = (component: string) => {
 interface DDCompletedApplication {
     message: Array<ComponentAllocationItem>
 }
+
+const PAGE_SIZE = 20;
+
 export default function ComponentAllocation() {
     const [activeTab, setActiveTab] = useState("pending");
     const [districtFilter, setDistrictFilter] = useState("all")
     const [aadharFilter, setAadharFilter] = useState("")
     const [componentFilter, setComponentFilter] = useState("all")
+    const [pendingPage, setPendingPage] = useState(1)
+    const [completedPage, setCompletedPage] = useState(1)
+
     const { data: districts } = useFrappeGetDocList('District Master')
     const { data: components } = useFrappeGetDocList('Component', {
         fields: ['name'],
@@ -45,12 +52,16 @@ export default function ComponentAllocation() {
         district: districtFilter === 'all' ? null : districtFilter,
         search_text: aadharFilter.length === 0 ? null : aadharFilter,
         component: componentFilter === 'all' ? null : componentFilter,
+        limit_start: (pendingPage - 1) * PAGE_SIZE,
+        limit_page_length: PAGE_SIZE,
     })
 
     const { data: completedAllocations } = useFrappeGetCall<DDCompletedApplication>('vmddp_app.api.v1.accountant.get_completed_component_allocation_list', {
         district: districtFilter === 'all' ? null : districtFilter,
         search_text: aadharFilter.length === 0 ? null : aadharFilter,
         component: componentFilter === 'all' ? null : componentFilter,
+        limit_start: (completedPage - 1) * PAGE_SIZE,
+        limit_page_length: PAGE_SIZE,
     })
 
     const { data: allocationStats } = useFrappeGetCall<{
@@ -64,6 +75,29 @@ export default function ComponentAllocation() {
     const pendingApplications = ddCompletedApplications?.message?.filter(
         app => app.component_status !== 'Component Allocated'
     ) || [];
+
+    const completedList = completedAllocations?.message || [];
+
+    // Reset pagination when filters change
+    const handleFilterChange = () => {
+        setPendingPage(1);
+        setCompletedPage(1);
+    };
+
+    const handleDistrictFilterChange = (value: string) => {
+        setDistrictFilter(value);
+        handleFilterChange();
+    };
+
+    const handleComponentFilterChange = (value: string) => {
+        setComponentFilter(value);
+        handleFilterChange();
+    };
+
+    const handleAadharFilterChange = (value: string) => {
+        setAadharFilter(value.replace(/\D/g, ""));
+        handleFilterChange();
+    };
 
     return (
         <div className="w-full bg-background overflow-y-scroll">
@@ -158,12 +192,12 @@ export default function ComponentAllocation() {
                                             <Input
                                                 placeholder="Search Aadhaar..."
                                                 value={aadharFilter}
-                                                onChange={(e) => setAadharFilter(e.target.value.replace(/\D/g, ""))}
+                                                onChange={(e) => handleAadharFilterChange(e.target.value)}
                                                 className="pl-9 w-40"
                                                 data-testid="input-list-search-aadhaar"
                                             />
                                         </div>
-                                        <Select value={districtFilter} onValueChange={setDistrictFilter}>
+                                        <Select value={districtFilter} onValueChange={handleDistrictFilterChange}>
                                             <SelectTrigger className="w-36" data-testid="select-filter-district">
                                                 <SelectValue placeholder="District" />
                                             </SelectTrigger>
@@ -174,7 +208,7 @@ export default function ComponentAllocation() {
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <Select value={componentFilter} onValueChange={setComponentFilter}>
+                                        <Select value={componentFilter} onValueChange={handleComponentFilterChange}>
                                             <SelectTrigger className="w-40" data-testid="select-filter-component">
                                                 <SelectValue placeholder="Component" />
                                             </SelectTrigger>
@@ -242,6 +276,37 @@ export default function ComponentAllocation() {
                                             )}
                                         </TableBody>
                                     </Table>
+
+                                    {/* Pagination for pending */}
+                                    {(allocationStats?.message?.pending_component_allocation ?? 0) > 0 && (
+                                        <div className="flex items-center justify-between pt-4">
+                                            <p className="text-sm text-muted-foreground">
+                                                Page {pendingPage} • Showing {pendingApplications.length} of {allocationStats?.message?.pending_component_allocation ?? 0} results
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setPendingPage(p => Math.max(1, p - 1))}
+                                                    disabled={pendingPage === 1}
+                                                    data-testid="button-pending-prev-page"
+                                                >
+                                                    <ChevronLeft className="h-4 w-4 mr-1" />
+                                                    Previous
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setPendingPage(p => p + 1)}
+                                                    disabled={pendingPage * PAGE_SIZE >= (allocationStats?.message?.pending_component_allocation ?? 0)}
+                                                    data-testid="button-pending-next-page"
+                                                >
+                                                    Next
+                                                    <ChevronRight className="h-4 w-4 ml-1" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </TabsContent>
 
                                 <TabsContent value="completed">
@@ -258,7 +323,7 @@ export default function ComponentAllocation() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {completedAllocations?.message?.map((alloc) => (
+                                            {completedList.map((alloc) => (
                                                 <TableRow key={alloc.name} data-testid={`row-allocation-${alloc.name}`}>
                                                     <TableCell className="font-medium">{alloc.name}</TableCell>
                                                     <TableCell>{alloc.first_name} {alloc.mid_name} {alloc.last_name}</TableCell>
@@ -279,7 +344,7 @@ export default function ComponentAllocation() {
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
-                                            {completedAllocations?.message?.length === 0 && (
+                                            {completedList.length === 0 && (
                                                 <TableRow>
                                                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                                                         No completed allocations
@@ -288,6 +353,37 @@ export default function ComponentAllocation() {
                                             )}
                                         </TableBody>
                                     </Table>
+
+                                    {/* Pagination for completed */}
+                                    {(allocationStats?.message?.total_component_allocated ?? 0) > 0 && (
+                                        <div className="flex items-center justify-between pt-4">
+                                            <p className="text-sm text-muted-foreground">
+                                                Page {completedPage} • Showing {completedList.length} of {allocationStats?.message?.total_component_allocated ?? 0} results
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setCompletedPage(p => Math.max(1, p - 1))}
+                                                    disabled={completedPage === 1}
+                                                    data-testid="button-completed-prev-page"
+                                                >
+                                                    <ChevronLeft className="h-4 w-4 mr-1" />
+                                                    Previous
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setCompletedPage(p => p + 1)}
+                                                    disabled={completedPage * PAGE_SIZE >= (allocationStats?.message?.total_component_allocated ?? 0)}
+                                                    data-testid="button-completed-next-page"
+                                                >
+                                                    Next
+                                                    <ChevronRight className="h-4 w-4 ml-1" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </TabsContent>
                             </Tabs>
                         </CardContent>
