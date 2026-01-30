@@ -28,7 +28,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 interface AdminSidebarProps {
-  userRole: "admin" | "subadmin" | "accountant";
+  userRole: "admin" | "subadmin" | "accountant" | "secretory";
 }
 
 type MenuItem = {
@@ -101,6 +101,11 @@ const accountantMenuItems: MenuItem[] = [
   },
   { icon: TargetIcon, label: "Admin Expenses", path: "/accountant/admin-expenses" },
 ]
+
+const secretoryMenuItems: MenuItem[] = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/secretory/dashboard" },
+  { icon: FileText, label: "Report",path: "/secretory/report" },
+]
 // { icon: LayoutDashboard, label: "Dashboard", path: "/accountant" },
 // { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },;
 export default function AdminSidebar({ userRole }: AdminSidebarProps) {
@@ -117,6 +122,10 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
     case "subadmin":
       sidebarTitle = "Sub-Admin";
       menuItems = subAdminMenuItems;
+      break;
+    case "secretory":
+      sidebarTitle = "Secretary";
+      menuItems = secretoryMenuItems;
       break;
     case "admin":
     default:

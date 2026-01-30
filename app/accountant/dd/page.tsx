@@ -502,30 +502,34 @@ export default function DDCollection() {
                                                                 </TableCell>
                                                                 <TableCell>
                                                                     <div className="flex flex-wrap gap-1">
-                                                                        <Badge
+                                                                        {app.district && (<Badge
                                                                             variant="outline"
                                                                             className="text-xs"
                                                                         >
                                                                             {
                                                                                 app.district
                                                                             }
-                                                                        </Badge>
-                                                                        <Badge
+                                                                        </Badge>)}
+
+                                                                        {app.taluka && (<Badge
                                                                             variant="outline"
                                                                             className="text-xs"
                                                                         >
                                                                             {
                                                                                 app.taluka
                                                                             }
-                                                                        </Badge>
-                                                                        <Badge
-                                                                            variant="outline"
-                                                                            className="text-xs"
-                                                                        >
-                                                                            {
-                                                                                app.village
-                                                                            }
-                                                                        </Badge>
+                                                                        </Badge>)}
+                                                                        {app.village &&
+                                                                            <Badge
+                                                                                variant="outline"
+                                                                                className="text-xs"
+                                                                            >
+                                                                                {
+                                                                                    app.village
+                                                                                }
+                                                                            </Badge>
+                                                                        }
+
                                                                     </div>
                                                                 </TableCell>
                                                                 <TableCell>
@@ -718,30 +722,36 @@ export default function DDCollection() {
                                                                 </TableCell>
                                                                 <TableCell>
                                                                     <div className="flex flex-wrap gap-1">
-                                                                        <Badge
+
+                                                                        {app.district && (<Badge
                                                                             variant="outline"
                                                                             className="text-xs"
                                                                         >
                                                                             {
                                                                                 app.district
                                                                             }
-                                                                        </Badge>
-                                                                        <Badge
-                                                                            variant="outline"
-                                                                            className="text-xs"
-                                                                        >
-                                                                            {
-                                                                                app.taluka
-                                                                            }
-                                                                        </Badge>
-                                                                        <Badge
-                                                                            variant="outline"
-                                                                            className="text-xs"
-                                                                        >
-                                                                            {
-                                                                                app.village
-                                                                            }
-                                                                        </Badge>
+                                                                        </Badge>)}
+
+                                                                        {app.taluka && (
+                                                                            <Badge
+                                                                                variant="outline"
+                                                                                className="text-xs"
+                                                                            >
+                                                                                {
+                                                                                    app.taluka
+                                                                                }
+                                                                            </Badge>)}
+
+                                                                        {app.village && (
+                                                                            <Badge
+                                                                                variant="outline"
+                                                                                className="text-xs"
+                                                                            >
+                                                                                {
+                                                                                    app.village
+                                                                                }
+                                                                            </Badge>
+                                                                        )}
                                                                     </div>
                                                                 </TableCell>
                                                                 <TableCell>
