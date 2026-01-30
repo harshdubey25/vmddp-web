@@ -439,6 +439,7 @@ export default function TreatmentForm() {
                 </AlertDescription>
               </Alert>
             )}
+            <fieldset disabled={targetsAchieved.either}>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -923,6 +924,7 @@ export default function TreatmentForm() {
                 )}
               </CardContent>
             </Card>
+            </fieldset>
 
             <div className="flex justify-end gap-4">
               <Button

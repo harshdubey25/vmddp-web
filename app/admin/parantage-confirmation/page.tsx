@@ -42,7 +42,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { useFrappeGetCall, useFrappeUpdateDoc, useFrappePostCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappeUpdateDoc, useFrappePostCall, useFrappeGetDocCount } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
 import { FrappeCustomApiResponse } from "@/types";
 
@@ -80,6 +80,7 @@ type ParantageStats = FrappeCustomApiResponse<{
     approved: number;
     awaiting_admin_approval: number;
     certficate_pending: number;
+    rejected: number;
 }>;
 
 export default function AdminParantageConfirmation() {
@@ -117,6 +118,7 @@ export default function AdminParantageConfirmation() {
         status: "rejected",
     });
 
+  
     const pendingApprovalEntries = pendingApprovalData?.message || [];
     const approvedEntries = approvedData?.message || [];
     const rejectedEntries = rejectedData?.message || [];
@@ -290,7 +292,7 @@ export default function AdminParantageConfirmation() {
                     </div>
 
                     {/* Summary Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <Card data-testid="card-pending-approval">
                             <CardContent className="pt-6">
                                 <div className="flex items-center gap-4">
@@ -339,6 +341,24 @@ export default function AdminParantageConfirmation() {
                                         </p>
                                         <p className="text-2xl font-bold">
                                             {parantageStats?.message?.approved || 0}
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card data-testid="card-rejected">
+                            <CardContent className="pt-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 rounded-lg bg-red-500/10">
+                                        <XCircle className="h-5 w-5 text-red-500" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">
+                                            Rejected
+                                        </p>
+                                        <p className="text-2xl font-bold">
+                                            {parantageStats?.message?.rejected || 0}
                                         </p>
                                     </div>
                                 </div>
@@ -640,7 +660,7 @@ export default function AdminParantageConfirmation() {
 
             {/* Details Dialog */}
             <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Parantage Confirmation Details</DialogTitle>
                         <DialogDescription>
@@ -792,7 +812,7 @@ export default function AdminParantageConfirmation() {
 
             {/* Approve Dialog */}
             <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
-                <DialogContent>
+                <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Approve Parantage Confirmation</DialogTitle>
                         <DialogDescription>
@@ -849,7 +869,7 @@ export default function AdminParantageConfirmation() {
 
             {/* Reject Dialog */}
             <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-                <DialogContent>
+                <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Reject Parantage Confirmation</DialogTitle>
                         <DialogDescription>
