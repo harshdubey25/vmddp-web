@@ -257,6 +257,44 @@ export default function TreatmentForm() {
     return physical_target > 0 && financial_target > 0;
   }, [quotaSummary]);
 
+  const targetMetrics = useMemo(() => {
+    if (!quotaSummary?.message?.treatment) {
+      return {
+        physicalTarget: 0,
+        physicalAchieved: 0,
+        physicalRemaining: 0,
+        financialTarget: 0,
+        financialUsed: 0,
+        financialRemaining: 0,
+        currentApplicationCost: 0,
+        wouldExceedPhysical: false,
+        wouldExceedFinancial: false,
+        budgetAfterSubmission: 0,
+      };
+    }
+
+    const { count, budget_used, physical_target, financial_target } = quotaSummary.message.treatment;
+    const physicalRemaining = physical_target - count;
+    const financialRemaining = financial_target - budget_used;
+
+    const totalMedicineCost = formData.medicines.reduce((sum, med) => {
+      return sum + (parseFloat(med.price) || 0);
+    }, 0);
+
+    return {
+      physicalTarget: physical_target,
+      physicalAchieved: count,
+      physicalRemaining,
+      financialTarget: financial_target,
+      financialUsed: budget_used,
+      financialRemaining,
+      currentApplicationCost: totalMedicineCost,
+      wouldExceedPhysical: count >= physical_target,
+      wouldExceedFinancial: (budget_used + totalMedicineCost) > financial_target,
+      budgetAfterSubmission: budget_used + totalMedicineCost,
+    };
+  }, [quotaSummary, formData.medicines]);
+
   const formatBudget = (amount: number): string => {
     if (amount < 10000000) {
       return `₹${(amount / 100000).toFixed(2)}L`;
@@ -475,6 +513,87 @@ export default function TreatmentForm() {
               </Alert>
             )}
             <fieldset disabled={!hasValidTarget || targetsAchieved.either}>
+            {hasValidTarget && (
+              <Card className="border-primary/30 bg-primary/5">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <AlertCircle className="w-5 h-5" />
+                    Live Target Status
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Physical Target */}
+                    <div className="space-y-2 p-3 bg-background rounded-lg border">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Physical Target</span>
+                        {targetMetrics.wouldExceedPhysical && (
+                          <Badge variant="destructive" className="text-xs">Limit Reached</Badge>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Target:</span>
+                          <span className="font-semibold">{targetMetrics.physicalTarget}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Achieved:</span>
+                          <span className="font-semibold">{targetMetrics.physicalAchieved}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Remaining:</span>
+                          <span className={cn("font-bold", targetMetrics.physicalRemaining <= 0 ? "text-destructive" : "text-green-600")}>
+                            {targetMetrics.physicalRemaining}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Financial Target */}
+                    <div className="space-y-2 p-3 bg-background rounded-lg border">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Financial Target</span>
+                        {targetMetrics.wouldExceedFinancial && (
+                          <Badge variant="destructive" className="text-xs">Would Exceed</Badge>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Target:</span>
+                          <span className="font-semibold">{formatBudget(targetMetrics.financialTarget)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Used:</span>
+                          <span className="font-semibold">{formatBudget(targetMetrics.financialUsed)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">This Application:</span>
+                          <span className={cn("font-semibold", targetMetrics.currentApplicationCost > 0 ? "text-blue-600" : "")}>
+                            {formatBudget(targetMetrics.currentApplicationCost)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm pt-1 border-t">
+                          <span className="text-muted-foreground">Remaining:</span>
+                          <span className={cn("font-bold", targetMetrics.wouldExceedFinancial ? "text-destructive" : "text-green-600")}>
+                            {formatBudget(targetMetrics.financialRemaining - targetMetrics.currentApplicationCost)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {targetMetrics.wouldExceedFinancial && targetMetrics.currentApplicationCost > 0 && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Warning: This application's cost ({formatBudget(targetMetrics.currentApplicationCost)}) would exceed the remaining financial target. 
+                        After submission, total would be {formatBudget(targetMetrics.budgetAfterSubmission)} / {formatBudget(targetMetrics.financialTarget)}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+            )}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -950,7 +1069,11 @@ export default function TreatmentForm() {
                               placeholder="Enter price"
                               value={medicine.price || ""}
                               onChange={(e) => updateMedicine(medicine.id, "price", e.target.value)}
+                              className={cn(targetMetrics.wouldExceedFinancial && "border-destructive focus-visible:ring-destructive")}
                             />
+                            {targetMetrics.wouldExceedFinancial && parseFloat(medicine.price || "0") > 0 && (
+                              <p className="text-xs text-destructive">⚠️ Would exceed financial target</p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -974,10 +1097,10 @@ export default function TreatmentForm() {
                 onClick={handleSubmit} 
                 className="gap-2" 
                 data-testid="button-submit-bottom"
-                disabled={!hasValidTarget || isSubmitting || isProcessing || targetsAchieved.either || compressingImages}
+                disabled={!hasValidTarget || isSubmitting || isProcessing || targetsAchieved.either || targetMetrics.wouldExceedFinancial || compressingImages}
               >
                 <Save className="w-4 h-4" />
-                {compressingImages ? "Compressing Images..." : (isSubmitting || isProcessing) ? "Submitting..." : !hasValidTarget ? "No Target Allocated" : targetsAchieved.either ? "Target Achieved" : "Submit Application"}
+                {compressingImages ? "Compressing Images..." : (isSubmitting || isProcessing) ? "Submitting..." : !hasValidTarget ? "No Target Allocated" : targetsAchieved.either ? "Target Achieved" : targetMetrics.wouldExceedFinancial ? "Would Exceed Budget" : "Submit Application"}
               </Button>
             </div>
           </div>
