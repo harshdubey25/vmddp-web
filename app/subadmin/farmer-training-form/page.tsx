@@ -44,12 +44,6 @@ import {
     CalendarIcon,
     AlertTriangle,
 } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
@@ -71,6 +65,7 @@ export default function FarmerTrainingForm() {
     const { createDoc, loading: isSubmitting } = useFrappeCreateDoc();
     const [uploadingImages, setUploadingImages] = useState(false);
     const [compressingImages, setCompressingImages] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
     const [mounted, setMounted] = useState(false);
     const { currentUser } = useFrappeAuth();
     const districtSetRef = useRef(false);
@@ -122,12 +117,15 @@ export default function FarmerTrainingForm() {
             : { revalidateOnFocus: false, revalidateOnReconnect: false },
     );
 
-    const physicalTarget = trainingTarget?.[0]?.physical_target || 500;
+    const physicalTarget = trainingTarget?.[0]?.physical_target || 0;
+    const financialTarget = trainingTarget?.[0]?.financial_target || 0;
     const achievedCount =
         submittedApplications?.reduce(
             (sum, app: any) => sum + (app.number_of_participants || 0),
             0,
         ) || 0;
+
+    const hasValidTarget = trainingTarget && trainingTarget.length > 0 && physicalTarget > 0 && financialTarget > 0;
 
     const targetData = {
         physical: physicalTarget,
@@ -421,6 +419,19 @@ export default function FarmerTrainingForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (isProcessing || isSubmitting) {
+            return;
+        }
+
+        if (!hasValidTarget) {
+            toast({
+                title: "No Target Allocated",
+                description: "Cannot submit application. No physical or financial target has been allocated for Farmer Training component.",
+                variant: "destructive",
+            });
+            return;
+        }
+
         if (
             !formData.eventName ||
             !formData.eventDate ||
@@ -483,6 +494,8 @@ export default function FarmerTrainingForm() {
             });
             return;
         }
+
+        setIsProcessing(true);
 
         try {
             setUploadingImages(true);
@@ -550,6 +563,7 @@ export default function FarmerTrainingForm() {
             });
         } finally {
             setUploadingImages(false);
+            setIsProcessing(false);
         }
     };
 
@@ -601,6 +615,14 @@ export default function FarmerTrainingForm() {
                         onSubmit={handleSubmit}
                         className="space-y-6 max-w-4xl mx-auto pb-6"
                     >
+                        {!hasValidTarget && (
+                            <Alert variant="destructive" className="border-2">
+                                <AlertTriangle className="h-5 w-5" />
+                                <AlertDescription className="text-base">
+                                    <strong>No Target Allocated:</strong> No physical or financial target has been allocated for Farmer Training component in your district. Please contact the administrator to set up targets before submitting applications.
+                                </AlertDescription>
+                            </Alert>
+                        )}
                         <Card className="border-primary/30 bg-primary/5">
                             <CardHeader className="pb-3">
                                 <CardTitle className="flex items-center gap-2 text-base">
@@ -1185,9 +1207,11 @@ export default function FarmerTrainingForm() {
                                 type="submit"
                                 className="gap-2"
                                 disabled={
+                                    !hasValidTarget ||
                                     wouldExceedTarget ||
                                     exceedsTotal ||
                                     isSubmitting ||
+                                    isProcessing ||
                                     uploadingImages ||
                                     compressingImages
                                 }
@@ -1198,9 +1222,11 @@ export default function FarmerTrainingForm() {
                                     ? "Compressing Images..."
                                     : uploadingImages
                                         ? "Uploading Images..."
-                                        : isSubmitting
+                                        : (isSubmitting || isProcessing)
                                             ? "Submitting..."
-                                            : "Submit Application"}
+                                            : !hasValidTarget
+                                                ? "No Target Allocated"
+                                                : "Submit Application"}
                             </Button>
                         </div>
                     </form>

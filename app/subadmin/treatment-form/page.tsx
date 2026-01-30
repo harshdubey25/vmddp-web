@@ -29,6 +29,7 @@ export default function TreatmentForm() {
   const router = useRouter();
   const { createDoc, loading: isSubmitting } = useFrappeCreateDoc();
   const [compressingImages, setCompressingImages] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { currentUser } = useFrappeAuth();
 
   const { data: dpoData } = useFrappeGetDoc("DPO", currentUser || undefined);
@@ -250,6 +251,12 @@ export default function TreatmentForm() {
     };
   }, [quotaSummary]);
 
+  const hasValidTarget = useMemo(() => {
+    if (!quotaSummary?.message?.treatment) return false;
+    const { physical_target, financial_target } = quotaSummary.message.treatment;
+    return physical_target > 0 && financial_target > 0;
+  }, [quotaSummary]);
+
   const formatBudget = (amount: number): string => {
     if (amount < 10000000) {
       return `₹${(amount / 100000).toFixed(2)}L`;
@@ -258,6 +265,19 @@ export default function TreatmentForm() {
   };
 
   const handleSubmit = async () => {
+    if (isProcessing || isSubmitting) {
+      return;
+    }
+
+    if (!hasValidTarget) {
+      toast({
+        title: "No Target Allocated",
+        description: "Cannot submit application. No physical or financial target has been allocated for this component.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (targetsAchieved.either) {
       const messages = [];
       if (targetsAchieved.physical) messages.push("physical target");
@@ -314,6 +334,8 @@ export default function TreatmentForm() {
       });
       return;
     }
+
+    setIsProcessing(true);
 
     try {
       const symptomsTable = formData.symptoms.map((symptom) => ({
@@ -384,6 +406,8 @@ export default function TreatmentForm() {
         description: error?.message || "Failed to submit the application. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -414,7 +438,18 @@ export default function TreatmentForm() {
 
         <main className="flex-1 overflow-auto p-6 bg-muted/30">
           <div className="space-y-6 max-w-4xl mx-auto">
-            {targetsAchieved.either && (
+            {!hasValidTarget && (
+              <Alert variant="destructive" className="border-2">
+                <AlertCircle className="h-5 w-5" />
+                <AlertTitle className="text-lg font-bold">
+                  No Target Allocated
+                </AlertTitle>
+                <AlertDescription className="text-base">
+                  No physical or financial target has been allocated for Treatment of Infertile Animal component in your district. Please contact the administrator to set up targets before submitting applications.
+                </AlertDescription>
+              </Alert>
+            )}
+            {hasValidTarget && targetsAchieved.either && (
               <Alert variant="destructive" className="border-2">
                 <AlertCircle className="h-5 w-5" />
                 <AlertTitle className="text-lg font-bold">
@@ -439,7 +474,7 @@ export default function TreatmentForm() {
                 </AlertDescription>
               </Alert>
             )}
-            <fieldset disabled={targetsAchieved.either}>
+            <fieldset disabled={!hasValidTarget || targetsAchieved.either}>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -931,7 +966,7 @@ export default function TreatmentForm() {
                 variant="outline"
                 onClick={() => router.push("/subadmin/treatment")}
                 data-testid="button-cancel"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isProcessing}
               >
                 Cancel
               </Button>
@@ -939,10 +974,10 @@ export default function TreatmentForm() {
                 onClick={handleSubmit} 
                 className="gap-2" 
                 data-testid="button-submit-bottom"
-                disabled={isSubmitting || targetsAchieved.either || compressingImages}
+                disabled={!hasValidTarget || isSubmitting || isProcessing || targetsAchieved.either || compressingImages}
               >
                 <Save className="w-4 h-4" />
-                {compressingImages ? "Compressing Images..." : isSubmitting ? "Submitting..." : targetsAchieved.either ? "Target Achieved" : "Submit Application"}
+                {compressingImages ? "Compressing Images..." : (isSubmitting || isProcessing) ? "Submitting..." : !hasValidTarget ? "No Target Allocated" : targetsAchieved.either ? "Target Achieved" : "Submit Application"}
               </Button>
             </div>
           </div>
