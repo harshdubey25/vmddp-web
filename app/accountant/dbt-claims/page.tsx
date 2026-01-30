@@ -280,10 +280,14 @@ export default function DBTClaims() {
                                                     </div>
                                                     <div className="space-y-2">
                                                         <p className="font-semibold text-primary">{selectedComponent?.name} - Subsidy Rules</p>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                                                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm">
                                                             <div>
                                                                 <p className="text-muted-foreground">Subsidy Percentage</p>
                                                                 <p className="font-bold text-lg">{selectedComponent?.subsidy_percent ? `${selectedComponent.subsidy_percent}%` : 'N/A'}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-muted-foreground">Rate per kg</p>
+                                                                <p className="font-bold text-lg">{selectedComponent?.rate_per_kg ? `₹${selectedComponent.rate_per_kg}` : 'N/A'}</p>
                                                             </div>
                                                             <div>
                                                                 <p className="text-muted-foreground">Maximum Subsidy</p>

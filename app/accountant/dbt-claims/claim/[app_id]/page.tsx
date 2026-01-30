@@ -120,11 +120,14 @@ export default function ClaimForm({
         );
     };
 
-    // Calculate eligible DBT amount based on form input and subsidy percent
+    // Calculate eligible DBT amount based on form input and subsidy percent or rate_per_kg
     const eligibleDbtAmount = quota && formData.totalAmount
         ? Math.min(
-            parseFloat(formData.totalAmount) * (parseFloat(quota.subsidy_percent) / 100),
-            quota.remaining_subsidy
+            parseFloat(quota.subsidy_percent) > 0
+                ? parseFloat(formData.totalAmount) * (parseFloat(quota.subsidy_percent) / 100)
+                : (quota.rate_per_kg || 0) * parseFloat(formData.quantity || "0"),
+            quota.remaining_subsidy,
+            quota.maximum_subsidy_amount
         )
         : 0;
 
@@ -595,11 +598,15 @@ export default function ClaimForm({
                                         </p>
                                     </div>
                                     <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
-                                        {quota?.subsidy_percent || 0}% Subsidy
+                                        {parseFloat(quota?.subsidy_percent || "0") > 0
+                                            ? `${quota?.subsidy_percent}% Subsidy`
+                                            : `₹${quota?.rate_per_kg || 0}/kg`}
                                     </Badge>
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-2">
-                                    Auto-calculated based on {quota?.subsidy_percent || 0}% subsidy rate and remaining quota
+                                    {parseFloat(quota?.subsidy_percent || "0") > 0
+                                        ? `Auto-calculated based on ${quota?.subsidy_percent || 0}% subsidy rate and remaining quota`
+                                        : `Auto-calculated based on ₹${quota?.rate_per_kg || 0}/kg rate × quantity (max: ₹${quota?.maximum_subsidy_amount?.toLocaleString("en-IN") || 0})`}
                                 </p>
                             </div>
 

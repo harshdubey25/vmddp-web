@@ -113,6 +113,7 @@ export interface QuotaDetails {
     max_quantity: number;
     maximum_subsidy_amount: number;
     subsidy_percent: string;
+    rate_per_kg: number;
 }
 
 export interface DBTClaim {
