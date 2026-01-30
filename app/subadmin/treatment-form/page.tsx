@@ -586,7 +586,7 @@ export default function TreatmentForm() {
                     <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>
-                        Warning: This application's cost ({formatBudget(targetMetrics.currentApplicationCost)}) would exceed the remaining financial target. 
+                        Warning: This application cost ({formatBudget(targetMetrics.currentApplicationCost)}) would exceed the remaining financial target. 
                         After submission, total would be {formatBudget(targetMetrics.budgetAfterSubmission)} / {formatBudget(targetMetrics.financialTarget)}
                       </AlertDescription>
                     </Alert>
