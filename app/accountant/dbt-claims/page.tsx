@@ -51,8 +51,8 @@ interface DBTBeneficiary {
 const PAGE_SIZE = 20;
 
 export default function DBTClaims() {
-    const { data: components } = useFrappeGetDocList<Pick<Component, 'name' | 'subsidy_percent' | 'maximum_subsidy_amount' | 'rate_per_kg' | 'max_quantity'>>("Component", { fields: ['name', 'subsidy_percent', 'maximum_subsidy_amount', 'rate_per_kg', 'max_quantity'], filters: [['for_dbt_claims', '=', '1']] });
-    const [selectedComponent, setSelectedComponent] = useState<{ name: string, subsidy_percent: number, maximum_subsidy_amount: number, rate_per_kg: number, max_quantity: number } | null>(null);
+    const { data: components } = useFrappeGetDocList<Pick<Component, 'name' | 'subsidy_percent' | 'maximum_subsidy_amount' | 'rate_per_kg' | 'max_quantity' | 'multiple_claims_allowed'>>("Component", { fields: ['name', 'subsidy_percent', 'maximum_subsidy_amount', 'rate_per_kg', 'max_quantity', 'multiple_claims_allowed'], filters: [['for_dbt_claims', '=', '1']] });
+    const [selectedComponent, setSelectedComponent] = useState<{ name: string, subsidy_percent: number, maximum_subsidy_amount: number, rate_per_kg: number, max_quantity: number, multiple_claims_allowed: boolean } | null>(null);
 
     // Filter and pagination state
     const [searchText, setSearchText] = useState("");
@@ -299,7 +299,7 @@ export default function DBTClaims() {
                                                             </div>
                                                         </div>
                                                         <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20 mt-2">
-                                                            Multiple Claims Allowed
+                                                            {selectedComponent?.multiple_claims_allowed ? "Multiple Claims Allowed" : "Single Claim Only"}
                                                         </Badge>
                                                     </div>
                                                 </div>

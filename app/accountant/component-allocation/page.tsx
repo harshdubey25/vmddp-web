@@ -2,7 +2,6 @@
 import { useState } from "react"
 import { useFrappeGetDocList, useFrappeGetCall } from "frappe-react-sdk";
 import {
-    ArrowLeft,
     Package,
     Check,
     AlertCircle,

@@ -52,6 +52,7 @@ export interface Component extends Doctype {
     parantage_confirmation: number;
     max_quantity: number;
     rate_per_kg: number;
+    multiple_claims_allowed:boolean;
 }
 
 export interface AppForm extends Doctype {
