@@ -1,13 +1,9 @@
 "use client"
 import Link from "next/link";
 import {
-    ArrowLeft,
-    Download,
     CheckCircle,
     Clock,
     Search,
-    AlertTriangle,
-    IndianRupee,
     Building2,
     Filter,
     CreditCard,
@@ -77,7 +73,7 @@ export default function VendorPayments() {
         fields: ["name", "vendor_name"],
         limit: 100
     });
-
+    const { data: BankList } = useFrappeGetDocList("Bank")
     // Create doc hook for Vendor Payments
     const { createDoc, loading: submitting } = useFrappeCreateDoc();
 
@@ -157,10 +153,10 @@ export default function VendorPayments() {
                 cheque_date: chequeDate,
                 cheque_amount: chequeAmount,
                 bank_name: bankName,
-                component_allocations: selectedPaymentIds.map((id) => ({ 
+                component_allocations: selectedPaymentIds.map((id) => ({
                     component_allocation: id,
-                    amount:vendorPayments.find((p) => p.component_allocation_id === id)?.total_cost || 0
-                 }))
+                    amount: vendorPayments.find((p) => p.component_allocation_id === id)?.total_cost || 0
+                }))
             });
 
             toast({ title: "Success", description: "Vendor payment created successfully" });
@@ -453,7 +449,7 @@ export default function VendorPayments() {
                                 data-testid="input-cheque-amount"
                                 disabled
                                 className="bg-muted"
-                         />
+                            />
                             <p className="text-xs text-muted-foreground">Amount is auto-calculated from selected payments</p>
                         </div>
 
@@ -463,14 +459,12 @@ export default function VendorPayments() {
                                 <SelectTrigger data-testid="select-bank-name">
                                     <SelectValue placeholder="Select bank" />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="State Bank of India">State Bank of India</SelectItem>
-                                    <SelectItem value="Bank of Maharashtra">Bank of Maharashtra</SelectItem>
-                                    <SelectItem value="Bank of Baroda">Bank of Baroda</SelectItem>
-                                    <SelectItem value="Punjab National Bank">Punjab National Bank</SelectItem>
-                                    <SelectItem value="ICICI Bank">ICICI Bank</SelectItem>
-                                    <SelectItem value="HDFC Bank">HDFC Bank</SelectItem>
-                                    <SelectItem value="Axis Bank">Axis Bank</SelectItem>
+                                <SelectContent >
+                                    {BankList?.map((bank: { name: string }) => {
+
+                                        return (
+                                            <SelectItem key={bank.name} value={bank.name}>{bank.name}</SelectItem>)
+                                    })}
                                 </SelectContent>
                             </Select>
                         </div>
