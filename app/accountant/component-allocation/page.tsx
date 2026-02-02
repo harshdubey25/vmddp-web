@@ -11,6 +11,9 @@ import {
     Leaf,
     Scissors,
     Search,
+    ExternalLink,
+    ViewIcon,
+    ArrowRight,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -105,11 +108,6 @@ export default function ComponentAllocation() {
                     {/* Header */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            {/* <Link href="/accountant/dashboard">
-                                <Button variant="ghost" size="icon" data-testid="button-back">
-                                    <ArrowLeft className="h-5 w-5" />
-                                </Button>
-                            </Link> */}
                             <div>
                                 <h1 className="text-2xl font-display font-bold" data-testid="text-page-title">
                                     Component Allocation
@@ -341,6 +339,13 @@ export default function ComponentAllocation() {
                                                     <TableCell>
                                                         {alloc.type_of_animal || alloc.item || "-"}
                                                     </TableCell>
+                                                    <TableCell>
+                                                        <Link href={`/accountant/component-allocation/allocated/${alloc.component_allocation_id}`}>
+                                                            <Button variant="ghost" size="sm" data-testid={`button-view-details-${alloc.component_allocation_id}`}>
+                                                                <ArrowRight className="h-4 w-4" />
+                                                            </Button>
+                                                        </Link>
+                                                    </TableCell>
                                                 </TableRow>
                                             ))}
                                             {completedList.length === 0 && (
@@ -413,4 +418,5 @@ interface ComponentAllocationItem {
     village: string;
     district: string;
     taluka: string;
+    component_allocation_id: string;
 }
