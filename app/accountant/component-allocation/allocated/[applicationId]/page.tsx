@@ -1,5 +1,5 @@
 "use client"
-
+export const runtime = 'edge';
 import Link from "next/link";
 import { useFrappeGetDoc } from "frappe-react-sdk";
 import { use } from "react";
