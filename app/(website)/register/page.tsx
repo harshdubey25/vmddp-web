@@ -17,7 +17,7 @@ export default async function RegisterPage() {
                 const orderB = typeof b.order === 'number' ? b.order : Infinity;
                 return orderA - orderB;
             })
-            .reverse()
+                .reverse()
             : [];
     } catch (error) {
         console.error("Failed to fetch criteria fields:", error);
