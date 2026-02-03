@@ -1,22 +1,20 @@
 "use client"
 export const runtime = 'edge';
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useFrappeGetDoc } from "frappe-react-sdk";
 import { use } from "react";
-import {
-    ArrowLeft,
-    Package,
-    Download,
-    FileText,
-    Calendar,
-    MapPin,
-    Banknote,
-    Shield,
-    Truck,
-    ExternalLink,
-    Loader2,
-} from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+const ArrowLeft = dynamic(() => import("lucide-react").then(mod => mod.ArrowLeft));
+const Package = dynamic(() => import("lucide-react").then(mod => mod.Package));
+const Download = dynamic(() => import("lucide-react").then(mod => mod.Download));
+const Calendar = dynamic(() => import("lucide-react").then(mod => mod.Calendar));
+const Banknote = dynamic(() => import("lucide-react").then(mod => mod.Banknote));
+const Shield = dynamic(() => import("lucide-react").then(mod => mod.Shield));
+const Truck = dynamic(() => import("lucide-react").then(mod => mod.Truck));
+const Loader2 = dynamic(() => import("lucide-react").then(mod => mod.Loader2));
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
