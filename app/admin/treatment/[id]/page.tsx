@@ -1,14 +1,32 @@
 "use client";
+export const runtime = 'edge';
 
 import { useRouter, useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useFrappeGetDoc } from "frappe-react-sdk";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, FileText, MapPin, User, Stethoscope, Pill, Loader2, Image } from "lucide-react";
 import { useState } from "react";
-export const runtime = 'edge';
+
+// Dynamic imports for lucide-react icons
+const ArrowLeft = dynamic(() => import("lucide-react").then(mod => mod.ArrowLeft));
+const FileText = dynamic(() => import("lucide-react").then(mod => mod.FileText));
+const MapPin = dynamic(() => import("lucide-react").then(mod => mod.MapPin));
+const User = dynamic(() => import("lucide-react").then(mod => mod.User));
+const Stethoscope = dynamic(() => import("lucide-react").then(mod => mod.Stethoscope));
+const Pill = dynamic(() => import("lucide-react").then(mod => mod.Pill));
+const Loader2 = dynamic(() => import("lucide-react").then(mod => mod.Loader2));
+const Image = dynamic(() => import("lucide-react").then(mod => mod.Image));
+
+// Dynamic imports for UI components
+const Button = dynamic(() => import("@/components/ui/button").then(mod => mod.Button));
+const Card = dynamic(() => import("@/components/ui/card").then(mod => mod.Card));
+const CardContent = dynamic(() => import("@/components/ui/card").then(mod => mod.CardContent));
+const CardHeader = dynamic(() => import("@/components/ui/card").then(mod => mod.CardHeader));
+const CardTitle = dynamic(() => import("@/components/ui/card").then(mod => mod.CardTitle));
+const Badge = dynamic(() => import("@/components/ui/badge").then(mod => mod.Badge));
+const Dialog = dynamic(() => import("@/components/ui/dialog").then(mod => mod.Dialog));
+const DialogContent = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogContent));
+const DialogHeader = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogHeader));
+const DialogTitle = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogTitle));
 
 interface ImageTableEntry {
   image: string;
@@ -58,53 +76,53 @@ export default function ViewTreatmentApplication() {
   const { data: treatmentDoc, isLoading, error } = useFrappeGetDoc<TreatmentDoc>(
     "Treatment of Infertile Animal",
     applicationId || "",
-    applicationId ? undefined : null 
+    applicationId ? undefined : null
   );
 
   const application = treatmentDoc ? {
-      id: treatmentDoc.name,
-      applicantName: `${treatmentDoc.first_name} ${treatmentDoc.middle_name ? treatmentDoc.middle_name + " " : ""}${treatmentDoc.surname}`,
-      aadharNumber: treatmentDoc.aadhar_number || "-",
+    id: treatmentDoc.name,
+    applicantName: `${treatmentDoc.first_name} ${treatmentDoc.middle_name ? treatmentDoc.middle_name + " " : ""}${treatmentDoc.surname}`,
+    aadharNumber: treatmentDoc.aadhar_number || "-",
+    village: treatmentDoc.village,
+    component: "Treatment of Infertile Animal",
+    submittedDate: treatmentDoc.creation ? new Date(treatmentDoc.creation).toLocaleDateString("en-GB") : "",
+    treatmentDetails: {
+      ownerFirstName: treatmentDoc.first_name,
+      ownerMiddleName: treatmentDoc.middle_name || "",
+      ownerSurname: treatmentDoc.surname,
+      district: treatmentDoc.district,
+      taluka: treatmentDoc.taluka,
       village: treatmentDoc.village,
-      component: "Treatment of Infertile Animal",
-      submittedDate: treatmentDoc.creation ? new Date(treatmentDoc.creation).toLocaleDateString("en-GB") : "",
-      treatmentDetails: {
-        ownerFirstName: treatmentDoc.first_name,
-        ownerMiddleName: treatmentDoc.middle_name || "",
-        ownerSurname: treatmentDoc.surname,
-        district: treatmentDoc.district,
-        taluka: treatmentDoc.taluka,
-        village: treatmentDoc.village,
-        animalType: treatmentDoc.animal_type,
-        tagNumber: treatmentDoc.tag_number,
-        examinationDate: treatmentDoc.examination_date || "-",
-        veterinarianName: treatmentDoc.veterinarian_name || "-",
-        diagnosisSymptoms: treatmentDoc.symptom ? treatmentDoc.symptom.map((s: any) => s.symtomp) : [],
-        primaryTreatment: treatmentDoc.primary_treatment || "-",
-        actualTreatment: treatmentDoc.actual_treatment_outcome || "-",
-        suggestedTreatment: treatmentDoc.suggested_treatment || "-",
-        treatmentGiven: treatmentDoc.treatment_given || "-",
-        treatmentDate: treatmentDoc.treatment_date || "-",
-        treatmentDays: "-",
-        treatmentGap: "-",
-        followUpObservations: treatmentDoc.follow_up_observations || "-",
-        medicines: treatmentDoc.medicine ? treatmentDoc.medicine.map((m: any) => ({
-          date: m.date || "-",
-          name: m.medicine_name || "-",
-          dose: m.dose || "-",
-          schedule: m.schedule || "-",
-          routeOfAdministration: m.route_of_administration || "-",
-          batchNumber: m.batch_number || "-",
-          expiryDate: m.expiry_date || "-",
-          price: m.price ? m.price.toString() : "0",
-        })) : [],
-      },
-      componentDetails: {
-        benefits: [],
-        customQuestions: [],
-      },
-    }
-  : null;
+      animalType: treatmentDoc.animal_type,
+      tagNumber: treatmentDoc.tag_number,
+      examinationDate: treatmentDoc.examination_date || "-",
+      veterinarianName: treatmentDoc.veterinarian_name || "-",
+      diagnosisSymptoms: treatmentDoc.symptom ? treatmentDoc.symptom.map((s: any) => s.symtomp) : [],
+      primaryTreatment: treatmentDoc.primary_treatment || "-",
+      actualTreatment: treatmentDoc.actual_treatment_outcome || "-",
+      suggestedTreatment: treatmentDoc.suggested_treatment || "-",
+      treatmentGiven: treatmentDoc.treatment_given || "-",
+      treatmentDate: treatmentDoc.treatment_date || "-",
+      treatmentDays: "-",
+      treatmentGap: "-",
+      followUpObservations: treatmentDoc.follow_up_observations || "-",
+      medicines: treatmentDoc.medicine ? treatmentDoc.medicine.map((m: any) => ({
+        date: m.date || "-",
+        name: m.medicine_name || "-",
+        dose: m.dose || "-",
+        schedule: m.schedule || "-",
+        routeOfAdministration: m.route_of_administration || "-",
+        batchNumber: m.batch_number || "-",
+        expiryDate: m.expiry_date || "-",
+        price: m.price ? m.price.toString() : "0",
+      })) : [],
+    },
+    componentDetails: {
+      benefits: [],
+      customQuestions: [],
+    },
+  }
+    : null;
 
   if (isLoading) {
     return (
@@ -272,7 +290,7 @@ export default function ViewTreatmentApplication() {
                         ) : (
                           <p className="text-sm text-muted-foreground">No symptoms recorded</p>
                         )}
-                        
+
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -350,12 +368,12 @@ export default function ViewTreatmentApplication() {
                         {treatmentDoc.gallery_table.map((entry, idx) => {
                           const imageUrl = entry.image.startsWith('http') ? entry.image : `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${entry.image}`;
                           return (
-                            <div 
-                              key={idx} 
+                            <div
+                              key={idx}
                               className="border rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
                               onClick={() => setPreviewImage(imageUrl)}
                             >
-                              <img 
+                              <img
                                 src={imageUrl}
                                 alt={`Gallery ${idx + 1}`}
                                 className="w-full h-32 object-cover"
@@ -375,9 +393,9 @@ export default function ViewTreatmentApplication() {
                     </DialogHeader>
                     <div className="relative w-full h-full flex items-center justify-center">
                       {previewImage && (
-                        <img 
-                          src={previewImage} 
-                          alt="Preview" 
+                        <img
+                          src={previewImage}
+                          alt="Preview"
                           className="max-w-full max-h-[70vh] object-contain"
                         />
                       )}

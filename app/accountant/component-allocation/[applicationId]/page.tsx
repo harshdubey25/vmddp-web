@@ -2,56 +2,53 @@
 export const runtime = 'edge';
 import { useState, use } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import type { FrappeCustomApiResponse, ComponentStatus } from "@/types";
 import { parseFrappeError } from "@/lib/frappe-error-parser";
-import {
-  ArrowLeft,
-  User,
-  Package,
-  Check,
-  AlertCircle,
-  Tag,
-  FileText,
-  IndianRupee,
-  MapPin,
-  Upload,
-  Shield,
-  Truck,
-  Loader2,
-  X,
-} from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall, useFrappeCreateDoc, useFrappeGetDocList, useFrappeFileUpload, useFrappeUpdateDoc, useFrappePostCall } from "frappe-react-sdk";
-import { Skeleton } from "@/components/ui/skeleton";
+
+// Dynamic imports for lucide-react icons
+const ArrowLeft = dynamic(() => import("lucide-react").then(mod => mod.ArrowLeft));
+const User = dynamic(() => import("lucide-react").then(mod => mod.User));
+const Package = dynamic(() => import("lucide-react").then(mod => mod.Package));
+const Check = dynamic(() => import("lucide-react").then(mod => mod.Check));
+const AlertCircle = dynamic(() => import("lucide-react").then(mod => mod.AlertCircle));
+const Tag = dynamic(() => import("lucide-react").then(mod => mod.Tag));
+const FileText = dynamic(() => import("lucide-react").then(mod => mod.FileText));
+const IndianRupee = dynamic(() => import("lucide-react").then(mod => mod.IndianRupee));
+const MapPin = dynamic(() => import("lucide-react").then(mod => mod.MapPin));
+const Upload = dynamic(() => import("lucide-react").then(mod => mod.Upload));
+const Shield = dynamic(() => import("lucide-react").then(mod => mod.Shield));
+const Truck = dynamic(() => import("lucide-react").then(mod => mod.Truck));
+const Loader2 = dynamic(() => import("lucide-react").then(mod => mod.Loader2));
+const X = dynamic(() => import("lucide-react").then(mod => mod.X));
+
+// Dynamic imports for UI components
+const Card = dynamic(() => import("@/components/ui/card").then(mod => mod.Card));
+const CardContent = dynamic(() => import("@/components/ui/card").then(mod => mod.CardContent));
+const CardDescription = dynamic(() => import("@/components/ui/card").then(mod => mod.CardDescription));
+const CardHeader = dynamic(() => import("@/components/ui/card").then(mod => mod.CardHeader));
+const CardTitle = dynamic(() => import("@/components/ui/card").then(mod => mod.CardTitle));
+const CardFooter = dynamic(() => import("@/components/ui/card").then(mod => mod.CardFooter));
+const Button = dynamic(() => import("@/components/ui/button").then(mod => mod.Button));
+const Input = dynamic(() => import("@/components/ui/input").then(mod => mod.Input));
+const Badge = dynamic(() => import("@/components/ui/badge").then(mod => mod.Badge));
+const Label = dynamic(() => import("@/components/ui/label").then(mod => mod.Label));
+const Select = dynamic(() => import("@/components/ui/select").then(mod => mod.Select));
+const SelectContent = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectContent));
+const SelectItem = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectItem));
+const SelectTrigger = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectTrigger));
+const SelectValue = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectValue));
+const Dialog = dynamic(() => import("@/components/ui/dialog").then(mod => mod.Dialog));
+const DialogContent = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogContent));
+const DialogDescription = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogDescription));
+const DialogFooter = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogFooter));
+const DialogHeader = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogHeader));
+const DialogTitle = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogTitle));
+const Separator = dynamic(() => import("@/components/ui/separator").then(mod => mod.Separator));
+const Skeleton = dynamic(() => import("@/components/ui/skeleton").then(mod => mod.Skeleton));
 
 
 type AppFormResponse = FrappeCustomApiResponse<{

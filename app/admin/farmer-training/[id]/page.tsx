@@ -1,16 +1,35 @@
 "use client";
-
 export const runtime = 'edge';
 
 import { useRouter, useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useFrappeGetDoc } from "frappe-react-sdk";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, FileText, GraduationCap, MapPin, Building, Users, Image, IndianRupee, Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+
+// Dynamic imports for lucide-react icons
+const ArrowLeft = dynamic(() => import("lucide-react").then(mod => mod.ArrowLeft));
+const FileText = dynamic(() => import("lucide-react").then(mod => mod.FileText));
+const GraduationCap = dynamic(() => import("lucide-react").then(mod => mod.GraduationCap));
+const MapPin = dynamic(() => import("lucide-react").then(mod => mod.MapPin));
+const Building = dynamic(() => import("lucide-react").then(mod => mod.Building));
+const Users = dynamic(() => import("lucide-react").then(mod => mod.Users));
+const Image = dynamic(() => import("lucide-react").then(mod => mod.Image));
+const IndianRupee = dynamic(() => import("lucide-react").then(mod => mod.IndianRupee));
+const Loader2 = dynamic(() => import("lucide-react").then(mod => mod.Loader2));
+const X = dynamic(() => import("lucide-react").then(mod => mod.X));
+
+// Dynamic imports for UI components
+const Button = dynamic(() => import("@/components/ui/button").then(mod => mod.Button));
+const Card = dynamic(() => import("@/components/ui/card").then(mod => mod.Card));
+const CardContent = dynamic(() => import("@/components/ui/card").then(mod => mod.CardContent));
+const CardHeader = dynamic(() => import("@/components/ui/card").then(mod => mod.CardHeader));
+const CardTitle = dynamic(() => import("@/components/ui/card").then(mod => mod.CardTitle));
+const Badge = dynamic(() => import("@/components/ui/badge").then(mod => mod.Badge));
+const Dialog = dynamic(() => import("@/components/ui/dialog").then(mod => mod.Dialog));
+const DialogContent = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogContent));
+const DialogHeader = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogHeader));
+const DialogTitle = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogTitle));
 
 interface ImageTableEntry {
   image: string;
@@ -43,7 +62,7 @@ export default function ViewFarmerTrainingApplication() {
   const router = useRouter();
   const params = useParams();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  
+
   const applicationId = params?.id ? decodeURIComponent(Array.isArray(params.id) ? params.id[0] : params.id) : null;
 
   const { data: application, isLoading, error } = useFrappeGetDoc<Application>(
@@ -250,12 +269,12 @@ export default function ViewFarmerTrainingApplication() {
                     {application.images_table.map((entry, idx) => {
                       const imageUrl = entry.image.startsWith('http') ? entry.image : `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${entry.image}`;
                       return (
-                        <div 
-                          key={idx} 
+                        <div
+                          key={idx}
                           className="border rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
                           onClick={() => setPreviewImage(imageUrl)}
                         >
-                          <img 
+                          <img
                             src={imageUrl}
                             alt={`Participant list ${idx + 1}`}
                             className="w-full h-32 object-cover"
@@ -286,12 +305,12 @@ export default function ViewFarmerTrainingApplication() {
                     {application.gallery_table.map((entry, idx) => {
                       const imageUrl = entry.image.startsWith('http') ? entry.image : `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${entry.image}`;
                       return (
-                        <div 
-                          key={idx} 
+                        <div
+                          key={idx}
                           className="border rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
                           onClick={() => setPreviewImage(imageUrl)}
                         >
-                          <img 
+                          <img
                             src={imageUrl}
                             alt={`Participant list ${idx + 1}`}
                             className="w-full h-32 object-cover"
@@ -316,9 +335,9 @@ export default function ViewFarmerTrainingApplication() {
                 </DialogHeader>
                 <div className="relative w-full h-full flex items-center justify-center">
                   {previewImage && (
-                    <img 
-                      src={previewImage} 
-                      alt="Preview" 
+                    <img
+                      src={previewImage}
+                      alt="Preview"
                       className="max-w-full max-h-[70vh] object-contain"
                     />
                   )}

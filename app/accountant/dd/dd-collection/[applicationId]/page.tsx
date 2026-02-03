@@ -2,39 +2,44 @@
 export const runtime = 'edge';
 import { useState, use, useEffect } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import {
-    ArrowLeft,
-    CreditCard,
-    User,
-    FileText,
-    MapPin,
-    Package,
-    Upload,
-    X,
-    AlertCircle,
-    Check,
-    IndianRupee,
-    Loader2,
-} from "lucide-react";
 import { useFrappePostCall, useFrappeGetCall, useFrappeFileUpload } from "frappe-react-sdk";
-import { Skeleton } from "@/components/ui/skeleton";
 import { CardSkeleton } from "@/components/LoadingSkeletons";
-import { date } from "zod";
+
+// Dynamic imports for lucide-react icons
+const ArrowLeft = dynamic(() => import("lucide-react").then(mod => mod.ArrowLeft));
+const CreditCard = dynamic(() => import("lucide-react").then(mod => mod.CreditCard));
+const User = dynamic(() => import("lucide-react").then(mod => mod.User));
+const FileText = dynamic(() => import("lucide-react").then(mod => mod.FileText));
+const MapPin = dynamic(() => import("lucide-react").then(mod => mod.MapPin));
+const Package = dynamic(() => import("lucide-react").then(mod => mod.Package));
+const Upload = dynamic(() => import("lucide-react").then(mod => mod.Upload));
+const X = dynamic(() => import("lucide-react").then(mod => mod.X));
+const AlertCircle = dynamic(() => import("lucide-react").then(mod => mod.AlertCircle));
+const Check = dynamic(() => import("lucide-react").then(mod => mod.Check));
+const IndianRupee = dynamic(() => import("lucide-react").then(mod => mod.IndianRupee));
+const Loader2 = dynamic(() => import("lucide-react").then(mod => mod.Loader2));
+
+// Dynamic imports for UI components
+const Card = dynamic(() => import("@/components/ui/card").then(mod => mod.Card));
+const CardContent = dynamic(() => import("@/components/ui/card").then(mod => mod.CardContent));
+const CardDescription = dynamic(() => import("@/components/ui/card").then(mod => mod.CardDescription));
+const CardHeader = dynamic(() => import("@/components/ui/card").then(mod => mod.CardHeader));
+const CardTitle = dynamic(() => import("@/components/ui/card").then(mod => mod.CardTitle));
+const CardFooter = dynamic(() => import("@/components/ui/card").then(mod => mod.CardFooter));
+const Button = dynamic(() => import("@/components/ui/button").then(mod => mod.Button));
+const Input = dynamic(() => import("@/components/ui/input").then(mod => mod.Input));
+const Label = dynamic(() => import("@/components/ui/label").then(mod => mod.Label));
+const Badge = dynamic(() => import("@/components/ui/badge").then(mod => mod.Badge));
+const Separator = dynamic(() => import("@/components/ui/separator").then(mod => mod.Separator));
+const Select = dynamic(() => import("@/components/ui/select").then(mod => mod.Select));
+const SelectContent = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectContent));
+const SelectItem = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectItem));
+const SelectTrigger = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectTrigger));
+const SelectValue = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectValue));
+const Skeleton = dynamic(() => import("@/components/ui/skeleton").then(mod => mod.Skeleton));
 
 enum DDComponents {
     HGM = "HGM (Pregnant cow)",

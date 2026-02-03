@@ -1,22 +1,49 @@
 "use client"
 export const runtime = 'edge';
 import Link from "next/link";
-import { ArrowLeft, FileText, Upload, Check, User, Building2, MapPin, CreditCard, ExternalLink, Loader2 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { parseFrappeError } from "@/lib/frappe-error-parser";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFrappeGetCall, useFrappeFileUpload, useFrappeCreateDoc, useFrappeGetDocList } from "frappe-react-sdk";
 import { use, useState, useRef } from 'react'
 import { ApplicationDetails, FrappeCustomApiResponse, QuotaDetails, DBTClaim } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
+
+// Dynamic imports for lucide-react icons
+const ArrowLeft = dynamic(() => import("lucide-react").then(mod => mod.ArrowLeft));
+const FileText = dynamic(() => import("lucide-react").then(mod => mod.FileText));
+const Upload = dynamic(() => import("lucide-react").then(mod => mod.Upload));
+const Check = dynamic(() => import("lucide-react").then(mod => mod.Check));
+const User = dynamic(() => import("lucide-react").then(mod => mod.User));
+const Building2 = dynamic(() => import("lucide-react").then(mod => mod.Building2));
+const MapPin = dynamic(() => import("lucide-react").then(mod => mod.MapPin));
+const CreditCard = dynamic(() => import("lucide-react").then(mod => mod.CreditCard));
+const ExternalLink = dynamic(() => import("lucide-react").then(mod => mod.ExternalLink));
+const Loader2 = dynamic(() => import("lucide-react").then(mod => mod.Loader2));
+
+// Dynamic imports for UI components
+const Card = dynamic(() => import("@/components/ui/card").then(mod => mod.Card));
+const CardContent = dynamic(() => import("@/components/ui/card").then(mod => mod.CardContent));
+const CardDescription = dynamic(() => import("@/components/ui/card").then(mod => mod.CardDescription));
+const CardHeader = dynamic(() => import("@/components/ui/card").then(mod => mod.CardHeader));
+const CardTitle = dynamic(() => import("@/components/ui/card").then(mod => mod.CardTitle));
+const Button = dynamic(() => import("@/components/ui/button").then(mod => mod.Button));
+const Input = dynamic(() => import("@/components/ui/input").then(mod => mod.Input));
+const Label = dynamic(() => import("@/components/ui/label").then(mod => mod.Label));
+const Badge = dynamic(() => import("@/components/ui/badge").then(mod => mod.Badge));
+const Checkbox = dynamic(() => import("@/components/ui/checkbox").then(mod => mod.Checkbox));
+const Progress = dynamic(() => import("@/components/ui/progress").then(mod => mod.Progress));
+const Select = dynamic(() => import("@/components/ui/select").then(mod => mod.Select));
+const SelectContent = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectContent));
+const SelectItem = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectItem));
+const SelectTrigger = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectTrigger));
+const SelectValue = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectValue));
+const Table = dynamic(() => import("@/components/ui/table").then(mod => mod.Table));
+const TableBody = dynamic(() => import("@/components/ui/table").then(mod => mod.TableBody));
+const TableCell = dynamic(() => import("@/components/ui/table").then(mod => mod.TableCell));
+const TableHead = dynamic(() => import("@/components/ui/table").then(mod => mod.TableHead));
+const TableHeader = dynamic(() => import("@/components/ui/table").then(mod => mod.TableHeader));
+const TableRow = dynamic(() => import("@/components/ui/table").then(mod => mod.TableRow));
 
 // Helper to get status badge based on docstatus
 const getDocstatusBadge = (docstatus: number) => {
