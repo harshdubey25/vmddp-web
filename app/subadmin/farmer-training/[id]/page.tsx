@@ -1,4 +1,5 @@
 "use client";
+export const runtime = 'edge';
 
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -7,28 +8,28 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 // Dynamic imports for lucide-react icons
-const ArrowLeft = dynamic(() => import("lucide-react").then(mod => mod.ArrowLeft));
-const FileText = dynamic(() => import("lucide-react").then(mod => mod.FileText));
-const GraduationCap = dynamic(() => import("lucide-react").then(mod => mod.GraduationCap));
-const MapPin = dynamic(() => import("lucide-react").then(mod => mod.MapPin));
-const Building = dynamic(() => import("lucide-react").then(mod => mod.Building));
-const Users = dynamic(() => import("lucide-react").then(mod => mod.Users));
-const Image = dynamic(() => import("lucide-react").then(mod => mod.Image));
-const IndianRupee = dynamic(() => import("lucide-react").then(mod => mod.IndianRupee));
-const Loader2 = dynamic(() => import("lucide-react").then(mod => mod.Loader2));
-const X = dynamic(() => import("lucide-react").then(mod => mod.X));
+const ArrowLeft = dynamic(() => import("lucide-react").then(mod => mod.ArrowLeft), { ssr: false });
+const FileText = dynamic(() => import("lucide-react").then(mod => mod.FileText), { ssr: false });
+const GraduationCap = dynamic(() => import("lucide-react").then(mod => mod.GraduationCap), { ssr: false });
+const MapPin = dynamic(() => import("lucide-react").then(mod => mod.MapPin), { ssr: false });
+const Building = dynamic(() => import("lucide-react").then(mod => mod.Building), { ssr: false });
+const Users = dynamic(() => import("lucide-react").then(mod => mod.Users), { ssr: false });
+const Image = dynamic(() => import("lucide-react").then(mod => mod.Image), { ssr: false });
+const IndianRupee = dynamic(() => import("lucide-react").then(mod => mod.IndianRupee), { ssr: false });
+const Loader2 = dynamic(() => import("lucide-react").then(mod => mod.Loader2), { ssr: false });
+const X = dynamic(() => import("lucide-react").then(mod => mod.X), { ssr: false });
 
 // Dynamic imports for UI components
-const Button = dynamic(() => import("@/components/ui/button").then(mod => mod.Button));
-const Card = dynamic(() => import("@/components/ui/card").then(mod => mod.Card));
-const CardContent = dynamic(() => import("@/components/ui/card").then(mod => mod.CardContent));
-const CardHeader = dynamic(() => import("@/components/ui/card").then(mod => mod.CardHeader));
-const CardTitle = dynamic(() => import("@/components/ui/card").then(mod => mod.CardTitle));
-const Badge = dynamic(() => import("@/components/ui/badge").then(mod => mod.Badge));
-const Dialog = dynamic(() => import("@/components/ui/dialog").then(mod => mod.Dialog));
-const DialogContent = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogContent));
-const DialogHeader = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogHeader));
-const DialogTitle = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogTitle));
+const Button = dynamic(() => import("@/components/ui/button").then(mod => mod.Button), { ssr: false });
+const Card = dynamic(() => import("@/components/ui/card").then(mod => mod.Card), { ssr: false });
+const CardContent = dynamic(() => import("@/components/ui/card").then(mod => mod.CardContent), { ssr: false });
+const CardHeader = dynamic(() => import("@/components/ui/card").then(mod => mod.CardHeader), { ssr: false });
+const CardTitle = dynamic(() => import("@/components/ui/card").then(mod => mod.CardTitle), { ssr: false });
+const Badge = dynamic(() => import("@/components/ui/badge").then(mod => mod.Badge), { ssr: false });
+const Dialog = dynamic(() => import("@/components/ui/dialog").then(mod => mod.Dialog), { ssr: false });
+const DialogContent = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogContent), { ssr: false });
+const DialogHeader = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogHeader), { ssr: false });
+const DialogTitle = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogTitle), { ssr: false });
 
 interface ImageTableEntry {
   image: string;

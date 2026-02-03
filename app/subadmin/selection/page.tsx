@@ -1,5 +1,6 @@
 import { getFrappeWithUserToken } from "@/lib/frappeHelper";
 import SubAdminSelectionClient from "./client";
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 interface ApplicationSelectionItem {
   id: string;

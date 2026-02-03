@@ -1,4 +1,5 @@
 "use client"
+export const runtime = 'edge';
 
 import { getComponentById, getCategoryTranslationKey } from "@/componentData/componentData";
 import { notFound } from "next/navigation";

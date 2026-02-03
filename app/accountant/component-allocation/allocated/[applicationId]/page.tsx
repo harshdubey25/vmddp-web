@@ -1,25 +1,26 @@
 "use client"
+export const runtime = 'edge';
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useFrappeGetDoc } from "frappe-react-sdk";
 import { use } from "react";
 
-const ArrowLeft = dynamic(() => import("lucide-react").then(mod => mod.ArrowLeft));
-const Package = dynamic(() => import("lucide-react").then(mod => mod.Package));
-const Download = dynamic(() => import("lucide-react").then(mod => mod.Download));
-const Calendar = dynamic(() => import("lucide-react").then(mod => mod.Calendar));
-const Banknote = dynamic(() => import("lucide-react").then(mod => mod.Banknote));
-const Shield = dynamic(() => import("lucide-react").then(mod => mod.Shield));
-const Truck = dynamic(() => import("lucide-react").then(mod => mod.Truck));
-const Loader2 = dynamic(() => import("lucide-react").then(mod => mod.Loader2));
+const ArrowLeft = dynamic(() => import("lucide-react").then(mod => mod.ArrowLeft), { ssr: false });
+const Package = dynamic(() => import("lucide-react").then(mod => mod.Package), { ssr: false });
+const Download = dynamic(() => import("lucide-react").then(mod => mod.Download), { ssr: false });
+const Calendar = dynamic(() => import("lucide-react").then(mod => mod.Calendar), { ssr: false });
+const Banknote = dynamic(() => import("lucide-react").then(mod => mod.Banknote), { ssr: false });
+const Shield = dynamic(() => import("lucide-react").then(mod => mod.Shield), { ssr: false });
+const Truck = dynamic(() => import("lucide-react").then(mod => mod.Truck), { ssr: false });
+const Loader2 = dynamic(() => import("lucide-react").then(mod => mod.Loader2), { ssr: false });
 
-const Card = dynamic(() => import("@/components/ui/card").then(mod => mod.Card));
-const CardContent = dynamic(() => import("@/components/ui/card").then(mod => mod.CardContent));
-const CardHeader = dynamic(() => import("@/components/ui/card").then(mod => mod.CardHeader));
-const CardTitle = dynamic(() => import("@/components/ui/card").then(mod => mod.CardTitle));
-const Button = dynamic(() => import("@/components/ui/button").then(mod => mod.Button));
-const Badge = dynamic(() => import("@/components/ui/badge").then(mod => mod.Badge));
-const Separator = dynamic(() => import("@/components/ui/separator").then(mod => mod.Separator));
+const Card = dynamic(() => import("@/components/ui/card").then(mod => mod.Card), { ssr: false });
+const CardContent = dynamic(() => import("@/components/ui/card").then(mod => mod.CardContent), { ssr: false });
+const CardHeader = dynamic(() => import("@/components/ui/card").then(mod => mod.CardHeader), { ssr: false });
+const CardTitle = dynamic(() => import("@/components/ui/card").then(mod => mod.CardTitle), { ssr: false });
+const Button = dynamic(() => import("@/components/ui/button").then(mod => mod.Button), { ssr: false });
+const Badge = dynamic(() => import("@/components/ui/badge").then(mod => mod.Badge), { ssr: false });
+const Separator = dynamic(() => import("@/components/ui/separator").then(mod => mod.Separator), { ssr: false });
 
 interface ComponentAllocationDoc {
     name: string;

@@ -1,4 +1,5 @@
 "use client"
+export const runtime = 'edge';
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { parseFrappeError } from "@/lib/frappe-error-parser";
@@ -9,40 +10,40 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 
 // Dynamic imports for lucide-react icons
-const ArrowLeft = dynamic(() => import("lucide-react").then(mod => mod.ArrowLeft));
-const FileText = dynamic(() => import("lucide-react").then(mod => mod.FileText));
-const Upload = dynamic(() => import("lucide-react").then(mod => mod.Upload));
-const Check = dynamic(() => import("lucide-react").then(mod => mod.Check));
-const User = dynamic(() => import("lucide-react").then(mod => mod.User));
-const Building2 = dynamic(() => import("lucide-react").then(mod => mod.Building2));
-const MapPin = dynamic(() => import("lucide-react").then(mod => mod.MapPin));
-const CreditCard = dynamic(() => import("lucide-react").then(mod => mod.CreditCard));
-const ExternalLink = dynamic(() => import("lucide-react").then(mod => mod.ExternalLink));
-const Loader2 = dynamic(() => import("lucide-react").then(mod => mod.Loader2));
+const ArrowLeft = dynamic(() => import("lucide-react").then(mod => mod.ArrowLeft), { ssr: false });
+const FileText = dynamic(() => import("lucide-react").then(mod => mod.FileText), { ssr: false });
+const Upload = dynamic(() => import("lucide-react").then(mod => mod.Upload), { ssr: false });
+const Check = dynamic(() => import("lucide-react").then(mod => mod.Check), { ssr: false });
+const User = dynamic(() => import("lucide-react").then(mod => mod.User), { ssr: false });
+const Building2 = dynamic(() => import("lucide-react").then(mod => mod.Building2), { ssr: false });
+const MapPin = dynamic(() => import("lucide-react").then(mod => mod.MapPin), { ssr: false });
+const CreditCard = dynamic(() => import("lucide-react").then(mod => mod.CreditCard), { ssr: false });
+const ExternalLink = dynamic(() => import("lucide-react").then(mod => mod.ExternalLink), { ssr: false });
+const Loader2 = dynamic(() => import("lucide-react").then(mod => mod.Loader2), { ssr: false });
 
 // Dynamic imports for UI components
-const Card = dynamic(() => import("@/components/ui/card").then(mod => mod.Card));
-const CardContent = dynamic(() => import("@/components/ui/card").then(mod => mod.CardContent));
-const CardDescription = dynamic(() => import("@/components/ui/card").then(mod => mod.CardDescription));
-const CardHeader = dynamic(() => import("@/components/ui/card").then(mod => mod.CardHeader));
-const CardTitle = dynamic(() => import("@/components/ui/card").then(mod => mod.CardTitle));
-const Button = dynamic(() => import("@/components/ui/button").then(mod => mod.Button));
-const Input = dynamic(() => import("@/components/ui/input").then(mod => mod.Input));
-const Label = dynamic(() => import("@/components/ui/label").then(mod => mod.Label));
-const Badge = dynamic(() => import("@/components/ui/badge").then(mod => mod.Badge));
-const Checkbox = dynamic(() => import("@/components/ui/checkbox").then(mod => mod.Checkbox));
-const Progress = dynamic(() => import("@/components/ui/progress").then(mod => mod.Progress));
-const Select = dynamic(() => import("@/components/ui/select").then(mod => mod.Select));
-const SelectContent = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectContent));
-const SelectItem = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectItem));
-const SelectTrigger = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectTrigger));
-const SelectValue = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectValue));
-const Table = dynamic(() => import("@/components/ui/table").then(mod => mod.Table));
-const TableBody = dynamic(() => import("@/components/ui/table").then(mod => mod.TableBody));
-const TableCell = dynamic(() => import("@/components/ui/table").then(mod => mod.TableCell));
-const TableHead = dynamic(() => import("@/components/ui/table").then(mod => mod.TableHead));
-const TableHeader = dynamic(() => import("@/components/ui/table").then(mod => mod.TableHeader));
-const TableRow = dynamic(() => import("@/components/ui/table").then(mod => mod.TableRow));
+const Card = dynamic(() => import("@/components/ui/card").then(mod => mod.Card), { ssr: false });
+const CardContent = dynamic(() => import("@/components/ui/card").then(mod => mod.CardContent), { ssr: false });
+const CardDescription = dynamic(() => import("@/components/ui/card").then(mod => mod.CardDescription), { ssr: false });
+const CardHeader = dynamic(() => import("@/components/ui/card").then(mod => mod.CardHeader), { ssr: false });
+const CardTitle = dynamic(() => import("@/components/ui/card").then(mod => mod.CardTitle), { ssr: false });
+const Button = dynamic(() => import("@/components/ui/button").then(mod => mod.Button), { ssr: false });
+const Input = dynamic(() => import("@/components/ui/input").then(mod => mod.Input), { ssr: false });
+const Label = dynamic(() => import("@/components/ui/label").then(mod => mod.Label), { ssr: false });
+const Badge = dynamic(() => import("@/components/ui/badge").then(mod => mod.Badge), { ssr: false });
+const Checkbox = dynamic(() => import("@/components/ui/checkbox").then(mod => mod.Checkbox), { ssr: false });
+const Progress = dynamic(() => import("@/components/ui/progress").then(mod => mod.Progress), { ssr: false });
+const Select = dynamic(() => import("@/components/ui/select").then(mod => mod.Select), { ssr: false });
+const SelectContent = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectContent), { ssr: false });
+const SelectItem = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectItem), { ssr: false });
+const SelectTrigger = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectTrigger), { ssr: false });
+const SelectValue = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectValue), { ssr: false });
+const Table = dynamic(() => import("@/components/ui/table").then(mod => mod.Table), { ssr: false });
+const TableBody = dynamic(() => import("@/components/ui/table").then(mod => mod.TableBody), { ssr: false });
+const TableCell = dynamic(() => import("@/components/ui/table").then(mod => mod.TableCell), { ssr: false });
+const TableHead = dynamic(() => import("@/components/ui/table").then(mod => mod.TableHead), { ssr: false });
+const TableHeader = dynamic(() => import("@/components/ui/table").then(mod => mod.TableHeader), { ssr: false });
+const TableRow = dynamic(() => import("@/components/ui/table").then(mod => mod.TableRow), { ssr: false });
 
 // Helper to get status badge based on docstatus
 const getDocstatusBadge = (docstatus: number) => {

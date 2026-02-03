@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 import RegisterClient from "./client";
 import { frappeServer } from "@/lib/frappe";

@@ -1,4 +1,5 @@
 "use client"
+export const runtime = 'edge';
 import { useState, use } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -9,45 +10,45 @@ import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall, useFrappeCreateDoc, useFrappeGetDocList, useFrappeFileUpload, useFrappeUpdateDoc, useFrappePostCall } from "frappe-react-sdk";
 
 // Dynamic imports for lucide-react icons
-const ArrowLeft = dynamic(() => import("lucide-react").then(mod => mod.ArrowLeft));
-const User = dynamic(() => import("lucide-react").then(mod => mod.User));
-const Package = dynamic(() => import("lucide-react").then(mod => mod.Package));
-const Check = dynamic(() => import("lucide-react").then(mod => mod.Check));
-const AlertCircle = dynamic(() => import("lucide-react").then(mod => mod.AlertCircle));
-const Tag = dynamic(() => import("lucide-react").then(mod => mod.Tag));
-const FileText = dynamic(() => import("lucide-react").then(mod => mod.FileText));
-const IndianRupee = dynamic(() => import("lucide-react").then(mod => mod.IndianRupee));
-const MapPin = dynamic(() => import("lucide-react").then(mod => mod.MapPin));
-const Upload = dynamic(() => import("lucide-react").then(mod => mod.Upload));
-const Shield = dynamic(() => import("lucide-react").then(mod => mod.Shield));
-const Truck = dynamic(() => import("lucide-react").then(mod => mod.Truck));
-const Loader2 = dynamic(() => import("lucide-react").then(mod => mod.Loader2));
-const X = dynamic(() => import("lucide-react").then(mod => mod.X));
+const ArrowLeft = dynamic(() => import("lucide-react").then(mod => mod.ArrowLeft), { ssr: false });
+const User = dynamic(() => import("lucide-react").then(mod => mod.User), { ssr: false });
+const Package = dynamic(() => import("lucide-react").then(mod => mod.Package), { ssr: false });
+const Check = dynamic(() => import("lucide-react").then(mod => mod.Check), { ssr: false });
+const AlertCircle = dynamic(() => import("lucide-react").then(mod => mod.AlertCircle), { ssr: false });
+const Tag = dynamic(() => import("lucide-react").then(mod => mod.Tag), { ssr: false });
+const FileText = dynamic(() => import("lucide-react").then(mod => mod.FileText), { ssr: false });
+const IndianRupee = dynamic(() => import("lucide-react").then(mod => mod.IndianRupee), { ssr: false });
+const MapPin = dynamic(() => import("lucide-react").then(mod => mod.MapPin), { ssr: false });
+const Upload = dynamic(() => import("lucide-react").then(mod => mod.Upload), { ssr: false });
+const Shield = dynamic(() => import("lucide-react").then(mod => mod.Shield), { ssr: false });
+const Truck = dynamic(() => import("lucide-react").then(mod => mod.Truck), { ssr: false });
+const Loader2 = dynamic(() => import("lucide-react").then(mod => mod.Loader2), { ssr: false });
+const X = dynamic(() => import("lucide-react").then(mod => mod.X), { ssr: false });
 
 // Dynamic imports for UI components
-const Card = dynamic(() => import("@/components/ui/card").then(mod => mod.Card));
-const CardContent = dynamic(() => import("@/components/ui/card").then(mod => mod.CardContent));
-const CardDescription = dynamic(() => import("@/components/ui/card").then(mod => mod.CardDescription));
-const CardHeader = dynamic(() => import("@/components/ui/card").then(mod => mod.CardHeader));
-const CardTitle = dynamic(() => import("@/components/ui/card").then(mod => mod.CardTitle));
-const CardFooter = dynamic(() => import("@/components/ui/card").then(mod => mod.CardFooter));
-const Button = dynamic(() => import("@/components/ui/button").then(mod => mod.Button));
-const Input = dynamic(() => import("@/components/ui/input").then(mod => mod.Input));
-const Badge = dynamic(() => import("@/components/ui/badge").then(mod => mod.Badge));
-const Label = dynamic(() => import("@/components/ui/label").then(mod => mod.Label));
-const Select = dynamic(() => import("@/components/ui/select").then(mod => mod.Select));
-const SelectContent = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectContent));
-const SelectItem = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectItem));
-const SelectTrigger = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectTrigger));
-const SelectValue = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectValue));
-const Dialog = dynamic(() => import("@/components/ui/dialog").then(mod => mod.Dialog));
-const DialogContent = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogContent));
-const DialogDescription = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogDescription));
-const DialogFooter = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogFooter));
-const DialogHeader = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogHeader));
-const DialogTitle = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogTitle));
-const Separator = dynamic(() => import("@/components/ui/separator").then(mod => mod.Separator));
-const Skeleton = dynamic(() => import("@/components/ui/skeleton").then(mod => mod.Skeleton));
+const Card = dynamic(() => import("@/components/ui/card").then(mod => mod.Card), { ssr: false });
+const CardContent = dynamic(() => import("@/components/ui/card").then(mod => mod.CardContent), { ssr: false });
+const CardDescription = dynamic(() => import("@/components/ui/card").then(mod => mod.CardDescription), { ssr: false });
+const CardHeader = dynamic(() => import("@/components/ui/card").then(mod => mod.CardHeader), { ssr: false });
+const CardTitle = dynamic(() => import("@/components/ui/card").then(mod => mod.CardTitle), { ssr: false });
+const CardFooter = dynamic(() => import("@/components/ui/card").then(mod => mod.CardFooter), { ssr: false });
+const Button = dynamic(() => import("@/components/ui/button").then(mod => mod.Button), { ssr: false });
+const Input = dynamic(() => import("@/components/ui/input").then(mod => mod.Input), { ssr: false });
+const Badge = dynamic(() => import("@/components/ui/badge").then(mod => mod.Badge), { ssr: false });
+const Label = dynamic(() => import("@/components/ui/label").then(mod => mod.Label), { ssr: false });
+const Select = dynamic(() => import("@/components/ui/select").then(mod => mod.Select), { ssr: false });
+const SelectContent = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectContent), { ssr: false });
+const SelectItem = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectItem), { ssr: false });
+const SelectTrigger = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectTrigger), { ssr: false });
+const SelectValue = dynamic(() => import("@/components/ui/select").then(mod => mod.SelectValue), { ssr: false });
+const Dialog = dynamic(() => import("@/components/ui/dialog").then(mod => mod.Dialog), { ssr: false });
+const DialogContent = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogContent), { ssr: false });
+const DialogDescription = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogDescription), { ssr: false });
+const DialogFooter = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogFooter), { ssr: false });
+const DialogHeader = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogHeader), { ssr: false });
+const DialogTitle = dynamic(() => import("@/components/ui/dialog").then(mod => mod.DialogTitle), { ssr: false });
+const Separator = dynamic(() => import("@/components/ui/separator").then(mod => mod.Separator), { ssr: false });
+const Skeleton = dynamic(() => import("@/components/ui/skeleton").then(mod => mod.Skeleton), { ssr: false });
 
 
 type AppFormResponse = FrappeCustomApiResponse<{
