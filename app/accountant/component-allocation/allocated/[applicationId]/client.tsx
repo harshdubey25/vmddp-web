@@ -1,7 +1,6 @@
 "use client"
 import Link from "next/link";
 import { useFrappeGetDoc } from "frappe-react-sdk";
-import { use } from "react";
 import { ArrowLeft, Package, Download, Calendar, Banknote, Shield, Truck, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,12 +54,11 @@ const getDocstatus = (status: number) => {
 };
 
 export default function ComponentAllocationDetails({
-    params
+    applicationId
 }: {
-    params: Promise<{ applicationId: string }>;
+    applicationId: string;
 }) {
-    const { applicationId: componentAllocationId } = use(params);
-    const decodedComponentAllocationId = decodeURIComponent(componentAllocationId);
+    const decodedComponentAllocationId = decodeURIComponent(applicationId);
     const { data: allocationDoc, isLoading, error } = useFrappeGetDoc<ComponentAllocationDoc>(
         "Component Allocation",
         decodedComponentAllocationId
