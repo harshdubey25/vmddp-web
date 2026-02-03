@@ -1,5 +1,4 @@
 "use client"
-export const runtime = 'edge';
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { parseFrappeError } from "@/lib/frappe-error-parser";
