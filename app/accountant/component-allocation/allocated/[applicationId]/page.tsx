@@ -14,10 +14,13 @@ const Shield = dynamic(() => import("lucide-react").then(mod => mod.Shield));
 const Truck = dynamic(() => import("lucide-react").then(mod => mod.Truck));
 const Loader2 = dynamic(() => import("lucide-react").then(mod => mod.Loader2));
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+const Card = dynamic(() => import("@/components/ui/card").then(mod => mod.Card));
+const CardContent = dynamic(() => import("@/components/ui/card").then(mod => mod.CardContent));
+const CardHeader = dynamic(() => import("@/components/ui/card").then(mod => mod.CardHeader));
+const CardTitle = dynamic(() => import("@/components/ui/card").then(mod => mod.CardTitle));
+const Button = dynamic(() => import("@/components/ui/button").then(mod => mod.Button));
+const Badge = dynamic(() => import("@/components/ui/badge").then(mod => mod.Badge));
+const Separator = dynamic(() => import("@/components/ui/separator").then(mod => mod.Separator));
 
 interface ComponentAllocationDoc {
     name: string;
