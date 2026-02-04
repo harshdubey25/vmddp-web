@@ -2,7 +2,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-    Download,
     FileText,
     ArrowRight,
 } from "lucide-react";
@@ -20,13 +19,6 @@ export default function SecretaryDashboard() {
                     </h1>
                     <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Welcome back, Secretary</p>
                 </div>
-                <Link href="/secretory/report">
-                    <Button variant="outline" size="sm" className="gap-2">
-                        <Download className="w-4 h-4" />
-                        <span className="hidden sm:inline">Export Reports</span>
-                        <span className="sm:hidden">Reports</span>
-                    </Button>
-                </Link>
             </header>
 
             <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30">
