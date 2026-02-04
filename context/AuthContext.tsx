@@ -83,6 +83,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
                 router.push('/subadmin/dashboard');
             } else if (validated?.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
                 router.push('/accountant/dd');
+            } else if (validated?.roles.includes(UserRole.VMDDP_SECRETORY)) {
+                router.push('/secretory/dashboard');
             } else {
                 router.push('/');
             }
