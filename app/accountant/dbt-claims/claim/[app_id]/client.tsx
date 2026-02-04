@@ -113,8 +113,7 @@ export default function ClaimForm({
             formData.totalAmount &&
             formData.typeOfAnimal &&
             formData.numberOfAnimalsBenefitted &&
-            formData.acknowledgement &&
-            invoiceFile
+            formData.acknowledgement
         );
     };
 
@@ -182,16 +181,6 @@ export default function ClaimForm({
             toast({
                 title: "Missing Fields",
                 description: "Please fill all required fields.",
-                variant: "destructive",
-            });
-            return;
-        }
-
-        // Validate invoice upload
-        if (!invoiceFile) {
-            toast({
-                title: "Invoice Required",
-                description: "Please upload an invoice file.",
                 variant: "destructive",
             });
             return;
@@ -516,7 +505,7 @@ export default function ClaimForm({
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Invoice Upload *</Label>
+                                    <Label>Invoice Upload</Label>
                                     <div className="flex items-center gap-2">
                                         <Input
                                             ref={fileInputRef}
