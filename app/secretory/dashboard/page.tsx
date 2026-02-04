@@ -17,7 +17,7 @@ export default function SecretaryDashboard() {
                     <h1 className="font-display font-semibold text-base sm:text-xl" data-testid="text-dashboard-title">
                         Dashboard Overview
                     </h1>
-                    <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Welcome back, Secretary</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Welcome back</p>
                 </div>
             </header>
 
