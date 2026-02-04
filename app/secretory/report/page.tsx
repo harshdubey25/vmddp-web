@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -13,44 +13,78 @@ import {
     TableFooter,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileText, RefreshCw, Download } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { FileText, RefreshCw, Download, Filter } from "lucide-react";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
 
 interface DistrictData {
-    district: string;
+    district_name: string;
     target_farmers: number;
-    no_of_farmers: number;
-    achievement_thombe: number;
-    achievement_seeds: number;
-    achievement_total: number;
-    land_covered: number;
-    beneficiary_share: number;
-    subsidy: number;
-    total_amount: number;
+    target_financial: number;
+    no_of_farmers_monthly: number;
+    achievement_total_monthly: number;
+    land_covered_hect_monthly: number;
+    beneficiary_share_monthly: number;
+    subsidy_monthly: number;
+    total_monthly: number;
+    no_of_farmers_progressive: number;
+    achievement_total_progressive: number;
+    land_covered_progressive: number;
+    beneficiary_share_progressive: number;
+    subsidy_progressive: number;
+    total_progressive: number;
+    balance_physical: number;
+    balance_financial: number;
+}
+
+interface Totals {
+    target_farmers: number;
+    target_financial: number;
+    no_of_farmers_monthly: number;
+    achievement_total_monthly: number;
+    land_covered_hect_monthly: number;
+    beneficiary_share_monthly: number;
+    subsidy_monthly: number;
+    total_monthly: number;
+    no_of_farmers_progressive: number;
+    achievement_total_progressive: number;
+    land_covered_progressive: number;
+    beneficiary_share_progressive: number;
+    subsidy_progressive: number;
+    total_progressive: number;
+    balance_physical: number;
+    balance_financial: number;
 }
 
 interface ReportResponse {
     message: {
-        districts: DistrictData[];
-        totals: {
-            target_farmers: number;
-            no_of_farmers: number;
-            achievement_thombe: number;
-            achievement_seeds: number;
-            achievement_total: number;
-            land_covered: number;
-            beneficiary_share: number;
-            subsidy: number;
-            total_amount: number;
-        };
+        districts: Record<string, DistrictData>;
+        totals: Totals;
+        month: number | null;
+        year: number;
+        component: string;
     };
 }
 
 export default function SecretaryReport() {
     const { toast } = useToast();
     const [isExporting, setIsExporting] = useState(false);
+    
+    const selectedComponent = "Fodder Seed";
+    const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+    const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+
+    const queryParams: Record<string, string> = {
+        component: selectedComponent,
+        year: selectedYear,
+    };
+    
+    if (selectedMonth && selectedMonth !== "all") {
+        queryParams.month = selectedMonth;
+    }
 
     const {
         data: reportData,
@@ -59,28 +93,38 @@ export default function SecretaryReport() {
         mutate: refetch,
     } = useFrappeGetCall<ReportResponse>(
         "vmddp_app.api.v1.secretory.get_fodder_seeds_report",
-        undefined,
-        undefined,
+        queryParams,
+        `fodder-report-${selectedComponent}-${selectedMonth || "all"}-${selectedYear}`,
         {
             revalidateOnFocus: false,
         }
     );
 
-    const districts = reportData?.message?.districts || [];
+    const districts = reportData?.message?.districts 
+        ? Object.values(reportData.message.districts) 
+        : [];
+    
     const totals = reportData?.message?.totals || {
         target_farmers: 0,
-        no_of_farmers: 0,
-        achievement_thombe: 0,
-        achievement_seeds: 0,
-        achievement_total: 0,
-        land_covered: 0,
-        beneficiary_share: 0,
-        subsidy: 0,
-        total_amount: 0,
+        target_financial: 0,
+        no_of_farmers_monthly: 0,
+        achievement_total_monthly: 0,
+        land_covered_hect_monthly: 0,
+        beneficiary_share_monthly: 0,
+        subsidy_monthly: 0,
+        total_monthly: 0,
+        no_of_farmers_progressive: 0,
+        achievement_total_progressive: 0,
+        land_covered_progressive: 0,
+        beneficiary_share_progressive: 0,
+        subsidy_progressive: 0,
+        total_progressive: 0,
+        balance_physical: 0,
+        balance_financial: 0,
     };
 
     const formatCurrency = (value: number) => {
-        return `₹${value.toLocaleString("en-IN")}`;
+        return `₹${value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     };
 
     const handleRefresh = () => {
@@ -91,6 +135,12 @@ export default function SecretaryReport() {
         });
     };
 
+    const getMonthName = (monthNum: number | null) => {
+        if (!monthNum) return "Progressive";
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return months[monthNum - 1];
+    };
+
     const handleExport = async () => {
         try {
             setIsExporting(true);
@@ -99,49 +149,80 @@ export default function SecretaryReport() {
                 "Sr. No.",
                 "District",
                 "Target (Farmers)",
-                "No. of Farmers",
-                "Achievement (Thombe)",
-                "Achievement (Seeds)",
-                "Achievement (Total)",
-                "Land Covered (Hect.)",
-                "Beneficiary Share (Rs.)",
-                "Subsidy (Rs.)",
-                "Total (Rs.)",
+                "Target (Rs.)",
+
+                "Monthly - Farmers",
+                "Monthly - Quantity",
+                "Monthly - Land (Ha)",
+                "Monthly - Ben. Share",
+                "Monthly - Subsidy",
+                "Monthly - Total",
+
+                "Prog. - Farmers",
+                "Prog. - Quantity",
+                "Prog. - Land (Ha)",
+                "Prog. - Ben. Share",
+                "Prog. - Subsidy",
+                "Prog. - Total",
+
+                "Balance - Physical",
+                "Balance - Financial",
             ];
 
             const rows = districts.map((item, index) => [
                 index + 1,
-                item.district,
+                item.district_name,
                 item.target_farmers,
-                item.no_of_farmers,
-                item.achievement_thombe,
-                item.achievement_seeds,
-                item.achievement_total,
-                item.land_covered,
-                item.beneficiary_share,
-                item.subsidy,
-                item.total_amount,
+                item.target_financial,
+
+                item.no_of_farmers_monthly,
+                item.achievement_total_monthly,
+                item.land_covered_hect_monthly,
+                item.beneficiary_share_monthly,
+                item.subsidy_monthly,
+                item.total_monthly,
+
+                item.no_of_farmers_progressive,
+                item.achievement_total_progressive,
+                item.land_covered_progressive,
+                item.beneficiary_share_progressive,
+                item.subsidy_progressive,
+                item.total_progressive,
+
+                item.balance_physical,
+                item.balance_financial,
             ]);
 
             rows.push([
                 "",
                 "TOTAL",
                 totals.target_farmers,
-                totals.no_of_farmers,
-                totals.achievement_thombe,
-                totals.achievement_seeds,
-                totals.achievement_total,
-                totals.land_covered,
-                totals.beneficiary_share,
-                totals.subsidy,
-                totals.total_amount,
+                totals.target_financial,
+
+                totals.no_of_farmers_monthly,
+                totals.achievement_total_monthly,
+                totals.land_covered_hect_monthly,
+                totals.beneficiary_share_monthly,
+                totals.subsidy_monthly,
+                totals.total_monthly,
+
+                totals.no_of_farmers_progressive,
+                totals.achievement_total_progressive,
+                totals.land_covered_progressive,
+                totals.beneficiary_share_progressive,
+                totals.subsidy_progressive,
+                totals.total_progressive,
+
+                totals.balance_physical,
+                totals.balance_financial,
             ]);
 
             const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Fodder Seeds Report");
 
-            XLSX.writeFile(wb, `Fodder_Seeds_Report_${new Date().toLocaleDateString("en-IN")}.xlsx`);
+            const fileName = `Fodder_Seeds_Report_${getMonthName(reportData?.message?.month || null)}_${selectedYear}.xlsx`;
+            XLSX.writeFile(wb, fileName);
 
             toast({
                 title: "Export completed",
@@ -187,6 +268,68 @@ export default function SecretaryReport() {
                         </div>
                     </div>
 
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                                <Filter className="h-5 w-5" />
+                                Filters
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Month Select */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="month">Month</Label>
+                                    <Select
+                                        value={selectedMonth || "all"}
+                                        onValueChange={(val) => setSelectedMonth(val === "all" ? null : val)}
+                                    >
+                                        <SelectTrigger id="month">
+                                            <SelectValue placeholder="Select month" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">Progressive (All Time)</SelectItem>
+                                            <SelectItem value="1">January</SelectItem>
+                                            <SelectItem value="2">February</SelectItem>
+                                            <SelectItem value="3">March</SelectItem>
+                                            <SelectItem value="4">April</SelectItem>
+                                            <SelectItem value="5">May</SelectItem>
+                                            <SelectItem value="6">June</SelectItem>
+                                            <SelectItem value="7">July</SelectItem>
+                                            <SelectItem value="8">August</SelectItem>
+                                            <SelectItem value="9">September</SelectItem>
+                                            <SelectItem value="10">October</SelectItem>
+                                            <SelectItem value="11">November</SelectItem>
+                                            <SelectItem value="12">December</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="year">Year</Label>
+                                    <Select
+                                        value={selectedYear}
+                                        onValueChange={setSelectedYear}
+                                    >
+                                        <SelectTrigger id="year">
+                                            <SelectValue placeholder="Select year" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Array.from({ length: 5 }, (_, i) => {
+                                                const year = new Date().getFullYear() - i;
+                                                return (
+                                                    <SelectItem key={year} value={year.toString()}>
+                                                        {year}
+                                                    </SelectItem>
+                                                );
+                                            })}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
                     {/* Error State */}
                     {error && (
                         <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
@@ -203,7 +346,9 @@ export default function SecretaryReport() {
                                 <FileText className="h-5 w-5" />
                                 Supply of Fodder Seeds/Planting Materials
                             </CardTitle>
-                            <CardDescription>District-wise achievement breakdown</CardDescription>
+                            <CardDescription>
+                                District-wise achievement breakdown for {getMonthName(reportData?.message?.month || null)} {selectedYear}
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             {isLoading ? (
@@ -229,75 +374,138 @@ export default function SecretaryReport() {
                                                 <TableHead rowSpan={2} className="text-center border-r align-middle">
                                                     District
                                                 </TableHead>
-                                                <TableHead rowSpan={2} className="text-center border-r align-middle bg-blue-50 dark:bg-blue-950/20">
-                                                    Target<br />(No. of Farmers)
+                                                <TableHead colSpan={2} className="text-center border-r bg-blue-50 dark:bg-blue-950/20">
+                                                    Target
                                                 </TableHead>
-                                                <TableHead colSpan={5} className="text-center border-r bg-yellow-50 dark:bg-yellow-950/20">
-                                                    Physical
+                                                <TableHead colSpan={6} className="text-center border-r bg-amber-50 dark:bg-amber-950/20">
+                                                    Monthly Achievement
                                                 </TableHead>
-                                                <TableHead colSpan={3} className="text-center bg-green-50 dark:bg-green-950/20">
-                                                    Financial Achievement
+                                                <TableHead colSpan={6} className="text-center border-r bg-green-50 dark:bg-green-950/20">
+                                                    Progressive (Till Date)
+                                                </TableHead>
+                                                <TableHead colSpan={2} className="text-center bg-red-50 dark:bg-red-950/20">
+                                                    Balance
                                                 </TableHead>
                                             </TableRow>
                                             {/* Second header row */}
                                             <TableRow>
-                                                <TableHead className="text-center bg-yellow-50/50 dark:bg-yellow-950/10">
-                                                    No. of Farmers
+                                                {/* Target */}
+                                                <TableHead className="text-center text-xs bg-blue-50/50 dark:bg-blue-950/10">
+                                                    Farmers
                                                 </TableHead>
-                                                <TableHead className="text-center bg-yellow-50/50 dark:bg-yellow-950/10">
-                                                    Achievement<br />(Thombe)
+                                                <TableHead className="text-center text-xs border-r bg-blue-50/50 dark:bg-blue-950/10">
+                                                    Financial (₹)
                                                 </TableHead>
-                                                <TableHead className="text-center bg-yellow-50/50 dark:bg-yellow-950/10">
-                                                    Achievement<br />(Seeds)
+                                                
+                                                {/* Monthly */}
+                                                <TableHead className="text-center text-xs bg-amber-50/50 dark:bg-amber-950/10">
+                                                    Farmers
                                                 </TableHead>
-                                                <TableHead className="text-center bg-yellow-50/50 dark:bg-yellow-950/10">
-                                                    Achievement<br />(total)
+                                                <TableHead className="text-center text-xs bg-amber-50/50 dark:bg-amber-950/10">
+                                                    Quantity
                                                 </TableHead>
-                                                <TableHead className="text-center border-r bg-yellow-50/50 dark:bg-yellow-950/10">
-                                                    Land Covered<br />(Hect.)
+                                                <TableHead className="text-center text-xs bg-amber-50/50 dark:bg-amber-950/10">
+                                                    Land (Ha)
                                                 </TableHead>
-                                                <TableHead className="text-center bg-green-50/50 dark:bg-green-950/10">
-                                                    Beneficiary Share<br />(Rs.)
+                                                <TableHead className="text-center text-xs bg-amber-50/50 dark:bg-amber-950/10">
+                                                    Ben. Share (₹)
                                                 </TableHead>
-                                                <TableHead className="text-center bg-green-50/50 dark:bg-green-950/10">
-                                                    Subsidy<br />(Rs.)
+                                                <TableHead className="text-center text-xs bg-amber-50/50 dark:bg-amber-950/10">
+                                                    Subsidy (₹)
                                                 </TableHead>
-                                                <TableHead className="text-center bg-green-50/50 dark:bg-green-950/10">
-                                                    Total<br />(Rs.)
+                                                <TableHead className="text-center text-xs border-r bg-amber-50/50 dark:bg-amber-950/10">
+                                                    Total (₹)
+                                                </TableHead>
+                                                
+                                                {/* Progressive */}
+                                                <TableHead className="text-center text-xs bg-green-50/50 dark:bg-green-950/10">
+                                                    Farmers
+                                                </TableHead>
+                                                <TableHead className="text-center text-xs bg-green-50/50 dark:bg-green-950/10">
+                                                    Quantity
+                                                </TableHead>
+                                                <TableHead className="text-center text-xs bg-green-50/50 dark:bg-green-950/10">
+                                                    Land (Ha)
+                                                </TableHead>
+                                                <TableHead className="text-center text-xs bg-green-50/50 dark:bg-green-950/10">
+                                                    Ben. Share (₹)
+                                                </TableHead>
+                                                <TableHead className="text-center text-xs bg-green-50/50 dark:bg-green-950/10">
+                                                    Subsidy (₹)
+                                                </TableHead>
+                                                <TableHead className="text-center text-xs border-r bg-green-50/50 dark:bg-green-950/10">
+                                                    Total (₹)
+                                                </TableHead>
+                                                
+                                                {/* Balance */}
+                                                <TableHead className="text-center text-xs bg-red-50/50 dark:bg-red-950/10">
+                                                    Physical
+                                                </TableHead>
+                                                <TableHead className="text-center text-xs bg-red-50/50 dark:bg-red-950/10">
+                                                    Financial (₹)
                                                 </TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {districts.map((item, index) => (
-                                                <TableRow key={item.district}>
+                                                <TableRow key={item.district_name}>
                                                     <TableCell className="text-center border-r">{index + 1}</TableCell>
-                                                    <TableCell className="font-medium border-r">{item.district}</TableCell>
-                                                    <TableCell className="text-center border-r bg-blue-50/30 dark:bg-blue-950/10">
+                                                    <TableCell className="font-medium border-r">{item.district_name}</TableCell>
+                                                    
+                                                    {/* Target */}
+                                                    <TableCell className="text-center bg-blue-50/30 dark:bg-blue-950/10">
                                                         {item.target_farmers}
                                                     </TableCell>
-                                                    <TableCell className="text-center bg-yellow-50/30 dark:bg-yellow-950/10">
-                                                        {item.no_of_farmers}
+                                                    <TableCell className="text-right border-r bg-blue-50/30 dark:bg-blue-950/10">
+                                                        {formatCurrency(item.target_financial)}
                                                     </TableCell>
-                                                    <TableCell className="text-center bg-yellow-50/30 dark:bg-yellow-950/10">
-                                                        {item.achievement_thombe}
+                                                    
+                                                    {/* Monthly Achievement */}
+                                                    <TableCell className="text-center bg-amber-50/30 dark:bg-amber-950/10">
+                                                        {item.no_of_farmers_monthly}
                                                     </TableCell>
-                                                    <TableCell className="text-center bg-yellow-50/30 dark:bg-yellow-950/10">
-                                                        {item.achievement_seeds}
+                                                    <TableCell className="text-center bg-amber-50/30 dark:bg-amber-950/10">
+                                                        {item.achievement_total_monthly.toFixed(2)}
                                                     </TableCell>
-                                                    <TableCell className="text-center bg-yellow-50/30 dark:bg-yellow-950/10 font-semibold">
-                                                        {item.achievement_total}
+                                                    <TableCell className="text-center bg-amber-50/30 dark:bg-amber-950/10">
+                                                        {item.land_covered_hect_monthly.toFixed(2)}
                                                     </TableCell>
-                                                    <TableCell className="text-center border-r bg-yellow-50/30 dark:bg-yellow-950/10">
-                                                        {item.land_covered.toFixed(2)}
+                                                    <TableCell className="text-right bg-amber-50/30 dark:bg-amber-950/10">
+                                                        {formatCurrency(item.beneficiary_share_monthly)}
+                                                    </TableCell>
+                                                    <TableCell className="text-right bg-amber-50/30 dark:bg-amber-950/10">
+                                                        {formatCurrency(item.subsidy_monthly)}
+                                                    </TableCell>
+                                                    <TableCell className="text-right border-r bg-amber-50/30 dark:bg-amber-950/10 font-semibold">
+                                                        {formatCurrency(item.total_monthly)}
+                                                    </TableCell>
+                                                    
+                                                    {/* Progressive */}
+                                                    <TableCell className="text-center bg-green-50/30 dark:bg-green-950/10">
+                                                        {item.no_of_farmers_progressive}
                                                     </TableCell>
                                                     <TableCell className="text-center bg-green-50/30 dark:bg-green-950/10">
-                                                        {formatCurrency(item.beneficiary_share)}
+                                                        {item.achievement_total_progressive.toFixed(2)}
                                                     </TableCell>
                                                     <TableCell className="text-center bg-green-50/30 dark:bg-green-950/10">
-                                                        {formatCurrency(item.subsidy)}
+                                                        {item.land_covered_progressive.toFixed(2)}
                                                     </TableCell>
-                                                    <TableCell className="text-center bg-green-50/30 dark:bg-green-950/10 font-semibold">
-                                                        {formatCurrency(item.total_amount)}
+                                                    <TableCell className="text-right bg-green-50/30 dark:bg-green-950/10">
+                                                        {formatCurrency(item.beneficiary_share_progressive)}
+                                                    </TableCell>
+                                                    <TableCell className="text-right bg-green-50/30 dark:bg-green-950/10">
+                                                        {formatCurrency(item.subsidy_progressive)}
+                                                    </TableCell>
+                                                    <TableCell className="text-right border-r bg-green-50/30 dark:bg-green-950/10 font-semibold">
+                                                        {formatCurrency(item.total_progressive)}
+                                                    </TableCell>
+                                                    
+                                                    {/* Balance */}
+                                                    <TableCell className="text-center bg-red-50/30 dark:bg-red-950/10">
+                                                        {item.balance_physical}
+                                                    </TableCell>
+                                                    <TableCell className="text-right bg-red-50/30 dark:bg-red-950/10">
+                                                        {formatCurrency(item.balance_financial)}
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
@@ -306,62 +514,67 @@ export default function SecretaryReport() {
                                             <TableRow className="bg-muted font-bold">
                                                 <TableCell className="border-r"></TableCell>
                                                 <TableCell className="border-r">TOTAL</TableCell>
-                                                <TableCell className="text-center border-r">
+                                                
+                                                {/* Target Totals */}
+                                                <TableCell className="text-center">
                                                     {totals.target_farmers}
                                                 </TableCell>
+                                                <TableCell className="text-right border-r">
+                                                    {formatCurrency(totals.target_financial)}
+                                                </TableCell>
+                                                
+                                                {/* Monthly Totals */}
                                                 <TableCell className="text-center">
-                                                    {totals.no_of_farmers}
+                                                    {totals.no_of_farmers_monthly}
                                                 </TableCell>
                                                 <TableCell className="text-center">
-                                                    {totals.achievement_thombe}
+                                                    {totals.achievement_total_monthly.toFixed(2)}
                                                 </TableCell>
                                                 <TableCell className="text-center">
-                                                    {totals.achievement_seeds}
+                                                    {totals.land_covered_hect_monthly.toFixed(2)}
                                                 </TableCell>
-                                                <TableCell className="text-center text-primary">
-                                                    {totals.achievement_total}
+                                                <TableCell className="text-right">
+                                                    {formatCurrency(totals.beneficiary_share_monthly)}
                                                 </TableCell>
-                                                <TableCell className="text-center border-r">
-                                                    {totals.land_covered.toFixed(2)}
+                                                <TableCell className="text-right">
+                                                    {formatCurrency(totals.subsidy_monthly)}
                                                 </TableCell>
-                                                <TableCell className="text-center text-green-600">
-                                                    {formatCurrency(totals.beneficiary_share)}
+                                                <TableCell className="text-right border-r text-primary">
+                                                    {formatCurrency(totals.total_monthly)}
                                                 </TableCell>
-                                                <TableCell className="text-center text-green-600">
-                                                    {formatCurrency(totals.subsidy)}
+                                                
+                                                {/* Progressive Totals */}
+                                                <TableCell className="text-center">
+                                                    {totals.no_of_farmers_progressive}
                                                 </TableCell>
-                                                <TableCell className="text-center text-green-600">
-                                                    {formatCurrency(totals.total_amount)}
+                                                <TableCell className="text-center">
+                                                    {totals.achievement_total_progressive.toFixed(2)}
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    {totals.land_covered_progressive.toFixed(2)}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {formatCurrency(totals.beneficiary_share_progressive)}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {formatCurrency(totals.subsidy_progressive)}
+                                                </TableCell>
+                                                <TableCell className="text-right border-r text-green-600 dark:text-green-400">
+                                                    {formatCurrency(totals.total_progressive)}
+                                                </TableCell>
+                                                
+                                                {/* Balance Totals */}
+                                                <TableCell className="text-center">
+                                                    {totals.balance_physical}
+                                                </TableCell>
+                                                <TableCell className="text-right text-red-600 dark:text-red-400">
+                                                    {formatCurrency(totals.balance_financial)}
                                                 </TableCell>
                                             </TableRow>
                                         </TableFooter>
                                     </Table>
                                 </div>
                             )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Info Note */}
-                    <Card className="bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-                        <CardContent className="pt-6">
-                            <div className="flex items-start gap-3">
-                                <FileText className="h-5 w-5 text-blue-600 mt-0.5" />
-                                <div className="space-y-1 text-sm text-muted-foreground">
-                                    <p className="font-medium text-blue-600">Report Information</p>
-                                    <p>
-                                        This report shows the district-wise physical and financial achievement for the
-                                        Supply of Fodder Seeds/Planting Materials component.
-                                    </p>
-                                    <p>
-                                        <strong>Physical Achievement:</strong> Includes number of farmers benefited,
-                                        achievement in Thombe and Seeds, and total land covered in hectares.
-                                    </p>
-                                    <p>
-                                        <strong>Financial Achievement:</strong> Shows beneficiary share, subsidy amount,
-                                        and total expenditure in rupees.
-                                    </p>
-                                </div>
-                            </div>
                         </CardContent>
                     </Card>
                 </div>

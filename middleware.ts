@@ -27,8 +27,40 @@ export async function middleware(req: NextRequest) {
       url.pathname = "/subadmin/dashboard";
       return NextResponse.redirect(url);
     }
+    if (data.roles.includes(UserRole.VMDDP_SECRETORY)) {
+      url.pathname = "/secretory/dashboard";
+      return NextResponse.redirect(url);
+    }
     // Only allow accountant
     if (!data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  if (url.pathname.startsWith("/secretory")) {
+    if (!token) {
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+    const data = await validateUserToken(token);
+    if (!data || !data.roles) {
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+    if (data.roles.includes(UserRole.VMDDP_ADMIN)) {
+      url.pathname = "/admin/dashboard";
+      return NextResponse.redirect(url);
+    }
+    if (data.roles.includes(UserRole.VMDDP_SUB_ADMIN)) {
+      url.pathname = "/subadmin/dashboard";
+      return NextResponse.redirect(url);
+    }
+    if (data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
+      url.pathname = "/accountant/dd";
+      return NextResponse.redirect(url);
+    }
+    if (!data.roles.includes(UserRole.VMDDP_SECRETORY)) {
       url.pathname = "/login";
       return NextResponse.redirect(url);
     }
@@ -89,6 +121,8 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/subadmin/dashboard", req.url));
       } else if (data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
         return NextResponse.redirect(new URL("/accountant/dd", req.url));
+      } else if (data.roles.includes(UserRole.VMDDP_SECRETORY)) {
+        return NextResponse.redirect(new URL("/secretory/dashboard", req.url));
       }
     }
     // If validation failed but token exists, allow access to login page
@@ -104,5 +138,6 @@ export const config = {
     "/admin/:path*",
     "/subadmin/:path*",
     "/accountant/:path*",
+    "/secretory/:path*",
   ],
 };
