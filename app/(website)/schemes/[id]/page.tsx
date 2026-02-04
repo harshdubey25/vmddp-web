@@ -1,4 +1,5 @@
 "use client"
+export const runtime = 'edge';
 
 import { getComponentById, getCategoryTranslationKey } from "@/componentData/componentData";
 import { notFound } from "next/navigation";
@@ -156,7 +157,7 @@ export default function SchemeComponentPage({ params }: { params: Promise<{ id: 
         )}
     </main>
   );
-} export const runtime = 'edge'
+}
 // import { notFound } from "next/navigation";
 import { Milk, HeartPulse, Pill, Sprout, Sparkles, Scissors, Package, Stethoscope, GraduationCap } from "lucide-react";
 
