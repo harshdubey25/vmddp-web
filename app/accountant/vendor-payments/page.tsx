@@ -9,7 +9,6 @@ import {
     CreditCard,
     Check,
     Loader2,
-    CheckCheck,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,8 +19,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFrappeGetCall, useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
+import type { ParantageEntry } from "@/app/accountant/parantage-confirmation/page";
 import { PendingVendorPayment, FrappeCustomApiResponse } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -47,7 +47,10 @@ export default function VendorPayments() {
     const { toast } = useToast();
     const [openPaymentDialog, setOpenPaymentDialog] = useState(false)
     const [selectedPaymentIds, setSelectedPaymentIds] = useState<string[]>([])
+    const [selectedParantageIds, setSelectedParantageIds] = useState<string[]>([])
     const [selectedVendor, setSelectedVendor] = useState<string | null>(null)
+    const [viewMode, setViewMode] = useState<"pending" | "parantage">("pending")
+    const [dialogContext, setDialogContext] = useState<"pending" | "parantage">("pending")
 
     // Form state for cheque dialog
     const [chequeNumber, setChequeNumber] = useState("");
@@ -77,6 +80,34 @@ export default function VendorPayments() {
     // Create doc hook for Vendor Payments
     const { createDoc, loading: submitting } = useFrappeCreateDoc();
 
+    const { data: approvedParantageResponse, isLoading: parantageLoading, mutate: fetchApprovedParantage } =
+        useFrappeGetCall<FrappeCustomApiResponse<ParantageEntry[]>>(
+            "vmddp_app.api.v1.accountant.get_parantage_confirmation_list",
+            { status: "approved" },
+            "accountant_parantage_confirmation_approved",
+            {
+                revalidateOnFocus: false,
+                revalidateOnReconnect: false,
+                revalidateIfStale: false,
+                revalidateOnMount: false
+            }
+        );
+
+    useEffect(() => {
+        if (viewMode === "parantage") {
+            fetchApprovedParantage();
+        }
+    }, [viewMode, fetchApprovedParantage]);
+
+    const parantageEntries = approvedParantageResponse?.message || [];
+    const getParantageEntryId = (entry: ParantageEntry) => entry.parantage_confirmation_id || entry.component_allocation_id;
+    const findParantageEntry = (entryId: string) => parantageEntries.find((entry) => getParantageEntryId(entry) === entryId);
+    const firstSelectedParantageEntry = selectedParantageIds.length > 0 ? findParantageEntry(selectedParantageIds[0]) : null;
+    const selectedParantageTotal = parantageEntries
+        .filter((entry) => selectedParantageIds.includes(getParantageEntryId(entry)))
+        .reduce((sum, entry) => sum + (entry.pending_amount ?? 0), 0);
+    const selectedParantageVendorName = firstSelectedParantageEntry?.vendor_name || firstSelectedParantageEntry?.vendor || "-";
+    const parantageFirstVendor = firstSelectedParantageEntry?.vendor || null;
     // Computed values from API data
     const totalPending = vendorPayments.reduce((sum, p) => sum + p.total_cost, 0);
 
@@ -112,6 +143,19 @@ export default function VendorPayments() {
         return payment.vendor === firstSelectedVendor;
     };
 
+    const handleToggleParantagePayment = (entryId: string, checked: boolean) => {
+        if (checked) {
+            setSelectedParantageIds((prev) => [...prev, entryId]);
+        } else {
+            setSelectedParantageIds((prev) => prev.filter((id) => id !== entryId));
+        }
+    };
+
+    const canSelectParantagePayment = (entry: ParantageEntry) => {
+        if (selectedParantageIds.length === 0) return true;
+        return entry.vendor === parantageFirstVendor;
+    };
+
     // Reset form state
     const resetForm = () => {
         setChequeNumber("");
@@ -121,8 +165,9 @@ export default function VendorPayments() {
     };
 
     // Open dialog and set default cheque amount
-    const handleOpenDialog = () => {
-        setChequeAmount(selectedTotal);
+    const handleOpenDialog = (mode: "pending" | "parantage") => {
+        setDialogContext(mode);
+        setChequeAmount(mode === "pending" ? selectedTotal : selectedParantageTotal);
         setOpenPaymentDialog(true);
     };
 
@@ -146,24 +191,48 @@ export default function VendorPayments() {
             return;
         }
 
-        try {
-            await createDoc("Vendor Payments", {
-                vendor: selectedVendorId,
-                check_number: chequeNumber,
-                cheque_date: chequeDate,
-                cheque_amount: chequeAmount,
-                bank_name: bankName,
+        const vendorId = dialogContext === "pending" ? selectedVendorId : (firstSelectedParantageEntry?.vendor || "");
+        
+        const payload = dialogContext === "parantage" 
+            ? {
+                parantage_confirmation: selectedParantageIds.map((id) => ({
+                    parantage_confirmation: id,
+                    amount: parantageEntries.find((entry) => getParantageEntryId(entry) === id)?.pending_amount || 0
+                }))
+            }
+            : {
                 component_allocations: selectedPaymentIds.map((id) => ({
                     component_allocation: id,
                     amount: vendorPayments.find((p) => p.component_allocation_id === id)?.total_cost || 0
                 }))
+            };
+
+        try {
+            await createDoc("Vendor Payments", {
+                vendor: vendorId,
+                check_number: chequeNumber,
+                cheque_date: chequeDate,
+                cheque_amount: chequeAmount,
+                bank_name: bankName,
+                ...payload
             });
 
-            toast({ title: "Success", description: "Vendor payment created successfully" });
+            toast({ 
+                title: "Success", 
+                description: dialogContext === "parantage" 
+                    ? "Parantage payment created successfully" 
+                    : "Vendor payment created successfully" 
+            });
             setOpenPaymentDialog(false);
             resetForm();
-            setSelectedPaymentIds([]);
-            refetchPayments();
+            
+            if (dialogContext === "parantage") {
+                setSelectedParantageIds([]);
+                fetchApprovedParantage();
+            } else {
+                setSelectedPaymentIds([]);
+                refetchPayments();
+            }
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -172,6 +241,10 @@ export default function VendorPayments() {
             });
         }
     };
+
+    const activeSelectionCount = dialogContext === "pending" ? selectedPaymentIds.length : selectedParantageIds.length;
+    const activeVendorName = dialogContext === "pending" ? selectedVendorName : selectedParantageVendorName;
+    const activeTotal = dialogContext === "pending" ? selectedTotal : selectedParantageTotal;
 
     return (
         <div className="h-screen bg-background w-full">
@@ -262,132 +335,282 @@ export default function VendorPayments() {
                             </div>
                         </CardContent>
                     </Card>
+                    <div className="space-y-6" data-testid="view-sections">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                            <Select value={viewMode} onValueChange={(value) => setViewMode(value as "pending" | "parantage")}>
+                                <SelectTrigger className="w-64" data-testid="select-view-mode">
+                                    <SelectValue placeholder="Select view" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="pending">Pending Payments</SelectItem>
+                                    <SelectItem value="parantage">Parantage Confirmation</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                    {/* Selection Summary Card - visible when payments are selected */}
-                    {selectedPaymentIds.length > 0 && (
-                        <Card className="border-primary" data-testid="card-selection-summary">
-                            <CardContent className="pt-4">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-2 rounded-lg bg-primary/10">
-                                            <CreditCard className="h-5 w-5 text-primary" />
-                                        </div>
-                                        <div>
-                                            <p className="font-medium">{selectedPaymentIds.length} payment(s) selected</p>
-                                            <p className="text-sm text-muted-foreground">
-                                                Vendor: {selectedVendorName} | Total: ₹{selectedTotal.toLocaleString("en-IN")}
+                        {viewMode === "pending" ? (
+                            <div className="space-y-6">
+                                {selectedPaymentIds.length > 0 && (
+                                    <Card className="border-primary" data-testid="card-selection-summary">
+                                        <CardContent className="pt-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="p-2 rounded-lg bg-primary/10">
+                                                        <CreditCard className="h-5 w-5 text-primary" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium">{selectedPaymentIds.length} payment(s) selected</p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Vendor: {selectedVendorName} | Total: ₹{selectedTotal.toLocaleString("en-IN")}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Button variant="outline" data-testid="button-clear-selection" onClick={() => setSelectedPaymentIds([])}>
+                                                        Clear Selection
+                                                    </Button>
+                                                    <Button data-testid="button-issue-cheque" onClick={() => handleOpenDialog("pending")}>
+                                                        <Check className="h-4 w-4 mr-2" />
+                                                        Issue Cheque
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                <Card data-testid="card-payments-table">
+                                    <CardHeader>
+                                        <CardTitle>Pending Vendor Payments</CardTitle>
+                                        <CardDescription>
+                                            Select multiple payments for the same vendor to issue a single cheque
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        {loading ? (
+                                            <div className="flex items-center justify-center py-8">
+                                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                                            </div>
+                                        ) : vendorPayments.length > 0 ? (
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead className="w-12">
+                                                            <Check data-testid="checkbox-select-all" />
+                                                        </TableHead>
+                                                        <TableHead>Beneficiary</TableHead>
+                                                        <TableHead>Component</TableHead>
+                                                        <TableHead>Animal</TableHead>
+                                                        <TableHead>Vendor</TableHead>
+                                                        <TableHead className="text-right">Cost Breakdown</TableHead>
+                                                        <TableHead className="text-right">Total</TableHead>
+                                                        <TableHead>Date</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {vendorPayments.map((payment) => {
+                                                        const isSelected = selectedPaymentIds.includes(payment.component_allocation_id);
+
+                                                        return (
+                                                            <TableRow
+                                                                key={payment.component_allocation_id}
+                                                                className={isSelected ? "bg-primary/5" : ""}
+                                                                data-testid={`row-payment-${payment.component_allocation_id}`}
+                                                            >
+                                                                <TableCell>
+                                                                    <Checkbox
+                                                                        checked={isSelected}
+                                                                        disabled={!isSelected && !canSelectPayment(payment)}
+                                                                        onCheckedChange={(checked) => handleTogglePayment(payment.component_allocation_id, !!checked)}
+                                                                        data-testid={`checkbox-${payment.component_allocation_id}`}
+                                                                    />
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div>
+                                                                        <p className="font-medium">{payment.beneficiary_name}</p>
+                                                                        <p className="text-xs text-muted-foreground">{payment.aadhar_number}</p>
+                                                                        <p className="text-xs text-muted-foreground">{payment.district}, {payment.taluka}</p>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div className="space-y-1">
+                                                                        <p className="text-sm font-medium">{payment.component_name}</p>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div>
+                                                                        <p className="font-medium">{payment.type_of_animal}</p>
+                                                                        <p className="text-xs text-muted-foreground">Tag: {payment.tag_number}</p>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div>
+                                                                        <p className="font-medium">{payment.vendor_name}</p>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell className="text-right">
+                                                                    <div className="text-xs space-y-0.5">
+                                                                        <p>Animal: ₹{payment.animal_cost.toLocaleString("en-IN")}</p>
+                                                                        {payment.collar_cost > 0 && <p>Collar: ₹{payment.collar_cost.toLocaleString("en-IN")}</p>}
+                                                                        {payment.premium_paid > 0 && <p>Premium: ₹{payment.premium_paid.toLocaleString("en-IN")}</p>}
+                                                                        {payment.transportation_cost > 0 && <p>Transport: ₹{payment.transportation_cost.toLocaleString("en-IN")}</p>}
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell className="text-right">
+                                                                    <span className="font-bold text-green-600">
+                                                                        ₹{payment.total_cost.toLocaleString("en-IN")}
+                                                                    </span>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <p className="text-sm">{payment.date_of_purchase}</p>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        );
+                                                    })}
+                                                </TableBody>
+                                            </Table>
+                                        ) : (
+                                            <p className="text-center text-muted-foreground py-8">No pending vendor payments found</p>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {selectedParantageIds.length > 0 && (
+                                    <Card className="border-primary" data-testid="card-parantage-selection">
+                                        <CardContent className="pt-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="p-2 rounded-lg bg-primary/10">
+                                                        <CreditCard className="h-5 w-5 text-primary" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium">{selectedParantageIds.length} parantage payment(s) selected</p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Vendor: {selectedParantageVendorName} | Total: ₹{selectedParantageTotal.toLocaleString("en-IN")}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        data-testid="button-clear-parantage-selection"
+                                                        onClick={() => setSelectedParantageIds([])}
+                                                    >
+                                                        Clear Selection
+                                                    </Button>
+                                                    <Button data-testid="button-issue-parantage-cheque" onClick={() => handleOpenDialog("parantage")}>
+                                                        <Check className="h-4 w-4 mr-2" />
+                                                        Issue Cheque
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                <Card data-testid="card-parantage-tab">
+                                    <CardHeader>
+                                        <CardTitle>Parantage Confirmation</CardTitle>
+                                        <CardDescription>
+                                            Approved parantage confirmation entries ready for the final 25% payment release.
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        {parantageLoading ? (
+                                            <div className="flex items-center justify-center py-8 text-muted-foreground">
+                                                <Loader2 className="h-6 w-6 animate-spin" />
+                                            </div>
+                                        ) : parantageEntries.length > 0 ? (
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead className="w-12">
+                                                            <Check data-testid="checkbox-parantage-select-all" />
+                                                        </TableHead>
+                                                        <TableHead>Beneficiary</TableHead>
+                                                        <TableHead>Component</TableHead>
+                                                        <TableHead>Vendor</TableHead>
+                                                        <TableHead>Calf Details</TableHead>
+                                                        <TableHead className="text-right">Pending Amount</TableHead>
+                                                        <TableHead>Status</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {parantageEntries.map((entry) => {
+                                                        const entryId = getParantageEntryId(entry);
+                                                        const isSelected = selectedParantageIds.includes(entryId);
+                                                        return (
+                                                            <TableRow
+                                                                key={entryId}
+                                                                className={isSelected ? "bg-primary/5" : ""}
+                                                                data-testid={`row-parantage-${entryId}`}
+                                                            >
+                                                                <TableCell>
+                                                                    <Checkbox
+                                                                        checked={isSelected}
+                                                                        disabled={!isSelected && !canSelectParantagePayment(entry)}
+                                                                        onCheckedChange={(checked) => handleToggleParantagePayment(entryId, !!checked)}
+                                                                        data-testid={`checkbox-parantage-${entryId}`}
+                                                                    />
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div>
+                                                                        <p className="font-medium">
+                                                                            {[entry.first_name, entry.mid_name, entry.last_name].filter(Boolean).join(" ")}
+                                                                        </p>
+                                                                        <p className="text-xs text-muted-foreground">{entry.aadhar_number}</p>
+                                                                        <p className="text-xs text-muted-foreground">{entry.district}, {entry.taluka}</p>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div className="space-y-1">
+                                                                        <p className="text-sm font-medium">{entry.component}</p>
+                                                                        <p className="text-xs text-muted-foreground">{entry.type_of_animal}</p>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div>
+                                                                        <p className="font-medium">{entry.vendor_name || entry.vendor}</p>
+                                                                        <p className="text-xs text-muted-foreground">₹{(entry.paid_payment ?? 0).toLocaleString("en-IN")} paid</p>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div className="space-y-1">
+                                                                        <Badge variant="outline" className="capitalize w-fit">
+                                                                            {entry.calf_born || "-"}
+                                                                        </Badge>
+                                                                        <p className="text-xs text-muted-foreground">DOB: {entry.calf_date_of_birth || "-"}</p>
+                                                                        <p className="text-xs text-muted-foreground">Certified by {entry.agency_name || entry.certified_by_agency || "-"}</p>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell className="text-right">
+                                                                    <span className="font-bold text-green-600">
+                                                                        ₹{(entry.pending_amount ?? 0).toLocaleString("en-IN")}
+                                                                    </span>
+                                                                    <p className="text-xs text-muted-foreground">25% release</p>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Badge variant="secondary" className="capitalize">
+                                                                        {entry.parantage_status || "Approved"}
+                                                                    </Badge>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        );
+                                                    })}
+                                                </TableBody>
+                                            </Table>
+                                        ) : (
+                                            <p className="text-center text-muted-foreground py-8">
+                                                No approved parantage confirmation payments found yet.
                                             </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <Button variant="outline" data-testid="button-clear-selection" onClick={() => setSelectedPaymentIds([])}>
-                                            Clear Selection
-                                        </Button>
-                                        <Button data-testid="button-issue-cheque" onClick={handleOpenDialog}>
-                                            <Check className="h-4 w-4 mr-2" />
-                                            Issue Cheque
-                                        </Button>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    <Card data-testid="card-payments-table">
-                        <CardHeader>
-                            <CardTitle>Pending Vendor Payments</CardTitle>
-                            <CardDescription>
-                                Select multiple payments for the same vendor to issue a single cheque
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {loading ? (
-                                <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                                </div>
-                            ) : vendorPayments.length > 0 ? (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-12">
-                                                <Check data-testid="checkbox-select-all" />
-                                            </TableHead>
-                                            <TableHead>Beneficiary</TableHead>
-                                            <TableHead>Component</TableHead>
-                                            <TableHead>Animal</TableHead>
-                                            <TableHead>Vendor</TableHead>
-                                            <TableHead className="text-right">Cost Breakdown</TableHead>
-                                            <TableHead className="text-right">Total</TableHead>
-                                            <TableHead>Date</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {vendorPayments.map((payment) => {
-                                            const isSelected = selectedPaymentIds.includes(payment.component_allocation_id);
-
-                                            return (
-                                                <TableRow
-                                                    key={payment.component_allocation_id}
-                                                    className={isSelected ? "bg-primary/5" : ""}
-                                                    data-testid={`row-payment-${payment.component_allocation_id}`}
-                                                >
-                                                    <TableCell>
-                                                        <Checkbox
-                                                            checked={isSelected}
-                                                            disabled={!isSelected && !canSelectPayment(payment)}
-                                                            onCheckedChange={(checked) => handleTogglePayment(payment.component_allocation_id, !!checked)}
-                                                            data-testid={`checkbox-${payment.component_allocation_id}`}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div>
-                                                            <p className="font-medium">{payment.beneficiary_name}</p>
-                                                            <p className="text-xs text-muted-foreground">{payment.aadhar_number}</p>
-                                                            <p className="text-xs text-muted-foreground">{payment.district}, {payment.taluka}</p>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="space-y-1">
-                                                            <p className="text-sm font-medium">{payment.component_name}</p>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div>
-                                                            <p className="font-medium">{payment.type_of_animal}</p>
-                                                            <p className="text-xs text-muted-foreground">Tag: {payment.tag_number}</p>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div>
-                                                            <p className="font-medium">{payment.vendor_name}</p>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <div className="text-xs space-y-0.5">
-                                                            <p>Animal: ₹{payment.animal_cost.toLocaleString("en-IN")}</p>
-                                                            {payment.collar_cost > 0 && <p>Collar: ₹{payment.collar_cost.toLocaleString("en-IN")}</p>}
-                                                            {payment.premium_paid > 0 && <p>Premium: ₹{payment.premium_paid.toLocaleString("en-IN")}</p>}
-                                                            {payment.transportation_cost > 0 && <p>Transport: ₹{payment.transportation_cost.toLocaleString("en-IN")}</p>}
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <span className="font-bold text-green-600">
-                                                            ₹{payment.total_cost.toLocaleString("en-IN")}
-                                                        </span>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <p className="text-sm">{payment.date_of_purchase}</p>
-                                                    </TableCell>
-                                                </TableRow>
-                                            );
-                                        })}
-                                    </TableBody>
-                                </Table>
-                            ) : (
-                                <p className="text-center text-muted-foreground py-8">No pending vendor payments found</p>
-                            )}
-                        </CardContent>
-                    </Card>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -397,7 +620,7 @@ export default function VendorPayments() {
                     <DialogHeader>
                         <DialogTitle>Issue Cheque</DialogTitle>
                         <DialogDescription>
-                            Enter cheque details for {selectedPaymentIds.length} payment(s) to {selectedVendorName}
+                            Enter cheque details for {activeSelectionCount} payment(s) to {activeVendorName}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -405,15 +628,15 @@ export default function VendorPayments() {
                         <div className="p-3 bg-muted rounded-lg">
                             <div className="flex justify-between text-sm">
                                 <span>Selected Payments:</span>
-                                <span className="font-medium">{selectedPaymentIds.length}</span>
+                                <span className="font-medium">{activeSelectionCount}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span>Vendor:</span>
-                                <span className="font-medium">{selectedVendorName}</span>
+                                <span className="font-medium">{activeVendorName}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span>Total Amount:</span>
-                                <span className="font-bold text-green-600">₹{selectedTotal.toLocaleString("en-IN")}</span>
+                                <span className="font-bold text-green-600">₹{activeTotal.toLocaleString("en-IN")}</span>
                             </div>
                         </div>
 

@@ -2,7 +2,6 @@
 import { useState, Fragment } from "react";
 import Link from "next/link";
 import {
-    ArrowLeft,
     Check,
     AlertCircle,
     Upload,
@@ -21,7 +20,6 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
@@ -500,7 +498,7 @@ export default function Parantage() {
                                                     Certified By
                                                 </TableHead>
                                                 <TableHead>
-                                                    Total Paid
+                                                    Pending Payment
                                                 </TableHead>
                                                 <TableHead>Actions</TableHead>
                                             </TableRow>
@@ -543,8 +541,6 @@ export default function Parantage() {
                                                     <TableCell className="font-medium text-green-600">
                                                         ₹
                                                         {(
-                                                            (entry.paid_payment ||
-                                                                0) +
                                                             (entry.pending_amount ||
                                                                 0)
                                                         ).toLocaleString(
