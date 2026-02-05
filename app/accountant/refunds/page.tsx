@@ -47,6 +47,7 @@ interface PendingRefund {
     bank_name?: string;
     account_number?: string;
     ifsc_code?: string;
+    component_allocation_id: string;
 }
 
 interface PendingRefundResponse {
@@ -133,6 +134,7 @@ export default function Refunds() {
                 transanction_id: transactionId.trim(),
                 transanction_date: transactionDate,
                 refund_amount: currentRefund.refund_amount,
+                component_allocation: currentRefund.component_allocation_id,
             });
 
             toast({
