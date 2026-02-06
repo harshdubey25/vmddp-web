@@ -118,8 +118,7 @@ export interface QuotaDetails {
 }
 
 export interface DBTClaim {
-    name: string;
-    creation: string;
+    dbt_claim_id: string;
     app_form: string;
     component: string;
     invoice_number: string;
@@ -127,9 +126,17 @@ export interface DBTClaim {
     purchase_date: string;
     quantity: number;
     total_amount: number;
-    land_covered: number | null;
     subsidy_given: string | null;
-    docstatus: number;
+    type_of_animal: string | null;
+    number_of_animals_benefitted: number;
+    land_covered: number;
+    creation: string;
+    application_id: string;
+    first_name: string;
+    mid_name: string | null;
+    last_name: string;
+    aadhar_number: string;
+    district: string;
 }
 
 export interface PendingVendorPayment {
