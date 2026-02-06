@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFrappeGetCall, useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
 
@@ -58,6 +59,20 @@ interface PendingRefundResponse {
     total_pages: number;
 }
 
+interface PaidRefund {
+    name: string;
+    application: string;
+    component: string;
+    refund_amount: number;
+    transanction_id: string;
+    transanction_date: string;
+    creation: string;
+    account_holder_name?: string;
+    bank_name?: string;
+    account_number?: string;
+    ifsc_code?: string;
+}
+
 const PAGE_SIZE = 20;
 
 
@@ -73,10 +88,13 @@ const maskAccountNumber = (accountNumber?: string) => {
 };
 
 export default function Refunds() {
+    const [activeTab, setActiveTab] = useState("pending");
     const [showDBTDialog, setShowDBTDialog] = useState(false);
     const [currentRefund, setCurrentRefund] = useState<PendingRefund | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [paidPage, setPaidPage] = useState(1);
     const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
+    const [paidDistrict, setPaidDistrict] = useState<string | null>(null);
     const [transactionId, setTransactionId] = useState("");
     const [transactionDate, setTransactionDate] = useState("");
     const [submitError, setSubmitError] = useState<string | null>(null);
@@ -102,8 +120,46 @@ export default function Refunds() {
     const totalCount = refundsResponse?.message?.total_count || 0;
     const totalPages = refundsResponse?.message?.total_pages || 1;
 
+    // Fetch paid refunds - submitted refunds with docstatus = 1
+    const paidFilters: any[] = [["docstatus", "=", 1]];
+    if (paidDistrict) {
+        paidFilters.push(["application", "like", `%${paidDistrict}%`]);
+    }
+
+    const { data: paidRefundsData, isLoading: paidLoading } = useFrappeGetDocList<PaidRefund>("Refund", {
+        fields: [
+            "name",
+            "application",
+            "component",
+            "refund_amount",
+            "transanction_id",
+            "transanction_date",
+            "creation",
+            "account_holder_name",
+            "bank_name",
+            "account_number",
+            "ifsc_code"
+        ],
+        filters: paidFilters,
+        limit_start: (paidPage - 1) * PAGE_SIZE,
+        limit: PAGE_SIZE,
+        orderBy: { field: "creation", order: "desc" },
+    });
+
+    // Get total count of paid refunds
+    const { data: paidCountData } = useFrappeGetDocList<PaidRefund>("Refund", {
+        fields: ["name"],
+        filters: paidFilters,
+        limit: 0,
+    });
+
+    const paidRefunds = paidRefundsData || [];
+    const paidTotalCount = paidCountData?.length || paidRefunds.length;
+    const paidTotalPages = Math.ceil(paidTotalCount / PAGE_SIZE) || 1;
+
     // Calculate totals
     const totalPending = pendingRefunds.reduce((sum, r) => sum + (r.refund_amount || 0), 0);
+    const totalPaid = paidRefunds.reduce((sum, r) => sum + (r.refund_amount || 0), 0);
 
     const handleOpenDBTDialog = (refund: PendingRefund) => {
         setCurrentRefund(refund);
@@ -162,6 +218,11 @@ export default function Refunds() {
         setCurrentPage(1);
     };
 
+    const handlePaidDistrictChange = (value: string) => {
+        setPaidDistrict(value === "all" ? null : value);
+        setPaidPage(1);
+    };
+
     return (
         <div className="h-screen bg-background w-full">
             <div className="overflow-auto h-screen">
@@ -216,16 +277,16 @@ export default function Refunds() {
                             </CardContent>
                         </Card>
 
-                        <Card data-testid="card-processing">
+                        <Card data-testid="card-paid">
                             <CardContent className="pt-6">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-blue-500/10">
-                                        <RefreshCcw className="h-5 w-5 text-blue-500" />
+                                    <div className="p-3 rounded-lg bg-green-500/10">
+                                        <CheckCircle className="h-5 w-5 text-green-500" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Processing</p>
-                                        <p className="text-2xl font-bold">₹0</p>
-                                        <p className="text-xs text-muted-foreground">0 in queue</p>
+                                        <p className="text-sm text-muted-foreground">Paid Refunds</p>
+                                        <p className="text-2xl font-bold">₹{totalPaid.toLocaleString("en-IN")}</p>
+                                        <p className="text-xs text-muted-foreground">{paidTotalCount} completed</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -247,138 +308,273 @@ export default function Refunds() {
                         </Card>
                     </div>
 
-                    {/* Filter */}
-                    <Card data-testid="card-filter">
-                        <CardContent className="pt-6">
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                                <Label className="text-sm">Filter by District:</Label>
-                                <Select value={selectedDistrict || "all"} onValueChange={handleDistrictChange}>
-                                    <SelectTrigger className="w-full sm:w-48" data-testid="select-filter-district">
-                                        <SelectValue placeholder="All Districts" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All Districts</SelectItem>
-                                        {districts?.map((d) => (
-                                            <SelectItem key={d.name} value={d.name}>
-                                                {d.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    {/* Tabs for Pending and Paid Refunds */}
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+                        <TabsList>
+                            <TabsTrigger value="pending">Pending ({totalCount})</TabsTrigger>
+                            <TabsTrigger value="paid">Paid ({paidTotalCount})</TabsTrigger>
+                        </TabsList>
 
-                    {/* Refunds List */}
-                    <Card data-testid="card-refunds-list">
-                        <CardHeader>
-                            <CardTitle className="text-lg sm:text-xl">Pending Refunds</CardTitle>
-                            <CardDescription className="text-sm">Process refunds for beneficiaries</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {loading ? (
-                                <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                                </div>
-                            ) : error ? (
-                                <div className="text-center py-8 text-destructive">
-                                    <AlertCircle className="h-6 w-6 mx-auto mb-2" />
-                                    <p className="text-sm">Failed to load refunds. Please try again.</p>
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="overflow-x-auto -mx-6 sm:mx-0">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead className="min-w-[120px]">Application ID</TableHead>
-                                                    <TableHead className="min-w-[150px]">Beneficiary</TableHead>
-                                                    <TableHead className="min-w-[120px]">District</TableHead>
-                                                    <TableHead className="min-w-[120px]">Village</TableHead>
-                                                    <TableHead className="min-w-[120px]">Component</TableHead>
-                                                    <TableHead className="text-right min-w-[100px]">DD Amount</TableHead>
-                                                    <TableHead className="text-right min-w-[120px]">Eligible Subsidy</TableHead>
-                                                    <TableHead className="text-right min-w-[120px]">Refund Amount</TableHead>
-                                                    <TableHead className="min-w-[100px]">Actions</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {pendingRefunds.map((refund) => (
-                                                    <TableRow key={refund.application_id} data-testid={`row-refund-${refund.application_id}`}>
-                                                        <TableCell>
-                                                            <span className="font-mono text-xs">{refund.application_id}</span>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <p className="font-medium">{getFullName(refund)}</p>
-                                                        </TableCell>
-                                                        <TableCell>{refund.district}</TableCell>
-                                                        <TableCell>{refund.village}</TableCell>
-                                                        <TableCell>
-                                                            <div className="flex flex-col gap-1">
-                                                                <Badge variant="outline" className="w-fit">{refund.component}</Badge>
-                                                                {refund.component === "Animal Induction" && refund.type_of_animal && (
-                                                                    <span className="text-xs font-medium text-primary/70">{refund.type_of_animal}</span>
-                                                                )}
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell className="text-right">₹{refund.dd_amount.toLocaleString("en-IN")}</TableCell>
-                                                        <TableCell className="text-right text-green-600">₹{refund.eligible_subsidy.toLocaleString("en-IN")}</TableCell>
-                                                        <TableCell className="text-right font-bold text-primary">
-                                                            ₹{refund.refund_amount.toLocaleString("en-IN")}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Button size="sm" onClick={() => handleOpenDBTDialog(refund)} data-testid={`button-dbt-${refund.application_id}`} className="whitespace-nowrap">
-                                                                <Send className="h-4 w-4 mr-1" />
-                                                                DBT
-                                                            </Button>
-                                                        </TableCell>
-                                                    </TableRow>
+                        <TabsContent value="pending">
+                            {/* Filter */}
+                            <Card data-testid="card-filter" className="mb-6">
+                                <CardContent className="pt-6">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                                        <Label className="text-sm">Filter by District:</Label>
+                                        <Select value={selectedDistrict || "all"} onValueChange={handleDistrictChange}>
+                                            <SelectTrigger className="w-full sm:w-48" data-testid="select-filter-district">
+                                                <SelectValue placeholder="All Districts" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Districts</SelectItem>
+                                                {districts?.map((d) => (
+                                                    <SelectItem key={d.name} value={d.name}>
+                                                        {d.name}
+                                                    </SelectItem>
                                                 ))}
-                                                {pendingRefunds.length === 0 && (
-                                                    <TableRow>
-                                                        <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                                                            No pending refunds
-                                                        </TableCell>
-                                                    </TableRow>
-                                                )}
-                                            </TableBody>
-                                        </Table>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
+                                </CardContent>
+                            </Card>
 
-                                    {/* Pagination */}
-                                    {totalPages > 1 && (
-                                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4">
-                                            <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-                                                Page {currentPage} of {totalPages} • {totalCount} total records
-                                            </p>
-                                            <div className="flex items-center gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                                    disabled={currentPage === 1}
-                                                    data-testid="button-prev-page"
-                                                >
-                                                    <ChevronLeft className="h-4 w-4 sm:mr-1" />
-                                                    <span className="hidden sm:inline">Previous</span>
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                                    disabled={currentPage >= totalPages}
-                                                    data-testid="button-next-page"
-                                                >
-                                                    <span className="hidden sm:inline">Next</span>
-                                                    <ChevronRight className="h-4 w-4 sm:ml-1" />
-                                                </Button>
-                                            </div>
+                            {/* Pending Refunds List */}
+                            <Card data-testid="card-refunds-list">
+                                <CardHeader>
+                                    <CardTitle className="text-lg sm:text-xl">Pending Refunds</CardTitle>
+                                    <CardDescription className="text-sm">Process refunds for beneficiaries</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {loading ? (
+                                        <div className="flex items-center justify-center py-8">
+                                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                                         </div>
+                                    ) : error ? (
+                                        <div className="text-center py-8 text-destructive">
+                                            <AlertCircle className="h-6 w-6 mx-auto mb-2" />
+                                            <p className="text-sm">Failed to load refunds. Please try again.</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="overflow-x-auto -mx-6 sm:mx-0">
+                                                <Table>
+                                                    <TableHeader>
+                                                        <TableRow>
+                                                            <TableHead className="min-w-[120px]">Application ID</TableHead>
+                                                            <TableHead className="min-w-[150px]">Beneficiary</TableHead>
+                                                            <TableHead className="min-w-[120px]">District</TableHead>
+                                                            <TableHead className="min-w-[120px]">Village</TableHead>
+                                                            <TableHead className="min-w-[120px]">Component</TableHead>
+                                                            <TableHead className="text-right min-w-[100px]">DD Amount</TableHead>
+                                                            <TableHead className="text-right min-w-[120px]">Eligible Subsidy</TableHead>
+                                                            <TableHead className="text-right min-w-[120px]">Refund Amount</TableHead>
+                                                            <TableHead className="min-w-[100px]">Actions</TableHead>
+                                                        </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {pendingRefunds.map((refund) => (
+                                                            <TableRow key={refund.application_id} data-testid={`row-refund-${refund.application_id}`}>
+                                                                <TableCell>
+                                                                    <span className="font-mono text-xs">{refund.application_id}</span>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <p className="font-medium">{getFullName(refund)}</p>
+                                                                </TableCell>
+                                                                <TableCell>{refund.district}</TableCell>
+                                                                <TableCell>{refund.village}</TableCell>
+                                                                <TableCell>
+                                                                    <div className="flex flex-col gap-1">
+                                                                        <Badge variant="outline" className="w-fit">{refund.component}</Badge>
+                                                                        {refund.component === "Animal Induction" && refund.type_of_animal && (
+                                                                            <span className="text-xs font-medium text-primary/70">{refund.type_of_animal}</span>
+                                                                        )}
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell className="text-right">₹{refund.dd_amount.toLocaleString("en-IN")}</TableCell>
+                                                                <TableCell className="text-right text-green-600">₹{refund.eligible_subsidy.toLocaleString("en-IN")}</TableCell>
+                                                                <TableCell className="text-right font-bold text-primary">
+                                                                    ₹{refund.refund_amount.toLocaleString("en-IN")}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Button size="sm" onClick={() => handleOpenDBTDialog(refund)} data-testid={`button-dbt-${refund.application_id}`} className="whitespace-nowrap">
+                                                                        <Send className="h-4 w-4 mr-1" />
+                                                                        DBT
+                                                                    </Button>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                        {pendingRefunds.length === 0 && (
+                                                            <TableRow>
+                                                                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                                                                    No pending refunds
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        )}
+                                                    </TableBody>
+                                                </Table>
+                                            </div>
+
+                                            {/* Pagination */}
+                                            {totalPages > 1 && (
+                                                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4">
+                                                    <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+                                                        Page {currentPage} of {totalPages} • {totalCount} total records
+                                                    </p>
+                                                    <div className="flex items-center gap-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                            disabled={currentPage === 1}
+                                                            data-testid="button-prev-page"
+                                                        >
+                                                            <ChevronLeft className="h-4 w-4 sm:mr-1" />
+                                                            <span className="hidden sm:inline">Previous</span>
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                            disabled={currentPage >= totalPages}
+                                                            data-testid="button-next-page"
+                                                        >
+                                                            <span className="hidden sm:inline">Next</span>
+                                                            <ChevronRight className="h-4 w-4 sm:ml-1" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
                                     )}
-                                </>
-                            )}
-                        </CardContent>
-                    </Card>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+
+                        <TabsContent value="paid">
+                            {/* Filter for Paid */}
+                            <Card data-testid="card-paid-filter" className="mb-6">
+                                <CardContent className="pt-6">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                                        <Label className="text-sm">Filter by District:</Label>
+                                        <Select value={paidDistrict || "all"} onValueChange={handlePaidDistrictChange}>
+                                            <SelectTrigger className="w-full sm:w-48" data-testid="select-paid-filter-district">
+                                                <SelectValue placeholder="All Districts" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Districts</SelectItem>
+                                                {districts?.map((d) => (
+                                                    <SelectItem key={d.name} value={d.name}>
+                                                        {d.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Paid Refunds List */}
+                            <Card data-testid="card-paid-refunds-list">
+                                <CardHeader>
+                                    <CardTitle className="text-lg sm:text-xl">Paid Refunds</CardTitle>
+                                    <CardDescription className="text-sm">History of completed refund transfers</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {paidLoading ? (
+                                        <div className="flex items-center justify-center py-8">
+                                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="overflow-x-auto -mx-6 sm:mx-0">
+                                                <Table>
+                                                    <TableHeader>
+                                                        <TableRow>
+                                                            <TableHead className="min-w-[120px]">Application ID</TableHead>
+                                                            <TableHead className="min-w-[120px]">Component</TableHead>
+                                                            <TableHead className="text-right min-w-[120px]">Refund Amount</TableHead>
+                                                            <TableHead className="min-w-[140px]">Transaction ID</TableHead>
+                                                            <TableHead className="min-w-[120px]">Transaction Date</TableHead>
+                                                            <TableHead className="min-w-[120px]">Processed On</TableHead>
+                                                            <TableHead className="min-w-[80px]">Status</TableHead>
+                                                        </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {paidRefunds.map((refund: any) => (
+                                                            <TableRow key={refund.name} data-testid={`row-paid-refund-${refund.name}`}>
+                                                                <TableCell>
+                                                                    <span className="font-mono text-xs">{refund.application}</span>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Badge variant="outline" className="w-fit">{refund.component}</Badge>
+                                                                </TableCell>
+                                                                <TableCell className="text-right font-bold text-green-600">
+                                                                    ₹{refund.refund_amount.toLocaleString("en-IN")}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <span className="font-mono text-xs">{refund.transanction_id}</span>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {new Date(refund.transanction_date).toLocaleDateString("en-IN")}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {new Date(refund.creation).toLocaleDateString("en-IN")}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Badge variant="default" className="bg-green-500">
+                                                                        <CheckCircle className="h-3 w-3 mr-1" />
+                                                                        Paid
+                                                                    </Badge>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                        {paidRefunds.length === 0 && (
+                                                            <TableRow>
+                                                                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                                                    No paid refunds found
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        )}
+                                                    </TableBody>
+                                                </Table>
+                                            </div>
+
+                                            {/* Pagination for Paid */}
+                                            {paidTotalPages > 1 && (
+                                                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4">
+                                                    <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+                                                        Page {paidPage} of {paidTotalPages} • {paidTotalCount} total records
+                                                    </p>
+                                                    <div className="flex items-center gap-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setPaidPage(p => Math.max(1, p - 1))}
+                                                            disabled={paidPage === 1}
+                                                            data-testid="button-paid-prev-page"
+                                                        >
+                                                            <ChevronLeft className="h-4 w-4 sm:mr-1" />
+                                                            <span className="hidden sm:inline">Previous</span>
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setPaidPage(p => Math.min(paidTotalPages, p + 1))}
+                                                            disabled={paidPage >= paidTotalPages}
+                                                            data-testid="button-paid-next-page"
+                                                        >
+                                                            <span className="hidden sm:inline">Next</span>
+                                                            <ChevronRight className="h-4 w-4 sm:ml-1" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    </Tabs>
                 </div>
             </div>
 
