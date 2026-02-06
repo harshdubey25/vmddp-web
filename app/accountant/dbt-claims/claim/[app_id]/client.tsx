@@ -6,7 +6,7 @@ import { useState, useRef } from 'react'
 import { ApplicationDetails, FrappeCustomApiResponse, QuotaDetails, DBTClaim } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, FileText, Upload, Check, User, Building2, MapPin, CreditCard, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowLeft, FileText, Upload, Check, User, Building2, MapPin, CreditCard, ExternalLink, Loader2, LandPlot } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +49,7 @@ export default function ClaimForm({
         acknowledgement: false,
         component: component,
         typeOfAnimal: "",
+        land_covered: "",
         numberOfAnimalsBenefitted: "",
     });
     const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
@@ -74,7 +75,7 @@ export default function ClaimForm({
     const { data: claimHistory, isLoading: claimsLoading } = useFrappeGetDocList<DBTClaim>(
         "DBT Claims",
         {
-            fields: ["name", "creation", "invoice_number", "invoice_upload", "purchase_date", "quantity", "total_amount", "subsidy_given", "docstatus"],
+            fields: ["name", "creation", "invoice_number", "invoice_upload", "purchase_date", "quantity", "total_amount", "land_covered", "subsidy_given", "docstatus"],
             filters: [
                 ["app_form", "=", appId],
                 ["component", "=", component]
@@ -112,7 +113,6 @@ export default function ClaimForm({
             formData.quantity &&
             formData.totalAmount &&
             formData.typeOfAnimal &&
-            formData.numberOfAnimalsBenefitted &&
             formData.acknowledgement
         );
     };
@@ -156,6 +156,7 @@ export default function ClaimForm({
             acknowledgement: false,
             component: component,
             typeOfAnimal: "",
+            land_covered: "",
             numberOfAnimalsBenefitted: "",
         });
         setInvoiceFile(null);
@@ -177,7 +178,7 @@ export default function ClaimForm({
         }
 
         // Validate required fields
-        if (!formData.invoiceNumber || !formData.purchaseDate || !formData.quantity || !formData.totalAmount || !formData.typeOfAnimal || !formData.numberOfAnimalsBenefitted) {
+        if (!formData.invoiceNumber || !formData.purchaseDate || !formData.quantity || !formData.totalAmount || !formData.typeOfAnimal) {
             toast({
                 title: "Missing Fields",
                 description: "Please fill all required fields.",
@@ -236,6 +237,7 @@ export default function ClaimForm({
                 quantity: parseFloat(formData.quantity),
                 total_amount: parseFloat(formData.totalAmount),
                 type_of_animal: formData.typeOfAnimal,
+                land_covered: formData.land_covered ? parseFloat(formData.land_covered) : undefined,
                 number_of_animals_benefitted: parseInt(formData.numberOfAnimalsBenefitted),
             });
 
@@ -563,14 +565,25 @@ export default function ClaimForm({
                                         </SelectContent>
                                     </Select>
                                 </div>
+                                {beneficiary.component_name === "Fodder Seed" && (<div className="space-y-2">
+                                    <Label>Land covered *</Label>
+                                    <Input
+                                        type="number"
+                                        placeholder="Enter land covered"
+                                        value={formData.land_covered}
+                                        onChange={(e) => handleInputChange("land_covered", e.target.value)}
+                                        min="1"
+                                        data-testid="input-land-covered"
+                                    />
+                                </div>)}
+
                                 <div className="space-y-2">
-                                    <Label>Number of Animals Benefitted *</Label>
+                                    <Label>Number of Animals Benefitted</Label>
                                     <Input
                                         type="number"
                                         placeholder="Enter number of animals"
                                         value={formData.numberOfAnimalsBenefitted}
                                         onChange={(e) => handleInputChange("numberOfAnimalsBenefitted", e.target.value)}
-                                        min="1"
                                         data-testid="input-number-of-animals"
                                     />
                                 </div>
