@@ -132,6 +132,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
     const [dateTo, setDateTo] = useState(initialFilters?.end_date || "");
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
     const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
+    const [jumpToPage, setJumpToPage] = useState<string>("");
 
     // Fetch components for dropdown
     const { data: components } = useFrappeGetDocList<Component>(
@@ -432,6 +433,34 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
     const handleViewDetails = (app: ApplicationListItem) => {
         // Set the app ID to trigger the useFrappeGetDoc hook
         setSelectedAppId(app.id);
+    };
+
+    const handleJumpToPage = () => {
+        const pageNum = parseInt(jumpToPage);
+        const totalPages = paginationData?.total_pages ?? (applications.length === pageSize ? currentPage + 2 : currentPage);
+
+        if (isNaN(pageNum) || pageNum < 1) {
+            toast({
+                title: "Invalid page number",
+                description: "Please enter a valid page number.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        if (pageNum > totalPages) {
+            toast({
+                title: "Page out of range",
+                description: `Please enter a page number between 1 and ${totalPages}.`,
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('page', pageNum.toString());
+        router.push(pathname + '?' + params.toString());
+        setJumpToPage("");
     };
 
     const handleSubmitReview = async (action: "approve" | "reject", reviewRemarks: string, selectedComponents: Array<string>) => {
@@ -915,7 +944,7 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                             </div>
 
                             {/* Pagination */}
-                            <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-0 pt-3 sm:pt-4">
+                            <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-4 pt-3 sm:pt-4">
                                 <p className="text-xs sm:text-sm text-muted-foreground">
                                     {paginationData ? (
                                         <>
@@ -929,62 +958,95 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                         </>
                                     )}
                                 </p>
-                                <Pagination>
-                                    <PaginationContent>
-                                        <PaginationItem>
-                                            <PaginationPrevious
-                                                href={(paginationData?.has_previous_page ?? currentPage > 1) ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage - 1).toString() }).toString()}` : '#'}
-                                                onClick={(e) => {
-                                                    if (!(paginationData?.has_previous_page ?? currentPage > 1)) {
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                className={!(paginationData?.has_previous_page ?? currentPage > 1) ? 'pointer-events-none opacity-50' : ''}
-                                            />
-                                        </PaginationItem>
 
-                                        {/* Page numbers */}
-                                        {(() => {
-                                            const totalPages = paginationData?.total_pages ?? (applications.length === pageSize ? currentPage + 2 : currentPage);
-                                            const startPage = Math.max(1, currentPage - 2);
-                                            const endPage = Math.min(totalPages, startPage + 4);
+                                <div className="flex items-center gap-3">
+                                    <Pagination>
+                                        <PaginationContent>
+                                            <PaginationItem>
+                                                <PaginationPrevious
+                                                    href={(paginationData?.has_previous_page ?? currentPage > 1) ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage - 1).toString() }).toString()}` : '#'}
+                                                    onClick={(e) => {
+                                                        if (!(paginationData?.has_previous_page ?? currentPage > 1)) {
+                                                            e.preventDefault();
+                                                        }
+                                                    }}
+                                                    className={!(paginationData?.has_previous_page ?? currentPage > 1) ? 'pointer-events-none opacity-50' : ''}
+                                                />
+                                            </PaginationItem>
 
-                                            return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
-                                                const pageNum = startPage + i;
-                                                return (
-                                                    <PaginationItem key={pageNum}>
-                                                        <PaginationLink
-                                                            href={`${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: pageNum.toString() }).toString()}`}
-                                                            isActive={pageNum === currentPage}
-                                                        >
-                                                            {pageNum}
-                                                        </PaginationLink>
+                                            {/* Page numbers */}
+                                            {(() => {
+                                                const totalPages = paginationData?.total_pages ?? (applications.length === pageSize ? currentPage + 2 : currentPage);
+                                                const startPage = Math.max(1, currentPage - 2);
+                                                const endPage = Math.min(totalPages, startPage + 4);
+
+                                                return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
+                                                    const pageNum = startPage + i;
+                                                    return (
+                                                        <PaginationItem key={pageNum}>
+                                                            <PaginationLink
+                                                                href={`${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: pageNum.toString() }).toString()}`}
+                                                                isActive={pageNum === currentPage}
+                                                            >
+                                                                {pageNum}
+                                                            </PaginationLink>
+                                                        </PaginationItem>
+                                                    );
+                                                });
+                                            })()}
+
+                                            {/* {paginationData && currentPage < paginationData.total_pages - 2 && (
+                                                <>
+                                                    <PaginationItem>
+                                                        <PaginationEllipsis />
                                                     </PaginationItem>
-                                                );
-                                            });
-                                        })()}
+                                                </>
+                                            )} */}
 
-                                        {/* {paginationData && currentPage < paginationData.total_pages - 2 && (
-                                            <>
-                                                <PaginationItem>
-                                                    <PaginationEllipsis />
-                                                </PaginationItem>
-                                            </>
-                                        )} */}
+                                            <PaginationItem>
+                                                <PaginationNext
+                                                    href={(paginationData?.has_next_page ?? applications.length === pageSize) ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage + 1).toString() }).toString()}` : '#'}
+                                                    onClick={(e) => {
+                                                        if (!(paginationData?.has_next_page ?? applications.length === pageSize)) {
+                                                            e.preventDefault();
+                                                        }
+                                                    }}
+                                                    className={!(paginationData?.has_next_page ?? applications.length === pageSize) ? 'pointer-events-none opacity-50' : ''}
+                                                />
+                                            </PaginationItem>
+                                        </PaginationContent>
+                                    </Pagination>
 
-                                        <PaginationItem>
-                                            <PaginationNext
-                                                href={(paginationData?.has_next_page ?? applications.length === pageSize) ? `${pathname}?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), page: (currentPage + 1).toString() }).toString()}` : '#'}
-                                                onClick={(e) => {
-                                                    if (!(paginationData?.has_next_page ?? applications.length === pageSize)) {
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                className={!(paginationData?.has_next_page ?? applications.length === pageSize) ? 'pointer-events-none opacity-50' : ''}
-                                            />
-                                        </PaginationItem>
-                                    </PaginationContent>
-                                </Pagination>
+                                    {/* Jump to Page Input */}
+                                    <div className="flex items-center gap-1 sm:gap-2 border-l pl-3">
+                                        <label htmlFor="jumpToPage" className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+                                            Go to:
+                                        </label>
+                                        <Input
+                                            id="jumpToPage"
+                                            type="number"
+                                            min="1"
+                                            max={paginationData?.total_pages ?? (applications.length === pageSize ? currentPage + 2 : currentPage)}
+                                            value={jumpToPage}
+                                            onChange={(e) => setJumpToPage(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    handleJumpToPage();
+                                                }
+                                            }}
+                                            placeholder="Page"
+                                            className="w-16 sm:w-20 text-xs sm:text-sm h-8 sm:h-9 text-center"
+                                        />
+                                        <Button
+                                            onClick={handleJumpToPage}
+                                            size="sm"
+                                            variant="outline"
+                                            className="text-xs sm:text-sm h-8 sm:h-9 px-3"
+                                        >
+                                            Go
+                                        </Button>
+                                    </div>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
