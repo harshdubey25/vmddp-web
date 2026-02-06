@@ -118,7 +118,7 @@ export default function AdminParantageConfirmation() {
         status: "rejected",
     });
 
-  
+
     const pendingApprovalEntries = pendingApprovalData?.message || [];
     const approvedEntries = approvedData?.message || [];
     const rejectedEntries = rejectedData?.message || [];
@@ -138,7 +138,7 @@ export default function AdminParantageConfirmation() {
         );
     };
 
-    const  handleViewDetails = (entry: ParantageEntry) => {
+    const handleViewDetails = (entry: ParantageEntry) => {
         setSelectedEntry(entry);
         setIsDetailsOpen(true);
     };
@@ -508,7 +508,7 @@ export default function AdminParantageConfirmation() {
                                                     <TableHead>District</TableHead>
                                                     <TableHead>Calf Gender</TableHead>
                                                     <TableHead>Certified By</TableHead>
-                                                    <TableHead>Total Paid</TableHead>
+                                                    <TableHead>Pending Payment</TableHead>
                                                     <TableHead>Status</TableHead>
                                                     <TableHead>Actions</TableHead>
                                                 </TableRow>
