@@ -75,7 +75,7 @@ export default function ClaimForm({
     const { data: claimHistory, isLoading: claimsLoading } = useFrappeGetDocList<DBTClaim>(
         "DBT Claims",
         {
-            fields: ["name", "creation", "invoice_number", "invoice_upload", "purchase_date", "quantity", "total_amount", "land_covered", "subsidy_given", "docstatus"],
+            fields: ["name", "creation", "invoice_number", "invoice_upload", "purchase_date", "quantity", "total_amount", "subsidy_given", "docstatus"],
             filters: [
                 ["app_form", "=", appId],
                 ["component", "=", component]
