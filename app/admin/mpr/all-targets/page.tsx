@@ -330,9 +330,6 @@ export default function AllTargetsReportPage() {
                                         <TableHead colSpan={2} className="border text-center font-bold min-w-[160px] bg-green-100">
                                             TOTAL
                                         </TableHead>
-                                        <TableHead rowSpan={2} className="border text-center font-bold min-w-[100px] bg-orange-100 align-middle">
-                                            Balance
-                                        </TableHead>
                                     </TableRow>
                                     {/* Physical/Financial sub-header row */}
                                     <TableRow className="bg-muted/30">
@@ -386,9 +383,6 @@ export default function AllTargetsReportPage() {
                                                 <TableCell className="border text-right font-bold bg-green-50">
                                                     {formatInLakhs(financialData?.total || 0)}
                                                 </TableCell>
-                                                <TableCell className="border text-right font-bold bg-orange-50">
-                                                    0
-                                                </TableCell>
                                             </TableRow>
                                         );
                                     })}
@@ -412,9 +406,6 @@ export default function AllTargetsReportPage() {
                                         </TableCell>
                                         <TableCell className="border text-right bg-green-100">
                                             {formatInLakhs(targetsData.totals?.total_financial_target || 0)}
-                                        </TableCell>
-                                        <TableCell className="border text-right bg-orange-100">
-                                            0
                                         </TableCell>
                                     </TableRow>
                                 </TableFooter>
