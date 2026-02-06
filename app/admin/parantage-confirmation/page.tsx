@@ -552,7 +552,7 @@ export default function AdminParantageConfirmation() {
                                                                 {entry.agency_name || entry.certified_by_agency}
                                                             </TableCell>
                                                             <TableCell className="font-medium text-green-600">
-                                                                ₹{((entry.paid_payment || 0) + (entry.pending_amount || 0)).toLocaleString("en-IN")}
+                                                                ₹{(entry.pending_amount || 0).toLocaleString("en-IN")}
                                                             </TableCell>
                                                             <TableCell>
                                                                 {getStatusBadge("Approved")}
