@@ -192,9 +192,10 @@ export default function VendorPayments() {
         }
 
         const vendorId = dialogContext === "pending" ? selectedVendorId : (firstSelectedParantageEntry?.vendor || "");
-        
-        const payload = dialogContext === "parantage" 
+
+        const payload = dialogContext === "parantage"
             ? {
+                for_parantage: true,
                 parantage_confirmation: selectedParantageIds.map((id) => ({
                     parantage_confirmation: id,
                     amount: parantageEntries.find((entry) => getParantageEntryId(entry) === id)?.pending_amount || 0
@@ -217,15 +218,15 @@ export default function VendorPayments() {
                 ...payload
             });
 
-            toast({ 
-                title: "Success", 
-                description: dialogContext === "parantage" 
-                    ? "Parantage payment created successfully" 
-                    : "Vendor payment created successfully" 
+            toast({
+                title: "Success",
+                description: dialogContext === "parantage"
+                    ? "Parantage payment created successfully"
+                    : "Vendor payment created successfully"
             });
             setOpenPaymentDialog(false);
             resetForm();
-            
+
             if (dialogContext === "parantage") {
                 setSelectedParantageIds([]);
                 fetchApprovedParantage();
