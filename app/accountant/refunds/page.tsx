@@ -492,6 +492,7 @@ export default function Refunds() {
                                                         <TableRow>
                                                             <TableHead className="min-w-[120px]">Application ID</TableHead>
                                                             <TableHead className="min-w-[120px]">Component</TableHead>
+                                                            <TableHead className="min-w-[150px]">Bank Details</TableHead>
                                                             <TableHead className="text-right min-w-[120px]">Refund Amount</TableHead>
                                                             <TableHead className="min-w-[140px]">Transaction ID</TableHead>
                                                             <TableHead className="min-w-[120px]">Transaction Date</TableHead>
@@ -507,6 +508,14 @@ export default function Refunds() {
                                                                 </TableCell>
                                                                 <TableCell>
                                                                     <Badge variant="outline" className="w-fit">{refund.component}</Badge>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div className="flex flex-col gap-0.5">
+                                                                        <span className="font-medium text-sm">{refund.bank_name || "N/A"}</span>
+                                                                        <span className="font-mono text-xs text-muted-foreground">
+                                                                            {maskAccountNumber(refund.account_number)}
+                                                                        </span>
+                                                                    </div>
                                                                 </TableCell>
                                                                 <TableCell className="text-right font-bold text-green-600">
                                                                     ₹{refund.refund_amount.toLocaleString("en-IN")}
@@ -530,7 +539,7 @@ export default function Refunds() {
                                                         ))}
                                                         {paidRefunds.length === 0 && (
                                                             <TableRow>
-                                                                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                                                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                                                                     No paid refunds found
                                                                 </TableCell>
                                                             </TableRow>
