@@ -34,7 +34,10 @@ interface DistrictData {
     beneficiary_share: number;
     subsidy: number;
     total: number;
+    financial_target: number;
+    physical_target: number;
     financial_balance: number;
+    physical_balance: number;
 }
 
 interface Totals {
@@ -44,7 +47,10 @@ interface Totals {
     total_beneficiary_share: number;
     total_subsidy: number;
     grand_total: number;
+    total_financial_target: number;
+    total_physical_target: number;
     total_financial_balance: number;
+    total_physical_balance: number;
 }
 
 interface DBTClaimsMPRResponse {
@@ -116,7 +122,10 @@ export default function DBTClaimsMPRPage() {
                 beneficiary_share: 0,
                 subsidy: 0,
                 total: 0,
+                financial_target: 0,
+                physical_target: 0,
                 financial_balance: 0,
+                physical_balance: 0,
             };
             districts.push({ name: districtName, data });
         });
@@ -141,7 +150,10 @@ export default function DBTClaimsMPRPage() {
         total_beneficiary_share: 0,
         total_subsidy: 0,
         grand_total: 0,
+        total_financial_target: 0,
+        total_physical_target: 0,
         total_financial_balance: 0,
+        total_physical_balance: 0,
     };
 
     // Format currency
@@ -167,6 +179,8 @@ export default function DBTClaimsMPRPage() {
                 "Beneficiary Share (Rs.)",
                 "Subsidy (Rs.)",
                 "Total (Rs.)",
+                "Physical Balance",
+                "Financial Balance (Rs.)",
             ];
 
             const rows: (string | number)[][] = [];
@@ -181,6 +195,8 @@ export default function DBTClaimsMPRPage() {
                     data.beneficiary_share || 0,
                     data.subsidy || 0,
                     data.total || 0,
+                    data.physical_balance || 0,
+                    data.financial_balance || 0,
                 ]);
                 // Progress row
                 rows.push([
@@ -191,6 +207,8 @@ export default function DBTClaimsMPRPage() {
                     data.beneficiary_share || 0,
                     data.subsidy || 0,
                     data.total || 0,
+                    data.physical_balance || 0,
+                    data.financial_balance || 0,
                 ]);
             });
 
@@ -203,6 +221,8 @@ export default function DBTClaimsMPRPage() {
                 totals.total_beneficiary_share,
                 totals.total_subsidy,
                 totals.grand_total,
+                totals.total_physical_balance,
+                totals.total_financial_balance,
             ]);
 
             const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
@@ -325,7 +345,7 @@ export default function DBTClaimsMPRPage() {
 
             {/* Summary Cards */}
             {!isLoading && districtData.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4">
                     <Card>
                         <CardHeader className="pb-2">
                             <CardDescription className="text-xs sm:text-sm">Total Districts</CardDescription>
@@ -359,6 +379,22 @@ export default function DBTClaimsMPRPage() {
                             <CardDescription className="text-xs sm:text-sm">Grand Total</CardDescription>
                             <CardTitle className="text-xl sm:text-2xl text-green-600">
                                 ₹{formatCurrency(totals.grand_total)}
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription className="text-xs sm:text-sm">Physical Balance</CardDescription>
+                            <CardTitle className={`text-xl sm:text-2xl ${totals.total_physical_balance < 0 ? 'text-red-600' : 'text-purple-600'}`}>
+                                {formatCurrency(totals.total_physical_balance)}
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription className="text-xs sm:text-sm">Financial Balance</CardDescription>
+                            <CardTitle className={`text-xl sm:text-2xl ${totals.total_financial_balance < 0 ? 'text-red-600' : 'text-purple-600'}`}>
+                                ₹{formatCurrency(totals.total_financial_balance)}
                             </CardTitle>
                         </CardHeader>
                     </Card>
@@ -407,7 +443,7 @@ export default function DBTClaimsMPRPage() {
                                         <TableHead rowSpan={3} className="border text-center font-bold min-w-[70px]">
 
                                         </TableHead>
-                                        <TableHead colSpan={5} className="border text-center font-bold bg-blue-50">
+                                        <TableHead colSpan={6} className="border text-center font-bold bg-blue-50">
                                             DBT Claims - {selectedComponent !== "all" ? (components.find(c => c.name === selectedComponent)?.component_name || selectedComponent) : "All Components"}
                                         </TableHead>
                                     </TableRow>
@@ -419,8 +455,11 @@ export default function DBTClaimsMPRPage() {
                                         <TableHead colSpan={3} className="border text-center font-bold min-w-[240px] bg-green-50">
                                             Financial Achievement
                                         </TableHead>
+                                        <TableHead rowSpan={2} className="border text-center font-bold bg-purple-100 min-w-[100px]">
+                                            Physical Balance
+                                        </TableHead>
                                         <TableHead rowSpan={2} className="border text-center font-bold bg-orange-100 min-w-[100px]">
-                                            Balance
+                                            Financial Balance
                                         </TableHead>
                                     </TableRow>
                                     {/* Third header row - Detail columns */}
@@ -459,7 +498,9 @@ export default function DBTClaimsMPRPage() {
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.beneficiary_share || 0)}</TableCell>
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.subsidy || 0)}</TableCell>
                                                 <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total || 0)}</TableCell>
-                                                {/* Balance */}
+                                                {/* Physical Balance */}
+                                                <TableCell className="border text-right bg-purple-50/50 font-semibold">{formatCurrency(data.physical_balance || 0)}</TableCell>
+                                                {/* Financial Balance */}
                                                 <TableCell className="border text-right bg-orange-50/50 font-semibold">{formatCurrency(data.financial_balance || 0)}</TableCell>
                                             </TableRow>
                                             {/* Progress Row */}
@@ -471,7 +512,9 @@ export default function DBTClaimsMPRPage() {
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.beneficiary_share || 0)}</TableCell>
                                                 <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.subsidy || 0)}</TableCell>
                                                 <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total || 0)}</TableCell>
-                                                {/* Balance */}
+                                                {/* Physical Balance */}
+                                                <TableCell className="border text-right bg-purple-50/50 font-semibold">{formatCurrency(data.physical_balance || 0)}</TableCell>
+                                                {/* Financial Balance */}
                                                 <TableCell className="border text-right bg-orange-50/50 font-semibold">{formatCurrency(data.financial_balance || 0)}</TableCell>
                                             </TableRow>
                                         </Fragment>
@@ -488,7 +531,9 @@ export default function DBTClaimsMPRPage() {
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_beneficiary_share)}</TableCell>
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_subsidy)}</TableCell>
                                         <TableCell className="border text-right bg-green-100">{formatCurrency(totals.grand_total)}</TableCell>
-                                        {/* Balance */}
+                                        {/* Physical Balance */}
+                                        <TableCell className="border text-right bg-purple-100 font-bold">{formatCurrency(totals.total_physical_balance)}</TableCell>
+                                        {/* Financial Balance */}
                                         <TableCell className="border text-right bg-orange-100 font-bold">{formatCurrency(totals.total_financial_balance)}</TableCell>
                                     </TableRow>
                                 </TableFooter>
