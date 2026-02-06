@@ -90,7 +90,12 @@ export default function DBTClaims() {
             limit: 50
         }
     );
-
+    const { data: dbtStats } = useFrappeGetCall<{ message: { total_subsidy_amount: number, applications_count: number, claims_count: number } }>(
+        "vmddp_app.api.v1.accountant.dbt_stats",
+        {
+            component: selectedComponent?.name
+        }
+    );
     const handleSelectedComponentChange = (componentName: string) => {
         const component = components?.find(c => c.name === componentName) || null;
         setSelectedComponent(component);
@@ -108,10 +113,9 @@ export default function DBTClaims() {
     }
 
     const stats = {
-        total_disbursed_amount: (disbursedClaims || []).reduce((sum, claim) => sum + (claim.total_amount || 0), 0),
-        total_claims_processed: disbursedClaims?.length || 0,
-        total_beneficiaries: new Set((disbursedClaims || []).map(c => c.app_form)).size,
-        total_components: new Set((disbursedClaims || []).map(c => c.component)).size,
+        total_subsidy_amount: dbtStats?.message.total_subsidy_amount || 0,
+        total_applications: dbtStats?.message.applications_count || 0,
+        total_claims: dbtStats?.message.claims_count || 0,
     };
 
     const handleExport = () => {
@@ -180,8 +184,8 @@ export default function DBTClaims() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Total Disbursed</p>
-                                        <p className="text-2xl font-bold">₹{stats.total_disbursed_amount}</p>
-                                        <p className="text-xs text-muted-foreground">{stats.total_claims_processed} claims processed</p>
+                                        <p className="text-2xl font-bold">₹{dbtStats?.message.total_subsidy_amount || 0}</p>
+                                        <p className="text-xs text-muted-foreground">{dbtStats?.message.claims_count || 0} claims processed</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -210,7 +214,7 @@ export default function DBTClaims() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Eligible Beneficiaries</p>
-                                        <p className="text-2xl font-bold">{stats.total_beneficiaries}</p>
+                                        <p className="text-2xl font-bold">{dbtStats?.message.applications_count || 0}</p>
                                         <p className="text-xs text-muted-foreground">From disbursed claims</p>
                                     </div>
                                 </div>
