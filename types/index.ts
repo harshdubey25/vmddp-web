@@ -118,6 +118,7 @@ export interface QuotaDetails {
 }
 
 export interface DBTClaim {
+    name: string;
     dbt_claim_id: string;
     app_form: string;
     component: string;
@@ -137,6 +138,7 @@ export interface DBTClaim {
     last_name: string;
     aadhar_number: string;
     district: string;
+    docstatus: number;
 }
 
 export interface PendingVendorPayment {
