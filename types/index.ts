@@ -127,6 +127,7 @@ export interface DBTClaim {
     purchase_date: string;
     quantity: number;
     total_amount: number;
+    land_covered: number | null;
     subsidy_given: string | null;
     docstatus: number;
 }

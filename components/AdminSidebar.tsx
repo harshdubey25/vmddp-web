@@ -104,7 +104,8 @@ const accountantMenuItems: MenuItem[] = [
 
 const secretoryMenuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/secretory/dashboard" },
-  { icon: FileText, label: "Report",path: "/secretory/report" },
+  { icon: TargetIcon, label: "Target and Achievement", path: "/secretory/target-achievement" },
+  { icon: FileCheck, label: "DBT Summary", path: "/secretory/dbt-summary" },
 ]
 // { icon: LayoutDashboard, label: "Dashboard", path: "/accountant" },
 // { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },;

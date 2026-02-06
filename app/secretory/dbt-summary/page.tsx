@@ -1,0 +1,528 @@
+'use client';
+
+import { useEffect, useState, useMemo } from 'react';
+import { useFrappeGetCall } from 'frappe-react-sdk';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, ChevronDown } from 'lucide-react';
+import { FrappeCustomApiResponse } from '@/types';
+
+interface ComponentAchievement {
+    component: string;
+    component_name: string;
+    total_quantity: number;
+    total_animals_benefitted: number;
+    total_amount: number;
+    total_subsidy: number;
+    total_land_covered?: number;
+    total_applications: number;
+    total_claims: number;
+}
+
+interface ReportData {
+    component: string;
+    component_name: string;
+    total_quantity: number;
+    total_animals_benefitted: number;
+    total_amount: number;
+    total_subsidy: number;
+    total_land_covered?: number;
+    total_applications: number;
+    total_claims: number;
+    physical_percentage: number;
+    financial_percentage: number;
+}
+
+interface CostBreakdown {
+    beneficiary_share: number;
+    subsidy_share: number;
+    total: number;
+}
+
+interface TotalExpenditure {
+    benenficiary_share_total: number;
+    subsidy_share_total: number;
+    total: number;
+}
+
+interface AnimalInductionTotals {
+    cow_count: number;
+    buffalo_count: number;
+    crossbreed_count: number;
+    animal_cost: CostBreakdown;
+    collar_cost: CostBreakdown;
+    premium_paid: CostBreakdown;
+    transportation_cost: CostBreakdown;
+    total_expenditure: TotalExpenditure;
+}
+
+interface AnimalInductionMPRResponse {
+    message: {
+        [key: string]: any;
+        total_cows?: number;
+        total_buffaloes?: number;
+    };
+}
+
+interface HGMDistrictData {
+    cow_count: number;
+    buffalo_count: number;
+    crossbreed_count?: number;
+    beneficiary_share: number;
+    subsidy: number;
+    total: number;
+}
+
+interface HGMTotals {
+    total_cows: number;
+    total_buffaloes: number;
+    total_crossbreeds?: number;
+    total_beneficiary_share: number;
+    total_subsidy: number;
+    grand_total: number;
+}
+
+interface HGMMPRResponse {
+    message: {
+        districts: {
+            [districtName: string]: HGMDistrictData;
+        };
+        totals: HGMTotals;
+    };
+}
+
+export default function MPRPage() {
+    const [reportData, setReportData] = useState<ReportData[]>([]);
+    const [expandedComponents, setExpandedComponents] = useState<Set<string>>(new Set());
+    const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+    const currentDate = new Date();
+    const [selectedMonth, setSelectedMonth] = useState<string>(String(currentDate.getMonth() + 1));
+    const [selectedYear, setSelectedYear] = useState<string>(String(currentDate.getFullYear()));
+
+    const { data: apiData, isLoading, error } = useFrappeGetCall<FrappeCustomApiResponse<any>>(
+        'vmddp_app.api.v1.secretory.get_dbt_claims_summary'
+    );
+
+    const { data: animalInductionData, isLoading: animalInductionLoading } = useFrappeGetCall<AnimalInductionMPRResponse>(
+        'vmddp_app.api.v1.accountant.animal_induction_mpr',
+        {
+            month: parseInt(selectedMonth),
+            year: parseInt(selectedYear),
+        },
+        undefined,
+        { revalidateOnFocus: false }
+    );
+
+    const { data: hgmData, isLoading: hgmLoading } = useFrappeGetCall<HGMMPRResponse>(
+        'vmddp_app.api.v1.accountant.hgm_mpr',
+        {
+            month: parseInt(selectedMonth),
+            year: parseInt(selectedYear),
+        },
+        undefined,
+        { revalidateOnFocus: false }
+    );
+
+    const animalInductionTotals = useMemo(() => {
+        if (!animalInductionData?.message) {
+            return null;
+        }
+        const data = animalInductionData.message;
+        const result = {
+            cow_count: 0,
+            buffalo_count: 0,
+            crossbreed_count: 0,
+            animal_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
+            collar_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
+            premium_paid: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
+            transportation_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
+            total_expenditure: { benenficiary_share_total: 0, subsidy_share_total: 0, total: 0 },
+        };
+
+        Object.entries(data).forEach(([key, value]: [string, any]) => {
+            if (key !== 'total_cows' && key !== 'total_buffaloes' && typeof value === 'object' && value !== null) {
+                result.cow_count += value.cow_count || 0;
+                result.buffalo_count += value.buffalo_count || 0;
+                result.crossbreed_count += value.crossbreed_count || 0;
+                result.animal_cost.beneficiary_share += value.animal_cost?.beneficiary_share || 0;
+                result.animal_cost.subsidy_share += value.animal_cost?.subsidy_share || 0;
+                result.animal_cost.total += value.animal_cost?.total || 0;
+                result.collar_cost.beneficiary_share += value.collar_cost?.beneficiary_share || 0;
+                result.collar_cost.subsidy_share += value.collar_cost?.subsidy_share || 0;
+                result.collar_cost.total += value.collar_cost?.total || 0;
+                result.premium_paid.beneficiary_share += value.premium_paid?.beneficiary_share || 0;
+                result.premium_paid.subsidy_share += value.premium_paid?.subsidy_share || 0;
+                result.premium_paid.total += value.premium_paid?.total || 0;
+                result.transportation_cost.beneficiary_share += value.transportation_cost?.beneficiary_share || 0;
+                result.transportation_cost.subsidy_share += value.transportation_cost?.subsidy_share || 0;
+                result.transportation_cost.total += value.transportation_cost?.total || 0;
+                result.total_expenditure.benenficiary_share_total += value.total_expenditure?.benenficiary_share_total || 0;
+                result.total_expenditure.subsidy_share_total += value.total_expenditure?.subsidy_share_total || 0;
+                result.total_expenditure.total += value.total_expenditure?.total || 0;
+            }
+        });
+
+        return result;
+    }, [animalInductionData]);
+
+    const hgmTotals = hgmData?.message?.totals || null;
+
+    useEffect(() => {
+        if (apiData?.message) {
+            const transformedData = transformApiData(apiData.message);
+            setReportData(transformedData);
+        }
+    }, [apiData]);
+    
+
+    const transformApiData = (apiData: any): ReportData[] => {
+        return Object.entries(apiData.dbt_claims_by_component || {}).map(([key, value]: [string, any]) => {
+            const isFodderSeed = value.component_name === 'Fodder Seed';
+            return {
+                component: key,
+                component_name: value.component_name || key,
+                total_quantity: value.total_quantity || 0,
+                total_animals_benefitted: value.total_animals_benefitted || 0,
+                total_amount: value.total_amount || 0,
+                total_subsidy: value.total_subsidy || 0,
+                total_land_covered: isFodderSeed ? value.total_land_covered : undefined,
+                total_applications: value.total_applications || 0,
+                total_claims: value.total_claims || 0,
+                physical_percentage: calculatePercentage(value.total_animals_benefitted, value.total_quantity),
+                financial_percentage: calculatePercentage(value.total_subsidy, value.total_amount),
+            };
+        });
+    };
+
+    const calculatePercentage = (value: number, total: number): number => {
+        if (total === 0) return 0;
+        return Number(((value / total) * 100).toFixed(2));
+    };
+
+    const formatCurrency = (value: number): string => {
+        if (value === 0) return '0.00';
+        const lakhs = value / 100000;
+        return lakhs.toFixed(2);
+    };
+
+    const formatCurrencyRupees = (value: number): string => {
+        if (value === 0) return '0';
+        return new Intl.NumberFormat('en-IN').format(value);
+    };
+
+    const formatNumber = (value: number): string => {
+        return value.toFixed(2);
+    };
+
+    const toggleComponent = (componentId: string) => {
+        const newExpanded = new Set(expandedComponents);
+        if (newExpanded.has(componentId)) {
+            newExpanded.delete(componentId);
+        } else {
+            newExpanded.add(componentId);
+        }
+        setExpandedComponents(newExpanded);
+    };
+
+    const toggleSection = (sectionId: string) => {
+        const newExpanded = new Set(expandedSections);
+        if (newExpanded.has(sectionId)) {
+            newExpanded.delete(sectionId);
+        } else {
+            newExpanded.add(sectionId);
+        }
+        setExpandedSections(newExpanded);
+    };
+
+    if (isLoading || animalInductionLoading || hgmLoading) {
+        return (
+            <div className="flex-1 overflow-auto">
+                <div className="p-8">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Target & Achievement Report</CardTitle>
+                            <CardDescription>Jun-25</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4">
+                                {[...Array(5)].map((_, i) => (
+                                    <Skeleton key={i} className="h-12 w-full" />
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        );
+    }
+
+    const errorMessage = error instanceof Error ? error.message : 'Failed to load report data';
+
+    return (
+        <div className="flex-1 overflow-auto">
+            <div className="p-8 space-y-8">
+                {/* DBT Claims Section */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>DBT Claims - Target & Achievement Report</CardTitle>
+                        <CardDescription>Jun-25</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {error && (
+                            <Alert variant="destructive" className="mb-4">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertDescription>{errorMessage}</AlertDescription>
+                            </Alert>
+                        )}
+
+                        {reportData.length === 0 ? (
+                            <div className="text-center py-8 text-gray-500">
+                                No data available for the selected period.
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {reportData.map((report, idx) => {
+                                    const isExpanded = expandedComponents.has(report.component);
+                                    const hasLandCovered = report.total_land_covered !== undefined;
+                                    
+                                    return (
+                                        <Card key={idx} className="overflow-hidden">
+                                            <div
+                                                className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                                                onClick={() => toggleComponent(report.component)}
+                                            >
+                                                <h3 className="text-lg font-semibold text-gray-900">
+                                                    {report.component_name}
+                                                </h3>
+                                                <ChevronDown
+                                                    className={`w-5 h-5 text-gray-600 transition-transform ${
+                                                        isExpanded ? 'rotate-180' : ''
+                                                    }`}
+                                                />
+                                            </div>
+
+                                            {isExpanded && (
+                                                <div className="border-t px-4 py-4">
+                                                    <div className="overflow-x-auto">
+                                                        <table className="w-full border-collapse border border-gray-300">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th colSpan={3} className="bg-blue-100 border border-gray-300 text-center font-bold p-2">
+                                                                        Physical Achievement
+                                                                    </th>
+                                                                    <th className="bg-white border-0"></th>
+                                                                    <th colSpan={hasLandCovered ? 4 : 3} className="bg-green-100 border border-gray-300 text-center font-bold p-2">
+                                                                        Financial Achievement
+                                                                    </th>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">TOTAL QUANTITY</th>
+                                                                    <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">TOTAL ANIMALS BENEFITTED</th>
+                                                                    <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">PERCENTAGE</th>
+                                                                    <th className="bg-white border-0"></th>
+                                                                    <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">TOTAL AMOUNT</th>
+                                                                    <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">TOTAL SUBSIDY</th>
+                                                                    <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">PERCENTAGE</th>
+                                                                    {hasLandCovered && (
+                                                                        <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">TOTAL LAND COVERED</th>
+                                                                    )}
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td className="border border-gray-300 p-2 text-center">{formatNumber(report.total_quantity)}</td>
+                                                                    <td className="border border-gray-300 p-2 text-center">{formatNumber(report.total_animals_benefitted)}</td>
+                                                                    <td className="border border-gray-300 p-2 text-center font-semibold text-blue-600">
+                                                                        {report.total_quantity === 0
+                                                                            ? '#DIV/0!' 
+                                                                            : `${report.physical_percentage}%`
+                                                                        }
+                                                                    </td>
+                                                                    <td className="bg-white border-0"></td>
+                                                                    <td className="border border-gray-300 p-2 text-center">{formatCurrency(report.total_amount)}</td>
+                                                                    <td className="border border-gray-300 p-2 text-center">{formatCurrency(report.total_subsidy)}</td>
+                                                                    <td className="border border-gray-300 p-2 text-center font-semibold text-green-600">
+                                                                        {report.total_amount === 0
+                                                                            ? '#DIV/0!' 
+                                                                            : `${report.financial_percentage}%`
+                                                                        }
+                                                                    </td>
+                                                                    {hasLandCovered && (
+                                                                        <td className="border border-gray-300 p-2 text-center">{formatNumber(report.total_land_covered!)}</td>
+                                                                    )}
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Animal Induction Section */}
+                {animalInductionTotals && (
+                    <Card>
+                        <div
+                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                            onClick={() => toggleSection('animalInduction')}
+                        >
+                            <div>
+                                <CardTitle>Animal Induction MPR - Total Summary</CardTitle>
+                                <CardDescription>Induction of High Genetic Merit Dairy Animals</CardDescription>
+                            </div>
+                            <ChevronDown
+                                className={`w-5 h-5 text-gray-600 transition-transform flex-shrink-0 ml-2 ${
+                                    expandedSections.has('animalInduction') ? 'rotate-180' : ''
+                                }`}
+                            />
+                        </div>
+                        {expandedSections.has('animalInduction') && (
+                            <CardContent>
+                                <div className="overflow-x-auto">
+                                <table className="w-full border-collapse border border-gray-300">
+                                    <thead>
+                                        <tr>
+                                            <th colSpan={3} className="bg-yellow-100 border border-gray-300 text-center font-bold p-2">
+                                                Physical Achievement
+                                            </th>
+                                            <th colSpan={16} className="bg-green-100 border border-gray-300 text-center font-bold p-2">
+                                                Financial Achievement
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">No. of Cow</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">No. of Cross-breed</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">No. of Buffalo</th>
+                                            <th colSpan={3} className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Animal Cost (Rs.)</th>
+                                            <th colSpan={3} className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Digital Collar (Rs.)</th>
+                                            <th colSpan={3} className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Insurance (Rs.)</th>
+                                            <th colSpan={3} className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Transportation (Rs.)</th>
+                                            <th colSpan={3} className="border border-gray-300 bg-green-50 p-2 text-center text-sm font-medium">Total Expenditure (Rs.)</th>
+                                        </tr>
+                                        <tr>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium"></th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium"></th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium"></th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium">Beneficiary</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium">Subsidy</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium">Total</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium">Beneficiary</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium">Subsidy</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium">Total</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium">Beneficiary</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium">Subsidy</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium">Total</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium">Beneficiary</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium">Subsidy</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium">Total</th>
+                                            <th className="border border-gray-300 bg-green-50 p-2 text-center text-xs font-medium">Beneficiary</th>
+                                            <th className="border border-gray-300 bg-green-50 p-2 text-center text-xs font-medium">Subsidy</th>
+                                            <th className="border border-gray-300 bg-green-50 p-2 text-center text-xs font-medium">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td className="border border-gray-300 p-2 text-center">{animalInductionTotals.cow_count}</td>
+                                            <td className="border border-gray-300 p-2 text-center">{animalInductionTotals.crossbreed_count}</td>
+                                            <td className="border border-gray-300 p-2 text-center">{animalInductionTotals.buffalo_count}</td>
+                                            <td className="border border-gray-300 p-2 text-right">{formatCurrencyRupees(animalInductionTotals.animal_cost.beneficiary_share)}</td>
+                                            <td className="border border-gray-300 p-2 text-right">{formatCurrencyRupees(animalInductionTotals.animal_cost.subsidy_share)}</td>
+                                            <td className="border border-gray-300 p-2 text-right font-semibold">{formatCurrencyRupees(animalInductionTotals.animal_cost.total)}</td>
+                                            <td className="border border-gray-300 p-2 text-right">{formatCurrencyRupees(animalInductionTotals.collar_cost.beneficiary_share)}</td>
+                                            <td className="border border-gray-300 p-2 text-right">{formatCurrencyRupees(animalInductionTotals.collar_cost.subsidy_share)}</td>
+                                            <td className="border border-gray-300 p-2 text-right font-semibold">{formatCurrencyRupees(animalInductionTotals.collar_cost.total)}</td>
+                                            <td className="border border-gray-300 p-2 text-right">{formatCurrencyRupees(animalInductionTotals.premium_paid.beneficiary_share)}</td>
+                                            <td className="border border-gray-300 p-2 text-right">{formatCurrencyRupees(animalInductionTotals.premium_paid.subsidy_share)}</td>
+                                            <td className="border border-gray-300 p-2 text-right font-semibold">{formatCurrencyRupees(animalInductionTotals.premium_paid.total)}</td>
+                                            <td className="border border-gray-300 p-2 text-right">{formatCurrencyRupees(animalInductionTotals.transportation_cost.beneficiary_share)}</td>
+                                            <td className="border border-gray-300 p-2 text-right">{formatCurrencyRupees(animalInductionTotals.transportation_cost.subsidy_share)}</td>
+                                            <td className="border border-gray-300 p-2 text-right font-semibold">{formatCurrencyRupees(animalInductionTotals.transportation_cost.total)}</td>
+                                            <td className="border border-gray-300 p-2 text-right bg-green-50">{formatCurrencyRupees(animalInductionTotals.total_expenditure.benenficiary_share_total)}</td>
+                                            <td className="border border-gray-300 p-2 text-right bg-green-50">{formatCurrencyRupees(animalInductionTotals.total_expenditure.subsidy_share_total)}</td>
+                                            <td className="border border-gray-300 p-2 text-right font-semibold bg-green-50">{formatCurrencyRupees(animalInductionTotals.total_expenditure.total)}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+                            </CardContent>
+                        )}
+                    </Card>
+                )}
+
+                {/* HGM MPR Section */}
+                {hgmTotals && (
+                    <Card>
+                        <div
+                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                            onClick={() => toggleSection('hgm')}
+                        >
+                            <div>
+                                <CardTitle>HGM (Pregnant Cow) MPR - Total Summary</CardTitle>
+                                <CardDescription>Supply Of High Genetic Merit Pregnant Heifers (IVF/ETT)</CardDescription>
+                            </div>
+                            <ChevronDown
+                                className={`w-5 h-5 text-gray-600 transition-transform flex-shrink-0 ml-2 ${
+                                    expandedSections.has('hgm') ? 'rotate-180' : ''
+                                }`}
+                            />
+                        </div>
+                        {expandedSections.has('hgm') && (
+                            <CardContent>
+                                <div className="overflow-x-auto">
+                                <table className="w-full border-collapse border border-gray-300">
+                                    <thead>
+                                        <tr>
+                                            <th colSpan={2} className="bg-blue-100 border border-gray-300 text-center font-bold p-2">
+                                                Physical Achievement
+                                            </th>
+                                            <th colSpan={3} className="bg-green-100 border border-gray-300 text-center font-bold p-2">
+                                                Financial Achievement
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">No. of Cow</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">No. of Buffalo</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Beneficiary Share (Rs.)</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Subsidy (Rs.)</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Total (Rs.)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td className="border border-gray-300 p-2 text-center">{hgmTotals.total_cows}</td>
+                                            <td className="border border-gray-300 p-2 text-center">{hgmTotals.total_buffaloes}</td>
+                                            <td className="border border-gray-300 p-2 text-right">{formatCurrencyRupees(hgmTotals.total_beneficiary_share)}</td>
+                                            <td className="border border-gray-300 p-2 text-right">{formatCurrencyRupees(hgmTotals.total_subsidy)}</td>
+                                            <td className="border border-gray-300 p-2 text-right font-semibold">{formatCurrencyRupees(hgmTotals.grand_total)}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+                            </CardContent>
+                        )}
+                    </Card>
+                )}
+            </div>
+        </div>
+    );
+}
