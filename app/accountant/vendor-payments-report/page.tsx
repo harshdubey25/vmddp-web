@@ -180,9 +180,8 @@ export default function VendorPaymentsReport() {
                                         <Building2 className="h-5 w-5 text-purple-600" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Unique Vendors</p>
-                                        <p className="text-2xl font-bold">{new Set(vendorPayments.map(p => p.vendor)).size}</p>
-                                        <p className="text-xs text-muted-foreground">Paid vendors</p>
+                                        <p className="text-sm text-muted-foreground"> Vendors</p>
+                                        <p className="text-2xl font-bold">{vendors?.length}</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -469,7 +468,7 @@ export default function VendorPaymentsReport() {
                                                             </div>
                                                             <div>
                                                                 <p className="text-xs text-muted-foreground">Allocated Amount</p>
-                                                                <p className="font-semibold text-green-600">₹{allocation.amount.toLocaleString("en-IN")}</p>
+                                                                <p className="font-semibold text-green-600">₹uni{allocation.amount.toLocaleString("en-IN")}</p>
                                                             </div>
                                                         </div>
                                                     </CardContent>
