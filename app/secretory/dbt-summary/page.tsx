@@ -217,7 +217,7 @@ export default function MPRPage() {
     const formatCurrency = (value: number): string => {
         if (value === 0) return '0.00';
         const lakhs = value / 100000;
-        return lakhs.toFixed(2);
+        return lakhs.toFixed(3);
     };
 
     const formatCurrencyRupees = (value: number): string => {
@@ -335,7 +335,7 @@ export default function MPRPage() {
                                                                     <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">TOTAL ANIMALS BENEFITTED</th>
                                                                     <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">PERCENTAGE</th>
                                                                     <th className="bg-white border-0"></th>
-                                                                    <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">TOTAL AMOUNT</th>
+                                                                    <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">TOTAL AMOUNT (In LAKH)</th>
                                                                     <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">TOTAL SUBSIDY</th>
                                                                     <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">PERCENTAGE</th>
                                                                     {hasLandCovered && (
