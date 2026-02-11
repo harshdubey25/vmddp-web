@@ -73,7 +73,6 @@ export default function TargetAchievement() {
 
     const { data: componentsData } = useFrappeGetDocList<Component>("Component", {
         fields: ["name"],
-        filters: [["subadmin_component", "=", 0]],
         orderBy: { field: "name", order: "asc" },
     });
 
