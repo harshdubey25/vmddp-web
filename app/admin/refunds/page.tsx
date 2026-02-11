@@ -266,6 +266,7 @@ export default function AdminRefundsApproval() {
                 // Submit the document (docstatus = 1)
                 await updateDoc("Refund", currentRefund.name, {
                     docstatus: 1,
+                    status: "Approved",
                 });
 
                 toast({
@@ -276,6 +277,7 @@ export default function AdminRefundsApproval() {
                 // Cancel the document (docstatus = 2)
                 await updateDoc("Refund", currentRefund.name, {
                     docstatus: 2,
+                    status: "Rejected",
                 });
 
                 toast({
