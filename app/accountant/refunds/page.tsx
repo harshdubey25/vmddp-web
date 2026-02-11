@@ -191,11 +191,13 @@ export default function Refunds() {
                 transanction_date: transactionDate,
                 refund_amount: currentRefund.refund_amount,
                 component_allocation: currentRefund.component_allocation_id,
+                status: "Pending",
+                docstatus: 0, // Draft status - requires admin approval
             });
 
             toast({
-                title: "Refund Processed",
-                description: `Refund of ₹${currentRefund.refund_amount.toLocaleString("en-IN")} has been recorded successfully.`,
+                title: "Refund Submitted for Approval",
+                description: `Refund of ₹${currentRefund.refund_amount.toLocaleString("en-IN")} has been submitted for admin approval.`,
             });
 
             setShowDBTDialog(false);
@@ -252,10 +254,10 @@ export default function Refunds() {
                     <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-3">
                         <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5" />
                         <div>
-                            <h4 className="font-medium text-blue-700 dark:text-blue-300">Auto-Calculated Refunds</h4>
+                            <h4 className="font-medium text-blue-700 dark:text-blue-300">Auto-Calculated Refunds with Admin Approval</h4>
                             <p className="text-sm text-blue-600 dark:text-blue-400">
                                 Refunds are automatically calculated when the actual subsidy is less than the DD amount collected. The
-                                difference is refunded to the beneficiary via Direct Benefit Transfer (DBT).
+                                difference is refunded to the beneficiary via Direct Benefit Transfer (DBT). All refund requests require admin approval before processing.
                             </p>
                         </div>
                     </div>
@@ -727,7 +729,7 @@ export default function Refunds() {
                             <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 rounded-lg text-sm text-blue-700 dark:text-blue-300 flex items-start gap-2">
                                 <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                                 <span>
-                                    Please ensure the bank details are verified before proceeding with the transfer.
+                                    Please ensure the bank details and transaction information are verified before submitting. This request will be sent to admin for approval.
                                 </span>
                             </div>
                         </div>
@@ -741,10 +743,10 @@ export default function Refunds() {
                             {submitting ? (
                                 <>
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    Processing...
+                                    Submitting...
                                 </>
                             ) : (
-                                "Process Transfer"
+                                "Submit for Approval"
                             )}
                         </Button>
                     </DialogFooter>

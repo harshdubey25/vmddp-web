@@ -53,6 +53,11 @@ const adminMenuItems: MenuItem[] = [
   { icon: TargetIcon, label: "Target Allocation", path: "/admin/target-allocation" },
   { icon: Target, label: "Target and Achievement", path: "/admin/target-achievement" },
   { icon: FileCheck, label: "Parantage Confirmation", path: "/admin/parantage-confirmation" },
+  {
+    icon: RefreshCcw,
+    label: "Refund Approval",
+    path: "/admin/refunds",
+  },
   { icon: BarChart3, label: "Reports", path: "/admin/reports" },
   { type: "separator", label: "Target Based Allocation" },
   { icon: GraduationCap, label: "Farmer Training", path: "/admin/farmer-training" },
