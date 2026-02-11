@@ -39,6 +39,8 @@ interface ReportData {
     component_name: string;
     total_quantity: number;
     total_animals_benefitted: number;
+    physical_target: number;
+    financial_target: number;
     total_amount: number;
     total_subsidy: number;
     total_land_covered?: number;
@@ -199,19 +201,16 @@ export default function MPRPage() {
                 total_quantity: value.total_quantity || 0,
                 total_animals_benefitted: value.total_animals_benefitted || 0,
                 total_amount: value.total_amount || 0,
+                physical_target: value.physical_target || 0,
+                financial_target: value.financial_target || 0,
                 total_subsidy: value.total_subsidy || 0,
                 total_land_covered: isFodderSeed ? value.total_land_covered : undefined,
                 total_applications: value.total_applications || 0,
                 total_claims: value.total_claims || 0,
-                physical_percentage: calculatePercentage(value.total_animals_benefitted, value.total_quantity),
-                financial_percentage: calculatePercentage(value.total_subsidy, value.total_amount),
-            };
+                physical_percentage: value.physical_percentage || 0,
+                financial_percentage: value.financial_percentage || 0,
+                };
         });
-    };
-
-    const calculatePercentage = (value: number, total: number): number => {
-        if (total === 0) return 0;
-        return Number(((value / total) * 100).toFixed(2));
     };
 
     const formatCurrency = (value: number): string => {
@@ -228,6 +227,11 @@ export default function MPRPage() {
     const formatNumber = (value: number): string => {
         return value.toFixed(2);
     };
+
+    const formatPercentage =(value: number): string =>{
+        return `${value.toFixed(2)}%`;
+    }
+
 
     const toggleComponent = (componentId: string) => {
         const newExpanded = new Set(expandedComponents);
@@ -322,19 +326,21 @@ export default function MPRPage() {
                                                         <table className="w-full border-collapse border border-gray-300">
                                                             <thead>
                                                                 <tr>
-                                                                    <th colSpan={3} className="bg-blue-100 border border-gray-300 text-center font-bold p-2">
+                                                                    <th colSpan={4} className="bg-blue-100 border border-gray-300 text-center font-bold p-2">
                                                                         Physical Achievement
                                                                     </th>
                                                                     <th className="bg-white border-0"></th>
-                                                                    <th colSpan={hasLandCovered ? 4 : 3} className="bg-green-100 border border-gray-300 text-center font-bold p-2">
+                                                                    <th colSpan={hasLandCovered ? 4 : 4} className="bg-green-100 border border-gray-300 text-center font-bold p-2">
                                                                         Financial Achievement
                                                                     </th>
                                                                 </tr>
                                                                 <tr>
+                                                                    <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">PHYSICAL TARGET</th>
                                                                     <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">TOTAL QUANTITY</th>
                                                                     <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">TOTAL ANIMALS BENEFITTED</th>
                                                                     <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">PERCENTAGE</th>
                                                                     <th className="bg-white border-0"></th>
+                                                                    <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">FINANCIAL TARGET</th>
                                                                     <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">TOTAL AMOUNT (In LAKH)</th>
                                                                     <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">TOTAL SUBSIDY</th>
                                                                     <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">PERCENTAGE</th>
@@ -345,22 +351,18 @@ export default function MPRPage() {
                                                             </thead>
                                                             <tbody>
                                                                 <tr>
+                                                                    <td className="border border-gray-300 p-2 text-center">{formatNumber(report.physical_target)}</td>
                                                                     <td className="border border-gray-300 p-2 text-center">{formatNumber(report.total_quantity)}</td>
                                                                     <td className="border border-gray-300 p-2 text-center">{formatNumber(report.total_animals_benefitted)}</td>
                                                                     <td className="border border-gray-300 p-2 text-center font-semibold text-blue-600">
-                                                                        {report.total_quantity === 0
-                                                                            ? '#DIV/0!' 
-                                                                            : `${report.physical_percentage}%`
-                                                                        }
+                                                                        {formatPercentage(report.physical_percentage)}
                                                                     </td>
                                                                     <td className="bg-white border-0"></td>
+                                                                    <td className="border border-gray-300 p-2 text-center">{formatCurrency(report.financial_target)}</td>
                                                                     <td className="border border-gray-300 p-2 text-center">{formatCurrency(report.total_amount)}</td>
                                                                     <td className="border border-gray-300 p-2 text-center">{formatCurrency(report.total_subsidy)}</td>
                                                                     <td className="border border-gray-300 p-2 text-center font-semibold text-green-600">
-                                                                        {report.total_amount === 0
-                                                                            ? '#DIV/0!' 
-                                                                            : `${report.financial_percentage}%`
-                                                                        }
+                                                                        {formatPercentage(report.financial_percentage)}
                                                                     </td>
                                                                     {hasLandCovered && (
                                                                         <td className="border border-gray-300 p-2 text-center">{formatNumber(report.total_land_covered!)}</td>
