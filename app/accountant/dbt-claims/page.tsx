@@ -119,10 +119,10 @@ export default function DBTClaims() {
     }
 
     const stats = {
-        total_disbursed_amount: (disbursedClaims || []).reduce((sum, claim) => sum + (claim.total_amount || 0), 0),
-        total_claims_processed: disbursedClaims?.length || 0,
-        total_beneficiaries: new Set((disbursedClaims || []).map(c => c.app_form)).size,
-        total_components: new Set((disbursedClaims || []).map(c => c.component)).size,
+        total_subsidy_amount: dbtStats?.message.total_subsidy_amount || 0,
+        total_claims_processed: dbtStats?.message.claims_count || 0,
+        total_beneficiaries: dbtStats?.message.applications_count || 0,
+        total_components: components?.length || 0,
     };
 
     const handleExport = () => {
@@ -170,11 +170,6 @@ export default function DBTClaims() {
                 <div className="p-6 space-y-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            {/* <Link href="/accountant/dashboard">
-                                <Button variant="ghost" size="icon" data-testid="button-back">
-                                    <ArrowLeft className="h-5 w-5" />
-                                </Button>
-                            </Link> */}
                             <div>
                                 <h1 className="text-2xl font-display font-bold" data-testid="text-page-title">
                                     DBT Claims
@@ -196,8 +191,8 @@ export default function DBTClaims() {
                                         <CheckCircle className="h-5 w-5 text-green-600" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Total Disbursed</p>
-                                        <p className="text-2xl font-bold">₹{stats.total_disbursed_amount}</p>
+                                        <p className="text-sm text-muted-foreground">Total Subsidy</p>
+                                        <p className="text-2xl font-bold">₹{stats.total_subsidy_amount}</p>
                                         <p className="text-xs text-muted-foreground">{stats.total_claims_processed} claims processed</p>
                                     </div>
                                 </div>
@@ -249,7 +244,7 @@ export default function DBTClaims() {
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex flex-wrap gap-4 items-center">
-                                        <Select onValueChange={handleSelectedComponentChange} data-testid="select-component">
+                                        <Select value={selectedComponent?.name || ""} onValueChange={handleSelectedComponentChange} data-testid="select-component">
                                             <SelectTrigger className="w-52" data-testid="select-beneficiary-component">
                                                 <SelectValue placeholder="Select Component" />
                                             </SelectTrigger>
