@@ -95,8 +95,6 @@ export default function Refunds() {
     const [paidPage, setPaidPage] = useState(1);
     const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
     const [paidDistrict, setPaidDistrict] = useState<string | null>(null);
-    const [transactionId, setTransactionId] = useState("");
-    const [transactionDate, setTransactionDate] = useState("");
     const [submitError, setSubmitError] = useState<string | null>(null);
 
     const { toast } = useToast();
@@ -163,8 +161,6 @@ export default function Refunds() {
 
     const handleOpenDBTDialog = (refund: PendingRefund) => {
         setCurrentRefund(refund);
-        setTransactionId("");
-        setTransactionDate("");
         setSubmitError(null);
         setShowDBTDialog(true);
     };
@@ -172,23 +168,12 @@ export default function Refunds() {
     const handleSubmitRefund = async () => {
         if (!currentRefund) return;
 
-        if (!transactionId.trim()) {
-            setSubmitError("Transaction ID is required");
-            return;
-        }
-        if (!transactionDate) {
-            setSubmitError("Transaction Date is required");
-            return;
-        }
-
         setSubmitError(null);
 
         try {
             await createDoc("Refund", {
                 application: currentRefund.application_id,
                 component: currentRefund.component,
-                transanction_id: transactionId.trim(),
-                transanction_date: transactionDate,
                 refund_amount: currentRefund.refund_amount,
                 component_allocation: currentRefund.component_allocation_id,
                 status: "Pending",
@@ -695,30 +680,6 @@ export default function Refunds() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Transaction ID <span className="text-destructive">*</span></Label>
-                                    <Input
-                                        placeholder="Enter TXN ID"
-                                        value={transactionId}
-                                        onChange={(e) => setTransactionId(e.target.value)}
-                                        disabled={submitting}
-                                        data-testid="input-transaction-id"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Transaction Date <span className="text-destructive">*</span></Label>
-                                    <Input
-                                        type="date"
-                                        value={transactionDate}
-                                        onChange={(e) => setTransactionDate(e.target.value)}
-                                        disabled={submitting}
-                                        data-testid="input-transaction-date"
-                                    />
-                                </div>
-                            </div>
-
                             {submitError && (
                                 <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive flex items-start gap-2">
                                     <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
@@ -729,7 +690,7 @@ export default function Refunds() {
                             <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 rounded-lg text-sm text-blue-700 dark:text-blue-300 flex items-start gap-2">
                                 <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                                 <span>
-                                    Please ensure the bank details and transaction information are verified before submitting. This request will be sent to admin for approval.
+                                    Please ensure the bank details are verified before submitting. This request will be sent to admin for approval. Transaction details will be added by admin during approval.
                                 </span>
                             </div>
                         </div>
