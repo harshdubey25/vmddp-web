@@ -1,7 +1,6 @@
 "use client"
 import Link from "next/link";
 import {
-    ArrowLeft,
     FileText,
     User,
     Download,
@@ -9,12 +8,11 @@ import {
     Banknote,
     Info,
     Loader2,
-    ExternalLink,
     Search,
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +52,13 @@ const PAGE_SIZE = 20;
 export default function DBTClaims() {
     const { data: components } = useFrappeGetDocList<Pick<Component, 'name' | 'subsidy_percent' | 'maximum_subsidy_amount' | 'rate_per_kg' | 'max_quantity' | 'multiple_claims_allowed'>>("Component", { fields: ['name', 'subsidy_percent', 'maximum_subsidy_amount', 'rate_per_kg', 'max_quantity', 'multiple_claims_allowed'], filters: [['for_dbt_claims', '=', '1']] });
     const [selectedComponent, setSelectedComponent] = useState<{ name: string, subsidy_percent: number, maximum_subsidy_amount: number, rate_per_kg: number, max_quantity: number, multiple_claims_allowed: boolean } | null>(null);
+
+    // Auto-select first component when list loads
+    useEffect(() => {
+        if (components && components.length > 0 && !selectedComponent) {
+            setSelectedComponent(components[0]);
+        }
+    }, [components]);
 
     // Filter and pagination state
     const [searchText, setSearchText] = useState("");

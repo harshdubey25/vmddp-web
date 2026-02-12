@@ -6,7 +6,7 @@ import { useState, useRef } from 'react'
 import { ApplicationDetails, FrappeCustomApiResponse, QuotaDetails, DBTClaim } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, FileText, Upload, Check, User, Building2, MapPin, CreditCard, ExternalLink, Loader2, LandPlot } from "lucide-react";
+import { ArrowLeft, FileText, Check, User, Building2, MapPin, CreditCard, ExternalLink, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,7 +58,7 @@ export default function ClaimForm({
     // Frappe SDK hooks
     const { data: beneficiaryData, isLoading: loading, error } = useFrappeGetCall<FrappeCustomApiResponse<ApplicationDetails[]>>(
         "vmddp_app.api.v1.accountant.get_application_details",
-        { app_form: appId, for_component_allocation: 0 },
+        { app_form: appId, for_component_allocation: 0, component: component },
         undefined,
         { revalidateOnFocus: false }
     );
