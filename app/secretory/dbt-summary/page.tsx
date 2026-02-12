@@ -62,6 +62,16 @@ interface TotalExpenditure {
     total: number;
 }
 
+interface Target {
+    financial_target: number;
+    physical_target: number;
+}
+
+interface Balance {
+    financial_balance: number;
+    physical_balance: number;
+}
+
 interface AnimalInductionTotals {
     cow_count: number;
     buffalo_count: number;
@@ -71,6 +81,8 @@ interface AnimalInductionTotals {
     premium_paid: CostBreakdown;
     transportation_cost: CostBreakdown;
     total_expenditure: TotalExpenditure;
+    target: Target;
+    balance: Balance;
 }
 
 interface AnimalInductionMPRResponse {
@@ -154,6 +166,8 @@ export default function MPRPage() {
             premium_paid: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
             transportation_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
             total_expenditure: { benenficiary_share_total: 0, subsidy_share_total: 0, total: 0 },
+            target: { financial_target: 0, physical_target: 0 },
+            balance: { financial_balance: 0, physical_balance: 0 },
         };
 
         Object.entries(data).forEach(([key, value]: [string, any]) => {
@@ -176,6 +190,10 @@ export default function MPRPage() {
                 result.total_expenditure.benenficiary_share_total += value.total_expenditure?.benenficiary_share_total || 0;
                 result.total_expenditure.subsidy_share_total += value.total_expenditure?.subsidy_share_total || 0;
                 result.total_expenditure.total += value.total_expenditure?.total || 0;
+                result.target.financial_target += value.target?.financial_target || 0;
+                result.target.physical_target += value.target?.physical_target || 0;
+                result.balance.financial_balance += value.balance?.financial_balance || 0;
+                result.balance.physical_balance += value.balance?.physical_balance || 0;
             }
         });
 
@@ -404,10 +422,10 @@ export default function MPRPage() {
                                 <table className="w-full border-collapse border border-gray-300">
                                     <thead>
                                         <tr>
-                                            <th colSpan={3} className="bg-yellow-100 border border-gray-300 text-center font-bold p-2">
+                                            <th colSpan={5} className="bg-yellow-100 border border-gray-300 text-center font-bold p-2">
                                                 Physical Achievement
                                             </th>
-                                            <th colSpan={16} className="bg-green-100 border border-gray-300 text-center font-bold p-2">
+                                            <th colSpan={18} className="bg-green-100 border border-gray-300 text-center font-bold p-2">
                                                 Financial Achievement
                                             </th>
                                         </tr>
@@ -415,13 +433,19 @@ export default function MPRPage() {
                                             <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">No. of Cow</th>
                                             <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">No. of Cross-breed</th>
                                             <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">No. of Buffalo</th>
+                                            <th className="border border-gray-300 bg-yellow-50 p-2 text-center text-sm font-medium">Physical Target</th>
+                                            <th className="border border-gray-300 bg-yellow-50 p-2 text-center text-sm font-medium">Physical Balance</th>
                                             <th colSpan={3} className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Animal Cost (Rs.)</th>
                                             <th colSpan={3} className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Digital Collar (Rs.)</th>
                                             <th colSpan={3} className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Insurance (Rs.)</th>
                                             <th colSpan={3} className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Transportation (Rs.)</th>
                                             <th colSpan={3} className="border border-gray-300 bg-green-50 p-2 text-center text-sm font-medium">Total Expenditure (Rs.)</th>
+                                            <th className="border border-gray-300 bg-green-50 p-2 text-center text-sm font-medium">Financial Target (Rs.)</th>
+                                            <th className="border border-gray-300 bg-green-50 p-2 text-center text-sm font-medium">Financial Balance (Rs.)</th>
                                         </tr>
                                         <tr>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium"></th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium"></th>
                                             <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium"></th>
                                             <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium"></th>
                                             <th className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium"></th>
@@ -447,6 +471,8 @@ export default function MPRPage() {
                                             <td className="border border-gray-300 p-2 text-center">{animalInductionTotals.cow_count}</td>
                                             <td className="border border-gray-300 p-2 text-center">{animalInductionTotals.crossbreed_count}</td>
                                             <td className="border border-gray-300 p-2 text-center">{animalInductionTotals.buffalo_count}</td>
+                                            <td className="border border-gray-300 p-2 text-center bg-yellow-50 font-semibold">{animalInductionTotals.target.physical_target}</td>
+                                            <td className="border border-gray-300 p-2 text-center bg-yellow-50 font-semibold text-orange-600">{animalInductionTotals.balance.physical_balance}</td>
                                             <td className="border border-gray-300 p-2 text-right">{formatCurrencyRupees(animalInductionTotals.animal_cost.beneficiary_share)}</td>
                                             <td className="border border-gray-300 p-2 text-right">{formatCurrencyRupees(animalInductionTotals.animal_cost.subsidy_share)}</td>
                                             <td className="border border-gray-300 p-2 text-right font-semibold">{formatCurrencyRupees(animalInductionTotals.animal_cost.total)}</td>
@@ -462,6 +488,8 @@ export default function MPRPage() {
                                             <td className="border border-gray-300 p-2 text-right bg-green-50">{formatCurrencyRupees(animalInductionTotals.total_expenditure.benenficiary_share_total)}</td>
                                             <td className="border border-gray-300 p-2 text-right bg-green-50">{formatCurrencyRupees(animalInductionTotals.total_expenditure.subsidy_share_total)}</td>
                                             <td className="border border-gray-300 p-2 text-right font-semibold bg-green-50">{formatCurrencyRupees(animalInductionTotals.total_expenditure.total)}</td>
+                                            <td className="border border-gray-300 p-2 text-right bg-green-50 font-semibold">{formatCurrencyRupees(animalInductionTotals.target.financial_target)}</td>
+                                            <td className="border border-gray-300 p-2 text-right bg-green-50 font-semibold text-orange-600">{formatCurrencyRupees(animalInductionTotals.balance.financial_balance)}</td>
                                         </tr>
                                     </tbody>
                                 </table>
