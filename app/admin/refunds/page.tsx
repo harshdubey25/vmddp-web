@@ -20,13 +20,13 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFrappeGetDocList, useFrappeUpdateDoc, useFrappeGetDoc } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappeUpdateDoc, useFrappePostCall } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
 
 // Types
@@ -109,6 +109,8 @@ export default function AdminRefundsApproval() {
     const [currentRefund, setCurrentRefund] = useState<Refund | null>(null);
     const [approvalAction, setApprovalAction] = useState<"approve" | "reject" | null>(null);
     const [rejectionReason, setRejectionReason] = useState("");
+    const [transactionId, setTransactionId] = useState("");
+    const [transactionDate, setTransactionDate] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [approvedPage, setApprovedPage] = useState(1);
     const [rejectedPage, setRejectedPage] = useState(1);
@@ -116,6 +118,7 @@ export default function AdminRefundsApproval() {
 
     const { toast } = useToast();
     const { updateDoc, loading: submitting } = useFrappeUpdateDoc();
+    const { call: cancelDoc } = useFrappePostCall("frappe.client.cancel");
 
     // Fetch districts for filter
     const { data: districts } = useFrappeGetDocList<{ name: string }>("District Master", {
@@ -123,9 +126,10 @@ export default function AdminRefundsApproval() {
         limit: 100
     });
 
-    // Fetch pending approval refunds (docstatus = 0)
+    // Fetch pending approval refunds (docstatus = 0, status = Pending)
     const pendingFilters: any[] = [
         ["docstatus", "=", 0],
+        ["status", "=", "Pending"],
     ];
 
     const { data: pendingRefunds, isLoading: pendingLoading, mutate: mutatePending } = useFrappeGetDocList<Refund>("Refund", {
@@ -181,9 +185,9 @@ export default function AdminRefundsApproval() {
         orderBy: { field: "modified", order: "desc" },
     });
 
-    // Fetch rejected refunds (docstatus = 2)
+    // Fetch rejected refunds (status = Rejected)
     const rejectedFilters: any[] = [
-        ["docstatus", "=", 2],
+        ["status", "=", "Rejected"],
     ];
 
     const { data: rejectedRefunds, isLoading: rejectedLoading } = useFrappeGetDocList<Refund>("Refund", {
@@ -246,11 +250,31 @@ export default function AdminRefundsApproval() {
         setCurrentRefund(refund);
         setApprovalAction(action);
         setRejectionReason("");
+        setTransactionId("");
+        setTransactionDate("");
         setShowApprovalDialog(true);
     };
 
     const handleApprovalAction = async () => {
         if (!currentRefund || !approvalAction) return;
+
+        if (approvalAction === "approve" && !transactionId.trim()) {
+            toast({
+                title: "Transaction ID required",
+                description: "Please enter the transaction ID",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        if (approvalAction === "approve" && !transactionDate) {
+            toast({
+                title: "Transaction date required",
+                description: "Please enter the transaction date",
+                variant: "destructive",
+            });
+            return;
+        }
 
         if (approvalAction === "reject" && !rejectionReason.trim()) {
             toast({
@@ -263,10 +287,12 @@ export default function AdminRefundsApproval() {
 
         try {
             if (approvalAction === "approve") {
-                // Submit the document (docstatus = 1)
+                // Submit the document (docstatus = 1) with transaction details
                 await updateDoc("Refund", currentRefund.name, {
                     docstatus: 1,
-                    status: "Approved",
+                    status: "Paid",
+                    transanction_id: transactionId.trim(),
+                    transanction_date: transactionDate,
                 });
 
                 toast({
@@ -274,10 +300,16 @@ export default function AdminRefundsApproval() {
                     description: `Refund of ₹${currentRefund.refund_amount.toLocaleString("en-IN")} has been approved successfully.`,
                 });
             } else {
-                // Cancel the document (docstatus = 2)
+                // Step 1: Set status to Rejected with reason and submit (docstatus 0→1)
                 await updateDoc("Refund", currentRefund.name, {
-                    docstatus: 2,
                     status: "Rejected",
+                    rejection_reason: rejectionReason.trim(),
+                    docstatus: 1,
+                });
+                // Step 2: Cancel the submitted doc (docstatus 1→2)
+                await cancelDoc({
+                    doctype: "Refund",
+                    name: currentRefund.name,
                 });
 
                 toast({
@@ -326,20 +358,20 @@ export default function AdminRefundsApproval() {
         }
 
         return (
-            <div className="overflow-x-auto -mx-6 sm:mx-0">
+            <div className="border rounded-lg overflow-hidden">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead className="min-w-[120px]">Refund ID</TableHead>
-                            <TableHead className="min-w-[120px]">Application ID</TableHead>
-                            <TableHead className="min-w-[120px]">Component</TableHead>
-                            <TableHead className="min-w-[150px]">Bank Details</TableHead>
-                            <TableHead className="text-right min-w-[120px]">Amount</TableHead>
-                            <TableHead className="min-w-[140px]">Transaction ID</TableHead>
-                            <TableHead className="min-w-[120px]">Transaction Date</TableHead>
-                            <TableHead className="min-w-[120px]">Created On</TableHead>
-                            <TableHead className="min-w-[100px]">Status</TableHead>
-                            {showActions && <TableHead className="min-w-[150px]">Actions</TableHead>}
+                        <TableRow className="bg-muted/50">
+                            <TableHead>Refund ID</TableHead>
+                            <TableHead>Application ID</TableHead>
+                            <TableHead>Component</TableHead>
+                            <TableHead>Bank Details</TableHead>
+                            <TableHead className="text-right">Amount</TableHead>
+                            {!showActions && <TableHead>Transaction ID</TableHead>}
+                            {!showActions && <TableHead>Transaction Date</TableHead>}
+                            <TableHead>Created On</TableHead>
+                            <TableHead>Status</TableHead>
+                            {showActions && <TableHead>Actions</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -365,12 +397,16 @@ export default function AdminRefundsApproval() {
                                 <TableCell className="text-right font-bold text-primary">
                                     ₹{refund.refund_amount.toLocaleString("en-IN")}
                                 </TableCell>
-                                <TableCell>
-                                    <span className="font-mono text-xs">{refund.transanction_id}</span>
-                                </TableCell>
-                                <TableCell>
-                                    {refund.transanction_date ? new Date(refund.transanction_date).toLocaleDateString("en-IN") : "N/A"}
-                                </TableCell>
+                                {!showActions && (
+                                    <TableCell>
+                                        <span className="font-mono text-xs">{refund.transanction_id}</span>
+                                    </TableCell>
+                                )}
+                                {!showActions && (
+                                    <TableCell>
+                                        {refund.transanction_date ? new Date(refund.transanction_date).toLocaleDateString("en-IN") : "N/A"}
+                                    </TableCell>
+                                )}
                                 <TableCell>
                                     {new Date(refund.creation).toLocaleDateString("en-IN")}
                                 </TableCell>
@@ -412,7 +448,7 @@ export default function AdminRefundsApproval() {
     };
 
     return (
-        <div className="h-screen bg-background w-full">
+        <div className="h-screen bg-background overflow-hidden">
             <div className="overflow-auto h-screen">
                 <div className="p-6 space-y-6">
                     {/* Header */}
@@ -466,7 +502,7 @@ export default function AdminRefundsApproval() {
                                         <CheckCircle className="h-5 w-5 text-green-500" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Approved</p>
+                                        <p className="text-sm text-muted-foreground">Paid</p>
                                         <p className="text-2xl font-bold">₹{totalApprovedAmount.toLocaleString("en-IN")}</p>
                                         <p className="text-xs text-muted-foreground">{approvedCount} requests</p>
                                     </div>
@@ -494,7 +530,7 @@ export default function AdminRefundsApproval() {
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                         <TabsList>
                             <TabsTrigger value="pending">Pending ({pendingCount})</TabsTrigger>
-                            <TabsTrigger value="approved">Approved ({approvedCount})</TabsTrigger>
+                            <TabsTrigger value="approved">Paid ({approvedCount})</TabsTrigger>
                             <TabsTrigger value="rejected">Rejected ({rejectedCount})</TabsTrigger>
                         </TabsList>
 
@@ -687,15 +723,7 @@ export default function AdminRefundsApproval() {
                             </div>
 
                             <div className="p-4 border rounded-lg space-y-2 bg-card">
-                                <h4 className="font-medium text-sm mb-3">Transaction Details</h4>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Transaction ID</span>
-                                    <span className="font-mono">{currentRefund.transanction_id}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Transaction Date</span>
-                                    <span>{currentRefund.transanction_date ? new Date(currentRefund.transanction_date).toLocaleDateString("en-IN") : "N/A"}</span>
-                                </div>
+                                <h4 className="font-medium text-sm mb-3">Submission Info</h4>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Created By</span>
                                     <span>{currentRefund.owner}</span>
@@ -705,6 +733,32 @@ export default function AdminRefundsApproval() {
                                     <span>{new Date(currentRefund.creation).toLocaleString("en-IN")}</span>
                                 </div>
                             </div>
+
+                            {approvalAction === "approve" && (
+                                <div className="p-4 border rounded-lg space-y-4 bg-card">
+                                    <h4 className="font-medium text-sm">Transaction Details</h4>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Transaction ID <span className="text-destructive">*</span></Label>
+                                            <Input
+                                                placeholder="Enter TXN ID"
+                                                value={transactionId}
+                                                onChange={(e) => setTransactionId(e.target.value)}
+                                                disabled={submitting}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Transaction Date <span className="text-destructive">*</span></Label>
+                                            <Input
+                                                type="date"
+                                                value={transactionDate}
+                                                onChange={(e) => setTransactionDate(e.target.value)}
+                                                disabled={submitting}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {approvalAction === "reject" && (
                                 <div className="space-y-2">
