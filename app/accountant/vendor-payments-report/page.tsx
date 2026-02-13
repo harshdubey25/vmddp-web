@@ -341,11 +341,11 @@ export default function VendorPaymentsReport() {
                                     <p className="text-sm text-muted-foreground">Vendor</p>
                                     <div className="flex items-center gap-2">
                                         <p className="font-medium">{selectedPayment.vendor_name || selectedPayment.vendor}</p>
-                                        {selectedPayment.for_parantage && (
+                                        {selectedPayment.for_parantage ? (
                                             <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/20">
                                                 Parantage
                                             </Badge>
-                                        )}
+                                        ) : null}
                                     </div>
                                 </div>
                                 <div>
@@ -468,7 +468,7 @@ export default function VendorPaymentsReport() {
                                                             </div>
                                                             <div>
                                                                 <p className="text-xs text-muted-foreground">Allocated Amount</p>
-                                                                <p className="font-semibold text-green-600">₹uni{allocation.amount.toLocaleString("en-IN")}</p>
+                                                                <p className="font-semibold text-green-600">₹{allocation.amount.toLocaleString("en-IN")}</p>
                                                             </div>
                                                         </div>
                                                     </CardContent>
