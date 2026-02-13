@@ -1,0 +1,16 @@
+{
+    "servers": {
+        "frappe-backend": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "frappe-mcp-server"
+            ],
+            "env": {
+                "FRAPPE_URL": "http://localhost:8001",
+                "FRAPPE_API_KEY": "c261c63c0bf256e",
+                "FRAPPE_API_SECRET": "34bb52e1143a12d"
+            }
+        }
+    }
+}

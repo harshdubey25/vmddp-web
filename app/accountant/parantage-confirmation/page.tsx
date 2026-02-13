@@ -84,6 +84,7 @@ export default function Parantage() {
     const [openFormId, setOpenFormId] = useState<string | null>(null);
     const [selectedEntry, setSelectedEntry] = useState<ParantageEntry | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState("pending");
 
     const { data: parantageStats } = useFrappeGetCall<ParantageStats>(
         "vmddp_app.api.v1.accountant.parantage_confirmation_stats",
@@ -97,19 +98,19 @@ export default function Parantage() {
 
     const { data: pendingApprovalData } = useFrappeGetCall<
         FrappeCustomApiResponse<ParantageEntry[]>
-    >("vmddp_app.api.v1.accountant.get_parantage_confirmation_list", {
+    >((activeTab === "ready" ? "vmddp_app.api.v1.accountant.get_parantage_confirmation_list" : null) as string, {
         status: "pending_approval",
     });
 
     const { data: approvedData } = useFrappeGetCall<
         FrappeCustomApiResponse<ParantageEntry[]>
-    >("vmddp_app.api.v1.accountant.get_parantage_confirmation_list", {
+    >((activeTab === "completed" ? "vmddp_app.api.v1.accountant.get_parantage_confirmation_list" : null) as string, {
         status: "approved",
     });
 
     const { data: rejectData } = useFrappeGetCall<
         FrappeCustomApiResponse<ParantageEntry[]>
-    >("vmddp_app.api.v1.accountant.get_parantage_confirmation_list", {
+    >((activeTab === "rejected" ? "vmddp_app.api.v1.accountant.get_parantage_confirmation_list" : null) as string, {
         status: "rejected",
     });
 
@@ -124,8 +125,8 @@ export default function Parantage() {
     };
 
     return (
-        <div className="h-screen bg-background">
-            <div className="overflow-auto h-screen ">
+        <div className="h-screen w-full bg-background">
+            <div className="overflow-auto h-screen">
                 <div className="p-6 space-y-6">
                     {/* Header */}
                     <div className="flex items-center justify-between">
@@ -257,7 +258,7 @@ export default function Parantage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Tabs defaultValue="pending">
+                            <Tabs defaultValue="pending" onValueChange={setActiveTab}>
                                 <TabsList className="mb-4">
                                     <TabsTrigger
                                         value="pending"
