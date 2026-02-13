@@ -73,6 +73,7 @@ export type ParantageEntry = {
     agency_name?: string;
     parantage_status?: string;
     reason?: string;
+    is_paid?: number;
 };
 
 type ParantageStats = FrappeCustomApiResponse<{
@@ -310,23 +311,7 @@ export default function AdminParantageConfirmation() {
                             </CardContent>
                         </Card>
 
-                        <Card data-testid="card-certificate-pending">
-                            <CardContent className="pt-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-gray-500/10">
-                                        <FileText className="h-5 w-5 text-gray-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">
-                                            Certificate Pending
-                                        </p>
-                                        <p className="text-2xl font-bold">
-                                            {parantageStats?.message?.certficate_pending || 0}
-                                        </p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+
 
                         <Card data-testid="card-approved">
                             <CardContent className="pt-6">
@@ -508,7 +493,7 @@ export default function AdminParantageConfirmation() {
                                                     <TableHead>Calf Gender</TableHead>
                                                     <TableHead>Certified By</TableHead>
                                                     <TableHead>Pending Payment</TableHead>
-                                                    <TableHead>Status</TableHead>
+                                                    <TableHead>Payment Status</TableHead>
                                                     <TableHead>Actions</TableHead>
                                                 </TableRow>
                                             </TableHeader>
@@ -554,7 +539,15 @@ export default function AdminParantageConfirmation() {
                                                                 ₹{(entry.pending_amount || 0).toLocaleString("en-IN")}
                                                             </TableCell>
                                                             <TableCell>
-                                                                {getStatusBadge("Approved")}
+                                                                {entry.is_paid === 1 ? (
+                                                                    <Badge className="bg-green-500/10 text-green-600 border-green-500/20" variant="outline">
+                                                                        Paid
+                                                                    </Badge>
+                                                                ) : (
+                                                                    <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20" variant="outline">
+                                                                        Unpaid
+                                                                    </Badge>
+                                                                )}
                                                             </TableCell>
                                                             <TableCell>
                                                                 <Button

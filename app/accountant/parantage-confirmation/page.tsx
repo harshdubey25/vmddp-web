@@ -71,6 +71,7 @@ export type ParantageEntry = {
     agency_name?: string;
     parantage_status?: string;
     reason?: string;
+    is_paid?: number;
 };
 
 type ParantageStats = FrappeCustomApiResponse<{
@@ -500,6 +501,7 @@ export default function Parantage() {
                                                 <TableHead>
                                                     Pending Payment
                                                 </TableHead>
+                                                <TableHead>Payment Status</TableHead>
                                                 <TableHead>Actions</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -545,6 +547,17 @@ export default function Parantage() {
                                                                 0)
                                                         ).toLocaleString(
                                                             "en-IN",
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {entry.is_paid === 1 ? (
+                                                            <Badge className="bg-green-500/10 text-green-600 border-green-500/20" variant="outline">
+                                                                Paid
+                                                            </Badge>
+                                                        ) : (
+                                                            <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20" variant="outline">
+                                                                Unpaid
+                                                            </Badge>
                                                         )}
                                                     </TableCell>
                                                     <TableCell>
