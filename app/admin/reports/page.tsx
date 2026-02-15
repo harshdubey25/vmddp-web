@@ -388,14 +388,6 @@ export default function AdminReports() {
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    {/* <Button variant="outline" onClick={handleExportPDF} data-testid="button-export-pdf">
-                        <Download className="w-4 h-4 mr-2" />
-                        Export PDF
-                    </Button>
-                    <Button variant="outline" onClick={handleExportExcel} data-testid="button-export-excel">
-                        <Download className="w-4 h-4 mr-2" />
-                        Export Excel
-                    </Button> */}
                     <Button
                         variant="default"
                         onClick={() => handleExportDistrictWiseReport("xlsx")}
@@ -1029,6 +1021,12 @@ export default function AdminReports() {
                                     </CardContent>
                                 </Card>
                             </Link>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h2 className="text-lg font-semibold mb-3">Monthly Progress Reports (MPR)</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <Link href="/admin/mpr/animal-induction" className="block h-full">
                                 <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
                                     <CardContent className="p-4 flex items-center gap-3 h-full">
