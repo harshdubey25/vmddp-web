@@ -6,6 +6,16 @@ import { useTranslation } from 'react-i18next';
 
 const galleryCategories = [
     {
+        titleKey: "gallery_infrastructure_title",
+        descriptionKey: "gallery_infrastructure_desc",
+        images: [
+            "/mega1.jpg",
+            "/mega2.jpg",
+            "/mega3.jpg",
+            "/mega4.jpg",
+        ],
+    },
+    {
         titleKey: "gallery_programme_launch_title",
         descriptionKey: "gallery_programme_launch_desc",
         images: [
@@ -52,14 +62,6 @@ const galleryCategories = [
             "/inaugartion1.jpg",
             "/inaugartion2.jpg",
             "/inaugartion3.jpg",
-        ],
-    },
-    {
-        titleKey: "gallery_infrastructure_title",
-        descriptionKey: "gallery_infrastructure_desc",
-        images: [
-            "/cow-shed-1_1760444698185.webp",
-            "/cow-2755520_640_1759736734695.jpg",
         ],
     },
 ];
