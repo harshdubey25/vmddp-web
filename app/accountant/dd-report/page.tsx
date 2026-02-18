@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Download, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { useDebounce } from "@/hooks/use-debounce";
 import { frappeBrowser } from "@/lib/frappe";
 
@@ -33,6 +33,7 @@ export default function DDReportPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [componentFilter, setComponentFilter] = useState("all");
     const [animalFilter, setAnimalFilter] = useState("all");
+    const [districtFilter, setDistrictFilter] = useState("all");
 
     // Initialize page from URL params
     const initialPage = Number(searchParams.get("page") || 1);
@@ -42,6 +43,12 @@ export default function DDReportPage() {
     // Debounce search query
     const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
+    // Fetch districts
+    const { data: districts } = useFrappeGetDocList<{ name: string }>("District Master", {
+        fields: ["name"],
+        limit: 100,
+    });
+
     const { data: apiResponse, isLoading } = useFrappeGetCall(
         "vmddp_app.api.v1.accountant.get_completed_dd_list",
         {
@@ -50,6 +57,7 @@ export default function DDReportPage() {
             search_text: debouncedSearchQuery || undefined,
             component: componentFilter !== "all" ? componentFilter : undefined,
             item: animalFilter !== "all" ? animalFilter : undefined,
+            district: districtFilter !== "all" ? districtFilter : undefined,
         },
     );
 
@@ -89,6 +97,7 @@ export default function DDReportPage() {
             if (debouncedSearchQuery) params.search_text = debouncedSearchQuery;
             if (componentFilter !== "all") params.component = componentFilter;
             if (animalFilter !== "all") params.item = animalFilter;
+            if (districtFilter !== "all") params.district = districtFilter;
 
             const axiosResponse = await frappeBrowser
                 .call()
@@ -173,7 +182,7 @@ export default function DDReportPage() {
                                 </div>
 
                                 {/* Filters */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                                     <div className="relative">
                                         <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
                                         <Input
@@ -241,6 +250,28 @@ export default function DDReportPage() {
                                             <SelectItem value="Cow">
                                                 Cow
                                             </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+
+                                    <Select
+                                        value={districtFilter}
+                                        onValueChange={(value) => {
+                                            setDistrictFilter(value);
+                                            setCurrentPage(1);
+                                        }}
+                                    >
+                                        <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
+                                            <SelectValue placeholder="Filter by district" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">
+                                                All Districts
+                                            </SelectItem>
+                                            {districts?.map((d) => (
+                                                <SelectItem key={d.name} value={d.name}>
+                                                    {d.name}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
