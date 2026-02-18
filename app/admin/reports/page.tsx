@@ -31,8 +31,7 @@ export default function AdminReports() {
     const [selectedStatus, setSelectedStatus] = useState("all");
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [sortField, setSortField] = useState<string>("applicationId");
-    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
     const [isDownloadingReport, setIsDownloadingReport] = useState(false);
     const [statusCounts, setStatusCounts] = useState({
         total: 0,
@@ -46,7 +45,6 @@ export default function AdminReports() {
     const [questionStats, setQuestionStats] = useState<Record<string, any>>({});
     const [questionStatsLoading, setQuestionStatsLoading] = useState(false);
     const [questionStatsError, setQuestionStatsError] = useState<string | null>(null);
-    const itemsPerPage = 10;
 
     useEffect(() => {
         setCurrentPage(1);
@@ -232,45 +230,8 @@ export default function AdminReports() {
 
 
 
-    const filteredApplications = allApplications.filter((app) => {
-        const matchesSearch =
-            searchQuery === "" ||
-            app.applicationId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            app.farmerName.toLowerCase().includes(searchQuery.toLowerCase());
 
-        const matchesDistrict =
-            selectedDistrict === "all" || app.district.toLowerCase() === selectedDistrict.toLowerCase();
 
-        const matchesComponent =
-            selectedComponent === "all" ||
-            app.component.toLowerCase().includes(selectedComponent.toLowerCase());
-
-        const matchesStatus =
-            selectedStatus === "all" || app.status.toLowerCase() === selectedStatus.toLowerCase();
-
-        const appDate = new Date(app.appliedDate);
-        const matchesDateRange =
-            appDate >= new Date(dateFrom) && appDate <= new Date(dateTo);
-
-        return matchesSearch && matchesDistrict && matchesComponent && matchesStatus && matchesDateRange;
-    });
-
-    const sortedApplications = [...filteredApplications].sort((a, b) => {
-        let aValue: any = a[sortField as keyof typeof a];
-        let bValue: any = b[sortField as keyof typeof b];
-
-        if (sortField === "appliedDate") {
-            aValue = new Date(aValue).getTime();
-            bValue = new Date(bValue).getTime();
-        } else if (sortField === "amount") {
-            aValue = parseFloat(aValue.replace(/[₹,]/g, ""));
-            bValue = parseFloat(bValue.replace(/[₹,]/g, ""));
-        }
-
-        if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-        return 0;
-    });
 
 
 
@@ -342,9 +303,7 @@ export default function AdminReports() {
         }
     };
 
-    const totalApplications = districtData.reduce((sum, d) => sum + d.applications, 0);
-    const totalApproved = districtData.reduce((sum, d) => sum + d.approved, 0);
-    const approvalRate = ((totalApproved / totalApplications) * 100).toFixed(1);
+
     const formatStatusCount = (value: number) => (statusCountsLoading ? "..." : value.toLocaleString());
     const statusSummaryCards = [
         { key: "total", label: "Total Applications", value: statusCounts.total, accent: "text-primary" },
