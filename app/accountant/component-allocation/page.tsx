@@ -14,7 +14,12 @@ import {
     ExternalLink,
     ViewIcon,
     ArrowRight,
+    Download,
+    FileSpreadsheet,
+    FileText,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { exportReport } from "@/lib/export-report";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 
 const getComponentIcon = (component: string) => {
@@ -44,6 +50,9 @@ export default function ComponentAllocation() {
     const [componentFilter, setComponentFilter] = useState("all")
     const [pendingPage, setPendingPage] = useState(1)
     const [completedPage, setCompletedPage] = useState(1)
+
+    const { toast } = useToast();
+    const [isExporting, setIsExporting] = useState(false);
 
     const { data: districts } = useFrappeGetDocList('District Master')
     const { data: components } = useFrappeGetDocList('Component', {
@@ -99,6 +108,43 @@ export default function ComponentAllocation() {
     const handleAadharFilterChange = (value: string) => {
         setAadharFilter(value.replace(/\D/g, ""));
         handleFilterChange();
+    };
+
+    const handleExport = async (format: "excel" | "pdf") => {
+        setIsExporting(true);
+        toast({
+            title: "Export started",
+            description: `Generating ${format.toUpperCase()} report...`,
+        });
+
+        try {
+            const params: Record<string, string> = {};
+
+            if (aadharFilter) params.search_text = aadharFilter;
+            if (componentFilter !== "all") params.component = componentFilter;
+            if (districtFilter !== "all") params.district = districtFilter;
+
+            await exportReport({
+                method: "vmddp_app.api.v1.component_allocation.export_completed_component_allocation_list",
+                params,
+                format,
+                filename: "component-allocation-report",
+            });
+
+            toast({
+                title: "Export completed",
+                description: "Report downloaded successfully.",
+            });
+        } catch (error) {
+            console.error("Export error:", error);
+            toast({
+                title: "Export failed",
+                description: "Failed to export report. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     return (
@@ -184,6 +230,32 @@ export default function ComponentAllocation() {
 
                                     {/* Filters */}
                                     <div className="flex flex-wrap items-center gap-2">
+                                        {activeTab === "completed" && (
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="default"
+                                                        size="sm"
+                                                        className="gap-2"
+                                                        disabled={isExporting}
+                                                        data-testid="button-export-report"
+                                                    >
+                                                        <Download className="h-4 w-4" />
+                                                        {isExporting ? "Exporting..." : "Export"}
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => handleExport("excel")} data-testid="export-excel">
+                                                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                                        Export as Excel
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleExport("pdf")} data-testid="export-pdf">
+                                                        <FileText className="h-4 w-4 mr-2" />
+                                                        Export as PDF
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        )}
                                         <div className="relative">
                                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                             <Input
