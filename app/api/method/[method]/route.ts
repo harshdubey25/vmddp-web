@@ -6,10 +6,10 @@ const FRAPPE_BASE_URL = process.env.NEXT_PUBLIC_FRAPPE_BASE_URL;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { method: string } }
+  { params }: { params: Promise<{ method: string }> }
 ) {
   try {
-    const { method } = params;
+    const { method } = await params;
     const searchParams = request.nextUrl.searchParams;
     const queryString = searchParams.toString();
 
@@ -51,10 +51,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { method: string } }
+  { params }: { params: Promise<{ method: string }> }
 ) {
   try {
-    const { method } = params;
+    const { method } = await params;
     const body = await request.json();
 
     const token = request.cookies.get("frappe_access_token")?.value ||
