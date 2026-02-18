@@ -35,9 +35,11 @@ interface AllTargetsResponse {
         financial_target: {
             [districtName: string]: DistrictComponentData;
         };
+        admin_expense_target: number;
         totals: {
             total_physical_target: number;
             total_financial_target: number;
+            admin_expense_target: number;
         };
     };
 }
@@ -57,7 +59,8 @@ export default function AllTargetsReportPage() {
     const targetsData = apiResponse?.message || {
         physical_target: {},
         financial_target: {},
-        totals: { total_physical_target: 0, total_financial_target: 0 }
+        admin_expense_target: 0,
+        totals: { total_physical_target: 0, total_financial_target: 0, admin_expense_target: 0 }
     };
 
     // Extract all unique component names from both physical and financial targets
@@ -195,6 +198,24 @@ export default function AllTargetsReportPage() {
             totalRow.push((targetsData.totals?.total_financial_target || 0) / 100000); // Convert to Lakhs
             rows.push(totalRow);
 
+            // Admin Expense Target row
+            const adminRow: (string | number)[] = ["", "Admin Expense Target"];
+            componentNames.forEach(() => {
+                adminRow.push("", "");
+            });
+            adminRow.push("");
+            adminRow.push((targetsData.totals?.admin_expense_target || 0) / 100000); // Convert to Lakhs
+            rows.push(adminRow);
+
+            // Grand Total row
+            const grandTotalRow: (string | number)[] = ["", "GRAND TOTAL (Financial)"];
+            componentNames.forEach(() => {
+                grandTotalRow.push("", "");
+            });
+            grandTotalRow.push("");
+            grandTotalRow.push(((targetsData.totals?.total_financial_target || 0) + (targetsData.totals?.admin_expense_target || 0)) / 100000);
+            rows.push(grandTotalRow);
+
             const ws = XLSX.utils.aoa_to_sheet([headers1, headers2, ...rows]);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "All Targets");
@@ -256,7 +277,7 @@ export default function AllTargetsReportPage() {
 
             {/* Summary Cards */}
             {!isLoading && districtNames.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                     <Card>
                         <CardHeader className="pb-2">
                             <CardDescription className="text-xs sm:text-sm">Total Districts</CardDescription>
@@ -282,6 +303,14 @@ export default function AllTargetsReportPage() {
                             <CardDescription className="text-xs sm:text-sm">Total Financial Target</CardDescription>
                             <CardTitle className="text-xl sm:text-2xl text-green-600">
                                 {formatCurrency(targetsData.totals?.total_financial_target || 0)}
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription className="text-xs sm:text-sm">Admin Expense Target</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-purple-600">
+                                {formatCurrency(targetsData.totals?.admin_expense_target || 0)}
                             </CardTitle>
                         </CardHeader>
                     </Card>
@@ -406,6 +435,32 @@ export default function AllTargetsReportPage() {
                                         </TableCell>
                                         <TableCell className="border text-right bg-green-100">
                                             {formatInLakhs(targetsData.totals?.total_financial_target || 0)}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow className="bg-purple-50 font-bold">
+                                        <TableCell className="border text-center sticky left-0 bg-purple-50 z-10"></TableCell>
+                                        <TableCell className="border sticky left-[50px] bg-purple-50 z-10">Admin Expense Target</TableCell>
+                                        {componentNames.map((compName) => (
+                                            <Fragment key={`${compName}-admin`}>
+                                                <TableCell className="border text-right" colSpan={2}></TableCell>
+                                            </Fragment>
+                                        ))}
+                                        <TableCell className="border text-right"></TableCell>
+                                        <TableCell className="border text-right bg-purple-100">
+                                            {formatInLakhs(targetsData.totals?.admin_expense_target || 0)}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow className="bg-green-50 font-bold text-sm">
+                                        <TableCell className="border text-center sticky left-0 bg-green-50 z-10"></TableCell>
+                                        <TableCell className="border sticky left-[50px] bg-green-50 z-10">GRAND TOTAL (Financial)</TableCell>
+                                        {componentNames.map((compName) => (
+                                            <Fragment key={`${compName}-grand`}>
+                                                <TableCell className="border text-right" colSpan={2}></TableCell>
+                                            </Fragment>
+                                        ))}
+                                        <TableCell className="border text-right"></TableCell>
+                                        <TableCell className="border text-right bg-green-200">
+                                            {formatInLakhs((targetsData.totals?.total_financial_target || 0) + (targetsData.totals?.admin_expense_target || 0))}
                                         </TableCell>
                                     </TableRow>
                                 </TableFooter>
