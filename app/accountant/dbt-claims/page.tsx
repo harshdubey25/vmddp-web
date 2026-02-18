@@ -45,13 +45,14 @@ interface DBTBeneficiary {
     remaining_subsidy: number;
     used_quantity: number;
     used_amount: number;
+    unit: string;
 }
 
 const PAGE_SIZE = 20;
 
 export default function DBTClaims() {
-    const { data: components } = useFrappeGetDocList<Pick<Component, 'name' | 'subsidy_percent' | 'maximum_subsidy_amount' | 'rate_per_kg' | 'max_quantity' | 'multiple_claims_allowed'>>("Component", { fields: ['name', 'subsidy_percent', 'maximum_subsidy_amount', 'rate_per_kg', 'max_quantity', 'multiple_claims_allowed'], filters: [['for_dbt_claims', '=', '1']] });
-    const [selectedComponent, setSelectedComponent] = useState<{ name: string, subsidy_percent: number, maximum_subsidy_amount: number, rate_per_kg: number, max_quantity: number, multiple_claims_allowed: boolean } | null>(null);
+    const { data: components } = useFrappeGetDocList<Pick<Component, 'name' | 'subsidy_percent' | 'maximum_subsidy_amount' | 'rate_per_kg' | 'max_quantity' | 'multiple_claims_allowed' | 'unit'>>("Component", { fields: ['name', 'subsidy_percent', 'maximum_subsidy_amount', 'rate_per_kg', 'max_quantity', 'multiple_claims_allowed', 'unit'], filters: [['for_dbt_claims', '=', '1']] });
+    const [selectedComponent, setSelectedComponent] = useState<{ name: string, subsidy_percent: number, maximum_subsidy_amount: number, rate_per_kg: number, max_quantity: number, multiple_claims_allowed: boolean, unit: string } | null>(null);
 
     // Auto-select first component when list loads
     useEffect(() => {
@@ -298,7 +299,7 @@ export default function DBTClaims() {
                                                                 <p className="font-bold text-lg">{selectedComponent?.subsidy_percent ? `${selectedComponent.subsidy_percent}%` : 'N/A'}</p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-muted-foreground">Rate per kg</p>
+                                                                <p className="text-muted-foreground">Rate per {selectedComponent?.unit ? selectedComponent.unit : 'kg'}</p>
                                                                 <p className="font-bold text-lg">{selectedComponent?.rate_per_kg ? `₹${selectedComponent.rate_per_kg}` : 'N/A'}</p>
                                                             </div>
                                                             <div>
@@ -307,7 +308,7 @@ export default function DBTClaims() {
                                                             </div>
                                                             <div>
                                                                 <p className="text-muted-foreground">Maximum Quantity</p>
-                                                                <p className="font-bold text-lg">{selectedComponent?.max_quantity ? `${selectedComponent.max_quantity} kg` : 'N/A'}</p>
+                                                                <p className="font-bold text-lg">{selectedComponent?.max_quantity ? `${selectedComponent.max_quantity} ${selectedComponent.unit ? selectedComponent.unit : 'kg'}` : 'N/A'}</p>
                                                             </div>
                                                         </div>
                                                         <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20 mt-2">
@@ -363,7 +364,7 @@ export default function DBTClaims() {
                                                                 {selectedComponent?.max_quantity ? (
                                                                     <>
                                                                         <Progress value={(beneficiary.used_quantity / beneficiary.max_quantity) * 100} className="h-2" />
-                                                                        <p className="text-xs text-muted-foreground mt-1">{beneficiary.remaining_quantity} kg left</p>
+                                                                        <p className="text-xs text-muted-foreground mt-1">{beneficiary.remaining_quantity} {beneficiary.unit ? beneficiary.unit : 'kg'}left</p>
                                                                     </>
                                                                 ) : (
                                                                     <>
