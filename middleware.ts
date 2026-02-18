@@ -17,8 +17,8 @@ export async function middleware(req: NextRequest) {
       url.pathname = "/login";
       return NextResponse.redirect(url);
     }
-    // Block admin from accessing accountant routes
-    if (data.roles.includes(UserRole.VMDDP_ADMIN)) {
+    // Block admin from accessing accountant routes (except component-allocation)
+    if (data.roles.includes(UserRole.VMDDP_ADMIN) && !url.pathname.startsWith("/accountant/component-allocation")) {
       url.pathname = "/admin/dashboard";
       return NextResponse.redirect(url);
     }
@@ -31,8 +31,8 @@ export async function middleware(req: NextRequest) {
       url.pathname = "/secretory/dashboard";
       return NextResponse.redirect(url);
     }
-    // Only allow accountant
-    if (!data.roles.includes(UserRole.VMDDP_ACCOUNTANT)) {
+    // Only allow accountant (or admin on component-allocation)
+    if (!data.roles.includes(UserRole.VMDDP_ACCOUNTANT) && !(data.roles.includes(UserRole.VMDDP_ADMIN) && url.pathname.startsWith("/accountant/component-allocation"))) {
       url.pathname = "/login";
       return NextResponse.redirect(url);
     }
