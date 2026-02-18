@@ -28,9 +28,8 @@ import {
     Search,
 } from "lucide-react";
 import Link from "next/link";
-import * as XLSX from "xlsx";
 import { useToast } from "@/hooks/use-toast";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { useDebounce } from "@/hooks/use-debounce";
 import { frappeBrowser } from "@/lib/frappe";
 
@@ -39,11 +38,18 @@ export default function DDReportPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [componentFilter, setComponentFilter] = useState("all");
     const [animalFilter, setAnimalFilter] = useState("all");
+    const [districtFilter, setDistrictFilter] = useState("all");
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 20;
 
     // Debounce search query
     const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
+    // Fetch districts
+    const { data: districts } = useFrappeGetDocList<{ name: string }>("District Master", {
+        fields: ["name"],
+        limit: 100,
+    });
 
     const { data: apiResponse, isLoading } = useFrappeGetCall(
         'vmddp_app.api.v1.accountant.get_completed_dd_list',
@@ -53,6 +59,7 @@ export default function DDReportPage() {
             search_text: debouncedSearchQuery || undefined,
             component: componentFilter !== "all" ? componentFilter : undefined,
             item: animalFilter !== "all" ? animalFilter : undefined,
+            district: districtFilter !== "all" ? districtFilter : undefined,
         }
     );
 
@@ -73,6 +80,7 @@ export default function DDReportPage() {
             if (debouncedSearchQuery) params.search_text = debouncedSearchQuery;
             if (componentFilter !== 'all') params.component = componentFilter;
             if (animalFilter !== 'all') params.item = animalFilter;
+            if (districtFilter !== 'all') params.district = districtFilter;
 
             const axiosResponse = await frappeBrowser.call().axios.get(
                 '/api/method/vmddp_app.api.v1.accountant.export_completed_dd_list',
@@ -159,7 +167,7 @@ export default function DDReportPage() {
                                 </div>
 
                                 {/* Filters */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                                     <div className="relative">
                                         <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
                                         <Input
@@ -205,6 +213,23 @@ export default function DDReportPage() {
                                             <SelectItem value="Cow">Cow</SelectItem>
                                         </SelectContent>
                                     </Select>
+
+                                    <Select value={districtFilter} onValueChange={(value) => {
+                                        setDistrictFilter(value);
+                                        setCurrentPage(1);
+                                    }}>
+                                        <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
+                                            <SelectValue placeholder="Filter by district" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Districts</SelectItem>
+                                            {districts?.map((d) => (
+                                                <SelectItem key={d.name} value={d.name}>
+                                                    {d.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                             </div>
                         </CardHeader>
@@ -236,6 +261,9 @@ export default function DDReportPage() {
                                                 <th className="text-left p-3 text-xs sm:text-sm font-medium">
                                                     Component
                                                 </th>
+                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                    District
+                                                </th>
                                                 <th className="text-center p-3 text-xs sm:text-sm font-medium">
                                                     Status
                                                 </th>
@@ -252,12 +280,13 @@ export default function DDReportPage() {
                                                         <td className="p-3"><Skeleton className="h-5 w-full" /></td>
                                                         <td className="p-3"><Skeleton className="h-5 w-16" /></td>
                                                         <td className="p-3"><Skeleton className="h-5 w-full" /></td>
+                                                        <td className="p-3"><Skeleton className="h-5 w-full" /></td>
                                                         <td className="p-3"><Skeleton className="h-5 w-20 mx-auto" /></td>
                                                     </tr>
                                                 ))
                                             ) : reports.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={8} className="text-center py-8 text-sm text-muted-foreground">
+                                                    <td colSpan={9} className="text-center py-8 text-sm text-muted-foreground">
                                                         No reports found
                                                     </td>
                                                 </tr>
@@ -296,6 +325,11 @@ export default function DDReportPage() {
                                                         <td className="p-3 text-xs sm:text-sm">
                                                             <div className="text-muted-foreground text-xs">
                                                                 {report.component_name || "N/A"}
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-3 text-xs sm:text-sm">
+                                                            <div className="text-muted-foreground text-xs">
+                                                                {report.district || "N/A"}
                                                             </div>
                                                         </td>
                                                         <td className="p-3 text-xs sm:text-sm text-center">
