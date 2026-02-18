@@ -36,6 +36,7 @@ export interface ComponentList extends Doctype {
 
 
 export interface Component extends Doctype {
+    unit:string;
     component_name: string;
     criteria_table: any[];
     questions: any[];
