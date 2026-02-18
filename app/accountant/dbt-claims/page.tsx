@@ -364,7 +364,7 @@ export default function DBTClaims() {
                                                                 {selectedComponent?.max_quantity ? (
                                                                     <>
                                                                         <Progress value={(beneficiary.used_quantity / beneficiary.max_quantity) * 100} className="h-2" />
-                                                                        <p className="text-xs text-muted-foreground mt-1">{beneficiary.remaining_quantity} {beneficiary.unit ? beneficiary.unit : 'kg'}left</p>
+                                                                        <p className="text-xs text-muted-foreground mt-1">{beneficiary.remaining_quantity} {beneficiary.unit ? beneficiary.unit : 'kg'} left</p>
                                                                     </>
                                                                 ) : (
                                                                     <>
