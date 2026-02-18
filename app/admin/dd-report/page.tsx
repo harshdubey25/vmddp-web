@@ -261,6 +261,9 @@ export default function DDReportPage() {
                                                 <th className="text-left p-3 text-xs sm:text-sm font-medium">
                                                     Component
                                                 </th>
+                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                    District
+                                                </th>
                                                 <th className="text-center p-3 text-xs sm:text-sm font-medium">
                                                     Status
                                                 </th>
@@ -277,12 +280,13 @@ export default function DDReportPage() {
                                                         <td className="p-3"><Skeleton className="h-5 w-full" /></td>
                                                         <td className="p-3"><Skeleton className="h-5 w-16" /></td>
                                                         <td className="p-3"><Skeleton className="h-5 w-full" /></td>
+                                                        <td className="p-3"><Skeleton className="h-5 w-full" /></td>
                                                         <td className="p-3"><Skeleton className="h-5 w-20 mx-auto" /></td>
                                                     </tr>
                                                 ))
                                             ) : reports.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={8} className="text-center py-8 text-sm text-muted-foreground">
+                                                    <td colSpan={9} className="text-center py-8 text-sm text-muted-foreground">
                                                         No reports found
                                                     </td>
                                                 </tr>
@@ -321,6 +325,11 @@ export default function DDReportPage() {
                                                         <td className="p-3 text-xs sm:text-sm">
                                                             <div className="text-muted-foreground text-xs">
                                                                 {report.component_name || "N/A"}
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-3 text-xs sm:text-sm">
+                                                            <div className="text-muted-foreground text-xs">
+                                                                {report.district || "N/A"}
                                                             </div>
                                                         </td>
                                                         <td className="p-3 text-xs sm:text-sm text-center">
