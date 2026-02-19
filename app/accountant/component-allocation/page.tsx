@@ -415,6 +415,7 @@ export default function ComponentAllocation() {
                                                         <th className="text-left p-3 text-xs sm:text-sm font-medium border">Component</th>
                                                         <th className="text-left p-3 text-xs sm:text-sm font-medium border">Status</th>
                                                         <th className="text-left p-3 text-xs sm:text-sm font-medium border">Animal/Item</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>

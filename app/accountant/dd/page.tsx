@@ -22,14 +22,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { frappeBrowser } from "@/lib/frappe";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -449,146 +441,149 @@ export default function DDCollection() {
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="overflow-x-auto overflow-y-auto h-full ">
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead>
-                                                            Application ID
-                                                        </TableHead>
-                                                        <TableHead>
-                                                            Beneficiary
-                                                        </TableHead>
-                                                        <TableHead>
-                                                            Location
-                                                        </TableHead>
-                                                        <TableHead>
-                                                            Component
-                                                        </TableHead>
-                                                        <TableHead>
-                                                            Status
-                                                        </TableHead>
-                                                        <TableHead>
-                                                            DD Amount
-                                                        </TableHead>
-                                                        <TableHead>
-                                                            Action
-                                                        </TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {selectedApplications.map(
-                                                        (app) => (
-                                                            <TableRow
-                                                                key={app.name}
-                                                                data-testid={`row-approved-${app.name}`}
-                                                            >
-                                                                <TableCell className="font-medium">
-                                                                    {app.name}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <div>
-                                                                        <p className="font-medium">
-                                                                            {getFullName(
-                                                                                app,
-                                                                            )}
-                                                                        </p>
-                                                                        <p className="text-xs text-muted-foreground">
-                                                                            {
-                                                                                app.aadhar_number
-                                                                            }
-                                                                        </p>
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <div className="flex flex-wrap gap-1">
-                                                                        {app.district && (<Badge
-                                                                            variant="outline"
-                                                                            className="text-xs"
-                                                                        >
-                                                                            {
-                                                                                app.district
-                                                                            }
-                                                                        </Badge>)}
-
-                                                                        {app.taluka && (<Badge
-                                                                            variant="outline"
-                                                                            className="text-xs"
-                                                                        >
-                                                                            {
-                                                                                app.taluka
-                                                                            }
-                                                                        </Badge>)}
-                                                                        {app.village &&
-                                                                            <Badge
+                                        <div className="border rounded-lg overflow-hidden flex flex-col">
+                                            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                                <table className="w-full min-w-[900px]">
+                                                    <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                        <tr>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Application ID
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Beneficiary
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Location
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Component
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Status
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                DD Amount
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Action
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {selectedApplications.map(
+                                                            (app) => (
+                                                                <tr
+                                                                    key={app.name}
+                                                                    data-testid={`row-approved-${app.name}`}
+                                                                    className="border-b hover:bg-muted/30"
+                                                                >
+                                                                    <td className="p-3 text-xs sm:text-sm font-medium">
+                                                                        {app.name}
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div>
+                                                                            <p className="font-medium">
+                                                                                {getFullName(
+                                                                                    app,
+                                                                                )}
+                                                                            </p>
+                                                                            <p className="text-xs text-muted-foreground">
+                                                                                {
+                                                                                    app.aadhar_number
+                                                                                }
+                                                                            </p>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div className="flex flex-wrap gap-1">
+                                                                            {app.district && (<Badge
                                                                                 variant="outline"
                                                                                 className="text-xs"
                                                                             >
                                                                                 {
-                                                                                    app.village
+                                                                                    app.district
                                                                                 }
-                                                                            </Badge>
-                                                                        }
+                                                                            </Badge>)}
 
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <Badge variant="outline">
-                                                                        {
-                                                                            app.component_name
-                                                                        }
-                                                                    </Badge>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {getStatusBadge(
-                                                                        app.component_status,
-                                                                    )}
-                                                                </TableCell>
-                                                                <TableCell className="font-semibold text-primary">
-                                                                    ₹
-                                                                    {(
-                                                                        app.amount ||
-                                                                        0
-                                                                    ).toLocaleString(
-                                                                        "en-IN",
-                                                                    )}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <Button
-                                                                        size="sm"
-                                                                        onClick={() =>
-                                                                            handleSelectApplication(
-                                                                                app,
-                                                                            )
-                                                                        }
-                                                                        data-testid={`button-collect-${app.name}`}
-                                                                    >
-                                                                        <CreditCard className="h-4 w-4 mr-1" />
-                                                                        Collect
-                                                                        DD
-                                                                    </Button>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        ),
-                                                    )}
-                                                    {selectedApplications.length ===
-                                                        0 && (
-                                                            <TableRow>
-                                                                <TableCell
-                                                                    colSpan={7}
-                                                                    className="text-center py-8 text-muted-foreground"
-                                                                >
-                                                                    {approvedFilters.aadhaar ||
-                                                                        approvedFilters.district ||
-                                                                        approvedFilters.taluka ||
-                                                                        approvedFilters.village
-                                                                        ? "No applications found matching the selected filters"
-                                                                        : "No approved applications pending DD collection"}
-                                                                </TableCell>
-                                                            </TableRow>
+                                                                            {app.taluka && (<Badge
+                                                                                variant="outline"
+                                                                                className="text-xs"
+                                                                            >
+                                                                                {
+                                                                                    app.taluka
+                                                                                }
+                                                                            </Badge>)}
+                                                                            {app.village &&
+                                                                                <Badge
+                                                                                    variant="outline"
+                                                                                    className="text-xs"
+                                                                                >
+                                                                                    {
+                                                                                        app.village
+                                                                                    }
+                                                                                </Badge>
+                                                                            }
+
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <Badge variant="outline">
+                                                                            {
+                                                                                app.component_name
+                                                                            }
+                                                                        </Badge>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        {getStatusBadge(
+                                                                            app.component_status,
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm font-semibold text-primary">
+                                                                        ₹
+                                                                        {(
+                                                                            app.amount ||
+                                                                            0
+                                                                        ).toLocaleString(
+                                                                            "en-IN",
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <Button
+                                                                            size="sm"
+                                                                            onClick={() =>
+                                                                                handleSelectApplication(
+                                                                                    app,
+                                                                                )
+                                                                            }
+                                                                            data-testid={`button-collect-${app.name}`}
+                                                                        >
+                                                                            <CreditCard className="h-4 w-4 mr-1" />
+                                                                            Collect
+                                                                            DD
+                                                                        </Button>
+                                                                    </td>
+                                                                </tr>
+                                                            ),
                                                         )}
-                                                </TableBody>
-                                            </Table>
+                                                        {selectedApplications.length ===
+                                                            0 && (
+                                                                <tr>
+                                                                    <td
+                                                                        colSpan={7}
+                                                                        className="text-center py-8 text-xs sm:text-sm text-muted-foreground"
+                                                                    >
+                                                                        {approvedFilters.aadhaar ||
+                                                                            approvedFilters.district ||
+                                                                            approvedFilters.taluka ||
+                                                                            approvedFilters.village
+                                                                            ? "No applications found matching the selected filters"
+                                                                            : "No approved applications pending DD collection"}
+                                                                    </td>
+                                                                </tr>
+                                                            )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
 
                                         {/* Pagination for Approved */}
@@ -672,130 +667,133 @@ export default function DDCollection() {
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead>
-                                                            Application ID
-                                                        </TableHead>
-                                                        <TableHead>
-                                                            Beneficiary
-                                                        </TableHead>
-                                                        <TableHead>
-                                                            Location
-                                                        </TableHead>
-                                                        <TableHead>
-                                                            Component
-                                                        </TableHead>
-                                                        <TableHead>
-                                                            Amount
-                                                        </TableHead>
-                                                        <TableHead>
-                                                            Status
-                                                        </TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {ddCompletedApplications.map(
-                                                        (app) => (
-                                                            <TableRow
-                                                                key={app.name}
-                                                                data-testid={`row-dd-${app.name}`}
-                                                            >
-                                                                <TableCell className="font-medium">
-                                                                    {app.name}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <div>
-                                                                        <p className="font-medium">
-                                                                            {getFullName(
-                                                                                app,
-                                                                            )}
-                                                                        </p>
-                                                                        <p className="text-xs text-muted-foreground">
-                                                                            {
-                                                                                app.aadhar_number
-                                                                            }
-                                                                        </p>
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <div className="flex flex-wrap gap-1">
+                                        <div className="border rounded-lg overflow-hidden flex flex-col">
+                                            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                                <table className="w-full min-w-[900px]">
+                                                    <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                        <tr>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Application ID
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Beneficiary
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Location
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Component
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Amount
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Status
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {ddCompletedApplications.map(
+                                                            (app) => (
+                                                                <tr
+                                                                    key={app.name}
+                                                                    data-testid={`row-dd-${app.name}`}
+                                                                    className="border-b hover:bg-muted/30"
+                                                                >
+                                                                    <td className="p-3 text-xs sm:text-sm font-medium">
+                                                                        {app.name}
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div>
+                                                                            <p className="font-medium">
+                                                                                {getFullName(
+                                                                                    app,
+                                                                                )}
+                                                                            </p>
+                                                                            <p className="text-xs text-muted-foreground">
+                                                                                {
+                                                                                    app.aadhar_number
+                                                                                }
+                                                                            </p>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div className="flex flex-wrap gap-1">
 
-                                                                        {app.district && (<Badge
-                                                                            variant="outline"
-                                                                            className="text-xs"
-                                                                        >
-                                                                            {
-                                                                                app.district
-                                                                            }
-                                                                        </Badge>)}
-
-                                                                        {app.taluka && (
-                                                                            <Badge
+                                                                            {app.district && (<Badge
                                                                                 variant="outline"
                                                                                 className="text-xs"
                                                                             >
                                                                                 {
-                                                                                    app.taluka
+                                                                                    app.district
                                                                                 }
                                                                             </Badge>)}
 
-                                                                        {app.village && (
-                                                                            <Badge
-                                                                                variant="outline"
-                                                                                className="text-xs"
-                                                                            >
-                                                                                {
-                                                                                    app.village
-                                                                                }
-                                                                            </Badge>
+                                                                            {app.taluka && (
+                                                                                <Badge
+                                                                                    variant="outline"
+                                                                                    className="text-xs"
+                                                                                >
+                                                                                    {
+                                                                                        app.taluka
+                                                                                    }
+                                                                                </Badge>)}
+
+                                                                            {app.village && (
+                                                                                <Badge
+                                                                                    variant="outline"
+                                                                                    className="text-xs"
+                                                                                >
+                                                                                    {
+                                                                                        app.village
+                                                                                    }
+                                                                                </Badge>
+                                                                            )}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <Badge variant="outline">
+                                                                            {
+                                                                                app.component_name
+                                                                            }
+                                                                        </Badge>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm font-medium">
+                                                                        ₹
+                                                                        {(
+                                                                            app.amount ||
+                                                                            0
+                                                                        ).toLocaleString(
+                                                                            "en-IN",
                                                                         )}
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <Badge variant="outline">
-                                                                        {
-                                                                            app.component_name
-                                                                        }
-                                                                    </Badge>
-                                                                </TableCell>
-                                                                <TableCell className="font-medium">
-                                                                    ₹
-                                                                    {(
-                                                                        app.amount ||
-                                                                        0
-                                                                    ).toLocaleString(
-                                                                        "en-IN",
-                                                                    )}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {getStatusBadge(
-                                                                        app.component_status,
-                                                                    )}
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        ),
-                                                    )}
-                                                    {ddCompletedApplications.length ===
-                                                        0 && (
-                                                            <TableRow>
-                                                                <TableCell
-                                                                    colSpan={6}
-                                                                    className="text-center py-8 text-muted-foreground"
-                                                                >
-                                                                    {collectedFilters.aadhaar ||
-                                                                        collectedFilters.district ||
-                                                                        collectedFilters.taluka ||
-                                                                        collectedFilters.village
-                                                                        ? "No collected DDs found matching the selected filters"
-                                                                        : "No collected DD entries found"}
-                                                                </TableCell>
-                                                            </TableRow>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        {getStatusBadge(
+                                                                            app.component_status,
+                                                                        )}
+                                                                    </td>
+                                                                </tr>
+                                                            ),
                                                         )}
-                                                </TableBody>
-                                            </Table>
+                                                        {ddCompletedApplications.length ===
+                                                            0 && (
+                                                                <tr>
+                                                                    <td
+                                                                        colSpan={6}
+                                                                        className="text-center py-8 text-xs sm:text-sm text-muted-foreground"
+                                                                    >
+                                                                        {collectedFilters.aadhaar ||
+                                                                            collectedFilters.district ||
+                                                                            collectedFilters.taluka ||
+                                                                            collectedFilters.village
+                                                                            ? "No collected DDs found matching the selected filters"
+                                                                            : "No collected DD entries found"}
+                                                                    </td>
+                                                                </tr>
+                                                            )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
 
                                         {/* Pagination for Selected */}

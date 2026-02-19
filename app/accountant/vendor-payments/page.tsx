@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
 import { useFrappeGetCall, useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
@@ -393,83 +393,87 @@ export default function VendorPayments() {
                                                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                                             </div>
                                         ) : vendorPayments.length > 0 ? (
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead className="w-12">
-                                                            <Check data-testid="checkbox-select-all" />
-                                                        </TableHead>
-                                                        <TableHead>Beneficiary</TableHead>
-                                                        <TableHead>Component</TableHead>
-                                                        <TableHead>Animal</TableHead>
-                                                        <TableHead>Vendor</TableHead>
-                                                        <TableHead className="text-right">Cost Breakdown</TableHead>
-                                                        <TableHead className="text-right">Total</TableHead>
-                                                        <TableHead>Date</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {vendorPayments.map((payment) => {
+                                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                                    <table className="w-full min-w-[900px]">
+                                                        <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                            <tr>
+                                                                <th className="w-12 p-3 text-left text-xs sm:text-sm font-medium">
+                                                                    <Check data-testid="checkbox-select-all" />
+                                                                </th>
+                                                                <th className="p-3 text-left text-xs sm:text-sm font-medium">Beneficiary</th>
+                                                                <th className="p-3 text-left text-xs sm:text-sm font-medium">Component</th>
+                                                                <th className="p-3 text-left text-xs sm:text-sm font-medium">Animal</th>
+                                                                <th className="p-3 text-left text-xs sm:text-sm font-medium">Vendor</th>
+                                                                <th className="p-3 text-right text-xs sm:text-sm font-medium">Cost Breakdown</th>
+                                                                <th className="p-3 text-right text-xs sm:text-sm font-medium">Total</th>
+                                                                <th className="p-3 text-left text-xs sm:text-sm font-medium">Date</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {vendorPayments.map((payment) => {
                                                         const isSelected = selectedPaymentIds.includes(payment.component_allocation_id);
 
-                                                        return (
-                                                            <TableRow
-                                                                key={payment.component_allocation_id}
-                                                                className={isSelected ? "bg-primary/5" : ""}
-                                                                data-testid={`row-payment-${payment.component_allocation_id}`}
-                                                            >
-                                                                <TableCell>
-                                                                    <Checkbox
-                                                                        checked={isSelected}
-                                                                        disabled={!isSelected && !canSelectPayment(payment)}
-                                                                        onCheckedChange={(checked) => handleTogglePayment(payment.component_allocation_id, !!checked)}
-                                                                        data-testid={`checkbox-${payment.component_allocation_id}`}
-                                                                    />
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <div>
-                                                                        <p className="font-medium">{payment.beneficiary_name}</p>
-                                                                        <p className="text-xs text-muted-foreground">{payment.aadhar_number}</p>
-                                                                        <p className="text-xs text-muted-foreground">{payment.district}, {payment.taluka}</p>
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <div className="space-y-1">
-                                                                        <p className="text-sm font-medium">{payment.component_name}</p>
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <div>
-                                                                        <p className="font-medium">{payment.type_of_animal}</p>
-                                                                        <p className="text-xs text-muted-foreground">Tag: {payment.tag_number}</p>
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <div>
-                                                                        <p className="font-medium">{payment.vendor_name}</p>
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell className="text-right">
-                                                                    <div className="text-xs space-y-0.5">
-                                                                        <p>Animal: ₹{payment.animal_cost.toLocaleString("en-IN")}</p>
-                                                                        {payment.collar_cost > 0 && <p>Collar: ₹{payment.collar_cost.toLocaleString("en-IN")}</p>}
-                                                                        {payment.premium_paid > 0 && <p>Premium: ₹{payment.premium_paid.toLocaleString("en-IN")}</p>}
-                                                                        {payment.transportation_cost > 0 && <p>Transport: ₹{payment.transportation_cost.toLocaleString("en-IN")}</p>}
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell className="text-right">
-                                                                    <span className="font-bold text-green-600">
-                                                                        ₹{payment.total_cost.toLocaleString("en-IN")}
-                                                                    </span>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <p className="text-sm">{payment.date_of_purchase}</p>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        );
-                                                    })}
-                                                </TableBody>
-                                            </Table>
+                                                            return (
+                                                                <tr
+                                                                    key={payment.component_allocation_id}
+                                                                    className={`hover:bg-muted/30 border-b ${isSelected ? "bg-primary/5" : ""}`}
+                                                                    data-testid={`row-payment-${payment.component_allocation_id}`}
+                                                                >
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <Checkbox
+                                                                            checked={isSelected}
+                                                                            disabled={!isSelected && !canSelectPayment(payment)}
+                                                                            onCheckedChange={(checked) => handleTogglePayment(payment.component_allocation_id, !!checked)}
+                                                                            data-testid={`checkbox-${payment.component_allocation_id}`}
+                                                                        />
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div>
+                                                                            <p className="font-medium">{payment.beneficiary_name}</p>
+                                                                            <p className="text-xs text-muted-foreground">{payment.aadhar_number}</p>
+                                                                            <p className="text-xs text-muted-foreground">{payment.district}, {payment.taluka}</p>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div className="space-y-1">
+                                                                            <p className="text-sm font-medium">{payment.component_name}</p>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div>
+                                                                            <p className="font-medium">{payment.type_of_animal}</p>
+                                                                            <p className="text-xs text-muted-foreground">Tag: {payment.tag_number}</p>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div>
+                                                                            <p className="font-medium">{payment.vendor_name}</p>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-right text-xs sm:text-sm">
+                                                                        <div className="text-xs space-y-0.5">
+                                                                            <p>Animal: ₹{payment.animal_cost.toLocaleString("en-IN")}</p>
+                                                                            {payment.collar_cost > 0 && <p>Collar: ₹{payment.collar_cost.toLocaleString("en-IN")}</p>}
+                                                                            {payment.premium_paid > 0 && <p>Premium: ₹{payment.premium_paid.toLocaleString("en-IN")}</p>}
+                                                                            {payment.transportation_cost > 0 && <p>Transport: ₹{payment.transportation_cost.toLocaleString("en-IN")}</p>}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-right text-xs sm:text-sm">
+                                                                        <span className="font-bold text-green-600">
+                                                                            ₹{payment.total_cost.toLocaleString("en-IN")}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <p className="text-sm">{payment.date_of_purchase}</p>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
                                         ) : (
                                             <p className="text-center text-muted-foreground py-8">No pending vendor payments found</p>
                                         )}
@@ -524,84 +528,88 @@ export default function VendorPayments() {
                                                 <Loader2 className="h-6 w-6 animate-spin" />
                                             </div>
                                         ) : parantageEntries.length > 0 ? (
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead className="w-12">
-                                                            <Check data-testid="checkbox-parantage-select-all" />
-                                                        </TableHead>
-                                                        <TableHead>Beneficiary</TableHead>
-                                                        <TableHead>Component</TableHead>
-                                                        <TableHead>Vendor</TableHead>
-                                                        <TableHead>Calf Details</TableHead>
-                                                        <TableHead className="text-right">Pending Amount</TableHead>
-                                                        <TableHead>Status</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {parantageEntries.map((entry) => {
-                                                        const entryId = getParantageEntryId(entry);
-                                                        const isSelected = selectedParantageIds.includes(entryId);
-                                                        return (
-                                                            <TableRow
-                                                                key={entryId}
-                                                                className={isSelected ? "bg-primary/5" : ""}
-                                                                data-testid={`row-parantage-${entryId}`}
-                                                            >
-                                                                <TableCell>
-                                                                    <Checkbox
-                                                                        checked={isSelected}
-                                                                        disabled={!isSelected && !canSelectParantagePayment(entry)}
-                                                                        onCheckedChange={(checked) => handleToggleParantagePayment(entryId, !!checked)}
-                                                                        data-testid={`checkbox-parantage-${entryId}`}
-                                                                    />
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <div>
-                                                                        <p className="font-medium">
-                                                                            {[entry.first_name, entry.mid_name, entry.last_name].filter(Boolean).join(" ")}
-                                                                        </p>
-                                                                        <p className="text-xs text-muted-foreground">{entry.aadhar_number}</p>
-                                                                        <p className="text-xs text-muted-foreground">{entry.district}, {entry.taluka}</p>
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <div className="space-y-1">
-                                                                        <p className="text-sm font-medium">{entry.component}</p>
-                                                                        <p className="text-xs text-muted-foreground">{entry.type_of_animal}</p>
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <div>
-                                                                        <p className="font-medium">{entry.vendor_name || entry.vendor}</p>
-                                                                        <p className="text-xs text-muted-foreground">₹{(entry.paid_payment ?? 0).toLocaleString("en-IN")} paid</p>
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <div className="space-y-1">
-                                                                        <Badge variant="outline" className="capitalize w-fit">
-                                                                            {entry.calf_born || "-"}
+                                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                                    <table className="w-full min-w-[900px]">
+                                                        <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                            <tr>
+                                                                <th className="w-12 p-3 text-left text-xs sm:text-sm font-medium">
+                                                                    <Check data-testid="checkbox-parantage-select-all" />
+                                                                </th>
+                                                                <th className="p-3 text-left text-xs sm:text-sm font-medium">Beneficiary</th>
+                                                                <th className="p-3 text-left text-xs sm:text-sm font-medium">Component</th>
+                                                                <th className="p-3 text-left text-xs sm:text-sm font-medium">Vendor</th>
+                                                                <th className="p-3 text-left text-xs sm:text-sm font-medium">Calf Details</th>
+                                                                <th className="p-3 text-right text-xs sm:text-sm font-medium">Pending Amount</th>
+                                                                <th className="p-3 text-left text-xs sm:text-sm font-medium">Status</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {parantageEntries.map((entry) => {
+                                                            const entryId = getParantageEntryId(entry);
+                                                            const isSelected = selectedParantageIds.includes(entryId);
+                                                            return (
+                                                                <tr
+                                                                    key={entryId}
+                                                                    className={`hover:bg-muted/30 border-b ${isSelected ? "bg-primary/5" : ""}`}
+                                                                    data-testid={`row-parantage-${entryId}`}
+                                                                >
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <Checkbox
+                                                                            checked={isSelected}
+                                                                            disabled={!isSelected && !canSelectParantagePayment(entry)}
+                                                                            onCheckedChange={(checked) => handleToggleParantagePayment(entryId, !!checked)}
+                                                                            data-testid={`checkbox-parantage-${entryId}`}
+                                                                        />
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div>
+                                                                            <p className="font-medium">
+                                                                                {[entry.first_name, entry.mid_name, entry.last_name].filter(Boolean).join(" ")}
+                                                                            </p>
+                                                                            <p className="text-xs text-muted-foreground">{entry.aadhar_number}</p>
+                                                                            <p className="text-xs text-muted-foreground">{entry.district}, {entry.taluka}</p>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div className="space-y-1">
+                                                                            <p className="text-sm font-medium">{entry.component}</p>
+                                                                            <p className="text-xs text-muted-foreground">{entry.type_of_animal}</p>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div>
+                                                                            <p className="font-medium">{entry.vendor_name || entry.vendor}</p>
+                                                                            <p className="text-xs text-muted-foreground">₹{(entry.paid_payment ?? 0).toLocaleString("en-IN")} paid</p>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div className="space-y-1">
+                                                                            <Badge variant="outline" className="capitalize w-fit">
+                                                                                {entry.calf_born || "-"}
+                                                                            </Badge>
+                                                                            <p className="text-xs text-muted-foreground">DOB: {entry.calf_date_of_birth || "-"}</p>
+                                                                            <p className="text-xs text-muted-foreground">Certified by {entry.agency_name || entry.certified_by_agency || "-"}</p>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-right text-xs sm:text-sm">
+                                                                        <span className="font-bold text-green-600">
+                                                                            ₹{(entry.pending_amount ?? 0).toLocaleString("en-IN")}
+                                                                        </span>
+                                                                        <p className="text-xs text-muted-foreground">25% release</p>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <Badge variant="secondary" className="capitalize">
+                                                                            {entry.parantage_status || "Approved"}
                                                                         </Badge>
-                                                                        <p className="text-xs text-muted-foreground">DOB: {entry.calf_date_of_birth || "-"}</p>
-                                                                        <p className="text-xs text-muted-foreground">Certified by {entry.agency_name || entry.certified_by_agency || "-"}</p>
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell className="text-right">
-                                                                    <span className="font-bold text-green-600">
-                                                                        ₹{(entry.pending_amount ?? 0).toLocaleString("en-IN")}
-                                                                    </span>
-                                                                    <p className="text-xs text-muted-foreground">25% release</p>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <Badge variant="secondary" className="capitalize">
-                                                                        {entry.parantage_status || "Approved"}
-                                                                    </Badge>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        );
-                                                    })}
-                                                </TableBody>
-                                            </Table>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
                                         ) : (
                                             <p className="text-center text-muted-foreground py-8">
                                                 No approved parantage confirmation payments found yet.

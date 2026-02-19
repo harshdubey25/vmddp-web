@@ -21,14 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Dialog,
@@ -288,395 +281,289 @@ export default function Parantage() {
                                 </TabsList>
 
                                 <TabsContent value="pending">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>
-                                                    Beneficiary
-                                                </TableHead>
-                                                <TableHead>District</TableHead>
-                                                <TableHead>Vendor</TableHead>
-                                                <TableHead>
-                                                    Paid Amount
-                                                </TableHead>
-                                                <TableHead>
-                                                    Pending Amount
-                                                </TableHead>
-                                                <TableHead>Actions</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {pendingEntries.map((entry) => (
-                                                <Fragment
-                                                    key={
-                                                        entry.component_allocation_id
-                                                    }
-                                                >
-                                                    <TableRow
-                                                        data-testid={`row-parantage-${entry.component_allocation_id}`}
-                                                    >
-                                                        <TableCell>
-                                                            <div>
-                                                                <p className="font-medium">
-                                                                    {`${entry.first_name} ${entry.mid_name || ""} ${entry.last_name}`.trim()}
-                                                                </p>
-                                                                <p className="text-xs text-muted-foreground">
-                                                                    {
-                                                                        entry.aadhar_number
-                                                                    }
-                                                                </p>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {entry.district}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {entry.vendor_name ||
-                                                                entry.vendor}
-                                                        </TableCell>
-                                                        <TableCell className="text-green-600">
-                                                            ₹
-                                                            {entry.paid_payment?.toLocaleString(
-                                                                "en-IN",
-                                                            ) || 0}
-                                                        </TableCell>
-                                                        <TableCell className="font-medium">
-                                                            ₹
-                                                            {entry.pending_amount?.toLocaleString(
-                                                                "en-IN",
-                                                            ) || 0}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Button
-                                                                size="icon"
-                                                                variant="ghost"
-                                                                data-testid={`button-expand-${entry.component_allocation_id}`}
-                                                                onClick={() =>
-                                                                    setOpenFormId(
-                                                                        openFormId ===
-                                                                            entry.component_allocation_id
-                                                                            ? null
-                                                                            : entry.component_allocation_id,
-                                                                    )
-                                                                }
-                                                            >
-                                                                <ChevronRight
-                                                                    className={`h-5 w-5 transition-transform ${openFormId === entry.component_allocation_id ? "rotate-90" : ""}`}
-                                                                />
-                                                            </Button>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                    {openFormId ===
-                                                        entry.component_allocation_id && (
-                                                            <TableRow className="bg-muted/30">
-                                                                <TableCell
-                                                                    colSpan={6}
-                                                                >
-                                                                    <ParantageDetailsForm
-                                                                        entryId={
-                                                                            entry.component_allocation_id
-                                                                        }
-                                                                        applicationId={
-                                                                            entry.application_id
-                                                                        }
-                                                                        onCancel={() =>
+                                    <div className="border rounded-lg overflow-hidden flex flex-col">
+                                        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                            <table className="w-full min-w-[900px]">
+                                                <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                    <tr>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Beneficiary</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">District</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Vendor</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Paid Amount</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Pending Amount</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {pendingEntries.map((entry) => (
+                                                        <Fragment key={entry.component_allocation_id}>
+                                                            <tr data-testid={`row-parantage-${entry.component_allocation_id}`} className="border-b hover:bg-muted/30">
+                                                                <td className="p-3 text-xs sm:text-sm">
+                                                                    <div>
+                                                                        <p className="font-medium">
+                                                                            {`${entry.first_name} ${entry.mid_name || ""} ${entry.last_name}`.trim()}
+                                                                        </p>
+                                                                        <p className="text-xs text-muted-foreground">
+                                                                            {entry.aadhar_number}
+                                                                        </p>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="p-3 text-xs sm:text-sm">
+                                                                    {entry.district}
+                                                                </td>
+                                                                <td className="p-3 text-xs sm:text-sm">
+                                                                    {entry.vendor_name || entry.vendor}
+                                                                </td>
+                                                                <td className="p-3 text-xs sm:text-sm text-green-600">
+                                                                    ₹{entry.paid_payment?.toLocaleString("en-IN") || 0}
+                                                                </td>
+                                                                <td className="p-3 text-xs sm:text-sm font-medium">
+                                                                    ₹{entry.pending_amount?.toLocaleString("en-IN") || 0}
+                                                                </td>
+                                                                <td className="p-3 text-xs sm:text-sm">
+                                                                    <Button
+                                                                        size="icon"
+                                                                        variant="ghost"
+                                                                        data-testid={`button-expand-${entry.component_allocation_id}`}
+                                                                        onClick={() =>
                                                                             setOpenFormId(
-                                                                                null,
+                                                                                openFormId === entry.component_allocation_id
+                                                                                    ? null
+                                                                                    : entry.component_allocation_id,
                                                                             )
                                                                         }
-                                                                        onSuccess={() =>
-                                                                            setOpenFormId(
-                                                                                null,
-                                                                            )
-                                                                        }
-                                                                        component_allocation_id={
-                                                                            entry.component_allocation_id
-                                                                        }
-                                                                    />
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        )}
-                                                </Fragment>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
+                                                                    >
+                                                                        <ChevronRight
+                                                                            className={`h-5 w-5 transition-transform ${openFormId === entry.component_allocation_id ? "rotate-90" : ""}`}
+                                                                        />
+                                                                    </Button>
+                                                                </td>
+                                                            </tr>
+                                                            {openFormId === entry.component_allocation_id && (
+                                                                <tr className="bg-muted/30 border-b">
+                                                                    <td colSpan={6}>
+                                                                        <ParantageDetailsForm
+                                                                            entryId={entry.component_allocation_id}
+                                                                            applicationId={entry.application_id}
+                                                                            onCancel={() => setOpenFormId(null)}
+                                                                            onSuccess={() => setOpenFormId(null)}
+                                                                            component_allocation_id={entry.component_allocation_id}
+                                                                        />
+                                                                    </td>
+                                                                </tr>
+                                                            )}
+                                                        </Fragment>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </TabsContent>
 
                                 <TabsContent value="ready">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>
-                                                    Beneficiary
-                                                </TableHead>
-                                                <TableHead>District</TableHead>
-                                                <TableHead>
-                                                    Calf Gender
-                                                </TableHead>
-                                                <TableHead>
-                                                    Certified By
-                                                </TableHead>
-                                                <TableHead>
-                                                    Pending Amount
-                                                </TableHead>
-                                                <TableHead>Actions</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {pendingApprovalEntries.map(
-                                                (entry) => (
-                                                    <TableRow
-                                                        key={
-                                                            entry.parantage_confirmation_id
-                                                        }
-                                                        data-testid={`row-parantage-${entry.parantage_confirmation_id}`}
-                                                    >
-                                                        <TableCell>
-                                                            <div>
-                                                                <p className="font-medium">
-                                                                    {`${entry.first_name} ${entry.mid_name || ""} ${entry.last_name}`.trim()}
-                                                                </p>
-                                                                <p className="text-xs text-muted-foreground">
-                                                                    {
-                                                                        entry.aadhar_number
-                                                                    }
-                                                                </p>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {entry.district}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Badge
-                                                                variant="outline"
-                                                                className="capitalize"
-                                                            >
-                                                                {
-                                                                    entry.calf_born
-                                                                }
-                                                            </Badge>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {entry.agency_name ||
-                                                                entry.certified_by_agency}
-                                                        </TableCell>
-                                                        <TableCell className="font-medium text-primary">
-                                                            ₹
-                                                            {entry.pending_amount?.toLocaleString(
-                                                                "en-IN",
-                                                            ) || 0}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                onClick={() => handleViewDetails(entry)}
-                                                                data-testid={`button-view-pending-approval-${entry.parantage_confirmation_id}`}
-                                                            >
-                                                                <Eye className="h-4 w-4 mr-2" />
-                                                                View
-                                                            </Button>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ),
-                                            )}
-                                        </TableBody>
-                                    </Table>
+                                    <div className="border rounded-lg overflow-hidden flex flex-col">
+                                        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                            <table className="w-full min-w-[900px]">
+                                                <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                    <tr>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Beneficiary</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">District</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Calf Gender</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Certified By</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Pending Amount</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {pendingApprovalEntries.map((entry) => (
+                                                        <tr key={entry.parantage_confirmation_id} data-testid={`row-parantage-${entry.parantage_confirmation_id}`} className="border-b hover:bg-muted/30">
+                                                            <td className="p-3 text-xs sm:text-sm">
+                                                                <div>
+                                                                    <p className="font-medium">
+                                                                        {`${entry.first_name} ${entry.mid_name || ""} ${entry.last_name}`.trim()}
+                                                                    </p>
+                                                                    <p className="text-xs text-muted-foreground">
+                                                                        {entry.aadhar_number}
+                                                                    </p>
+                                                                </div>
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm">
+                                                                {entry.district}
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm">
+                                                                <Badge variant="outline" className="capitalize">
+                                                                    {entry.calf_born}
+                                                                </Badge>
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm">
+                                                                {entry.agency_name || entry.certified_by_agency}
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm font-medium text-primary">
+                                                                ₹{entry.pending_amount?.toLocaleString("en-IN") || 0}
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm">
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    onClick={() => handleViewDetails(entry)}
+                                                                    data-testid={`button-view-pending-approval-${entry.parantage_confirmation_id}`}
+                                                                >
+                                                                    <Eye className="h-4 w-4 mr-2" />
+                                                                    View
+                                                                </Button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </TabsContent>
 
                                 <TabsContent value="completed">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>
-                                                    Beneficiary
-                                                </TableHead>
-                                                <TableHead>District</TableHead>
-                                                <TableHead>
-                                                    Calf Gender
-                                                </TableHead>
-                                                <TableHead>
-                                                    Certified By
-                                                </TableHead>
-                                                <TableHead>
-                                                    Pending Payment
-                                                </TableHead>
-                                                <TableHead>Payment Status</TableHead>
-                                                <TableHead>Actions</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {approvedEntries.map((entry) => (
-                                                <TableRow
-                                                    key={
-                                                        entry.parantage_confirmation_id
-                                                    }
-                                                    data-testid={`row-parantage-${entry.parantage_confirmation_id}`}
-                                                >
-                                                    <TableCell>
-                                                        <div>
-                                                            <p className="font-medium">
-                                                                {`${entry.first_name} ${entry.mid_name || ""} ${entry.last_name}`.trim()}
-                                                            </p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {
-                                                                    entry.aadhar_number
-                                                                }
-                                                            </p>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {entry.district}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge
-                                                            variant="outline"
-                                                            className="capitalize"
-                                                        >
-                                                            {entry.calf_born}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {entry.agency_name ||
-                                                            entry.certified_by_agency}
-                                                    </TableCell>
-                                                    <TableCell className="font-medium text-green-600">
-                                                        ₹
-                                                        {(
-                                                            (entry.pending_amount ||
-                                                                0)
-                                                        ).toLocaleString(
-                                                            "en-IN",
-                                                        )}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {entry.is_paid === 1 ? (
-                                                            <Badge className="bg-green-500/10 text-green-600 border-green-500/20" variant="outline">
-                                                                Paid
-                                                            </Badge>
-                                                        ) : (
-                                                            <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20" variant="outline">
-                                                                Unpaid
-                                                            </Badge>
-                                                        )}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => handleViewDetails(entry)}
-                                                            data-testid={`button-view-approved-${entry.parantage_confirmation_id}`}
-                                                        >
-                                                            <Eye className="h-4 w-4 mr-2" />
-                                                            View
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
+                                    <div className="border rounded-lg overflow-hidden flex flex-col">
+                                        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                            <table className="w-full min-w-[900px]">
+                                                <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                    <tr>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Beneficiary</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">District</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Calf Gender</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Certified By</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Pending Payment</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Payment Status</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {approvedEntries.map((entry) => (
+                                                        <tr key={entry.parantage_confirmation_id} data-testid={`row-parantage-${entry.parantage_confirmation_id}`} className="border-b hover:bg-muted/30">
+                                                            <td className="p-3 text-xs sm:text-sm">
+                                                                <div>
+                                                                    <p className="font-medium">
+                                                                        {`${entry.first_name} ${entry.mid_name || ""} ${entry.last_name}`.trim()}
+                                                                    </p>
+                                                                    <p className="text-xs text-muted-foreground">
+                                                                        {entry.aadhar_number}
+                                                                    </p>
+                                                                </div>
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm">
+                                                                {entry.district}
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm">
+                                                                <Badge variant="outline" className="capitalize">
+                                                                    {entry.calf_born}
+                                                                </Badge>
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm">
+                                                                {entry.agency_name || entry.certified_by_agency}
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm font-medium text-green-600">
+                                                                ₹{((entry.pending_amount || 0)).toLocaleString("en-IN")}
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm">
+                                                                {entry.is_paid === 1 ? (
+                                                                    <Badge className="bg-green-500/10 text-green-600 border-green-500/20" variant="outline">
+                                                                        Paid
+                                                                    </Badge>
+                                                                ) : (
+                                                                    <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20" variant="outline">
+                                                                        Unpaid
+                                                                    </Badge>
+                                                                )}
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm">
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    onClick={() => handleViewDetails(entry)}
+                                                                    data-testid={`button-view-approved-${entry.parantage_confirmation_id}`}
+                                                                >
+                                                                    <Eye className="h-4 w-4 mr-2" />
+                                                                    View
+                                                                </Button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </TabsContent>
 
                                 <TabsContent value="rejected">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>
-                                                    Beneficiary
-                                                </TableHead>
-                                                <TableHead>District</TableHead>
-                                                <TableHead>
-                                                    Calf Gender
-                                                </TableHead>
-                                                <TableHead>
-                                                    Certified By
-                                                </TableHead>
-                                                <TableHead>
-                                                    Pending Amount
-                                                </TableHead>
-                                                <TableHead>
-                                                    Status
-                                                </TableHead>
-                                                <TableHead>Actions</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {rejectedEntries.length === 0 ? (
-                                                <TableRow>
-                                                    <TableCell
-                                                        colSpan={6}
-                                                        className="text-center py-8 text-muted-foreground"
-                                                    >
-                                                        No rejected entries found
-                                                    </TableCell>
-                                                </TableRow>
-                                            ) : (
-                                                rejectedEntries.map((entry) => (
-                                                    <TableRow
-                                                        key={
-                                                            entry.parantage_confirmation_id
-                                                        }
-                                                        data-testid={`row-rejected-${entry.parantage_confirmation_id}`}
-                                                    >
-                                                        <TableCell>
-                                                            <div>
-                                                                <p className="font-medium">
-                                                                    {`${entry.first_name} ${entry.mid_name || ""} ${entry.last_name}`.trim()}
-                                                                </p>
-                                                                <p className="text-xs text-muted-foreground">
-                                                                    {
-                                                                        entry.aadhar_number
-                                                                    }
-                                                                </p>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {entry.district}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Badge
-                                                                variant="outline"
-                                                                className="capitalize"
-                                                            >
-                                                                {
-                                                                    entry.calf_born
-                                                                }
-                                                            </Badge>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {entry.agency_name ||
-                                                                entry.certified_by_agency}
-                                                        </TableCell>
-                                                        <TableCell className="font-medium text-primary">
-                                                            ₹
-                                                            {entry.pending_amount?.toLocaleString(
-                                                                "en-IN",
-                                                            ) || 0}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Badge
-                                                                variant="outline"
-                                                                className="bg-red-500/10 text-red-600 border-red-500/20"
-                                                            >
-                                                                Rejected
-                                                            </Badge>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                onClick={() => handleViewDetails(entry)}
-                                                                data-testid={`button-view-rejected-${entry.parantage_confirmation_id}`}
-                                                            >
-                                                                <Eye className="h-4 w-4 mr-2" />
-                                                                View
-                                                            </Button>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))
-                                            )}
-                                        </TableBody>
-                                    </Table>
+                                    <div className="border rounded-lg overflow-hidden flex flex-col">
+                                        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                            <table className="w-full min-w-[900px]">
+                                                <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                    <tr>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Beneficiary</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">District</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Calf Gender</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Certified By</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Pending Amount</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Status</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {rejectedEntries.length === 0 ? (
+                                                        <tr>
+                                                            <td colSpan={7} className="text-center py-8 text-muted-foreground p-3">
+                                                                No rejected entries found
+                                                            </td>
+                                                        </tr>
+                                                    ) : (
+                                                        rejectedEntries.map((entry) => (
+                                                            <tr key={entry.parantage_confirmation_id} data-testid={`row-rejected-${entry.parantage_confirmation_id}`} className="border-b hover:bg-muted/30">
+                                                                <td className="p-3 text-xs sm:text-sm">
+                                                                    <div>
+                                                                        <p className="font-medium">
+                                                                            {`${entry.first_name} ${entry.mid_name || ""} ${entry.last_name}`.trim()}
+                                                                        </p>
+                                                                        <p className="text-xs text-muted-foreground">
+                                                                            {entry.aadhar_number}
+                                                                        </p>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="p-3 text-xs sm:text-sm">
+                                                                    {entry.district}
+                                                                </td>
+                                                                <td className="p-3 text-xs sm:text-sm">
+                                                                    <Badge variant="outline" className="capitalize">
+                                                                        {entry.calf_born}
+                                                                    </Badge>
+                                                                </td>
+                                                                <td className="p-3 text-xs sm:text-sm">
+                                                                    {entry.agency_name || entry.certified_by_agency}
+                                                                </td>
+                                                                <td className="p-3 text-xs sm:text-sm font-medium text-primary">
+                                                                    ₹{entry.pending_amount?.toLocaleString("en-IN") || 0}
+                                                                </td>
+                                                                <td className="p-3 text-xs sm:text-sm">
+                                                                    <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20">
+                                                                        Rejected
+                                                                    </Badge>
+                                                                </td>
+                                                                <td className="p-3 text-xs sm:text-sm">
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        onClick={() => handleViewDetails(entry)}
+                                                                        data-testid={`button-view-rejected-${entry.parantage_confirmation_id}`}
+                                                                    >
+                                                                        <Eye className="h-4 w-4 mr-2" />
+                                                                        View
+                                                                    </Button>
+                                                                </td>
+                                                            </tr>
+                                                        ))
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </TabsContent>
                             </Tabs>
                         </CardContent>

@@ -261,34 +261,34 @@ export default function TreatmentPage() {
                     <p>No applications found.</p>
                   </div>
                 ) : (
-                  <div className="border rounded-lg overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-muted/50 border-b">
+                  <div className="border rounded-lg overflow-hidden flex flex-col">
+                    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                      <table className="w-full min-w-[800px]">
+                        <thead className="bg-muted sticky top-0 z-30 border-b">
                           <tr>
-                            <th className="text-left p-3 text-sm font-medium w-12">#</th>
-                            <th className="text-left p-3 text-sm font-medium">Application ID</th>
-                            <th className="text-left p-3 text-sm font-medium">Applicant Name</th>
-                            <th className="text-left p-3 text-sm font-medium">Aadhar Number</th>
-                            <th className="text-left p-3 text-sm font-medium">District</th>
-                            <th className="text-left p-3 text-sm font-medium">Taluka</th>
-                            <th className="text-left p-3 text-sm font-medium">Village</th>
-                            <th className="text-left p-3 text-sm font-medium">Submitted Date</th>
-                            <th className="text-left p-3 text-sm font-medium">Actions</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium w-12">#</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Application ID</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Applicant Name</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Aadhar Number</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">District</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Taluka</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Village</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Submitted Date</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {paginatedApplications.map((app, index) => (
-                            <tr key={`${app.id}-${index}`} className="border-b hover:bg-muted/30 transition-colors">
-                              <td className="p-3 text-sm text-muted-foreground">{startIndex + index + 1}</td>
-                              <td className="p-3 text-sm font-mono">{app.id}</td>
-                              <td className="p-3 text-sm font-medium">{app.applicantName}</td>
-                              <td className="p-3 text-sm">{app.aadharNumber || "-"}</td>
-                              <td className="p-3 text-sm">{app.district}</td>
-                              <td className="p-3 text-sm">{app.taluka}</td>
-                              <td className="p-3 text-sm">{app.village}</td>
-                              <td className="p-3 text-sm text-muted-foreground">{app.submittedDate}</td>
-                              <td className="p-3 text-sm">
+                            <tr key={`${app.id}-${index}`} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                              <td className="p-3 text-xs sm:text-sm text-muted-foreground">{startIndex + index + 1}</td>
+                              <td className="p-3 text-xs sm:text-sm font-mono">{app.id}</td>
+                              <td className="p-3 text-xs sm:text-sm font-medium">{app.applicantName}</td>
+                              <td className="p-3 text-xs sm:text-sm">{app.aadharNumber || "-"}</td>
+                              <td className="p-3 text-xs sm:text-sm">{app.district}</td>
+                              <td className="p-3 text-xs sm:text-sm">{app.taluka}</td>
+                              <td className="p-3 text-xs sm:text-sm">{app.village}</td>
+                              <td className="p-3 text-xs sm:text-sm text-muted-foreground">{app.submittedDate}</td>
+                              <td className="p-3 text-xs sm:text-sm">
                                 <Button
                                   variant="ghost"
                                   size="sm"

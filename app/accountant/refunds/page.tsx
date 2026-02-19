@@ -21,7 +21,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFrappeGetCall, useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
@@ -343,63 +342,63 @@ export default function Refunds() {
                                         </div>
                                     ) : (
                                         <>
-                                            <div className="overflow-x-auto -mx-6 sm:mx-0">
-                                                <Table>
-                                                    <TableHeader>
-                                                        <TableRow>
-                                                            <TableHead className="min-w-[120px]">Application ID</TableHead>
-                                                            <TableHead className="min-w-[150px]">Beneficiary</TableHead>
-                                                            <TableHead className="min-w-[120px]">District</TableHead>
-                                                            <TableHead className="min-w-[120px]">Village</TableHead>
-                                                            <TableHead className="min-w-[120px]">Component</TableHead>
-                                                            <TableHead className="text-right min-w-[100px]">DD Amount</TableHead>
-                                                            <TableHead className="text-right min-w-[120px]">Eligible Subsidy</TableHead>
-                                                            <TableHead className="text-right min-w-[120px]">Refund Amount</TableHead>
-                                                            <TableHead className="min-w-[100px]">Actions</TableHead>
-                                                        </TableRow>
-                                                    </TableHeader>
-                                                    <TableBody>
-                                                        {pendingRefunds.map((refund) => (
-                                                            <TableRow key={refund.application_id} data-testid={`row-refund-${refund.application_id}`}>
-                                                                <TableCell>
-                                                                    <span className="font-mono text-xs">{refund.application_id}</span>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <p className="font-medium">{getFullName(refund)}</p>
-                                                                </TableCell>
-                                                                <TableCell>{refund.district}</TableCell>
-                                                                <TableCell>{refund.village}</TableCell>
-                                                                <TableCell>
-                                                                    <div className="flex flex-col gap-1">
-                                                                        <Badge variant="outline" className="w-fit">{refund.component}</Badge>
-                                                                        {refund.component === "Animal Induction" && refund.type_of_animal && (
-                                                                            <span className="text-xs font-medium text-primary/70">{refund.type_of_animal}</span>
-                                                                        )}
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell className="text-right">₹{refund.dd_amount.toLocaleString("en-IN")}</TableCell>
-                                                                <TableCell className="text-right text-green-600">₹{refund.eligible_subsidy.toLocaleString("en-IN")}</TableCell>
-                                                                <TableCell className="text-right font-bold text-primary">
-                                                                    ₹{refund.refund_amount.toLocaleString("en-IN")}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <Button size="sm" onClick={() => handleOpenDBTDialog(refund)} data-testid={`button-dbt-${refund.application_id}`} className="whitespace-nowrap">
-                                                                        <Send className="h-4 w-4 mr-1" />
-                                                                        DBT
-                                                                    </Button>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        ))}
-                                                        {pendingRefunds.length === 0 && (
-                                                            <TableRow>
-                                                                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                                                                    No pending refunds
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        )}
-                                                    </TableBody>
-                                                </Table>
-                                            </div>
+                                    <div className="border rounded-lg overflow-hidden flex flex-col">
+                                        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                            <table className="w-full min-w-[900px]">
+                                                <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                    <tr>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Application ID</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Beneficiary</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">District</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Village</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Component</th>
+                                                        <th className="text-right p-3 text-xs sm:text-sm font-medium">DD Amount</th>
+                                                        <th className="text-right p-3 text-xs sm:text-sm font-medium">Eligible Subsidy</th>
+                                                        <th className="text-right p-3 text-xs sm:text-sm font-medium">Refund Amount</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {pendingRefunds.map((refund) => (
+                                                        <tr key={refund.application_id} data-testid={`row-refund-${refund.application_id}`} className="border-b hover:bg-muted/30">
+                                                            <td className="p-3 text-xs sm:text-sm">
+                                                                <span className="font-mono text-xs">{refund.application_id}</span>
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm">
+                                                                <p className="font-medium">{getFullName(refund)}</p>
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm">{refund.district}</td>
+                                                            <td className="p-3 text-xs sm:text-sm">{refund.village}</td>
+                                                            <td className="p-3 text-xs sm:text-sm">
+                                                                <div className="flex flex-col gap-1">
+                                                                    <Badge variant="outline" className="w-fit">{refund.component}</Badge>
+                                                                    {refund.component === "Animal Induction" && refund.type_of_animal && (
+                                                                        <span className="text-xs font-medium text-primary/70">{refund.type_of_animal}</span>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm text-right">₹{refund.dd_amount.toLocaleString("en-IN")}</td>
+                                                            <td className="p-3 text-xs sm:text-sm text-right text-green-600">₹{refund.eligible_subsidy.toLocaleString("en-IN")}</td>
+                                                            <td className="p-3 text-xs sm:text-sm text-right font-bold text-primary">₹{refund.refund_amount.toLocaleString("en-IN")}</td>
+                                                            <td className="p-3 text-xs sm:text-sm">
+                                                                <Button size="sm" onClick={() => handleOpenDBTDialog(refund)} data-testid={`button-dbt-${refund.application_id}`} className="whitespace-nowrap">
+                                                                    <Send className="h-4 w-4 mr-1" />
+                                                                    DBT
+                                                                </Button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    {pendingRefunds.length === 0 && (
+                                                        <tr>
+                                                            <td colSpan={9} className="text-center py-8 text-muted-foreground p-3">
+                                                                No pending refunds
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
 
                                             {/* Pagination */}
                                             {totalPages > 1 && (
@@ -473,66 +472,68 @@ export default function Refunds() {
                                         </div>
                                     ) : (
                                         <>
-                                            <div className="overflow-x-auto -mx-6 sm:mx-0">
-                                                <Table>
-                                                    <TableHeader>
-                                                        <TableRow>
-                                                            <TableHead className="min-w-[120px]">Application ID</TableHead>
-                                                            <TableHead className="min-w-[120px]">Component</TableHead>
-                                                            <TableHead className="min-w-[150px]">Bank Details</TableHead>
-                                                            <TableHead className="text-right min-w-[120px]">Refund Amount</TableHead>
-                                                            <TableHead className="min-w-[140px]">Transaction ID</TableHead>
-                                                            <TableHead className="min-w-[120px]">Transaction Date</TableHead>
-                                                            <TableHead className="min-w-[120px]">Processed On</TableHead>
-                                                            <TableHead className="min-w-[80px]">Status</TableHead>
-                                                        </TableRow>
-                                                    </TableHeader>
-                                                    <TableBody>
-                                                        {paidRefunds.map((refund: any) => (
-                                                            <TableRow key={refund.name} data-testid={`row-paid-refund-${refund.name}`}>
-                                                                <TableCell>
-                                                                    <span className="font-mono text-xs">{refund.application}</span>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <Badge variant="outline" className="w-fit">{refund.component}</Badge>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <div className="flex flex-col gap-0.5">
-                                                                        <span className="font-medium text-sm">{refund.bank_name || "N/A"}</span>
-                                                                        <span className="font-mono text-xs text-muted-foreground">
-                                                                            {maskAccountNumber(refund.account_number)}
-                                                                        </span>
-                                                                    </div>
-                                                                </TableCell>
-                                                                <TableCell className="text-right font-bold text-green-600">
-                                                                    ₹{refund.refund_amount.toLocaleString("en-IN")}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <span className="font-mono text-xs">{refund.transanction_id}</span>
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {new Date(refund.transanction_date).toLocaleDateString("en-IN")}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {new Date(refund.creation).toLocaleDateString("en-IN")}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <Badge variant="default" className="bg-green-500">
-                                                                        <CheckCircle className="h-3 w-3 mr-1" />
-                                                                        Paid
-                                                                    </Badge>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        ))}
-                                                        {paidRefunds.length === 0 && (
-                                                            <TableRow>
-                                                                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                                                                    No paid refunds found
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        )}
-                                                    </TableBody>
-                                                </Table>
+                                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                                    <table className="w-full min-w-[900px]">
+                                                        <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                            <tr>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Application ID</th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Component</th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Bank Details</th>
+                                                                <th className="text-right p-3 text-xs sm:text-sm font-medium">Refund Amount</th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Transaction ID</th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Transaction Date</th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Processed On</th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Status</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {paidRefunds.map((refund: any) => (
+                                                                <tr key={refund.name} data-testid={`row-paid-refund-${refund.name}`} className="border-b hover:bg-muted/30">
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <span className="font-mono text-xs">{refund.application}</span>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <Badge variant="outline" className="w-fit">{refund.component}</Badge>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div className="flex flex-col gap-0.5">
+                                                                            <span className="font-medium text-sm">{refund.bank_name || "N/A"}</span>
+                                                                            <span className="font-mono text-xs text-muted-foreground">
+                                                                                {maskAccountNumber(refund.account_number)}
+                                                                            </span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm text-right font-bold text-green-600">
+                                                                        ₹{refund.refund_amount.toLocaleString("en-IN")}
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <span className="font-mono text-xs">{refund.transanction_id}</span>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        {new Date(refund.transanction_date).toLocaleDateString("en-IN")}
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        {new Date(refund.creation).toLocaleDateString("en-IN")}
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <Badge variant="default" className="bg-green-500">
+                                                                            <CheckCircle className="h-3 w-3 mr-1" />
+                                                                            Paid
+                                                                        </Badge>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                            {paidRefunds.length === 0 && (
+                                                                <tr>
+                                                                    <td colSpan={8} className="text-center py-8 text-muted-foreground p-3">
+                                                                        No paid refunds found
+                                                                    </td>
+                                                                </tr>
+                                                            )}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
 
                                             {/* Pagination for Paid */}

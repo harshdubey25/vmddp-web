@@ -226,32 +226,32 @@ export default function FarmerTraining() {
                     No applications found.
                   </div>
                 ) : (
-                  <div className="border rounded-lg overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-muted/50 border-b">
+                  <div className="border rounded-lg overflow-hidden flex flex-col">
+                    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                      <table className="w-full min-w-[800px]">
+                        <thead className="bg-muted sticky top-0 z-30 border-b">
                           <tr>
-                            <th className="text-left p-3 text-sm font-medium">#</th>
-                            <th className="text-left p-3 text-sm font-medium">Application ID</th>
-                            <th className="text-left p-3 text-sm font-medium">Event Name</th>
-                            <th className="text-left p-3 text-sm font-medium">Date</th>
-                            <th className="text-left p-3 text-sm font-medium">Venue</th>
-                            <th className="text-left p-3 text-sm font-medium">Participants</th>
-                            <th className="text-left p-3 text-sm font-medium">Budget</th>
-                            <th className="text-left p-3 text-sm font-medium">Actions</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">#</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Application ID</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Event Name</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Date</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Venue</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Participants</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Budget</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {paginatedApplications.map((app, idx) => (
-                            <tr key={app.name} className="border-b hover:bg-muted/30">
-                              <td className="p-3 text-sm text-muted-foreground">{startIndex + idx + 1}</td>
-                              <td className="p-3 text-sm font-mono">{app.name}</td>
-                              <td className="p-3 text-sm">{app.event_name}</td>
-                              <td className="p-3 text-sm">{new Date(app.event_date).toLocaleDateString()}</td>
-                              <td className="p-3 text-sm">{app.venue_name}</td>
-                              <td className="p-3 text-sm">{app.number_of_participants}</td>
-                              <td className="p-3 text-sm">{formatCurrency(getTotalBudget(app))}</td>
-                              <td className="p-3 text-sm">
+                            <tr key={app.name} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                              <td className="p-3 text-xs sm:text-sm text-muted-foreground">{startIndex + idx + 1}</td>
+                              <td className="p-3 text-xs sm:text-sm font-mono">{app.name}</td>
+                              <td className="p-3 text-xs sm:text-sm">{app.event_name}</td>
+                              <td className="p-3 text-xs sm:text-sm">{new Date(app.event_date).toLocaleDateString()}</td>
+                              <td className="p-3 text-xs sm:text-sm">{app.venue_name}</td>
+                              <td className="p-3 text-xs sm:text-sm">{app.number_of_participants}</td>
+                              <td className="p-3 text-xs sm:text-sm">{formatCurrency(getTotalBudget(app))}</td>
+                              <td className="p-3 text-xs sm:text-sm">
                                 <Button
                                   variant="ghost"
                                   size="sm"

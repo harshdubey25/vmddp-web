@@ -945,10 +945,10 @@ export default function AdminSelectionClient({
                                 </Button>
                             </div>
 
-                            <div className="border rounded-lg overflow-hidden w-full">
-                                <div className="overflow-x-auto max-w-full">
+                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
                                     <table className="w-full min-w-[720px]">
-                                        <thead className="bg-muted/50 border-b">
+                                        <thead className="bg-muted sticky top-0 z-30 border-b">
                                             <tr>
                                                 <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Date</th>
                                                 <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Application ID</th>

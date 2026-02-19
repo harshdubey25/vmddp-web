@@ -23,7 +23,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFrappeGetDocList, useFrappeUpdateDoc, useFrappePostCall } from "frappe-react-sdk";
@@ -46,14 +45,6 @@ interface Refund {
     docstatus: number;
     status: string;
     owner: string;
-}
-
-interface AppFormData {
-    first_name: string;
-    mid_name?: string;
-    last_name: string;
-    district: string;
-    village: string;
 }
 
 const PAGE_SIZE = 20;
@@ -358,91 +349,93 @@ export default function AdminRefundsApproval() {
         }
 
         return (
-            <div className="border rounded-lg overflow-hidden">
-                <Table>
-                    <TableHeader>
-                        <TableRow className="bg-muted/50">
-                            <TableHead>Refund ID</TableHead>
-                            <TableHead>Application ID</TableHead>
-                            <TableHead>Component</TableHead>
-                            <TableHead>Bank Details</TableHead>
-                            <TableHead className="text-right">Amount</TableHead>
-                            {!showActions && <TableHead>Transaction ID</TableHead>}
-                            {!showActions && <TableHead>Transaction Date</TableHead>}
-                            <TableHead>Created On</TableHead>
-                            <TableHead>Status</TableHead>
-                            {showActions && <TableHead>Actions</TableHead>}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {refunds.map((refund) => (
-                            <TableRow key={refund.name}>
-                                <TableCell>
-                                    <span className="font-mono text-xs">{refund.name}</span>
-                                </TableCell>
-                                <TableCell>
-                                    <span className="font-mono text-xs">{refund.application}</span>
-                                </TableCell>
-                                <TableCell>
-                                    <Badge variant="outline">{refund.component}</Badge>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="flex flex-col gap-1 text-xs">
-                                        <div className="font-medium">{refund.account_holder_name || "N/A"}</div>
-                                        <div className="text-muted-foreground">{refund.bank_name || "N/A"}</div>
-                                        <div className="font-mono">{maskAccountNumber(refund.account_number)}</div>
-                                        <div className="font-mono">{refund.ifsc_code || "N/A"}</div>
-                                    </div>
-                                </TableCell>
-                                <TableCell className="text-right font-bold text-primary">
-                                    ₹{refund.refund_amount.toLocaleString("en-IN")}
-                                </TableCell>
-                                {!showActions && (
-                                    <TableCell>
-                                        <span className="font-mono text-xs">{refund.transanction_id}</span>
-                                    </TableCell>
-                                )}
-                                {!showActions && (
-                                    <TableCell>
-                                        {refund.transanction_date ? new Date(refund.transanction_date).toLocaleDateString("en-IN") : "N/A"}
-                                    </TableCell>
-                                )}
-                                <TableCell>
-                                    {new Date(refund.creation).toLocaleDateString("en-IN")}
-                                </TableCell>
-                                <TableCell>
-                                    <Badge variant={getStatusBadgeVariant(refund.docstatus)} className={getStatusBadgeClass(refund.docstatus)}>
-                                        {getStatusLabel(refund.docstatus)}
-                                    </Badge>
-                                </TableCell>
-                                {showActions && (
-                                    <TableCell>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="default"
-                                                onClick={() => handleOpenApprovalDialog(refund, "approve")}
-                                                className="whitespace-nowrap"
-                                            >
-                                                <ThumbsUp className="h-4 w-4 mr-1" />
-                                                Approve
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="destructive"
-                                                onClick={() => handleOpenApprovalDialog(refund, "reject")}
-                                                className="whitespace-nowrap"
-                                            >
-                                                <ThumbsDown className="h-4 w-4 mr-1" />
-                                                Reject
-                                            </Button>
+            <div className="border rounded-lg overflow-hidden flex flex-col">
+                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                    <table className="w-full min-w-[1000px]">
+                        <thead className="bg-muted sticky top-0 z-30 border-b">
+                            <tr>
+                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Refund ID</th>
+                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Application ID</th>
+                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Component</th>
+                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Bank Details</th>
+                                <th className="text-right p-3 text-xs sm:text-sm font-medium">Amount</th>
+                                {!showActions && <th className="text-left p-3 text-xs sm:text-sm font-medium">Transaction ID</th>}
+                                {!showActions && <th className="text-left p-3 text-xs sm:text-sm font-medium">Transaction Date</th>}
+                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Created On</th>
+                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Status</th>
+                                {showActions && <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {refunds.map((refund) => (
+                                <tr key={refund.name} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                                    <td className="p-3 text-xs sm:text-sm">
+                                        <span className="font-mono text-xs">{refund.name}</span>
+                                    </td>
+                                    <td className="p-3 text-xs sm:text-sm">
+                                        <span className="font-mono text-xs">{refund.application}</span>
+                                    </td>
+                                    <td className="p-3 text-xs sm:text-sm">
+                                        <Badge variant="outline">{refund.component}</Badge>
+                                    </td>
+                                    <td className="p-3 text-xs sm:text-sm">
+                                        <div className="flex flex-col gap-1 text-xs">
+                                            <div className="font-medium">{refund.account_holder_name || "N/A"}</div>
+                                            <div className="text-muted-foreground">{refund.bank_name || "N/A"}</div>
+                                            <div className="font-mono">{maskAccountNumber(refund.account_number)}</div>
+                                            <div className="font-mono">{refund.ifsc_code || "N/A"}</div>
                                         </div>
-                                    </TableCell>
-                                )}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                                    </td>
+                                    <td className="p-3 text-xs sm:text-sm text-right font-bold text-primary">
+                                        ₹{refund.refund_amount.toLocaleString("en-IN")}
+                                    </td>
+                                    {!showActions && (
+                                        <td className="p-3 text-xs sm:text-sm">
+                                            <span className="font-mono text-xs">{refund.transanction_id}</span>
+                                        </td>
+                                    )}
+                                    {!showActions && (
+                                        <td className="p-3 text-xs sm:text-sm">
+                                            {refund.transanction_date ? new Date(refund.transanction_date).toLocaleDateString("en-IN") : "N/A"}
+                                        </td>
+                                    )}
+                                    <td className="p-3 text-xs sm:text-sm">
+                                        {new Date(refund.creation).toLocaleDateString("en-IN")}
+                                    </td>
+                                    <td className="p-3 text-xs sm:text-sm">
+                                        <Badge variant={getStatusBadgeVariant(refund.docstatus)} className={getStatusBadgeClass(refund.docstatus)}>
+                                            {getStatusLabel(refund.docstatus)}
+                                        </Badge>
+                                    </td>
+                                    {showActions && (
+                                        <td className="p-3 text-xs sm:text-sm">
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    size="sm"
+                                                    variant="default"
+                                                    onClick={() => handleOpenApprovalDialog(refund, "approve")}
+                                                    className="whitespace-nowrap"
+                                                >
+                                                    <ThumbsUp className="h-4 w-4 mr-1" />
+                                                    Approve
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="destructive"
+                                                    onClick={() => handleOpenApprovalDialog(refund, "reject")}
+                                                    className="whitespace-nowrap"
+                                                >
+                                                    <ThumbsDown className="h-4 w-4 mr-1" />
+                                                    Reject
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    )}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         );
     };
