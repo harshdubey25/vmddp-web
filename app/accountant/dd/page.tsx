@@ -82,7 +82,14 @@ export default function DDCollection() {
     const [approvedPage, setApprovedPage] = useState(initialApprovedPage);
     const [selectedPage, setSelectedPage] = useState(initialSelectedPage);
     const [approvedTotal, setApprovedTotal] = useState(0);
-    const [selectedTotal, setSelectedTotal] = useState(0);
+    const [selectedPagination, setSelectedPagination] = useState<{
+        total_items: number;
+        total_pages: number;
+        current_page: number;
+        page_size: number;
+        has_next_page: boolean;
+        has_previous_page: boolean;
+    } | null>(null);
     const pageSize = 20;
 
     const {
@@ -154,9 +161,12 @@ export default function DDCollection() {
             const response = await frappeBrowser
                 .call()
                 .get("vmddp_app.api.v1.accountant.get_completed_dd_list", params);
-            const data = response?.message || [];
+            console.log("DD Completed Response:", JSON.stringify(response, null, 2));
+            const msg = response?.message ?? response;
+            const data = Array.isArray(msg) ? msg : (msg?.data || []);
             setddCompletedApplications(data);
-            setSelectedTotal(response?.total || data.length);
+            const pagination = msg?.pagination || null;
+            setSelectedPagination(pagination);
         } catch (error) {
             console.error("Error fetching completed DD applications:", error);
             setddCompletedApplications([]);
@@ -164,7 +174,7 @@ export default function DDCollection() {
             setLoading(false);
         }
     };
-
+    console.log("ddCompletedApplications:", ddCompletedApplications);
     // Fetch data when tab, pagination, or filters change
     useEffect(() => {
         if (activeTab === "approved") {
@@ -800,11 +810,9 @@ export default function DDCollection() {
                                         {ddCompletedApplications.length > 0 && (
                                             <div className="flex items-center justify-between mt-4">
                                                 <div className="text-sm text-muted-foreground">
-                                                    Page {selectedPage} •{" "}
-                                                    {
-                                                        ddCompletedApplications.length
-                                                    }{" "}
-                                                    items
+                                                    Page {selectedPagination?.current_page ?? selectedPage} of {selectedPagination?.total_pages ?? 1} •{" "}
+                                                    {selectedPagination?.total_items ?? ddCompletedApplications.length}{" "}
+                                                    total items
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <Button
@@ -820,7 +828,7 @@ export default function DDCollection() {
                                                             )
                                                         }
                                                         disabled={
-                                                            selectedPage === 1
+                                                            !selectedPagination?.has_previous_page
                                                         }
                                                     >
                                                         <ChevronLeft className="h-4 w-4 mr-1" />
@@ -835,8 +843,7 @@ export default function DDCollection() {
                                                             )
                                                         }
                                                         disabled={
-                                                            ddCompletedApplications.length <
-                                                            pageSize
+                                                            !selectedPagination?.has_next_page
                                                         }
                                                     >
                                                         Next
