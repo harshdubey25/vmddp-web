@@ -253,10 +253,10 @@ export default function TreatmentPage() {
                     <p>No applications found.</p>
                   </div>
                 ) : (
-                  <div className="border rounded-lg overflow-hidden">
-                    <div className="overflow-x-auto">
+                  <div className="border rounded-lg overflow-hidden flex flex-col">
+                    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
                       <table className="w-full">
-                        <thead className="bg-muted/50 border-b">
+                        <thead className="bg-muted sticky top-0 z-30 border-b">
                           <tr>
                             <th className="text-left p-3 text-sm font-medium">Application ID</th>
                             <th className="text-left p-3 text-sm font-medium">Applicant Name</th>

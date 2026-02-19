@@ -10,7 +10,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 import { useFrappeGetDocList } from "frappe-react-sdk";
 
 interface AdminExpense {
@@ -165,40 +165,44 @@ export default function AdminExpenses() {
                             <CardDescription>View and manage all administrative expenses</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>ID</TableHead>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Head</TableHead>
-                                        <TableHead>Reason</TableHead>
-                                        <TableHead>Amount</TableHead>
-                                        <TableHead>Status</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {expenses && expenses.length > 0 ? (
-                                        expenses.map((expense) => (
-                                            <TableRow key={expense.name} data-testid={`row-expense-${expense.name}`}>
-                                                <TableCell className="font-mono text-sm">{expense.name}</TableCell>
-                                                <TableCell className="font-mono text-sm">{expense.date}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline">{expense.head}</Badge>
-                                                </TableCell>
-                                                <TableCell className="max-w-[200px] truncate">{expense.reason}</TableCell>
-                                                <TableCell className="font-medium">₹{(expense.amount || 0).toLocaleString("en-IN")}</TableCell>
-                                                <TableCell>{getStatusBadge(expense.docstatus)}</TableCell>
-                                            </TableRow>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                                No expenses found
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
+                        <div className="border rounded-lg overflow-hidden flex flex-col">
+                            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                <table className="w-full min-w-[900px]">
+                                    <thead className="bg-muted sticky top-0 z-30 border-b">
+                                        <tr>
+                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">ID</th>
+                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Date</th>
+                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Head</th>
+                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Reason</th>
+                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Amount</th>
+                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {expenses && expenses.length > 0 ? (
+                                            expenses.map((expense) => (
+                                                <tr key={expense.name} data-testid={`row-expense-${expense.name}`} className="border-b hover:bg-muted/30">
+                                                    <td className="p-3 text-xs sm:text-sm font-mono">{expense.name}</td>
+                                                    <td className="p-3 text-xs sm:text-sm font-mono">{expense.date}</td>
+                                                    <td className="p-3 text-xs sm:text-sm">
+                                                        <Badge variant="outline">{expense.head}</Badge>
+                                                    </td>
+                                                    <td className="p-3 text-xs sm:text-sm max-w-[200px] truncate">{expense.reason}</td>
+                                                    <td className="p-3 text-xs sm:text-sm font-medium">₹{(expense.amount || 0).toLocaleString("en-IN")}</td>
+                                                    <td className="p-3 text-xs sm:text-sm">{getStatusBadge(expense.docstatus)}</td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={6} className="text-center py-8 text-muted-foreground p-3">
+                                                    No expenses found
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                         </CardContent>
                     </Card>
                 </div>

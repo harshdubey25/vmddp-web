@@ -9,15 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableFooter,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import {
     Select,
     SelectContent,
     SelectItem,
@@ -382,126 +373,128 @@ export default function TargetAchievement() {
                                     No data available for the selected component.
                                 </div>
                             ) : (
-                                <div className="rounded-md border overflow-x-auto">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead
-                                                    rowSpan={2}
-                                                    className="text-center w-[60px] border-r align-middle"
-                                                >
-                                                    Sr. No.
-                                                </TableHead>
-                                                <TableHead
-                                                    rowSpan={2}
-                                                    className="min-w-[150px] border-r align-middle"
-                                                >
-                                                    District
-                                                </TableHead>
-                                                <TableHead
-                                                    colSpan={2}
-                                                    className="text-center bg-blue-50 dark:bg-blue-950/30 border-r border-b"
-                                                >
-                                                    Target
-                                                </TableHead>
-                                                <TableHead
-                                                    colSpan={3}
-                                                    className="text-center bg-green-50 dark:bg-green-950/30 border-r border-b"
-                                                >
-                                                    Achievement
-                                                </TableHead>
-                                                <TableHead
-                                                    colSpan={2}
-                                                    className="text-center bg-orange-50 dark:bg-orange-950/30 border-b"
-                                                >
-                                                    Balance
-                                                </TableHead>
-                                            </TableRow>
-                                            <TableRow>
-                                                <TableHead className="text-center bg-blue-50 dark:bg-blue-950/30">
-                                                    Physical
-                                                </TableHead>
-                                                <TableHead className="text-center bg-blue-50 dark:bg-blue-950/30 border-r">
-                                                    Financial
-                                                </TableHead>
-                                                <TableHead className="text-center bg-green-50 dark:bg-green-950/30">
-                                                    Physical
-                                                </TableHead>
-                                                <TableHead className="text-center bg-green-50 dark:bg-green-950/30">
-                                                    Beneficiary Share
-                                                </TableHead>
-                                                <TableHead className="text-center bg-green-50 dark:bg-green-950/30 border-r">
-                                                    Subsidy Share
-                                                </TableHead>
-                                                <TableHead className="text-center bg-orange-50 dark:bg-orange-950/30">
-                                                    Physical
-                                                </TableHead>
-                                                <TableHead className="text-center bg-orange-50 dark:bg-orange-950/30">
-                                                    Financial
-                                                </TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {districtData.map((item, index) => (
-                                                <TableRow key={item.district}>
-                                                    <TableCell className="text-center border-r">
-                                                        {index + 1}
-                                                    </TableCell>
-                                                    <TableCell className="font-medium border-r">
-                                                        {item.district}
-                                                    </TableCell>
-                                                    <TableCell className="text-center bg-blue-50/50 dark:bg-blue-950/20">
-                                                        {item.physical_target.toLocaleString()}
-                                                    </TableCell>
-                                                    <TableCell className="text-center bg-blue-50/50 dark:bg-blue-950/20 border-r">
-                                                        {formatCurrency(item.financial_target)}
-                                                    </TableCell>
-                                                    <TableCell className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold">
-                                                        {item.physical_achievement.toLocaleString()}
-                                                    </TableCell>
-                                                    <TableCell className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold">
-                                                        {formatCurrency(item.beneficiary_share)}
-                                                    </TableCell>
-                                                    <TableCell className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold border-r">
-                                                        {formatCurrency(item.subsidy_share)}
-                                                    </TableCell>
-                                                    <TableCell className="text-center bg-orange-50/50 dark:bg-orange-950/20 font-semibold">
-                                                        {item.physical_balance.toLocaleString()}
-                                                    </TableCell>
-                                                    <TableCell className="text-center bg-orange-50/50 dark:bg-orange-950/20 font-semibold">
-                                                        {formatCurrency(item.financial_balance)}
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                        <TableFooter>
-                                            <TableRow className="bg-muted font-bold">
-                                                <TableCell className="border-r"></TableCell>
-                                                <TableCell className="border-r">TOTAL</TableCell>
-                                                <TableCell className="text-center">
-                                                    {totals.physical_target.toLocaleString()}
-                                                </TableCell>
-                                                <TableCell className="text-center border-r">
-                                                    {formatCurrency(totals.financial_target)}
-                                                </TableCell>
-                                                <TableCell className="text-center text-green-600">
-                                                    {totals.physical_achievement.toLocaleString()}
-                                                </TableCell>
-                                                <TableCell className="text-center text-green-600">
-                                                    {formatCurrency(totals.beneficiary_share)}
-                                                </TableCell>
-                                                <TableCell className="text-center text-green-600 border-r">
-                                                    {formatCurrency(totals.subsidy_share)}
-                                                </TableCell>
-                                                <TableCell className="text-center">
-                                                    {totals.physical_balance.toLocaleString()}
-                                                </TableCell>
-                                                <TableCell className="text-center">
-                                                    {formatCurrency(totals.financial_balance)}
-                                                </TableCell>
-                                            </TableRow>
-                                        </TableFooter>
-                                    </Table>
+                                <div className="border rounded-lg overflow-hidden flex flex-col">
+                                    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                        <table className="w-full min-w-[1200px]">
+                                            <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                <tr>
+                                                    <th
+                                                        rowSpan={2}
+                                                        className="text-center w-[60px] border-r align-middle p-3 text-xs sm:text-sm font-medium"
+                                                    >
+                                                        Sr. No.
+                                                    </th>
+                                                    <th
+                                                        rowSpan={2}
+                                                        className="min-w-[150px] border-r align-middle p-3 text-xs sm:text-sm font-medium"
+                                                    >
+                                                        District
+                                                    </th>
+                                                    <th
+                                                        colSpan={2}
+                                                        className="text-center bg-blue-50 dark:bg-blue-950/30 border-r border-b p-3 text-xs sm:text-sm font-medium"
+                                                    >
+                                                        Target
+                                                    </th>
+                                                    <th
+                                                        colSpan={3}
+                                                        className="text-center bg-green-50 dark:bg-green-950/30 border-r border-b p-3 text-xs sm:text-sm font-medium"
+                                                    >
+                                                        Achievement
+                                                    </th>
+                                                    <th
+                                                        colSpan={2}
+                                                        className="text-center bg-orange-50 dark:bg-orange-950/30 border-b p-3 text-xs sm:text-sm font-medium"
+                                                    >
+                                                        Balance
+                                                    </th>
+                                                </tr>
+                                                <tr className="bg-muted sticky top-[48px] z-30 border-t-2 border-b">
+                                                    <th className="text-center bg-blue-50 dark:bg-blue-950/30 p-3 text-xs sm:text-sm font-medium border-r">
+                                                        Physical
+                                                    </th>
+                                                    <th className="text-center bg-blue-50 dark:bg-blue-950/30 border-r p-3 text-xs sm:text-sm font-medium">
+                                                        Financial
+                                                    </th>
+                                                    <th className="text-center bg-green-50 dark:bg-green-950/30 p-3 text-xs sm:text-sm font-medium border-r">
+                                                        Physical
+                                                    </th>
+                                                    <th className="text-center bg-green-50 dark:bg-green-950/30 p-3 text-xs sm:text-sm font-medium">
+                                                        Beneficiary Share
+                                                    </th>
+                                                    <th className="text-center bg-green-50 dark:bg-green-950/30 border-r p-3 text-xs sm:text-sm font-medium">
+                                                        Subsidy Share
+                                                    </th>
+                                                    <th className="text-center bg-orange-50 dark:bg-orange-950/30 p-3 text-xs sm:text-sm font-medium border-r">
+                                                        Physical
+                                                    </th>
+                                                    <th className="text-center bg-orange-50 dark:bg-orange-950/30 p-3 text-xs sm:text-sm font-medium">
+                                                        Financial
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {districtData.map((item, index) => (
+                                                    <tr key={item.district} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                                                        <td className="text-center border-r p-3 text-xs sm:text-sm">
+                                                            {index + 1}
+                                                        </td>
+                                                        <td className="font-medium border-r p-3 text-xs sm:text-sm">
+                                                            {item.district}
+                                                        </td>
+                                                        <td className="text-center bg-blue-50/50 dark:bg-blue-950/20 p-3 text-xs sm:text-sm">
+                                                            {item.physical_target.toLocaleString()}
+                                                        </td>
+                                                        <td className="text-center bg-blue-50/50 dark:bg-blue-950/20 border-r p-3 text-xs sm:text-sm">
+                                                            {formatCurrency(item.financial_target)}
+                                                        </td>
+                                                        <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold p-3 text-xs sm:text-sm">
+                                                            {item.physical_achievement.toLocaleString()}
+                                                        </td>
+                                                        <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold p-3 text-xs sm:text-sm">
+                                                            {formatCurrency(item.beneficiary_share)}
+                                                        </td>
+                                                        <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold border-r p-3 text-xs sm:text-sm">
+                                                            {formatCurrency(item.subsidy_share)}
+                                                        </td>
+                                                        <td className="text-center bg-orange-50/50 dark:bg-orange-950/20 font-semibold p-3 text-xs sm:text-sm">
+                                                            {item.physical_balance.toLocaleString()}
+                                                        </td>
+                                                        <td className="text-center bg-orange-50/50 dark:bg-orange-950/20 font-semibold p-3 text-xs sm:text-sm">
+                                                            {formatCurrency(item.financial_balance)}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                            <tfoot>
+                                                <tr className="bg-muted font-bold border-t">
+                                                    <td className="border-r p-3 text-xs sm:text-sm"></td>
+                                                    <td className="border-r p-3 text-xs sm:text-sm">TOTAL</td>
+                                                    <td className="text-center p-3 text-xs sm:text-sm">
+                                                        {totals.physical_target.toLocaleString()}
+                                                    </td>
+                                                    <td className="text-center border-r p-3 text-xs sm:text-sm">
+                                                        {formatCurrency(totals.financial_target)}
+                                                    </td>
+                                                    <td className="text-center text-green-600 p-3 text-xs sm:text-sm">
+                                                        {totals.physical_achievement.toLocaleString()}
+                                                    </td>
+                                                    <td className="text-center text-green-600 p-3 text-xs sm:text-sm">
+                                                        {formatCurrency(totals.beneficiary_share)}
+                                                    </td>
+                                                    <td className="text-center text-green-600 border-r p-3 text-xs sm:text-sm">
+                                                        {formatCurrency(totals.subsidy_share)}
+                                                    </td>
+                                                    <td className="text-center p-3 text-xs sm:text-sm">
+                                                        {totals.physical_balance.toLocaleString()}
+                                                    </td>
+                                                    <td className="text-center p-3 text-xs sm:text-sm">
+                                                        {formatCurrency(totals.financial_balance)}
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
                                 </div>
                             )}
                         </CardContent>

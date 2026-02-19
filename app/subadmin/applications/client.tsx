@@ -838,10 +838,10 @@ export default function SubAdminApplicationsClient({ applications, currentPage, 
                                 </div>
                             </div>
 
-                            <div className="border rounded-lg overflow-hidden">
-                                <div className="overflow-x-auto">
+                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
                                     <table className="w-full min-w-[640px]">
-                                        <thead className="bg-muted/50 border-b">
+                                        <thead className="bg-muted sticky top-0 z-30 border-b">
                                             <tr>
                                                 <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">ID</th>
                                                 <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Applicant</th>

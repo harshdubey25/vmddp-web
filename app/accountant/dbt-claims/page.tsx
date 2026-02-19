@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFrappeGetCall, useFrappeGetDocCount, useFrappeGetDocList } from "frappe-react-sdk";
@@ -320,82 +320,86 @@ export default function DBTClaims() {
                                         </Card>
                                     )}
 
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Beneficiary</TableHead>
-                                                <TableHead>Location</TableHead>
-                                                <TableHead>Bank Details</TableHead>
-                                                <TableHead>Quota Usage</TableHead>
-                                                <TableHead>Actions</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {beneficiariesLoading ? (
-                                                <TableRow>
-                                                    <TableCell colSpan={5} className="text-center py-8">
-                                                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto" />
-                                                    </TableCell>
-                                                </TableRow>
-                                            ) : beneficiaries.length > 0 ? (
-                                                beneficiaries.map((beneficiary) => (
-                                                    <TableRow key={beneficiary.name} data-testid={`row-beneficiary-${beneficiary.name}`}>
-                                                        <TableCell>
-                                                            <div>
-                                                                <p className="font-medium">{beneficiary.first_name} {beneficiary.mid_name} {beneficiary.last_name}</p>
-                                                                <p className="text-xs text-muted-foreground">{beneficiary.aadhar_number}</p>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div>
-                                                                <p className="text-sm">{beneficiary.district}</p>
-                                                                <p className="text-xs text-muted-foreground">{beneficiary.taluka}, {beneficiary.village}</p>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div>
-                                                                <p className="text-sm">Account: {beneficiary.account_number}</p>
-                                                                <p className="text-xs text-muted-foreground">{beneficiary.ifsc_code}</p>
-                                                                <p className="text-xs text-muted-foreground">{beneficiary.bank_name}</p>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="w-28">
-                                                                {selectedComponent?.max_quantity ? (
-                                                                    <>
-                                                                        <Progress value={(beneficiary.used_quantity / beneficiary.max_quantity) * 100} className="h-2" />
-                                                                        <p className="text-xs text-muted-foreground mt-1">{beneficiary.remaining_quantity} {beneficiary.unit ? beneficiary.unit : 'kg'} left</p>
-                                                                    </>
-                                                                ) : (
-                                                                    <>
-                                                                        <Progress value={(beneficiary.used_amount / beneficiary.maximum_subsidy_amount) * 100} className="h-2" />
-                                                                        <p className="text-xs text-muted-foreground mt-1">₹{beneficiary.remaining_subsidy} left</p>
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Link href={`/accountant/dbt-claims/claim/${beneficiary.name}?component=${beneficiary.component_name}`}>
-                                                                <Button
-                                                                    size="sm"
-                                                                    data-testid={`button-view-form-${beneficiary.name}`}
-                                                                >
-                                                                    <FileText className="h-4 w-4 mr-1" />
-                                                                    View Form
-                                                                </Button>
-                                                            </Link>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))
-                                            ) : (
-                                                <TableRow>
-                                                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                                                        {selectedComponent ? "No eligible beneficiaries found" : "Select a component to view beneficiaries"}
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
+                                    <div className="border rounded-lg overflow-hidden flex flex-col">
+                                        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                            <table className="w-full min-w-[900px]">
+                                                <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                    <tr>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Beneficiary</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Location</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Bank Details</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Quota Usage</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {beneficiariesLoading ? (
+                                                        <tr>
+                                                            <td colSpan={5} className="text-center py-8">
+                                                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto" />
+                                                            </td>
+                                                        </tr>
+                                                    ) : beneficiaries.length > 0 ? (
+                                                        beneficiaries.map((beneficiary) => (
+                                                            <tr key={beneficiary.name} data-testid={`row-beneficiary-${beneficiary.name}`} className="border-b hover:bg-muted/30">
+                                                                <td className="p-3 text-xs sm:text-sm">
+                                                                    <div>
+                                                                        <p className="font-medium">{beneficiary.first_name} {beneficiary.mid_name} {beneficiary.last_name}</p>
+                                                                        <p className="text-xs text-muted-foreground">{beneficiary.aadhar_number}</p>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="p-3 text-xs sm:text-sm">
+                                                                    <div>
+                                                                        <p className="text-sm">{beneficiary.district}</p>
+                                                                        <p className="text-xs text-muted-foreground">{beneficiary.taluka}, {beneficiary.village}</p>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="p-3 text-xs sm:text-sm">
+                                                                    <div>
+                                                                        <p className="text-sm">Account: {beneficiary.account_number}</p>
+                                                                        <p className="text-xs text-muted-foreground">{beneficiary.ifsc_code}</p>
+                                                                        <p className="text-xs text-muted-foreground">{beneficiary.bank_name}</p>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="p-3 text-xs sm:text-sm">
+                                                                    <div className="w-28">
+                                                                        {selectedComponent?.max_quantity ? (
+                                                                            <>
+                                                                                <Progress value={(beneficiary.used_quantity / beneficiary.max_quantity) * 100} className="h-2" />
+                                                                                <p className="text-xs text-muted-foreground mt-1">{beneficiary.remaining_quantity} {beneficiary.unit ? beneficiary.unit : 'kg'} left</p>
+                                                                            </>
+                                                                        ) : (
+                                                                            <>
+                                                                                <Progress value={(beneficiary.used_amount / beneficiary.maximum_subsidy_amount) * 100} className="h-2" />
+                                                                                <p className="text-xs text-muted-foreground mt-1">₹{beneficiary.remaining_subsidy} left</p>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="p-3 text-xs sm:text-sm">
+                                                                    <Link href={`/accountant/dbt-claims/claim/${beneficiary.name}?component=${beneficiary.component_name}`}>
+                                                                        <Button
+                                                                            size="sm"
+                                                                            data-testid={`button-view-form-${beneficiary.name}`}
+                                                                        >
+                                                                            <FileText className="h-4 w-4 mr-1" />
+                                                                            View Form
+                                                                        </Button>
+                                                                    </Link>
+                                                                </td>
+                                                            </tr>
+                                                        ))
+                                                    ) : (
+                                                        <tr>
+                                                            <td colSpan={5} className="text-center py-8 text-muted-foreground p-3">
+                                                                {selectedComponent ? "No eligible beneficiaries found" : "Select a component to view beneficiaries"}
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
 
                                     {/* Pagination */}
                                     {beneficiaries.length > 0 && (
