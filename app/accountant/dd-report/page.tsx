@@ -20,11 +20,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Download, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, Search, ChevronLeft, ChevronRight, FileSpreadsheet, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { useDebounce } from "@/hooks/use-debounce";
-import { frappeBrowser } from "@/lib/frappe";
+import { exportReport, type ExportFormat } from "@/lib/export-report";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function DDReportPage() {
     const router = useRouter();
@@ -61,9 +62,10 @@ export default function DDReportPage() {
         },
     );
 
-    const reports = Array.isArray(apiResponse?.message) ? apiResponse.message : [];
-    const totalRecords = apiResponse?.total || reports.length;
-    const totalPages = Math.ceil(totalRecords / pageSize);
+    const reports = apiResponse?.message?.data || [];
+    const pagination = apiResponse?.message?.pagination;
+    const totalRecords = pagination?.total_items || reports.length;
+    const totalPages = pagination?.total_pages || Math.ceil(totalRecords / pageSize);
 
     // Keep page number in the URL so refresh preserves the current page
     useEffect(() => {
@@ -84,11 +86,11 @@ export default function DDReportPage() {
         }
     }, [currentPage, router, searchParams]);
 
-    // Export to Excel
-    const handleExport = async () => {
+    // Export report
+    const handleExport = async (format: ExportFormat = "excel") => {
         toast({
             title: "Export started",
-            description: "Generating report...",
+            description: `Generating ${format.toUpperCase()} report...`,
         });
 
         try {
@@ -99,29 +101,12 @@ export default function DDReportPage() {
             if (animalFilter !== "all") params.item = animalFilter;
             if (districtFilter !== "all") params.district = districtFilter;
 
-            const axiosResponse = await frappeBrowser
-                .call()
-                .axios.get(
-                    "/api/method/vmddp_app.api.v1.accountant.export_completed_dd_list",
-                    {
-                        params,
-                        responseType: "blob",
-                    },
-                );
-
-            const blob = new Blob([axiosResponse.data], {
-                type:
-                    axiosResponse.headers["content-type"] ||
-                    "application/octet-stream",
+            await exportReport({
+                method: "vmddp_app.api.v1.accountant.export_completed_dd_list",
+                params,
+                format,
+                filename: "dd-reports",
             });
-            const downloadUrl = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = downloadUrl;
-            link.download = `dd-reports-${new Date().toISOString().split("T")[0]}.xlsx`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(downloadUrl);
 
             toast({
                 title: "Export completed",
@@ -153,16 +138,29 @@ export default function DDReportPage() {
                         View and export beneficiary payment reports
                     </p>
                 </div>
-                <Button
-                    variant="default"
-                    className="gap-2 text-xs sm:text-sm h-8 sm:h-10"
-                    onClick={handleExport}
-                    data-testid="button-export"
-                >
-                    <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden xs:inline">Export Report</span>
-                    <span className="xs:hidden">Export</span>
-                </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            variant="default"
+                            className="gap-2 text-xs sm:text-sm h-8 sm:h-10"
+                            data-testid="button-export"
+                        >
+                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="hidden xs:inline">Export Report</span>
+                            <span className="xs:hidden">Export</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleExport("excel")} data-testid="export-excel">
+                            <FileSpreadsheet className="h-4 w-4 mr-2" />
+                            Export as Excel
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExport("pdf")} data-testid="export-pdf">
+                            <FileText className="h-4 w-4 mr-2" />
+                            Export as PDF
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </header>
 
             <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 bg-muted/30">
@@ -443,7 +441,7 @@ export default function DDReportPage() {
                                                     Math.max(1, p - 1)
                                                 )
                                             }
-                                            disabled={currentPage === 1}
+                                            disabled={!pagination?.has_previous_page}
                                         >
                                             <ChevronLeft className="h-4 w-4 mr-1" />
                                             Previous
@@ -456,10 +454,7 @@ export default function DDReportPage() {
                                                     Math.min(totalPages, p + 1)
                                                 )
                                             }
-                                            disabled={
-                                                currentPage === totalPages ||
-                                                reports.length < pageSize
-                                            }
+                                            disabled={!pagination?.has_next_page}
                                         >
                                             Next
                                             <ChevronRight className="h-4 w-4 ml-1" />
