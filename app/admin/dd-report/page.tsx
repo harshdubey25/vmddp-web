@@ -235,10 +235,10 @@ export default function DDReportPage() {
                         </CardHeader>
                         <CardContent className="p-3 sm:p-4 md:p-6">
                             {/* Table */}
-                            <div className="border rounded-lg overflow-hidden">
-                                <div className="overflow-x-auto">
+                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)]">
                                     <table className="w-full min-w-[900px]">
-                                        <thead className="bg-muted/50 border-b">
+                                        <thead className="bg-muted border-b sticky top-0 z-10">
                                             <tr>
                                                 <th className="text-left p-3 text-xs sm:text-sm font-medium">
                                                     Beneficiary Name

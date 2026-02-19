@@ -61,7 +61,7 @@ export default function DDReportPage() {
         },
     );
 
-    const reports = apiResponse?.message || [];
+    const reports = Array.isArray(apiResponse?.message) ? apiResponse.message : [];
     const totalRecords = apiResponse?.total || reports.length;
     const totalPages = Math.ceil(totalRecords / pageSize);
 
@@ -279,10 +279,10 @@ export default function DDReportPage() {
                         </CardHeader>
                         <CardContent className="p-3 sm:p-4 md:p-6">
                             {/* Table */}
-                            <div className="border rounded-lg overflow-hidden">
-                                <div className="overflow-x-auto">
+                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
                                     <table className="w-full min-w-[900px]">
-                                        <thead className="bg-muted/50 border-b">
+                                        <thead className="bg-muted sticky top-0 z-30 border-b">
                                             <tr>
                                                 <th className="text-left p-3 text-xs sm:text-sm font-medium">
                                                     Beneficiary Name

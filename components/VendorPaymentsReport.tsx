@@ -287,66 +287,70 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                                 </div>
                             ) : vendorPayments.length > 0 ? (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-12">#</TableHead>
-                                            <TableHead>Payment ID</TableHead>
-                                            <TableHead>Vendor</TableHead>
-                                            <TableHead>Cheque Number</TableHead>
-                                            <TableHead>Cheque Date</TableHead>
-                                            <TableHead>Bank</TableHead>
-                                            <TableHead className="text-right">Amount</TableHead>
-                                            <TableHead>Actions</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {paginatedPayments.map((payment, idx) => (
-                                            <TableRow key={payment.name} data-testid={`row-payment-${payment.name}`}>
-                                                <TableCell className="text-sm text-muted-foreground">{startIndex + idx + 1}</TableCell>
-                                                <TableCell>
-                                                    <p className="font-medium font-mono text-sm">{payment.name}</p>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-2">
-                                                        <p className="font-medium">{payment.vendor_name || payment.vendor}</p>
-                                                        {payment.for_parantage ? (
-                                                            <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/20">
-                                                                Parantage
-                                                            </Badge>
-                                                        ) : null}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <p className="font-medium">{payment.check_number}</p>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <p className="font-medium">{new Date(payment.cheque_date).toLocaleDateString("en-GB")}</p>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <p className="text-sm">{payment.bank_name}</p>
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <span className="font-bold text-green-600">
-                                                        ₹{payment.cheque_amount.toLocaleString("en-IN")}
-                                                    </span>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => {
-                                                            setSelectedPayment(payment);
-                                                            setDetailsDialog(true);
-                                                        }}
-                                                    >
-                                                        <Eye className="h-4 w-4" />
-                                                    </Button>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                <div className="border rounded-lg overflow-hidden flex flex-col">
+                                    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                        <table className="w-full min-w-[900px]">
+                                            <thead className="bg-muted border-b sticky top-0 z-10">
+                                                <tr>
+                                                    <th className="text-left p-3 font-medium w-12">#</th>
+                                                    <th className="text-left p-3 font-medium">Payment ID</th>
+                                                    <th className="text-left p-3 font-medium">Vendor</th>
+                                                    <th className="text-left p-3 font-medium">Cheque Number</th>
+                                                    <th className="text-left p-3 font-medium">Cheque Date</th>
+                                                    <th className="text-left p-3 font-medium">Bank</th>
+                                                    <th className="text-right p-3 font-medium">Amount</th>
+                                                    <th className="text-left p-3 font-medium">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {paginatedPayments.map((payment, idx) => (
+                                                    <tr key={payment.name} className="border-b last:border-0 hover:bg-muted/30 transition-colors" data-testid={`row-payment-${payment.name}`}>
+                                                        <td className="p-3 text-sm text-muted-foreground">{startIndex + idx + 1}</td>
+                                                        <td className="p-3">
+                                                            <p className="font-medium font-mono text-sm">{payment.name}</p>
+                                                        </td>
+                                                        <td className="p-3">
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="font-medium">{payment.vendor_name || payment.vendor}</p>
+                                                                {payment.for_parantage ? (
+                                                                    <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/20">
+                                                                        Parantage
+                                                                    </Badge>
+                                                                ) : null}
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-3">
+                                                            <p className="font-medium">{payment.check_number}</p>
+                                                        </td>
+                                                        <td className="p-3">
+                                                            <p className="font-medium">{new Date(payment.cheque_date).toLocaleDateString("en-GB")}</p>
+                                                        </td>
+                                                        <td className="p-3">
+                                                            <p className="text-sm">{payment.bank_name}</p>
+                                                        </td>
+                                                        <td className="p-3 text-right">
+                                                            <span className="font-bold text-green-600">
+                                                                ₹{payment.cheque_amount.toLocaleString("en-IN")}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-3">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => {
+                                                                    setSelectedPayment(payment);
+                                                                    setDetailsDialog(true);
+                                                                }}
+                                                            >
+                                                                <Eye className="h-4 w-4" />
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             ) : (
                                 <p className="text-center text-muted-foreground py-8">No disbursed payments found</p>
                             )}

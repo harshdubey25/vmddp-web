@@ -193,35 +193,37 @@ export default function AdminExpensesReport() {
                                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                             </div>
                         ) : filteredExpenses && filteredExpenses.length > 0 ? (
-                            <div className="overflow-x-auto -mx-3 sm:mx-0 -mb-3 sm:mb-0 px-3 sm:px-0">
-                                <Table className="text-xs sm:text-sm">
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-12">#</TableHead>
-                                            <TableHead className="min-w-14 sm:min-w-20">ID</TableHead>
-                                            <TableHead className="min-w-18 sm:min-w-24">Date</TableHead>
-                                            <TableHead className="min-w-18 sm:min-w-28">Head</TableHead>
-                                            <TableHead className="min-w-24 sm:min-w-48">Reason</TableHead>
-                                            <TableHead className="min-w-20 sm:min-w-28 text-right">Amount</TableHead>
-                                            <TableHead className="min-w-16 sm:min-w-24">Status</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {paginatedExpenses.map((expense, idx) => (
-                                            <TableRow key={expense.name} data-testid={`row-expense-${expense.name}`}>
-                                                <TableCell className="text-xs sm:text-sm text-muted-foreground">{startIndex + idx + 1}</TableCell>
-                                                <TableCell className="font-mono text-xs sm:text-sm">{expense.name}</TableCell>
-                                                <TableCell className="font-mono text-xs sm:text-sm">{expense.date}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline" className="text-xs">{expense.head}</Badge>
-                                                </TableCell>
-                                                <TableCell className="max-w-xs truncate text-xs sm:text-sm">{expense.reason}</TableCell>
-                                                <TableCell className="font-medium text-right text-xs sm:text-sm">₹{(expense.amount || 0).toLocaleString("en-IN")}</TableCell>
-                                                <TableCell className="text-xs sm:text-sm">{getStatusBadge(expense.docstatus)}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                    <table className="w-full min-w-[900px]">
+                                        <thead className="bg-muted border-b sticky top-0 z-10 text-xs sm:text-sm">
+                                            <tr>
+                                                <th className="text-left p-3 font-medium w-12">#</th>
+                                                <th className="text-left p-3 font-medium min-w-14 sm:min-w-20">ID</th>
+                                                <th className="text-left p-3 font-medium min-w-18 sm:min-w-24">Date</th>
+                                                <th className="text-left p-3 font-medium min-w-18 sm:min-w-28">Head</th>
+                                                <th className="text-left p-3 font-medium min-w-24 sm:min-w-48">Reason</th>
+                                                <th className="text-right p-3 font-medium min-w-20 sm:min-w-28">Amount</th>
+                                                <th className="text-left p-3 font-medium min-w-16 sm:min-w-24">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {paginatedExpenses.map((expense, idx) => (
+                                                <tr key={expense.name} className="border-b last:border-0 hover:bg-muted/30 transition-colors" data-testid={`row-expense-${expense.name}`}>
+                                                    <td className="p-3 text-xs sm:text-sm text-muted-foreground">{startIndex + idx + 1}</td>
+                                                    <td className="p-3 font-mono text-xs sm:text-sm">{expense.name}</td>
+                                                    <td className="p-3 font-mono text-xs sm:text-sm">{expense.date}</td>
+                                                    <td className="p-3">
+                                                        <Badge variant="outline" className="text-xs">{expense.head}</Badge>
+                                                    </td>
+                                                    <td className="p-3 max-w-xs truncate text-xs sm:text-sm">{expense.reason}</td>
+                                                    <td className="p-3 font-medium text-right text-xs sm:text-sm">₹{(expense.amount || 0).toLocaleString("en-IN")}</td>
+                                                    <td className="p-3 text-xs sm:text-sm">{getStatusBadge(expense.docstatus)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         ) : (
                             <p className="text-center text-muted-foreground py-8 text-xs sm:text-sm">No expenses found</p>
