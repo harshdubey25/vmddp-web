@@ -34,8 +34,20 @@ const getComponentIcon = (component: string) => {
     if (component.includes("Chaff")) return <Scissors className="h-5 w-5" />;
     return <Package className="h-5 w-5" />;
 };
+interface PaginationInfo {
+    total_items: number;
+    total_pages: number;
+    current_page: number;
+    page_size: number;
+    has_next_page: boolean;
+    has_previous_page: boolean;
+}
+
 interface DDCompletedApplication {
-    message: Array<ComponentAllocationItem>
+    message: {
+        data: Array<ComponentAllocationItem>;
+        pagination: PaginationInfo;
+    }
 }
 
 const PAGE_SIZE = 20;
@@ -80,11 +92,11 @@ export default function ComponentAllocation() {
         }
     }>('vmddp_app.api.v1.accountant.get_component_allocation_stats')
 
-    const pendingApplications = ddCompletedApplications?.message?.filter(
-        app => app.component_status !== 'Component Allocated'
-    ) || [];
+    const pendingApplications = (ddCompletedApplications?.message?.data ?? []).filter(
+        (app) => app.component_status !== 'Component Allocated'
+    );
 
-    const completedList = completedAllocations?.message || [];
+    const completedList = completedAllocations?.message?.data ?? [];
 
     const handleFilterChange = () => {
         setPendingPage(1);
