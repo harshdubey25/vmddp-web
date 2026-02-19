@@ -1,25 +1,22 @@
 "use client"
 import { useState } from "react"
 import { useFrappeGetDocList, useFrappeGetCall } from "frappe-react-sdk";
-import { useToast } from "@/hooks/use-toast";
-import * as XLSX from "xlsx";
 import {
     Package,
-    Check,
-    AlertCircle,
     ChevronRight,
     ChevronLeft,
     Tag,
     Leaf,
     Scissors,
     Search,
-    ExternalLink,
-    ViewIcon,
     ArrowRight,
     Download,
-    RefreshCw,
+    FileSpreadsheet,
     FileText,
+    RefreshCw
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { exportReport } from "@/lib/export-report";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 
 const getComponentIcon = (component: string) => {
@@ -43,13 +41,15 @@ interface DDCompletedApplication {
 const PAGE_SIZE = 20;
 
 export default function ComponentAllocation() {
-    const { toast } = useToast();
     const [activeTab, setActiveTab] = useState("pending");
     const [districtFilter, setDistrictFilter] = useState("all")
     const [aadharFilter, setAadharFilter] = useState("")
     const [componentFilter, setComponentFilter] = useState("all")
     const [pendingPage, setPendingPage] = useState(1)
     const [completedPage, setCompletedPage] = useState(1)
+
+    const { toast } = useToast();
+    const [isExporting, setIsExporting] = useState(false);
 
     const { data: districts } = useFrappeGetDocList('District Master')
     const { data: components } = useFrappeGetDocList('Component', {
@@ -115,178 +115,40 @@ export default function ComponentAllocation() {
         handleFilterChange();
     };
 
+    const handleExport = async (format: "excel" | "pdf") => {
+        setIsExporting(true);
+        toast({
+            title: "Export started",
+            description: `Generating ${format.toUpperCase()} report...`,
+        });
 
-    const getCurrentTabInfo = () => {
-        if (activeTab === "pending") {
-            return {
-                title: "Pending Component Allocations",
-                description: "Applications awaiting component allocation",
-                count: pendingApplications.length,
-                icon: AlertCircle,
-            };
-        } else {
-            return {
-                title: "Completed Component Allocations",
-                description: "Successfully allocated components",
-                count: completedList.length,
-                icon: Check,
-            };
-        }
-    };
-
-    const getFileName = () => {
-        const date = new Date().toISOString().split('T')[0];
-        const month = new Date().toLocaleString('default', { month: 'short' });
-        return `Component-Allocations_${month}_${new Date().getFullYear()}_${date}.xlsx`;
-    };
-
-    // Helper function to calculate column widths for auto-fit
-    const calculateColumnWidths = (data: any[][], minWidth = 10, maxWidth = 50) => {
-        return data[0]?.map((_, colIndex) => {
-            const maxLength = Math.max(
-                ...data.map(row => {
-                    const cell = row[colIndex];
-                    return String(cell || '').length;
-                })
-            );
-            return { wch: Math.min(Math.max(maxLength + 2, minWidth), maxWidth) };
-        }) || [];
-    };
-
-
-
-    const handleExport = () => {
         try {
-            const workbook = XLSX.utils.book_new();
+            const params: Record<string, string> = {};
 
-            // ===== PENDING ALLOCATIONS SHEET =====
-            const pendingHeaders = [
-                "Sr. No.",
-                "Application ID",
-                "Beneficiary Name",
-                "Aadhaar Number",
-                "District",
-                "Taluka",
-                "Village",
-                "Component",
-                "Status",
-                "DD Number",
-                "DD Date",
-                "DD Amount (Rs.)",
-                "Source Bank",
-                "Branch",
-                "Amount (Rs.)",
-            ];
+            if (aadharFilter) params.search_text = aadharFilter;
+            if (componentFilter !== "all") params.component = componentFilter;
+            if (districtFilter !== "all") params.district = districtFilter;
 
-            const pendingRows = pendingApplications.map((app, idx) => [
-                idx + 1,
-                app.name,
-                `${app.first_name} ${app.mid_name} ${app.last_name}`,
-                app.aadhar_number,
-                app.district,
-                app.taluka,
-                app.village,
-                app.component_name,
-                app.component_status,
-                app.dd_number,
-                app.dd_date,
-                app.dd_amount,
-                app.source_bank_name,
-                app.branch_name,
-                app.amount,
-            ]);
-
-            if (pendingRows.length > 0) {
-                const pendingData = [pendingHeaders, ...pendingRows];
-                const pendingSheet = XLSX.utils.aoa_to_sheet(pendingData);
-                
-                // Auto-fit columns based on content
-                pendingSheet['!cols'] = calculateColumnWidths(pendingData);
-                
-                // Freeze header row
-                pendingSheet['!freeze'] = { xSplit: 0, ySplit: 1 };
-                
-                XLSX.utils.book_append_sheet(workbook, pendingSheet, "Pending");
-            }
-
-            const completedHeaders = [
-                "Sr. No.",
-                "Application ID",
-                "Beneficiary Name",
-                "Aadhaar Number",
-                "District",
-                "Taluka",
-                "Village",
-                "Component",
-                "Status",
-                "Animal/Item Type",
-                "Amount (Rs.)",
-                "Allocation ID",
-            ];
-
-            const completedRows = completedList.map((alloc, idx) => [
-                idx + 1,
-                alloc.name,
-                `${alloc.first_name} ${alloc.mid_name} ${alloc.last_name}`,
-                alloc.aadhar_number,
-                alloc.district,
-                alloc.taluka,
-                alloc.village,
-                alloc.component_name,
-                alloc.component_status,
-                alloc.type_of_animal || alloc.item || "-",
-                alloc.amount,
-                alloc.component_allocation_id,
-            ]);
-
-            if (completedRows.length > 0) {
-                const completedData = [completedHeaders, ...completedRows];
-                const completedSheet = XLSX.utils.aoa_to_sheet(completedData);
-                
-                // Auto-fit columns based on content
-                completedSheet['!cols'] = calculateColumnWidths(completedData);
-                
-                // Freeze header row
-                completedSheet['!freeze'] = { xSplit: 0, ySplit: 1 };
-                
-                XLSX.utils.book_append_sheet(workbook, completedSheet, "Completed");
-            }
-
-            const summaryHeaders = ["Metric", "Value"];
-            const summaryRows = [
-                ["Total Applications", allocationStats?.message?.total_applications ?? 0],
-                ["Pending Allocations", allocationStats?.message?.pending_component_allocation ?? 0],
-                ["Completed Allocations", allocationStats?.message?.total_component_allocated ?? 0],
-                ["", ""],
-                ["Applied Filters", ""],
-                ["District", districtFilter === "all" ? "All" : districtFilter],
-                ["Component", componentFilter === "all" ? "All" : componentFilter],
-                ["Aadhaar Search", aadharFilter || "None"],
-                ["", ""],
-                ["Export Date", new Date().toLocaleDateString()],
-                ["Export Time", new Date().toLocaleTimeString()],
-            ];
-
-            const summarySheet = XLSX.utils.aoa_to_sheet([summaryHeaders, ...summaryRows]);
-            
-            // Auto-fit columns for summary
-            summarySheet['!cols'] = calculateColumnWidths([summaryHeaders, ...summaryRows]);
-            
-            XLSX.utils.book_append_sheet(workbook, summarySheet, "Summary");
-
-            XLSX.writeFile(workbook, getFileName());
+            await exportReport({
+                method: "vmddp_app.api.v1.component_allocation.export_completed_component_allocation_list",
+                params,
+                format,
+                filename: "component-allocation-report",
+            });
 
             toast({
                 title: "Export completed",
-                description: `Downloaded ${pendingRows.length + completedRows.length} records successfully.`,
+                description: "Report downloaded successfully.",
             });
         } catch (error) {
-            console.error('Export error:', error);
+            console.error("Export error:", error);
             toast({
                 title: "Export failed",
-                description: "Failed to generate report. Please try again.",
+                description: "Failed to export report. Please try again.",
                 variant: "destructive",
             });
+        } finally {
+            setIsExporting(false);
         }
     };
 
@@ -314,7 +176,7 @@ export default function ComponentAllocation() {
                             <Button
                                 variant="default"
                                 className="gap-2"
-                                onClick={handleExport}
+                                onClick={() => handleExport("excel")}
                                 data-testid="button-export"
                             >
                                 <Download className="h-4 w-4" />
@@ -365,244 +227,250 @@ export default function ComponentAllocation() {
                         </CardHeader>
                         <CardContent>
                             <Tabs value={activeTab} onValueChange={setActiveTab}>
-                                {/* Tab Header Info */}
-                                <div className="mb-4 p-3 bg-muted/50 rounded-lg border">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h3 className="font-semibold text-sm">
-                                                {getCurrentTabInfo().title}
-                                            </h3>
-                                            <p className="text-xs text-muted-foreground">
-                                                {getCurrentTabInfo().description}
+                                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                                    <TabsList>
+                                        <TabsTrigger value="pending" data-testid="tab-pending">
+                                            Pending ({allocationStats?.message?.pending_component_allocation ?? 0})
+                                        </TabsTrigger>
+                                        <TabsTrigger value="completed" data-testid="tab-completed">
+                                            Completed ({allocationStats?.message?.total_component_allocated ?? 0})
+                                        </TabsTrigger>
+                                    </TabsList>
+
+                                    {/* Filters */}
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        {activeTab === "completed" && (
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="default"
+                                                        size="sm"
+                                                        className="gap-2"
+                                                        disabled={isExporting}
+                                                        data-testid="button-export-report"
+                                                    >
+                                                        <Download className="h-4 w-4" />
+                                                        {isExporting ? "Exporting..." : "Export"}
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => handleExport("excel")} data-testid="export-excel">
+                                                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                                        Export as Excel
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleExport("pdf")} data-testid="export-pdf">
+                                                        <FileText className="h-4 w-4 mr-2" />
+                                                        Export as PDF
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        )}
+                                        <div className="relative">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                placeholder="Search Aadhaar..."
+                                                value={aadharFilter}
+                                                onChange={(e) => handleAadharFilterChange(e.target.value)}
+                                                className="pl-9 w-40"
+                                                data-testid="input-list-search-aadhaar"
+                                            />
+                                        </div>
+                                        <Select value={districtFilter} onValueChange={handleDistrictFilterChange}>
+                                            <SelectTrigger className="w-36" data-testid="select-filter-district">
+                                                <SelectValue placeholder="District" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Districts</SelectItem>
+                                                {districts?.map((d) => (
+                                                    <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <Select value={componentFilter} onValueChange={handleComponentFilterChange}>
+                                            <SelectTrigger className="w-40" data-testid="select-filter-component">
+                                                <SelectValue placeholder="Component" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Components</SelectItem>
+                                                {components?.map((c) => (
+                                                    <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+
+                                <TabsContent value="pending">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Application ID</TableHead>
+                                                <TableHead>Beneficiary</TableHead>
+                                                <TableHead>Aadhaar</TableHead>
+                                                <TableHead>District</TableHead>
+                                                <TableHead>Component</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead>Action</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {pendingApplications.map((app) => (
+                                                <TableRow key={app.name} data-testid={`row-pending-${app.name}`}>
+                                                    <TableCell className="font-medium">{app.name}</TableCell>
+                                                    <TableCell>{app.first_name} {app.mid_name} {app.last_name}</TableCell>
+                                                    <TableCell className="font-mono text-xs">{app.aadhar_number}</TableCell>
+                                                    <TableCell>{app.district}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant="outline" className="gap-1">
+                                                            {getComponentIcon(app.component_name)}
+                                                            {app.component_name}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={app.component_status === 'DD Completed' ? 'secondary' : 'default'}>
+                                                            {app.component_status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Link href={`/accountant/component-allocation/${encodeURIComponent(app.name)}`}>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                data-testid={`button-allocate-${app.name}`}
+                                                            >
+                                                                <ChevronRight className="h-4 w-4 mr-1" />
+                                                                Allocate
+                                                            </Button>
+                                                        </Link>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                            {pendingApplications.length === 0 && (
+                                                <TableRow>
+                                                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                                        No applications awaiting allocation
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
+
+                                    {/* Pagination for pending */}
+                                    {(allocationStats?.message?.pending_component_allocation ?? 0) > 0 && (
+                                        <div className="flex items-center justify-between pt-4">
+                                            <p className="text-sm text-muted-foreground">
+                                                Page {pendingPage} • Showing {pendingApplications.length} of {allocationStats?.message?.pending_component_allocation ?? 0} results
                                             </p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-2xl font-bold text-blue-600">{getCurrentTabInfo().count}</p>
-                                            <p className="text-xs text-muted-foreground">records</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="mb-4 p-2 bg-blue-50 rounded border border-blue-200 text-xs text-muted-foreground">
-                                    📄 <strong>Export File:</strong> {getFileName()}
-                                </div>
-                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-                                        <TabsList>
-                                            <TabsTrigger value="pending" data-testid="tab-pending">
-                                                Pending ({allocationStats?.message?.pending_component_allocation ?? 0})
-                                            </TabsTrigger>
-                                            <TabsTrigger value="completed" data-testid="tab-completed">
-                                                Completed ({allocationStats?.message?.total_component_allocated ?? 0})
-                                            </TabsTrigger>
-                                        </TabsList>
-
-                                        {/* Filters */}
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <div className="relative">
-                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                <Input
-                                                    placeholder="Search Aadhaar..."
-                                                    value={aadharFilter}
-                                                    onChange={(e) => handleAadharFilterChange(e.target.value)}
-                                                    className="pl-9 w-40"
-                                                    data-testid="input-list-search-aadhaar"
-                                                />
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setPendingPage(p => Math.max(1, p - 1))}
+                                                    disabled={pendingPage === 1}
+                                                    data-testid="button-pending-prev-page"
+                                                >
+                                                    <ChevronLeft className="h-4 w-4 mr-1" />
+                                                    Previous
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setPendingPage(p => p + 1)}
+                                                    disabled={pendingPage * PAGE_SIZE >= (allocationStats?.message?.pending_component_allocation ?? 0)}
+                                                    data-testid="button-pending-next-page"
+                                                >
+                                                    Next
+                                                    <ChevronRight className="h-4 w-4 ml-1" />
+                                                </Button>
                                             </div>
-                                            <Select value={districtFilter} onValueChange={handleDistrictFilterChange}>
-                                                <SelectTrigger className="w-36" data-testid="select-filter-district">
-                                                    <SelectValue placeholder="District" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="all">All Districts</SelectItem>
-                                                    {districts?.map((d) => (
-                                                        <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <Select value={componentFilter} onValueChange={handleComponentFilterChange}>
-                                                <SelectTrigger className="w-40" data-testid="select-filter-component">
-                                                    <SelectValue placeholder="Component" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="all">All Components</SelectItem>
-                                                    {components?.map((c) => (
-                                                        <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
                                         </div>
-                                    </div>
+                                    )}
+                                </TabsContent>
 
-                                    <TabsContent value="pending">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>Application ID</TableHead>
-                                                    <TableHead>Beneficiary</TableHead>
-                                                    <TableHead>Aadhaar</TableHead>
-                                                    <TableHead>District</TableHead>
-                                                    <TableHead>Component</TableHead>
-                                                    <TableHead>Status</TableHead>
-                                                    <TableHead>Action</TableHead>
+                                <TabsContent value="completed">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Application ID</TableHead>
+                                                <TableHead>Beneficiary</TableHead>
+                                                <TableHead>Aadhaar</TableHead>
+                                                <TableHead>District</TableHead>
+                                                <TableHead>Component</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead>Animal/Item</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {completedList.map((alloc) => (
+                                                <TableRow key={alloc.name} data-testid={`row-allocation-${alloc.name}`}>
+                                                    <TableCell className="font-medium">{alloc.name}</TableCell>
+                                                    <TableCell>{alloc.first_name} {alloc.mid_name} {alloc.last_name}</TableCell>
+                                                    <TableCell className="font-mono text-xs">{alloc.aadhar_number}</TableCell>
+                                                    <TableCell>{alloc.district}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant="outline">
+                                                            {alloc.component_name}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant="default" className="bg-green-600">
+                                                            {alloc.component_status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {alloc.type_of_animal || alloc.item || "-"}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Link href={`/accountant/component-allocation/allocated/${alloc.component_allocation_id}`}>
+                                                            <Button variant="ghost" size="sm" data-testid={`button-view-details-${alloc.component_allocation_id}`}>
+                                                                <ArrowRight className="h-4 w-4" />
+                                                            </Button>
+                                                        </Link>
+                                                    </TableCell>
                                                 </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {pendingApplications.map((app) => (
-                                                    <TableRow key={app.name} data-testid={`row-pending-${app.name}`}>
-                                                        <TableCell className="font-medium">{app.name}</TableCell>
-                                                        <TableCell>{app.first_name} {app.mid_name} {app.last_name}</TableCell>
-                                                        <TableCell className="font-mono text-xs">{app.aadhar_number}</TableCell>
-                                                        <TableCell>{app.district}</TableCell>
-                                                        <TableCell>
-                                                            <Badge variant="outline" className="gap-1">
-                                                                {getComponentIcon(app.component_name)}
-                                                                {app.component_name}
-                                                            </Badge>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Badge variant={app.component_status === 'DD Completed' ? 'secondary' : 'default'}>
-                                                                {app.component_status}
-                                                            </Badge>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Link href={`/accountant/component-allocation/${encodeURIComponent(app.name)}`}>
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    data-testid={`button-allocate-${app.name}`}
-                                                                >
-                                                                    <ChevronRight className="h-4 w-4 mr-1" />
-                                                                    Allocate
-                                                                </Button>
-                                                            </Link>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                                {pendingApplications.length === 0 && (
-                                                    <TableRow>
-                                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                                            No applications awaiting allocation
-                                                        </TableCell>
-                                                    </TableRow>
-                                                )}
-                                            </TableBody>
-                                        </Table>
-
-                                        {/* Pagination for pending */}
-                                        {(allocationStats?.message?.pending_component_allocation ?? 0) > 0 && (
-                                            <div className="flex items-center justify-between pt-4">
-                                                <p className="text-sm text-muted-foreground">
-                                                    Page {pendingPage} • Showing {pendingApplications.length} of {allocationStats?.message?.pending_component_allocation ?? 0} results
-                                                </p>
-                                                <div className="flex items-center gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setPendingPage(p => Math.max(1, p - 1))}
-                                                        disabled={pendingPage === 1}
-                                                        data-testid="button-pending-prev-page"
-                                                    >
-                                                        <ChevronLeft className="h-4 w-4 mr-1" />
-                                                        Previous
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setPendingPage(p => p + 1)}
-                                                        disabled={pendingPage * PAGE_SIZE >= (allocationStats?.message?.pending_component_allocation ?? 0)}
-                                                        data-testid="button-pending-next-page"
-                                                    >
-                                                        Next
-                                                        <ChevronRight className="h-4 w-4 ml-1" />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </TabsContent>
-
-                                    <TabsContent value="completed">
-                                        <Table>
-                                            <TableHeader>
+                                            ))}
+                                            {completedList.length === 0 && (
                                                 <TableRow>
-                                                    <TableHead>Application ID</TableHead>
-                                                    <TableHead>Beneficiary</TableHead>
-                                                    <TableHead>Aadhaar</TableHead>
-                                                    <TableHead>District</TableHead>
-                                                    <TableHead>Component</TableHead>
-                                                    <TableHead>Status</TableHead>
-                                                    <TableHead>Animal/Item</TableHead>
+                                                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                                        No completed allocations
+                                                    </TableCell>
                                                 </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {completedList.map((alloc) => (
-                                                    <TableRow key={alloc.name} data-testid={`row-allocation-${alloc.name}`}>
-                                                        <TableCell className="font-medium">{alloc.name}</TableCell>
-                                                        <TableCell>{alloc.first_name} {alloc.mid_name} {alloc.last_name}</TableCell>
-                                                        <TableCell className="font-mono text-xs">{alloc.aadhar_number}</TableCell>
-                                                        <TableCell>{alloc.district}</TableCell>
-                                                        <TableCell>
-                                                            <Badge variant="outline">
-                                                                {alloc.component_name}
-                                                            </Badge>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Badge variant="default" className="bg-green-600">
-                                                                {alloc.component_status}
-                                                            </Badge>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {alloc.type_of_animal || alloc.item || "-"}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Link href={`/accountant/component-allocation/allocated/${alloc.component_allocation_id}`}>
-                                                                <Button variant="ghost" size="sm" data-testid={`button-view-details-${alloc.component_allocation_id}`}>
-                                                                    <ArrowRight className="h-4 w-4" />
-                                                                </Button>
-                                                            </Link>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                                {completedList.length === 0 && (
-                                                    <TableRow>
-                                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                                            No completed allocations
-                                                        </TableCell>
-                                                    </TableRow>
-                                                )}
-                                            </TableBody>
-                                        </Table>
+                                            )}
+                                        </TableBody>
+                                    </Table>
 
-                                        {/* Pagination for completed */}
-                                        {(allocationStats?.message?.total_component_allocated ?? 0) > 0 && (
-                                            <div className="flex items-center justify-between pt-4">
-                                                <p className="text-sm text-muted-foreground">
-                                                    Page {completedPage} • Showing {completedList.length} of {allocationStats?.message?.total_component_allocated ?? 0} results
-                                                </p>
-                                                <div className="flex items-center gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setCompletedPage(p => Math.max(1, p - 1))}
-                                                        disabled={completedPage === 1}
-                                                        data-testid="button-completed-prev-page"
-                                                    >
-                                                        <ChevronLeft className="h-4 w-4 mr-1" />
-                                                        Previous
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setCompletedPage(p => p + 1)}
-                                                        disabled={completedPage * PAGE_SIZE >= (allocationStats?.message?.total_component_allocated ?? 0)}
-                                                        data-testid="button-completed-next-page"
-                                                    >
-                                                        Next
-                                                        <ChevronRight className="h-4 w-4 ml-1" />
-                                                    </Button>
-                                                </div>
+                                    {/* Pagination for completed */}
+                                    {(allocationStats?.message?.total_component_allocated ?? 0) > 0 && (
+                                        <div className="flex items-center justify-between pt-4">
+                                            <p className="text-sm text-muted-foreground">
+                                                Page {completedPage} • Showing {completedList.length} of {allocationStats?.message?.total_component_allocated ?? 0} results
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setCompletedPage(p => Math.max(1, p - 1))}
+                                                    disabled={completedPage === 1}
+                                                    data-testid="button-completed-prev-page"
+                                                >
+                                                    <ChevronLeft className="h-4 w-4 mr-1" />
+                                                    Previous
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setCompletedPage(p => p + 1)}
+                                                    disabled={completedPage * PAGE_SIZE >= (allocationStats?.message?.total_component_allocated ?? 0)}
+                                                    data-testid="button-completed-next-page"
+                                                >
+                                                    Next
+                                                    <ChevronRight className="h-4 w-4 ml-1" />
+                                                </Button>
                                             </div>
-                                        )}
-                                    </TabsContent>
-                                </Tabs>
+                                        </div>
+                                    )}
+                                </TabsContent>
+                            </Tabs>
                         </CardContent>
                     </Card>
                 </div>
