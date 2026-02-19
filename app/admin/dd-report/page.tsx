@@ -66,9 +66,10 @@ export default function DDReportPage() {
         }
     );
 
-    const reports = apiResponse?.message || [];
-    const totalRecords = apiResponse?.total || reports.length;
-    const totalPages = Math.ceil(totalRecords / pageSize);
+    const reports = apiResponse?.message?.data || [];
+    const pagination = apiResponse?.message?.pagination;
+    const totalRecords = pagination?.total_items || reports.length;
+    const totalPages = pagination?.total_pages || Math.ceil(totalRecords / pageSize);
 
     // Export report
     const handleExport = async (format: ExportFormat = "excel") => {
@@ -356,7 +357,7 @@ export default function DDReportPage() {
                                             <PaginationItem>
                                                 <PaginationPrevious
                                                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                                    className={!pagination?.has_previous_page ? "pointer-events-none opacity-50" : "cursor-pointer"}
                                                 />
                                             </PaginationItem>
 
@@ -388,7 +389,7 @@ export default function DDReportPage() {
                                             <PaginationItem>
                                                 <PaginationNext
                                                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                                    className={!pagination?.has_next_page ? "pointer-events-none opacity-50" : "cursor-pointer"}
                                                 />
                                             </PaginationItem>
                                         </PaginationContent>

@@ -62,9 +62,10 @@ export default function DDReportPage() {
         },
     );
 
-    const reports = apiResponse?.message || [];
-    const totalRecords = apiResponse?.total || reports.length;
-    const totalPages = Math.ceil(totalRecords / pageSize);
+    const reports = apiResponse?.message?.data || [];
+    const pagination = apiResponse?.message?.pagination;
+    const totalRecords = pagination?.total_items || reports.length;
+    const totalPages = pagination?.total_pages || Math.ceil(totalRecords / pageSize);
 
     // Keep page number in the URL so refresh preserves the current page
     useEffect(() => {
@@ -440,7 +441,7 @@ export default function DDReportPage() {
                                                     Math.max(1, p - 1)
                                                 )
                                             }
-                                            disabled={currentPage === 1}
+                                            disabled={!pagination?.has_previous_page}
                                         >
                                             <ChevronLeft className="h-4 w-4 mr-1" />
                                             Previous
@@ -453,10 +454,7 @@ export default function DDReportPage() {
                                                     Math.min(totalPages, p + 1)
                                                 )
                                             }
-                                            disabled={
-                                                currentPage === totalPages ||
-                                                reports.length < pageSize
-                                            }
+                                            disabled={!pagination?.has_next_page}
                                         >
                                             Next
                                             <ChevronRight className="h-4 w-4 ml-1" />
