@@ -340,131 +340,133 @@ export default function AllTargetsReportPage() {
                             <p>No target data available.</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <Table className="text-xs">
-                                <TableHeader>
-                                    {/* Component names header row */}
-                                    <TableRow className="bg-muted/50">
-                                        <TableHead rowSpan={2} className="border text-center font-bold sticky left-0 bg-muted/50 z-10 min-w-[50px] align-middle">
-                                            Sr. No.
-                                        </TableHead>
-                                        <TableHead rowSpan={2} className="border text-center font-bold sticky left-[50px] bg-muted/50 z-10 min-w-[120px] align-middle">
-                                            Name of District
-                                        </TableHead>
-                                        {componentNames.map((name) => (
-                                            <TableHead key={name} colSpan={2} className="border text-center font-bold min-w-[160px] bg-blue-50">
-                                                {name}
-                                            </TableHead>
-                                        ))}
-                                        <TableHead colSpan={2} className="border text-center font-bold min-w-[160px] bg-green-100">
-                                            TOTAL
-                                        </TableHead>
-                                    </TableRow>
-                                    {/* Physical/Financial sub-header row */}
-                                    <TableRow className="bg-muted/30">
-                                        {componentNames.map((name) => (
-                                            <Fragment key={`${name}-header`}>
-                                                <TableHead className="border text-center font-semibold min-w-[80px] bg-orange-50">
-                                                    Physical
-                                                </TableHead>
-                                                <TableHead className="border text-center font-semibold min-w-[80px] bg-blue-50">
-                                                    Financial (₹ Lakhs)
-                                                </TableHead>
-                                            </Fragment>
-                                        ))}
-                                        <TableHead className="border text-center font-semibold min-w-[80px] bg-orange-100">
-                                            Physical
-                                        </TableHead>
-                                        <TableHead className="border text-center font-semibold min-w-[80px] bg-green-100">
-                                            Financial (₹ Lakhs)
-                                        </TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {districtNames.map((districtName, index) => {
-                                        const physicalData = targetsData.physical_target?.[districtName];
-                                        const financialData = targetsData.financial_target?.[districtName];
-                                        return (
-                                            <TableRow key={districtName} className="hover:bg-muted/30">
-                                                <TableCell className="border text-center font-medium sticky left-0 bg-background z-10">
-                                                    {index + 1}
-                                                </TableCell>
-                                                <TableCell className="border font-medium sticky left-[50px] bg-background z-10">
-                                                    {districtName}
-                                                </TableCell>
-                                                {componentNames.map((compName) => {
-                                                    const physicalValue = physicalData?.components?.[compName] || 0;
-                                                    const financialValue = financialData?.components?.[compName] || 0;
-                                                    return (
-                                                        <Fragment key={`${districtName}-${compName}`}>
-                                                            <TableCell className="border text-right bg-orange-50/30">
-                                                                {physicalValue}
-                                                            </TableCell>
-                                                            <TableCell className="border text-right">
-                                                                {formatInLakhs(financialValue)}
-                                                            </TableCell>
-                                                        </Fragment>
-                                                    );
-                                                })}
-                                                <TableCell className="border text-right font-bold bg-orange-50">
-                                                    {physicalData?.total || 0}
-                                                </TableCell>
-                                                <TableCell className="border text-right font-bold bg-green-50">
-                                                    {formatInLakhs(financialData?.total || 0)}
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                                <TableFooter>
-                                    <TableRow className="bg-muted font-bold">
-                                        <TableCell className="border text-center sticky left-0 bg-muted z-10"></TableCell>
-                                        <TableCell className="border sticky left-[50px] bg-muted z-10">TOTAL</TableCell>
-                                        {componentNames.map((compName) => (
-                                            <Fragment key={`${compName}-total`}>
-                                                <TableCell className="border text-right bg-orange-100">
-                                                    {componentTotals[compName]?.physical || 0}
-                                                </TableCell>
-                                                <TableCell className="border text-right">
-                                                    {formatInLakhs(componentTotals[compName]?.financial || 0)}
-                                                </TableCell>
-                                            </Fragment>
-                                        ))}
-                                        <TableCell className="border text-right bg-orange-100">
-                                            {targetsData.totals?.total_physical_target || 0}
-                                        </TableCell>
-                                        <TableCell className="border text-right bg-green-100">
-                                            {formatInLakhs(targetsData.totals?.total_financial_target || 0)}
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow className="bg-purple-50 font-bold">
-                                        <TableCell className="border text-center sticky left-0 bg-purple-50 z-10"></TableCell>
-                                        <TableCell className="border sticky left-[50px] bg-purple-50 z-10">Admin Expense Target</TableCell>
-                                        {componentNames.map((compName) => (
-                                            <Fragment key={`${compName}-admin`}>
-                                                <TableCell className="border text-right" colSpan={2}></TableCell>
-                                            </Fragment>
-                                        ))}
-                                        <TableCell className="border text-right"></TableCell>
-                                        <TableCell className="border text-right bg-purple-100">
-                                            {formatInLakhs(targetsData.totals?.admin_expense_target || 0)}
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow className="bg-green-50 font-bold text-sm">
-                                        <TableCell className="border text-center sticky left-0 bg-green-50 z-10"></TableCell>
-                                        <TableCell className="border sticky left-[50px] bg-green-50 z-10">GRAND TOTAL (Financial)</TableCell>
-                                        {componentNames.map((compName) => (
-                                            <Fragment key={`${compName}-grand`}>
-                                                <TableCell className="border text-right" colSpan={2}></TableCell>
-                                            </Fragment>
-                                        ))}
-                                        <TableCell className="border text-right"></TableCell>
-                                        <TableCell className="border text-right bg-green-200">
-                                            {formatInLakhs((targetsData.totals?.total_financial_target || 0) + (targetsData.totals?.admin_expense_target || 0))}
-                                        </TableCell>
-                                    </TableRow>
-                                </TableFooter>
-                            </Table>
+                        <div className="border rounded-lg overflow-hidden flex flex-col">
+                            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                <table className="w-full min-w-[900px] text-xs">
+                                    <thead className="bg-muted sticky top-0 z-30">
+                                        {/* Component names header row */}
+                                        <tr className="bg-muted/50">
+                                            <th rowSpan={2} className="border text-center font-bold sticky left-0 bg-muted/50 z-30 min-w-[50px] align-middle p-2">
+                                                Sr. No.
+                                            </th>
+                                            <th rowSpan={2} className="border text-center font-bold sticky left-[50px] bg-muted/50 z-30 min-w-[120px] align-middle p-2">
+                                                Name of District
+                                            </th>
+                                            {componentNames.map((name) => (
+                                                <th key={name} colSpan={2} className="border text-center font-bold min-w-[160px] bg-blue-50 p-2">
+                                                    {name}
+                                                </th>
+                                            ))}
+                                            <th colSpan={2} className="border text-center font-bold min-w-[160px] bg-green-100 p-2">
+                                                TOTAL
+                                            </th>
+                                        </tr>
+                                        {/* Physical/Financial sub-header row */}
+                                        <tr className="bg-muted/30">
+                                            {componentNames.map((name) => (
+                                                <Fragment key={`${name}-header`}>
+                                                    <th className="border text-center font-semibold min-w-[80px] bg-orange-50 p-2">
+                                                        Physical
+                                                    </th>
+                                                    <th className="border text-center font-semibold min-w-[80px] bg-blue-50 p-2">
+                                                        Financial (₹ Lakhs)
+                                                    </th>
+                                                </Fragment>
+                                            ))}
+                                            <th className="border text-center font-semibold min-w-[80px] bg-orange-100 p-2">
+                                                Physical
+                                            </th>
+                                            <th className="border text-center font-semibold min-w-[80px] bg-green-100 p-2">
+                                                Financial (₹ Lakhs)
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {districtNames.map((districtName, index) => {
+                                            const physicalData = targetsData.physical_target?.[districtName];
+                                            const financialData = targetsData.financial_target?.[districtName];
+                                            return (
+                                                <tr key={districtName} className="hover:bg-muted/30">
+                                                    <td className="border text-center font-medium sticky left-0 bg-background z-10 p-2">
+                                                        {index + 1}
+                                                    </td>
+                                                    <td className="border font-medium sticky left-[50px] bg-background z-10 p-2">
+                                                        {districtName}
+                                                    </td>
+                                                    {componentNames.map((compName) => {
+                                                        const physicalValue = physicalData?.components?.[compName] || 0;
+                                                        const financialValue = financialData?.components?.[compName] || 0;
+                                                        return (
+                                                            <Fragment key={`${districtName}-${compName}`}>
+                                                                <td className="border text-right bg-orange-50/30 p-2">
+                                                                    {physicalValue}
+                                                                </td>
+                                                                <td className="border text-right p-2">
+                                                                    {formatInLakhs(financialValue)}
+                                                                </td>
+                                                            </Fragment>
+                                                        );
+                                                    })}
+                                                    <td className="border text-right font-bold bg-orange-50 p-2">
+                                                        {physicalData?.total || 0}
+                                                    </td>
+                                                    <td className="border text-right font-bold bg-green-50 p-2">
+                                                        {formatInLakhs(financialData?.total || 0)}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr className="bg-muted font-bold">
+                                            <td className="border text-center sticky left-0 bg-muted z-10 p-2"></td>
+                                            <td className="border sticky left-[50px] bg-muted z-10 p-2">TOTAL</td>
+                                            {componentNames.map((compName) => (
+                                                <Fragment key={`${compName}-total`}>
+                                                    <td className="border text-right bg-orange-100 p-2">
+                                                        {componentTotals[compName]?.physical || 0}
+                                                    </td>
+                                                    <td className="border text-right p-2">
+                                                        {formatInLakhs(componentTotals[compName]?.financial || 0)}
+                                                    </td>
+                                                </Fragment>
+                                            ))}
+                                            <td className="border text-right bg-orange-100 p-2">
+                                                {targetsData.totals?.total_physical_target || 0}
+                                            </td>
+                                            <td className="border text-right bg-green-100 p-2">
+                                                {formatInLakhs(targetsData.totals?.total_financial_target || 0)}
+                                            </td>
+                                        </tr>
+                                        <tr className="bg-purple-50 font-bold">
+                                            <td className="border text-center sticky left-0 bg-purple-50 z-10 p-2"></td>
+                                            <td className="border sticky left-[50px] bg-purple-50 z-10 p-2">Admin Expense Target</td>
+                                            {componentNames.map((compName) => (
+                                                <Fragment key={`${compName}-admin`}>
+                                                    <td className="border text-right p-2" colSpan={2}></td>
+                                                </Fragment>
+                                            ))}
+                                            <td className="border text-right p-2"></td>
+                                            <td className="border text-right bg-purple-100 p-2">
+                                                {formatInLakhs(targetsData.totals?.admin_expense_target || 0)}
+                                            </td>
+                                        </tr>
+                                        <tr className="bg-green-50 font-bold text-sm">
+                                            <td className="border text-center sticky left-0 bg-green-50 z-10 p-2"></td>
+                                            <td className="border sticky left-[50px] bg-green-50 z-10 p-2">GRAND TOTAL (Financial)</td>
+                                            {componentNames.map((compName) => (
+                                                <Fragment key={`${compName}-grand`}>
+                                                    <td className="border text-right p-2" colSpan={2}></td>
+                                                </Fragment>
+                                            ))}
+                                            <td className="border text-right p-2"></td>
+                                            <td className="border text-right bg-green-200 p-2">
+                                                {formatInLakhs((targetsData.totals?.total_financial_target || 0) + (targetsData.totals?.admin_expense_target || 0))}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                     )}
                 </CardContent>

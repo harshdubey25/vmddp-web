@@ -22,7 +22,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
@@ -313,59 +312,63 @@ export default function ComponentAllocation() {
                                 </div>
 
                                 <TabsContent value="pending">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Application ID</TableHead>
-                                                <TableHead>Beneficiary</TableHead>
-                                                <TableHead>Aadhaar</TableHead>
-                                                <TableHead>District</TableHead>
-                                                <TableHead>Component</TableHead>
-                                                <TableHead>Status</TableHead>
-                                                <TableHead>Action</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {pendingApplications.map((app) => (
-                                                <TableRow key={app.name} data-testid={`row-pending-${app.name}`}>
-                                                    <TableCell className="font-medium">{app.name}</TableCell>
-                                                    <TableCell>{app.first_name} {app.mid_name} {app.last_name}</TableCell>
-                                                    <TableCell className="font-mono text-xs">{app.aadhar_number}</TableCell>
-                                                    <TableCell>{app.district}</TableCell>
-                                                    <TableCell>
-                                                        <Badge variant="outline" className="gap-1">
-                                                            {getComponentIcon(app.component_name)}
-                                                            {app.component_name}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge variant={app.component_status === 'DD Completed' ? 'secondary' : 'default'}>
-                                                            {app.component_status}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Link href={`/accountant/component-allocation/${encodeURIComponent(app.name)}`}>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                data-testid={`button-allocate-${app.name}`}
-                                                            >
-                                                                <ChevronRight className="h-4 w-4 mr-1" />
-                                                                Allocate
-                                                            </Button>
-                                                        </Link>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                            {pendingApplications.length === 0 && (
-                                                <TableRow>
-                                                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                                        No applications awaiting allocation
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
+                                    <div className="border rounded-lg overflow-hidden flex flex-col">
+                                        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                            <table className="w-full min-w-[900px]">
+                                                <thead className="bg-muted sticky top-0 z-30">
+                                                    <tr>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">Application ID</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">Beneficiary</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">Aadhaar</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">District</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">Component</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">Status</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {pendingApplications.map((app) => (
+                                                        <tr key={app.name} data-testid={`row-pending-${app.name}`} className="border-b hover:bg-muted/30">
+                                                            <td className="p-3 text-xs sm:text-sm font-medium border">{app.name}</td>
+                                                            <td className="p-3 text-xs sm:text-sm border">{app.first_name} {app.mid_name} {app.last_name}</td>
+                                                            <td className="p-3 text-xs sm:text-sm font-mono border">{app.aadhar_number}</td>
+                                                            <td className="p-3 text-xs sm:text-sm border">{app.district}</td>
+                                                            <td className="p-3 text-xs sm:text-sm border">
+                                                                <Badge variant="outline" className="gap-1">
+                                                                    {getComponentIcon(app.component_name)}
+                                                                    {app.component_name}
+                                                                </Badge>
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm border">
+                                                                <Badge variant={app.component_status === 'DD Completed' ? 'secondary' : 'default'}>
+                                                                    {app.component_status}
+                                                                </Badge>
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm border">
+                                                                <Link href={`/accountant/component-allocation/${encodeURIComponent(app.name)}`}>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        data-testid={`button-allocate-${app.name}`}
+                                                                    >
+                                                                        <ChevronRight className="h-4 w-4 mr-1" />
+                                                                        Allocate
+                                                                    </Button>
+                                                                </Link>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    {pendingApplications.length === 0 && (
+                                                        <tr>
+                                                            <td colSpan={7} className="text-center py-8 text-sm text-muted-foreground border">
+                                                                No applications awaiting allocation
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
 
                                     {/* Pagination for pending */}
                                     {(allocationStats?.message?.pending_component_allocation ?? 0) > 0 && (
@@ -400,56 +403,60 @@ export default function ComponentAllocation() {
                                 </TabsContent>
 
                                 <TabsContent value="completed">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Application ID</TableHead>
-                                                <TableHead>Beneficiary</TableHead>
-                                                <TableHead>Aadhaar</TableHead>
-                                                <TableHead>District</TableHead>
-                                                <TableHead>Component</TableHead>
-                                                <TableHead>Status</TableHead>
-                                                <TableHead>Animal/Item</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {completedList.map((alloc) => (
-                                                <TableRow key={alloc.name} data-testid={`row-allocation-${alloc.name}`}>
-                                                    <TableCell className="font-medium">{alloc.name}</TableCell>
-                                                    <TableCell>{alloc.first_name} {alloc.mid_name} {alloc.last_name}</TableCell>
-                                                    <TableCell className="font-mono text-xs">{alloc.aadhar_number}</TableCell>
-                                                    <TableCell>{alloc.district}</TableCell>
-                                                    <TableCell>
-                                                        <Badge variant="outline">
-                                                            {alloc.component_name}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge variant="default" className="bg-green-600">
-                                                            {alloc.component_status}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {alloc.type_of_animal || alloc.item || "-"}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Link href={`/accountant/component-allocation/allocated/${alloc.component_allocation_id}`}>
-                                                            <Button variant="ghost" size="sm" data-testid={`button-view-details-${alloc.component_allocation_id}`}>
-                                                                <ArrowRight className="h-4 w-4" />
-                                                            </Button>
-                                                        </Link>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                            {completedList.length === 0 && (
-                                                <TableRow>
-                                                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                                        No completed allocations
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
+                                    <div className="border rounded-lg overflow-hidden flex flex-col">
+                                        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                            <table className="w-full min-w-[900px]">
+                                                <thead className="bg-muted sticky top-0 z-30">
+                                                    <tr>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">Application ID</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">Beneficiary</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">Aadhaar</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">District</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">Component</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">Status</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">Animal/Item</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {completedList.map((alloc) => (
+                                                        <tr key={alloc.name} data-testid={`row-allocation-${alloc.name}`} className="border-b hover:bg-muted/30">
+                                                            <td className="p-3 text-xs sm:text-sm font-medium border">{alloc.name}</td>
+                                                            <td className="p-3 text-xs sm:text-sm border">{alloc.first_name} {alloc.mid_name} {alloc.last_name}</td>
+                                                            <td className="p-3 text-xs sm:text-sm font-mono border">{alloc.aadhar_number}</td>
+                                                            <td className="p-3 text-xs sm:text-sm border">{alloc.district}</td>
+                                                            <td className="p-3 text-xs sm:text-sm border">
+                                                                <Badge variant="outline">
+                                                                    {alloc.component_name}
+                                                                </Badge>
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm border">
+                                                                <Badge variant="default" className="bg-green-600">
+                                                                    {alloc.component_status}
+                                                                </Badge>
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm border">
+                                                                {alloc.type_of_animal || alloc.item || "-"}
+                                                            </td>
+                                                            <td className="p-3 text-xs sm:text-sm border">
+                                                                <Link href={`/accountant/component-allocation/allocated/${alloc.component_allocation_id}`}>
+                                                                    <Button variant="ghost" size="sm" data-testid={`button-view-details-${alloc.component_allocation_id}`}>
+                                                                        <ArrowRight className="h-4 w-4" />
+                                                                    </Button>
+                                                                </Link>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    {completedList.length === 0 && (
+                                                        <tr>
+                                                            <td colSpan={7} className="text-center py-8 text-sm text-muted-foreground border">
+                                                                No completed allocations
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
 
                                     {/* Pagination for completed */}
                                     {(allocationStats?.message?.total_component_allocated ?? 0) > 0 && (

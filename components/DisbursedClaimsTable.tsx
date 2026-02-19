@@ -123,77 +123,81 @@ export default function DisbursedClaimsTable({
                         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                     </div>
                 ) : disbursedClaims && disbursedClaims.length > 0 ? (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Claim ID</TableHead>
-                                <TableHead>Application</TableHead>
-                                <TableHead>District</TableHead>
-                                <TableHead>Component</TableHead>
-                                <TableHead>Invoice</TableHead>
-                                <TableHead className="text-right">Qty</TableHead>
-                                <TableHead className="text-right">Total Amt</TableHead>
-                                <TableHead className="text-right">Subsidy</TableHead>
-                                <TableHead>Invoice</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {disbursedClaims.map((claim) => {
-                                const beneficiaryName = [claim.first_name, claim.mid_name, claim.last_name].filter(Boolean).join(' ');
-                                return (
-                                    <TableRow key={claim.dbt_claim_id} data-testid={`row-disbursed-${claim.dbt_claim_id}`}>
-                                        <TableCell>
-                                            <span className="font-mono text-xs">{claim.dbt_claim_id}</span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div>
-                                                <span className="text-sm font-medium">{claim.application_id}</span>
-                                                <p className="text-xs text-muted-foreground">{beneficiaryName}</p>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className="text-sm">{claim.district}</span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <p className="font-medium">{claim.component}</p>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div>
-                                                <p className="font-medium">{claim.invoice_number}</p>
-                                                <p className="text-xs text-muted-foreground">{claim.purchase_date}</p>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            {claim.quantity}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            ₹{claim.total_amount.toLocaleString("en-IN")}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <span className="font-medium text-green-600">
-                                                {claim.subsidy_given ? `₹${parseFloat(claim.subsidy_given).toLocaleString("en-IN")}` : "-"}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>
-                                            {claim.invoice_upload ? (
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    onClick={() => window.open(claim.invoice_upload!, "_blank")}
-                                                    data-testid={`button-view-invoice-${claim.dbt_claim_id}`}
-                                                >
-                                                    <ExternalLink className="h-4 w-4 mr-1" />
-                                                    View
-                                                </Button>
-                                            ) : (
-                                                <span className="text-xs text-muted-foreground">N/A</span>
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
+                    <div className="border rounded-lg overflow-hidden flex flex-col">
+                        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                            <table className="w-full min-w-[900px]">
+                                <thead className="bg-muted border-b sticky top-0 z-10">
+                                    <tr>
+                                        <th className="text-left p-3 font-medium">Claim ID</th>
+                                        <th className="text-left p-3 font-medium">Application</th>
+                                        <th className="text-left p-3 font-medium">District</th>
+                                        <th className="text-left p-3 font-medium">Component</th>
+                                        <th className="text-left p-3 font-medium">Invoice</th>
+                                        <th className="text-right p-3 font-medium">Qty</th>
+                                        <th className="text-right p-3 font-medium">Total Amt</th>
+                                        <th className="text-right p-3 font-medium">Subsidy</th>
+                                        <th className="text-left p-3 font-medium">Invoice</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {disbursedClaims.map((claim) => {
+                                        const beneficiaryName = [claim.first_name, claim.mid_name, claim.last_name].filter(Boolean).join(' ');
+                                        return (
+                                            <tr key={claim.dbt_claim_id} className="border-b last:border-0 hover:bg-muted/30 transition-colors" data-testid={`row-disbursed-${claim.dbt_claim_id}`}>
+                                                <td className="p-3 text-xs sm:text-sm">
+                                                    <span className="font-mono">{claim.dbt_claim_id}</span>
+                                                </td>
+                                                <td className="p-3 text-xs sm:text-sm">
+                                                    <div>
+                                                        <span className="font-medium">{claim.application_id}</span>
+                                                        <p className="text-xs text-muted-foreground">{beneficiaryName}</p>
+                                                    </div>
+                                                </td>
+                                                <td className="p-3 text-xs sm:text-sm">
+                                                    <span>{claim.district}</span>
+                                                </td>
+                                                <td className="p-3 text-xs sm:text-sm">
+                                                    <p className="font-medium">{claim.component}</p>
+                                                </td>
+                                                <td className="p-3 text-xs sm:text-sm">
+                                                    <div>
+                                                        <p className="font-medium">{claim.invoice_number}</p>
+                                                        <p className="text-xs text-muted-foreground">{claim.purchase_date}</p>
+                                                    </div>
+                                                </td>
+                                                <td className="p-3 text-xs sm:text-sm text-right">
+                                                    {claim.quantity}
+                                                </td>
+                                                <td className="p-3 text-xs sm:text-sm text-right">
+                                                    ₹{claim.total_amount.toLocaleString("en-IN")}
+                                                </td>
+                                                <td className="p-3 text-xs sm:text-sm text-right">
+                                                    <span className="font-medium text-green-600">
+                                                        {claim.subsidy_given ? `₹${parseFloat(claim.subsidy_given).toLocaleString("en-IN")}` : "-"}
+                                                    </span>
+                                                </td>
+                                                <td className="p-3 text-xs sm:text-sm">
+                                                    {claim.invoice_upload ? (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => window.open(claim.invoice_upload!, "_blank")}
+                                                            data-testid={`button-view-invoice-${claim.dbt_claim_id}`}
+                                                        >
+                                                            <ExternalLink className="h-4 w-4 mr-1" />
+                                                            View
+                                                        </Button>
+                                                    ) : (
+                                                        <span className="text-xs text-muted-foreground">N/A</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 ) : (
                     <p className="text-center text-muted-foreground py-8">No disbursed claims found</p>
                 )}

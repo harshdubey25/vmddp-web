@@ -423,229 +423,231 @@ export default function AnimalInductionMPRPage() {
                             <p>No data available for the selected period.</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <Table className="text-xs">
-                                <TableHeader>
-                                    {/* First header row - Main categories */}
-                                    <TableRow className="bg-muted/50">
-                                        <TableHead rowSpan={4} className="border text-center font-bold sticky left-0 bg-muted/50 z-10 min-w-[50px]">
-                                            Sr. No.
-                                        </TableHead>
-                                        <TableHead rowSpan={4} className="border text-center font-bold sticky left-[50px] bg-muted/50 z-10 min-w-[120px]">
-                                            Name of District
-                                        </TableHead>
-                                        <TableHead rowSpan={4} className="border text-center font-bold min-w-[70px]">
+                        <div className="border rounded-lg overflow-hidden flex flex-col">
+                            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                <table className="w-full text-xs">
+                                    <thead className="bg-muted sticky top-0 z-30">
+                                        {/* First header row - Main categories */}
+                                        <tr className="bg-muted/50">
+                                            <th rowSpan={4} className="border text-center font-bold sticky left-0 bg-muted/50 z-30 min-w-[50px] p-2">
+                                                Sr. No.
+                                            </th>
+                                            <th rowSpan={4} className="border text-center font-bold sticky left-[50px] bg-muted/50 z-30 min-w-[120px] p-2">
+                                                Name of District
+                                            </th>
+                                            <th rowSpan={4} className="border text-center font-bold min-w-[70px] p-2">
 
-                                        </TableHead>
-                                        <TableHead colSpan={19} className="border text-center font-bold bg-blue-50">
-                                            Induction of High Genetic Merit Dairy Animals
-                                        </TableHead>
-                                    </TableRow>
-                                    {/* Second header row - Physical & Financial Achievement */}
-                                    <TableRow className="bg-muted/40">
-                                        <TableHead colSpan={3} className="border text-center font-bold bg-yellow-100">
-                                            Physical Achievement
-                                        </TableHead>
-                                        <TableHead colSpan={15} className="border text-center font-bold bg-purple-100">
-                                            Financial Achievement
-                                        </TableHead>
-                                        <TableHead rowSpan={3} className="border text-center font-bold bg-orange-100 min-w-[100px]">
-                                            Balance
-                                        </TableHead>
-                                    </TableRow>
-                                    {/* Third header row - Sub categories */}
-                                    <TableRow className="bg-muted/30">
-                                        <TableHead rowSpan={2} className="border text-center font-bold min-w-[60px] bg-yellow-50">
-                                            No. of Cow
-                                        </TableHead>
-                                        <TableHead rowSpan={2} className="border text-center font-bold min-w-[60px] bg-yellow-50">
-                                            No. of Cross-breed
-                                        </TableHead>
-                                        <TableHead rowSpan={2} className="border text-center font-bold min-w-[60px] bg-yellow-50">
-                                            No. of Buffalo
-                                        </TableHead>
-                                        <TableHead colSpan={3} className="border text-center font-bold min-w-[200px]">
-                                            ANIMAL COST
-                                        </TableHead>
-                                        <TableHead colSpan={3} className="border text-center font-bold min-w-[200px]">
-                                            DIGITAL COLLAR
-                                        </TableHead>
-                                        <TableHead colSpan={3} className="border text-center font-bold min-w-[200px]">
-                                            INSURANCE
-                                        </TableHead>
-                                        <TableHead colSpan={3} className="border text-center font-bold min-w-[200px]">
-                                            TRANSPORTATION
-                                        </TableHead>
-                                        <TableHead colSpan={3} className="border text-center font-bold bg-green-50 min-w-[300px]">
-                                            TOTAL EXPENDITURE (ANIMAL INDUCTION)
-                                        </TableHead>
-                                    </TableRow>
-                                    {/* Fourth header row - Financial Achievement labels */}
-                                    <TableRow className="bg-muted/20">
-                                        {/* Animal Cost */}
-                                        <TableHead className="border text-center text-[9px] min-w-[80px]">
-                                            Beneficiary Share (Rs.)
-                                        </TableHead>
-                                        <TableHead className="border text-center text-[9px] min-w-[80px]">
-                                            Subsidy (Rs.)
-                                        </TableHead>
-                                        <TableHead className="border text-center text-[9px] min-w-[80px]">
-                                            Total (Rs.)
-                                        </TableHead>
-                                        {/* Digital Collar */}
-                                        <TableHead className="border text-center text-[9px] min-w-[80px]">
-                                            Beneficiary Share (Rs.)
-                                        </TableHead>
-                                        <TableHead className="border text-center text-[9px] min-w-[80px]">
-                                            Subsidy (Rs.)
-                                        </TableHead>
-                                        <TableHead className="border text-center text-[9px] min-w-[80px]">
-                                            Total (Rs.)
-                                        </TableHead>
-                                        {/* Insurance */}
-                                        <TableHead className="border text-center text-[9px] min-w-[80px]">
-                                            Beneficiary Share (Rs.)
-                                        </TableHead>
-                                        <TableHead className="border text-center text-[9px] min-w-[80px]">
-                                            Subsidy (Rs.)
-                                        </TableHead>
-                                        <TableHead className="border text-center text-[9px] min-w-[80px]">
-                                            Total (Rs.)
-                                        </TableHead>
-                                        {/* Transportation */}
-                                        <TableHead className="border text-center text-[9px] min-w-[80px]">
-                                            Beneficiary Share (Rs.)
-                                        </TableHead>
-                                        <TableHead className="border text-center text-[9px] min-w-[80px]">
-                                            Subsidy (Rs.)
-                                        </TableHead>
-                                        <TableHead className="border text-center text-[9px] min-w-[80px]">
-                                            Total (Rs.)
-                                        </TableHead>
-                                        {/* Total Expenditure Financial */}
-                                        <TableHead className="border text-center text-[9px] min-w-[80px] bg-green-50">
-                                            Beneficiary Share (Rs.)
-                                        </TableHead>
-                                        <TableHead className="border text-center text-[9px] min-w-[80px] bg-green-50">
-                                            Subsidy (Rs.)
-                                        </TableHead>
-                                        <TableHead className="border text-center text-[9px] min-w-[80px] bg-green-50">
-                                            Total (Rs.)
-                                        </TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {districtData.map(({ name, data }, index) => (
-                                        <Fragment key={name}>
-                                            {/* Monthly Row */}
-                                            <TableRow className="hover:bg-muted/30">
-                                                <TableCell rowSpan={2} className="border text-center font-medium sticky left-0 bg-background z-10">
-                                                    {index + 1}
-                                                </TableCell>
-                                                <TableCell rowSpan={2} className="border font-medium sticky left-[50px] bg-background z-10">
-                                                    {name}
-                                                </TableCell>
-                                                <TableCell className="border text-center text-[10px]">Monthly</TableCell>
-                                                {/* Physical Achievement */}
-                                                <TableCell className="border text-center bg-yellow-50">{data.cow_count || 0}</TableCell>
-                                                <TableCell className="border text-center bg-yellow-50">{data.crossbreed_count || 0}</TableCell>
-                                                <TableCell className="border text-center bg-yellow-50">{data.buffalo_count || 0}</TableCell>
-                                                {/* Animal Cost */}
-                                                <TableCell className="border text-right">{formatCurrency(data.animal_cost?.beneficiary_share || 0)}</TableCell>
-                                                <TableCell className="border text-right">{formatCurrency(data.animal_cost?.subsidy_share || 0)}</TableCell>
-                                                <TableCell className="border text-right font-medium">{formatCurrency(data.animal_cost?.total || 0)}</TableCell>
-                                                {/* Collar Cost */}
-                                                <TableCell className="border text-right">{formatCurrency(data.collar_cost?.beneficiary_share || 0)}</TableCell>
-                                                <TableCell className="border text-right">{formatCurrency(data.collar_cost?.subsidy_share || 0)}</TableCell>
-                                                <TableCell className="border text-right font-medium">{formatCurrency(data.collar_cost?.total || 0)}</TableCell>
-                                                {/* Insurance */}
-                                                <TableCell className="border text-right">{formatCurrency(data.premium_paid?.beneficiary_share || 0)}</TableCell>
-                                                <TableCell className="border text-right">{formatCurrency(data.premium_paid?.subsidy_share || 0)}</TableCell>
-                                                <TableCell className="border text-right font-medium">{formatCurrency(data.premium_paid?.total || 0)}</TableCell>
-                                                {/* Transportation */}
-                                                <TableCell className="border text-right">{formatCurrency(data.transportation_cost?.beneficiary_share || 0)}</TableCell>
-                                                <TableCell className="border text-right">{formatCurrency(data.transportation_cost?.subsidy_share || 0)}</TableCell>
-                                                <TableCell className="border text-right font-medium">{formatCurrency(data.transportation_cost?.total || 0)}</TableCell>
-                                                {/* Total Expenditure */}
-                                                <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.total_expenditure?.benenficiary_share_total || 0)}</TableCell>
-                                                <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.total_expenditure?.subsidy_share_total || 0)}</TableCell>
-                                                <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total_expenditure?.total || 0)}</TableCell>
-                                                {/* Balance */}
-                                                <TableCell className="border text-right bg-orange-50/50 font-semibold">
-                                                    {formatCurrency(data.balance?.financial_balance || 0)}
-                                                </TableCell>
-                                            </TableRow>
-                                            {/* Progress Row */}
-                                            <TableRow className="hover:bg-muted/30 bg-muted/10">
-                                                <TableCell className="border text-center text-[10px]">Progressive</TableCell>
-                                                {/* Physical Achievement */}
-                                                <TableCell className="border text-center bg-yellow-50/50">{data.cow_count || 0}</TableCell>
-                                                <TableCell className="border text-center bg-yellow-50/50">{data.crossbreed_count || 0}</TableCell>
-                                                <TableCell className="border text-center bg-yellow-50/50">{data.buffalo_count || 0}</TableCell>
-                                                {/* Animal Cost */}
-                                                <TableCell className="border text-right">{formatCurrency(data.animal_cost?.beneficiary_share || 0)}</TableCell>
-                                                <TableCell className="border text-right">{formatCurrency(data.animal_cost?.subsidy_share || 0)}</TableCell>
-                                                <TableCell className="border text-right font-medium">{formatCurrency(data.animal_cost?.total || 0)}</TableCell>
-                                                {/* Collar Cost */}
-                                                <TableCell className="border text-right">{formatCurrency(data.collar_cost?.beneficiary_share || 0)}</TableCell>
-                                                <TableCell className="border text-right">{formatCurrency(data.collar_cost?.subsidy_share || 0)}</TableCell>
-                                                <TableCell className="border text-right font-medium">{formatCurrency(data.collar_cost?.total || 0)}</TableCell>
-                                                {/* Insurance */}
-                                                <TableCell className="border text-right">{formatCurrency(data.premium_paid?.beneficiary_share || 0)}</TableCell>
-                                                <TableCell className="border text-right">{formatCurrency(data.premium_paid?.subsidy_share || 0)}</TableCell>
-                                                <TableCell className="border text-right font-medium">{formatCurrency(data.premium_paid?.total || 0)}</TableCell>
-                                                {/* Transportation */}
-                                                <TableCell className="border text-right">{formatCurrency(data.transportation_cost?.beneficiary_share || 0)}</TableCell>
-                                                <TableCell className="border text-right">{formatCurrency(data.transportation_cost?.subsidy_share || 0)}</TableCell>
-                                                <TableCell className="border text-right font-medium">{formatCurrency(data.transportation_cost?.total || 0)}</TableCell>
-                                                {/* Total Expenditure */}
-                                                <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.total_expenditure?.benenficiary_share_total || 0)}</TableCell>
-                                                <TableCell className="border text-right bg-green-50/50">{formatCurrency(data.total_expenditure?.subsidy_share_total || 0)}</TableCell>
-                                                <TableCell className="border text-right font-bold bg-green-50/50">{formatCurrency(data.total_expenditure?.total || 0)}</TableCell>
-                                                {/* Balance */}
-                                                <TableCell className="border text-right bg-orange-50/50 font-semibold">
-                                                    {formatCurrency(data.balance?.financial_balance || 0)}
-                                                </TableCell>
-                                            </TableRow>
-                                        </Fragment>
-                                    ))}
-                                </TableBody>
-                                <TableFooter>
-                                    <TableRow className="bg-muted font-bold">
-                                        <TableCell className="border text-center sticky left-0 bg-muted z-10" colSpan={1}></TableCell>
-                                        <TableCell className="border sticky left-[50px] bg-muted z-10">TOTAL</TableCell>
-                                        <TableCell className="border"></TableCell>
-                                        {/* Physical Achievement */}
-                                        <TableCell className="border text-center bg-yellow-100">{totals.cow_count}</TableCell>
-                                        <TableCell className="border text-center bg-yellow-100">{totals.crossbreed_count || 0}</TableCell>
-                                        <TableCell className="border text-center bg-yellow-100">{totals.buffalo_count}</TableCell>
-                                        {/* Animal Cost */}
-                                        <TableCell className="border text-right">{formatCurrency(totals.animal_cost.beneficiary_share)}</TableCell>
-                                        <TableCell className="border text-right">{formatCurrency(totals.animal_cost.subsidy_share)}</TableCell>
-                                        <TableCell className="border text-right">{formatCurrency(totals.animal_cost.total)}</TableCell>
-                                        {/* Collar Cost */}
-                                        <TableCell className="border text-right">{formatCurrency(totals.collar_cost.beneficiary_share)}</TableCell>
-                                        <TableCell className="border text-right">{formatCurrency(totals.collar_cost.subsidy_share)}</TableCell>
-                                        <TableCell className="border text-right">{formatCurrency(totals.collar_cost.total)}</TableCell>
-                                        {/* Insurance */}
-                                        <TableCell className="border text-right">{formatCurrency(totals.premium_paid.beneficiary_share)}</TableCell>
-                                        <TableCell className="border text-right">{formatCurrency(totals.premium_paid.subsidy_share)}</TableCell>
-                                        <TableCell className="border text-right">{formatCurrency(totals.premium_paid.total)}</TableCell>
-                                        {/* Transportation */}
-                                        <TableCell className="border text-right">{formatCurrency(totals.transportation_cost.beneficiary_share)}</TableCell>
-                                        <TableCell className="border text-right">{formatCurrency(totals.transportation_cost.subsidy_share)}</TableCell>
-                                        <TableCell className="border text-right">{formatCurrency(totals.transportation_cost.total)}</TableCell>
-                                        {/* Total Expenditure */}
-                                        <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_expenditure.benenficiary_share_total)}</TableCell>
-                                        <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_expenditure.subsidy_share_total)}</TableCell>
-                                        <TableCell className="border text-right bg-green-100">{formatCurrency(totals.total_expenditure.total)}</TableCell>
-                                        {/* Balance */}
-                                        <TableCell className="border text-right bg-orange-100 font-bold">
-                                            {formatCurrency(totals.balance.financial_balance)}
-                                        </TableCell>
-                                    </TableRow>
-                                </TableFooter>
-                            </Table>
+                                            </th>
+                                            <th colSpan={19} className="border text-center font-bold bg-blue-50 p-2">
+                                                Induction of High Genetic Merit Dairy Animals
+                                            </th>
+                                        </tr>
+                                        {/* Second header row - Physical & Financial Achievement */}
+                                        <tr className="bg-muted/40">
+                                            <th colSpan={3} className="border text-center font-bold bg-yellow-100 p-2">
+                                                Physical Achievement
+                                            </th>
+                                            <th colSpan={15} className="border text-center font-bold bg-purple-100 p-2">
+                                                Financial Achievement
+                                            </th>
+                                            <th rowSpan={3} className="border text-center font-bold bg-orange-100 min-w-[100px] p-2">
+                                                Balance
+                                            </th>
+                                        </tr>
+                                        {/* Third header row - Sub categories */}
+                                        <tr className="bg-muted/30">
+                                            <th rowSpan={2} className="border text-center font-bold min-w-[60px] bg-yellow-50 p-2">
+                                                No. of Cow
+                                            </th>
+                                            <th rowSpan={2} className="border text-center font-bold min-w-[60px] bg-yellow-50 p-2">
+                                                No. of Cross-breed
+                                            </th>
+                                            <th rowSpan={2} className="border text-center font-bold min-w-[60px] bg-yellow-50 p-2">
+                                                No. of Buffalo
+                                            </th>
+                                            <th colSpan={3} className="border text-center font-bold min-w-[200px] p-2">
+                                                ANIMAL COST
+                                            </th>
+                                            <th colSpan={3} className="border text-center font-bold min-w-[200px] p-2">
+                                                DIGITAL COLLAR
+                                            </th>
+                                            <th colSpan={3} className="border text-center font-bold min-w-[200px] p-2">
+                                                INSURANCE
+                                            </th>
+                                            <th colSpan={3} className="border text-center font-bold min-w-[200px] p-2">
+                                                TRANSPORTATION
+                                            </th>
+                                            <th colSpan={3} className="border text-center font-bold bg-green-50 min-w-[300px] p-2">
+                                                TOTAL EXPENDITURE (ANIMAL INDUCTION)
+                                            </th>
+                                        </tr>
+                                        {/* Fourth header row - Financial Achievement labels */}
+                                        <tr className="bg-muted/20">
+                                            {/* Animal Cost */}
+                                            <th className="border text-center text-[9px] min-w-[80px] p-2">
+                                                Beneficiary Share (Rs.)
+                                            </th>
+                                            <th className="border text-center text-[9px] min-w-[80px] p-2">
+                                                Subsidy (Rs.)
+                                            </th>
+                                            <th className="border text-center text-[9px] min-w-[80px] p-2">
+                                                Total (Rs.)
+                                            </th>
+                                            {/* Digital Collar */}
+                                            <th className="border text-center text-[9px] min-w-[80px] p-2">
+                                                Beneficiary Share (Rs.)
+                                            </th>
+                                            <th className="border text-center text-[9px] min-w-[80px] p-2">
+                                                Subsidy (Rs.)
+                                            </th>
+                                            <th className="border text-center text-[9px] min-w-[80px] p-2">
+                                                Total (Rs.)
+                                            </th>
+                                            {/* Insurance */}
+                                            <th className="border text-center text-[9px] min-w-[80px] p-2">
+                                                Beneficiary Share (Rs.)
+                                            </th>
+                                            <th className="border text-center text-[9px] min-w-[80px] p-2">
+                                                Subsidy (Rs.)
+                                            </th>
+                                            <th className="border text-center text-[9px] min-w-[80px] p-2">
+                                                Total (Rs.)
+                                            </th>
+                                            {/* Transportation */}
+                                            <th className="border text-center text-[9px] min-w-[80px] p-2">
+                                                Beneficiary Share (Rs.)
+                                            </th>
+                                            <th className="border text-center text-[9px] min-w-[80px] p-2">
+                                                Subsidy (Rs.)
+                                            </th>
+                                            <th className="border text-center text-[9px] min-w-[80px] p-2">
+                                                Total (Rs.)
+                                            </th>
+                                            {/* Total Expenditure Financial */}
+                                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-2">
+                                                Beneficiary Share (Rs.)
+                                            </th>
+                                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-2">
+                                                Subsidy (Rs.)
+                                            </th>
+                                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-2">
+                                                Total (Rs.)
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {districtData.map(({ name, data }, index) => (
+                                            <Fragment key={name}>
+                                                {/* Monthly Row */}
+                                                <tr className="hover:bg-muted/30">
+                                                    <td rowSpan={2} className="border text-center font-medium sticky left-0 bg-background z-10 p-2">
+                                                        {index + 1}
+                                                    </td>
+                                                    <td rowSpan={2} className="border font-medium sticky left-[50px] bg-background z-10 p-2">
+                                                        {name}
+                                                    </td>
+                                                    <td className="border text-center text-[10px] p-2">Monthly</td>
+                                                    {/* Physical Achievement */}
+                                                    <td className="border text-center bg-yellow-50 p-2">{data.cow_count || 0}</td>
+                                                    <td className="border text-center bg-yellow-50 p-2">{data.crossbreed_count || 0}</td>
+                                                    <td className="border text-center bg-yellow-50 p-2">{data.buffalo_count || 0}</td>
+                                                    {/* Animal Cost */}
+                                                    <td className="border text-right p-2">{formatCurrency(data.animal_cost?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(data.animal_cost?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.animal_cost?.total || 0)}</td>
+                                                    {/* Collar Cost */}
+                                                    <td className="border text-right p-2">{formatCurrency(data.collar_cost?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(data.collar_cost?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.collar_cost?.total || 0)}</td>
+                                                    {/* Insurance */}
+                                                    <td className="border text-right p-2">{formatCurrency(data.premium_paid?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(data.premium_paid?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.premium_paid?.total || 0)}</td>
+                                                    {/* Transportation */}
+                                                    <td className="border text-right p-2">{formatCurrency(data.transportation_cost?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(data.transportation_cost?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.transportation_cost?.total || 0)}</td>
+                                                    {/* Total Expenditure */}
+                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(data.total_expenditure?.benenficiary_share_total || 0)}</td>
+                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(data.total_expenditure?.subsidy_share_total || 0)}</td>
+                                                    <td className="border text-right font-bold bg-green-50/50 p-2">{formatCurrency(data.total_expenditure?.total || 0)}</td>
+                                                    {/* Balance */}
+                                                    <td className="border text-right bg-orange-50/50 font-semibold p-2">
+                                                        {formatCurrency(data.balance?.financial_balance || 0)}
+                                                    </td>
+                                                </tr>
+                                                {/* Progress Row */}
+                                                <tr className="hover:bg-muted/30 bg-muted/10">
+                                                    <td className="border text-center text-[10px] p-2">Progressive</td>
+                                                    {/* Physical Achievement */}
+                                                    <td className="border text-center bg-yellow-50/50 p-2">{data.cow_count || 0}</td>
+                                                    <td className="border text-center bg-yellow-50/50 p-2">{data.crossbreed_count || 0}</td>
+                                                    <td className="border text-center bg-yellow-50/50 p-2">{data.buffalo_count || 0}</td>
+                                                    {/* Animal Cost */}
+                                                    <td className="border text-right p-2">{formatCurrency(data.animal_cost?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(data.animal_cost?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.animal_cost?.total || 0)}</td>
+                                                    {/* Collar Cost */}
+                                                    <td className="border text-right p-2">{formatCurrency(data.collar_cost?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(data.collar_cost?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.collar_cost?.total || 0)}</td>
+                                                    {/* Insurance */}
+                                                    <td className="border text-right p-2">{formatCurrency(data.premium_paid?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(data.premium_paid?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.premium_paid?.total || 0)}</td>
+                                                    {/* Transportation */}
+                                                    <td className="border text-right p-2">{formatCurrency(data.transportation_cost?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(data.transportation_cost?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.transportation_cost?.total || 0)}</td>
+                                                    {/* Total Expenditure */}
+                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(data.total_expenditure?.benenficiary_share_total || 0)}</td>
+                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(data.total_expenditure?.subsidy_share_total || 0)}</td>
+                                                    <td className="border text-right font-bold bg-green-50/50 p-2">{formatCurrency(data.total_expenditure?.total || 0)}</td>
+                                                    {/* Balance */}
+                                                    <td className="border text-right bg-orange-50/50 font-semibold p-2">
+                                                        {formatCurrency(data.balance?.financial_balance || 0)}
+                                                    </td>
+                                                </tr>
+                                            </Fragment>
+                                        ))}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr className="bg-muted font-bold">
+                                            <td className="border text-center sticky left-0 bg-muted z-10 p-2" colSpan={1}></td>
+                                            <td className="border sticky left-[50px] bg-muted z-10 p-2">TOTAL</td>
+                                            <td className="border p-2"></td>
+                                            {/* Physical Achievement */}
+                                            <td className="border text-center bg-yellow-100 p-2">{totals.cow_count}</td>
+                                            <td className="border text-center bg-yellow-100 p-2">{totals.crossbreed_count || 0}</td>
+                                            <td className="border text-center bg-yellow-100 p-2">{totals.buffalo_count}</td>
+                                            {/* Animal Cost */}
+                                            <td className="border text-right p-2">{formatCurrency(totals.animal_cost.beneficiary_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(totals.animal_cost.subsidy_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(totals.animal_cost.total)}</td>
+                                            {/* Collar Cost */}
+                                            <td className="border text-right p-2">{formatCurrency(totals.collar_cost.beneficiary_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(totals.collar_cost.subsidy_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(totals.collar_cost.total)}</td>
+                                            {/* Insurance */}
+                                            <td className="border text-right p-2">{formatCurrency(totals.premium_paid.beneficiary_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(totals.premium_paid.subsidy_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(totals.premium_paid.total)}</td>
+                                            {/* Transportation */}
+                                            <td className="border text-right p-2">{formatCurrency(totals.transportation_cost.beneficiary_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(totals.transportation_cost.subsidy_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(totals.transportation_cost.total)}</td>
+                                            {/* Total Expenditure */}
+                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(totals.total_expenditure.benenficiary_share_total)}</td>
+                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(totals.total_expenditure.subsidy_share_total)}</td>
+                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(totals.total_expenditure.total)}</td>
+                                            {/* Balance */}
+                                            <td className="border text-right bg-orange-100 font-bold p-2">
+                                                {formatCurrency(totals.balance.financial_balance)}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                     )}
                 </CardContent>

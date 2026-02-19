@@ -238,50 +238,52 @@ export default function RefundsReport() {
                                 <p className="text-xs sm:text-sm">Failed to load refunds. Please try again.</p>
                             </div>
                         ) : (
-                            <div className="overflow-x-auto -mx-3 sm:mx-0">
-                                <Table className="text-xs sm:text-sm">
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="min-w-20 sm:min-w-28">Application ID</TableHead>
-                                            <TableHead className="min-w-24 sm:min-w-32">Beneficiary</TableHead>
-                                            <TableHead className="min-w-20 sm:min-w-24">District</TableHead>
-                                            <TableHead className="min-w-20 sm:min-w-24">Village</TableHead>
-                                            <TableHead className="min-w-24 sm:min-w-28">Component</TableHead>
-                                            <TableHead className="text-right min-w-20 sm:min-w-24">DD Amount</TableHead>
-                                            <TableHead className="text-right min-w-24 sm:min-w-28">Eligible Subsidy</TableHead>
-                                            <TableHead className="text-right min-w-20 sm:min-w-24">Refund Amount</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {pendingRefunds.map((refund) => (
-                                            <TableRow key={refund.application_id} data-testid={`row-refund-${refund.application_id}`}>
-                                                <TableCell>
-                                                    <span className="font-mono text-xs sm:text-xs">{refund.application_id}</span>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <p className="font-medium text-xs sm:text-sm">{getFullName(refund)}</p>
-                                                </TableCell>
-                                                <TableCell className="text-xs sm:text-sm">{refund.district}</TableCell>
-                                                <TableCell className="text-xs sm:text-sm">{refund.village}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline" className="text-xs sm:text-xs">{refund.component}</Badge>
-                                                </TableCell>
-                                                <TableCell className="text-right text-xs sm:text-sm">₹{refund.dd_amount.toLocaleString("en-IN")}</TableCell>
-                                                <TableCell className="text-right text-green-600 text-xs sm:text-sm">₹{refund.eligible_subsidy.toLocaleString("en-IN")}</TableCell>
-                                                <TableCell className="text-right font-bold text-primary text-xs sm:text-sm">
-                                                    ₹{refund.refund_amount.toLocaleString("en-IN")}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                        {pendingRefunds.length === 0 && (
-                                            <TableRow>
-                                                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground text-xs sm:text-sm">
-                                                    No pending refunds
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
+                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                    <table className="w-full min-w-[900px]">
+                                        <thead className="bg-muted border-b sticky top-0 z-10 text-xs sm:text-sm">
+                                            <tr>
+                                                <th className="text-left p-3 font-medium min-w-20 sm:min-w-28">Application ID</th>
+                                                <th className="text-left p-3 font-medium min-w-24 sm:min-w-32">Beneficiary</th>
+                                                <th className="text-left p-3 font-medium min-w-20 sm:min-w-24">District</th>
+                                                <th className="text-left p-3 font-medium min-w-20 sm:min-w-24">Village</th>
+                                                <th className="text-left p-3 font-medium min-w-24 sm:min-w-28">Component</th>
+                                                <th className="text-right p-3 font-medium min-w-20 sm:min-w-24">DD Amount</th>
+                                                <th className="text-right p-3 font-medium min-w-24 sm:min-w-28">Eligible Subsidy</th>
+                                                <th className="text-right p-3 font-medium min-w-20 sm:min-w-24">Refund Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {pendingRefunds.map((refund) => (
+                                                <tr key={refund.application_id} className="border-b last:border-0 hover:bg-muted/30 transition-colors" data-testid={`row-refund-${refund.application_id}`}>
+                                                    <td className="p-3">
+                                                        <span className="font-mono text-xs sm:text-xs">{refund.application_id}</span>
+                                                    </td>
+                                                    <td className="p-3">
+                                                        <p className="font-medium text-xs sm:text-sm">{getFullName(refund)}</p>
+                                                    </td>
+                                                    <td className="p-3 text-xs sm:text-sm">{refund.district}</td>
+                                                    <td className="p-3 text-xs sm:text-sm">{refund.village}</td>
+                                                    <td className="p-3">
+                                                        <Badge variant="outline" className="text-xs sm:text-xs">{refund.component}</Badge>
+                                                    </td>
+                                                    <td className="p-3 text-right text-xs sm:text-sm">₹{refund.dd_amount.toLocaleString("en-IN")}</td>
+                                                    <td className="p-3 text-right text-green-600 text-xs sm:text-sm">₹{refund.eligible_subsidy.toLocaleString("en-IN")}</td>
+                                                    <td className="p-3 text-right font-bold text-primary text-xs sm:text-sm">
+                                                        ₹{refund.refund_amount.toLocaleString("en-IN")}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {pendingRefunds.length === 0 && (
+                                                <tr>
+                                                    <td colSpan={8} className="p-3 text-center py-8 text-muted-foreground text-xs sm:text-sm">
+                                                        No pending refunds
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         )}
                     </CardContent>
