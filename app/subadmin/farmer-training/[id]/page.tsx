@@ -35,6 +35,10 @@ interface ImageTableEntry {
   image: string;
 }
 
+interface PDFTableEntry {
+  pdf_file: string;
+}
+
 interface Application {
   name: string;
   event_name: string;
@@ -47,7 +51,7 @@ interface Application {
   number_of_participants: number;
   number_of_male?: number;
   number_of_female?: number;
-  images_table?: ImageTableEntry[];
+  images_table?: PDFTableEntry[];
   gallery_table?: ImageTableEntry[];
   training_material: number;
   logistics: number;
@@ -262,34 +266,34 @@ export default function ViewFarmerTrainingApplication() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Image className="w-4 h-4" />
-                  Participant List Images
+                  <FileText className="w-4 h-4" />
+                  Participant List PDFs
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {application.images_table && application.images_table.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  <div className="space-y-2">
                     {application.images_table.map((entry, idx) => {
-                      const imageUrl = entry.image.startsWith('http') ? entry.image : `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${entry.image}`;
+                      const pdfUrl = entry.pdf_file.startsWith('http') ? entry.pdf_file : `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${entry.pdf_file}`;
+                      const fileName = pdfUrl.split('/').pop() || `PDF ${idx + 1}`;
                       return (
-                        <div
+                        <a
                           key={idx}
-                          className="border rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-                          onClick={() => setPreviewImage(imageUrl)}
+                          href={pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 p-3 border rounded-lg hover:bg-muted transition-colors"
                         >
-                          <img
-                            src={imageUrl}
-                            alt={`Participant list ${idx + 1}`}
-                            className="w-full h-32 object-cover"
-                          />
-                        </div>
+                          <FileText className="w-5 h-5 text-red-500 flex-shrink-0" />
+                          <span className="font-medium text-sm truncate">{fileName}</span>
+                        </a>
                       );
                     })}
                   </div>
                 ) : (
                   <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                    <Image className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">No images uploaded</p>
+                    <FileText className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">No PDFs uploaded</p>
                   </div>
                 )}
               </CardContent>
@@ -315,7 +319,7 @@ export default function ViewFarmerTrainingApplication() {
                         >
                           <img
                             src={imageUrl}
-                            alt={`Participant list ${idx + 1}`}
+                            alt={`Gallery image ${idx + 1}`}
                             className="w-full h-32 object-cover"
                           />
                         </div>

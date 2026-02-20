@@ -57,23 +57,37 @@ export async function uploadFile(file: File, isPrivate: boolean = false, folder:
   formData.append('is_private', isPrivate ? '1' : '0');
   formData.append('folder', folder);
 
-  const response = await fetch('/api/method/upload_file', {
-    method: 'POST',
-    body: formData,
-  });
+  try {
+    const response = await fetch('/api/method/upload_file', {
+      method: 'POST',
+      body: formData,
+    });
 
-  if (!response.ok) {
-    throw new Error(`Upload failed: ${response.statusText}`);
-  }
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.statusText}`);
+    }
 
-  const result = await response.json();
-  const fileUrl = result.message?.file_url;
-  
-  if (!fileUrl) {
-    throw new Error('No file URL returned from server');
+    const result = await response.json();
+    
+    // Handle different response formats
+    let fileUrl = result.message?.file_url || 
+                  result.message?.['file_url'] ||
+                  result.message ||
+                  result.file_url;
+    
+    // If message is a string (could be the URL directly)
+    if (typeof result.message === 'string' && result.message.startsWith('/')) {
+      fileUrl = result.message;
+    }
+    
+    if (!fileUrl || typeof fileUrl !== 'string') {
+      throw new Error(`No valid file URL in response`);
+    }
+    
+    return fileUrl;
+  } catch (error) {
+    throw error;
   }
-  
-  return fileUrl;
 }
 
 /**
@@ -105,14 +119,26 @@ export function validateImageSize(file: File, maxSizeMB: number = 5): { valid: b
 }
 
 /**
- * Validate if file is an image
+ * Validate if file matches the expected type
  */
-export function validateImageType(file: File): { valid: boolean; error?: string } {
-  if (!file.type.startsWith('image/')) {
-    return {
-      valid: false,
-      error: `"${file.name}" is not an image file.`,
-    };
+export function validateImageType(file: File, fileType: 'image' | 'pdf' = 'image'): { valid: boolean; error?: string } {
+  if (fileType === 'pdf') {
+    const allowedTypes = ['application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      return {
+        valid: false,
+        error: `"${file.name}" must be a PDF file. Got: ${file.type || 'unknown type'}.`,
+      };
+    }
+  } else {
+    // Image files
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      return {
+        valid: false,
+        error: `"${file.name}" must be an image file (JPG, PNG, WebP). Got: ${file.type || 'unknown type'}.`,
+      };
+    }
   }
   
   return { valid: true };
@@ -126,13 +152,15 @@ export async function validateAndCompressImages(
   options?: {
     maxSizeMB?: number;
     compressionOptions?: ImageCompressionOptions;
+    fileType?: 'image' | 'pdf';
   }
 ): Promise<{ validFiles: File[]; errors: string[] }> {
   const validFiles: File[] = [];
   const errors: string[] = [];
+  const fileType = options?.fileType ?? 'image';
   
   for (const file of files) {
-    const typeValidation = validateImageType(file);
+    const typeValidation = validateImageType(file, fileType);
     if (!typeValidation.valid) {
       errors.push(typeValidation.error!);
       continue;
@@ -145,10 +173,16 @@ export async function validateAndCompressImages(
     }
     
     try {
-      const compressedFile = await compressImage(file, options?.compressionOptions);
-      validFiles.push(compressedFile);
+      // Only compress images, not PDFs
+      if (fileType === 'image') {
+        const compressedFile = await compressImage(file, options?.compressionOptions);
+        validFiles.push(compressedFile);
+      } else {
+        // For PDFs, just use as-is
+        validFiles.push(file);
+      }
     } catch (error) {
-      errors.push(`Failed to compress "${file.name}"`);
+      errors.push(`Failed to process "${file.name}"`);
       validFiles.push(file);
     }
   }
@@ -167,11 +201,13 @@ export async function uploadImagesWithCompression(
     compressionOptions?: ImageCompressionOptions;
     isPrivate?: boolean;
     folder?: string;
+    fileType?: 'image' | 'pdf';
   }
 ): Promise<Array<{ image: string }>> {
-  const { validFiles } = await validateAndCompressImages(files, {
+  const { validFiles, errors } = await validateAndCompressImages(files, {
     maxSizeMB: options?.maxSizeMB,
     compressionOptions: options?.compressionOptions,
+    fileType: options?.fileType,
   });
   
   if (validFiles.length === 0) {

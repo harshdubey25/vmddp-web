@@ -49,6 +49,7 @@ export default function VendorPayments() {
     const [selectedPaymentIds, setSelectedPaymentIds] = useState<string[]>([])
     const [selectedParantageIds, setSelectedParantageIds] = useState<string[]>([])
     const [selectedVendor, setSelectedVendor] = useState<string | null>(null)
+    const [selectedComponent, setSelectedComponent] = useState<string>("all")
     const [viewMode, setViewMode] = useState<"pending" | "parantage">("pending")
     const [dialogContext, setDialogContext] = useState<"pending" | "parantage">("pending")
 
@@ -71,11 +72,22 @@ export default function VendorPayments() {
 
     const vendorPayments = paymentsResponse?.message || [];
 
-    // Fetch vendors for filter dropdown
-    const { data: vendors } = useFrappeGetDocList<{ name: string; vendor_name: string }>("Vendor", {
-        fields: ["name", "vendor_name"],
-        limit: 100
-    });
+    const { data: vendorsResponse } = useFrappeGetCall<{
+        message: {
+            data: Array<{
+                name: string;
+                vendor_name: string;
+            }>;
+        };
+    }>(
+        "vmddp_app.api.v1.accountant.get_vendors_by_component",
+        {
+            component: selectedComponent !== "all" ? selectedComponent : undefined,
+        },
+        selectedComponent !== "all" ? `vendors_${selectedComponent}` : undefined
+    );
+
+    const vendors = vendorsResponse?.message?.data || [];
     const { data: BankList } = useFrappeGetDocList("Bank")
     // Create doc hook for Vendor Payments
     const { createDoc, loading: submitting } = useFrappeCreateDoc();
@@ -317,11 +329,33 @@ export default function VendorPayments() {
                                     />
                                 </div>
                                 <Select
+                                    value={selectedComponent}
+                                    onValueChange={(value) => {
+                                        setSelectedComponent(value);
+                                        setSelectedVendor(null);
+                                        setSelectedPaymentIds([]);
+                                    }}
+                                >
+                                    <SelectTrigger className="w-44" data-testid="select-component">
+                                        <SelectValue placeholder="Component" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Components</SelectItem>
+                                        <SelectItem value="Animal Induction">
+                                            Animal Induction
+                                        </SelectItem>
+                                        <SelectItem value="HGM (Pregnant cow)">
+                                            HGM (Pregnant cow)
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <Select
                                     value={selectedVendor || "all"}
                                     onValueChange={(value) => {
                                         setSelectedVendor(value === "all" ? null : value);
                                         setSelectedPaymentIds([]); // Clear selection when vendor changes
                                     }}
+                                    disabled={selectedComponent === "all"}
                                 >
                                     <SelectTrigger className="w-44" data-testid="select-vendor">
                                         <SelectValue placeholder="Vendor" />
@@ -329,7 +363,7 @@ export default function VendorPayments() {
                                     <SelectContent>
                                         <SelectItem value="all">All Vendors</SelectItem>
                                         {vendors?.map((v) => (
-                                            <SelectItem key={v.name} value={v.name}>{v.vendor_name || v.name}</SelectItem>
+                                            <SelectItem key={v.name} value={v.name}>{v.vendor_name}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
