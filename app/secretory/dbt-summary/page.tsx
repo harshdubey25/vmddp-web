@@ -72,6 +72,16 @@ interface Balance {
     physical_balance: number;
 }
 
+interface ComponentSummary {
+    component: string;
+    target_physical: number;
+    target_financial: number;
+    achieved_physical: number;
+    achieved_financial: number;
+    balance_physical: number;
+    balance_financial: number;
+}
+
 interface AnimalInductionTotals {
     cow_count: number;
     buffalo_count: number;
@@ -151,6 +161,20 @@ export default function MPRPage() {
         undefined,
         { revalidateOnFocus: false }
     );
+    const { data: farmerTrainingData, isLoading: farmerTrainingLoading } = useFrappeGetCall<{ message: ComponentSummary }>(
+        'vmddp_app.api.v1.secretory.get_farmer_training_summary',
+        { component: 'Farmer Training' },
+        { revalidateOnFocus: false }
+    );
+        console.log('farmerTrainingData', farmerTrainingData)
+
+
+    const { data: treatmentInfertileData, isLoading: treatmentInfertileLoading } = useFrappeGetCall<{ message: ComponentSummary }>(
+        'vmddp_app.api.v1.secretory.get_treatment_infertile_animal_summary',
+        { component: 'Treatment of Infertile Animal' },
+        { revalidateOnFocus: false }
+    );
+    console.log('treatmentInfertileData', treatmentInfertileData)
 
     const animalInductionTotals = useMemo(() => {
         if (!animalInductionData?.message) {
@@ -271,7 +295,7 @@ export default function MPRPage() {
         setExpandedSections(newExpanded);
     };
 
-    if (isLoading || animalInductionLoading || hgmLoading) {
+    if (isLoading || animalInductionLoading || hgmLoading || farmerTrainingLoading || treatmentInfertileLoading) {
         return (
             <div className="flex-1 overflow-auto">
                 <div className="p-8">
@@ -550,6 +574,98 @@ export default function MPRPage() {
                                 </div>
                             </CardContent>
                         )}
+                    </Card>
+                )}
+
+                {farmerTrainingData?.message && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Farmer Training - Target & Achievement Summary</CardTitle>
+                            <CardDescription>Training sessions completion status</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="overflow-x-auto">
+                                <table className="w-full border-collapse border border-gray-300">
+                                    <thead>
+                                        <tr>
+                                            <th colSpan={2} className="bg-blue-100 border border-gray-300 text-center font-bold p-2">
+                                                Physical Achievement
+                                            </th>
+                                            <th colSpan={2} className="bg-green-100 border border-gray-300 text-center font-bold p-2">
+                                                Financial Achievement
+                                            </th>
+                                            <th colSpan={2} className="bg-yellow-100 border border-gray-300 text-center font-bold p-2">
+                                                Balance
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Target</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Achieved</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Target (Rs.)</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Achieved (Rs.)</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Physical</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Financial (Rs.)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td className="border border-gray-300 p-2 text-center">{farmerTrainingData.message.target_physical}</td>
+                                            <td className="border border-gray-300 p-2 text-center font-semibold text-green-600">{farmerTrainingData.message.achieved_physical}</td>
+                                            <td className="border border-gray-300 p-2 text-right">{formatCurrencyRupees(farmerTrainingData.message.target_financial)}</td>
+                                            <td className="border border-gray-300 p-2 text-right font-semibold text-green-600">{formatCurrencyRupees(farmerTrainingData.message.achieved_financial)}</td>
+                                            <td className="border border-gray-300 p-2 text-center bg-yellow-50 font-semibold">{farmerTrainingData.message.balance_physical}</td>
+                                            <td className="border border-gray-300 p-2 text-right bg-yellow-50 font-semibold">{formatCurrencyRupees(farmerTrainingData.message.balance_financial)}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {treatmentInfertileData?.message && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Treatment of Infertile Animal - Target & Achievement Summary</CardTitle>
+                            <CardDescription>Treatment applications completion status</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="overflow-x-auto">
+                                <table className="w-full border-collapse border border-gray-300">
+                                    <thead>
+                                        <tr>
+                                            <th colSpan={2} className="bg-blue-100 border border-gray-300 text-center font-bold p-2">
+                                                Physical Achievement
+                                            </th>
+                                            <th colSpan={2} className="bg-green-100 border border-gray-300 text-center font-bold p-2">
+                                                Financial Achievement
+                                            </th>
+                                            <th colSpan={2} className="bg-yellow-100 border border-gray-300 text-center font-bold p-2">
+                                                Balance
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Target</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Achieved</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Target (Rs.)</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Achieved (Rs.)</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Physical</th>
+                                            <th className="border border-gray-300 bg-gray-50 p-2 text-center text-sm font-medium">Financial (Rs.)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td className="border border-gray-300 p-2 text-center">{treatmentInfertileData.message.target_physical}</td>
+                                            <td className="border border-gray-300 p-2 text-center font-semibold text-green-600">{treatmentInfertileData.message.achieved_physical}</td>
+                                            <td className="border border-gray-300 p-2 text-right">{formatCurrencyRupees(treatmentInfertileData.message.target_financial)}</td>
+                                            <td className="border border-gray-300 p-2 text-right font-semibold text-green-600">{formatCurrencyRupees(treatmentInfertileData.message.achieved_financial)}</td>
+                                            <td className="border border-gray-300 p-2 text-center bg-yellow-50 font-semibold">{treatmentInfertileData.message.balance_physical}</td>
+                                            <td className="border border-gray-300 p-2 text-right bg-yellow-50 font-semibold">{formatCurrencyRupees(treatmentInfertileData.message.balance_financial)}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CardContent>
                     </Card>
                 )}
             </div>
