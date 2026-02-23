@@ -902,7 +902,7 @@ export default function AdminReports() {
                     <div>
                         <h2 className="text-lg font-semibold mb-3">Report Pages</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <Link href="/admin/dd-report" className="block h-full">
+                            <Link href="/accountant/dd-report" className="block h-full">
                                 <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
                                     <CardContent className="p-4 flex items-center gap-3 h-full">
                                         <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">

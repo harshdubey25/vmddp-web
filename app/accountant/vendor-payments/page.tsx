@@ -1,5 +1,4 @@
 "use client"
-import Link from "next/link";
 import {
     CheckCircle,
     Clock,
@@ -9,7 +8,6 @@ import {
     CreditCard,
     Check,
     Loader2,
-    CheckCheck,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
