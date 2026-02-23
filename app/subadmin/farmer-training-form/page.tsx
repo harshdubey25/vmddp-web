@@ -292,12 +292,7 @@ export default function FarmerTrainingForm() {
                 newImages,
                 {
                     maxSizeMB: MAX_IMAGE_SIZE_MB,
-                    compressionOptions: {
-                        maxSizeMB: 1,
-                        maxWidthOrHeight: 1920,
-                        useWebWorker: true,
-                        fileType: "image/jpeg",
-                    },
+                    fileType: 'pdf',
                 },
             );
 
@@ -319,14 +314,14 @@ export default function FarmerTrainingForm() {
                 }));
 
                 toast({
-                    title: "Images Compressed",
-                    description: `${validFiles.length} image(s) compressed and ready for upload.`,
+                    title: "PDFs Validated",
+                    description: `${validFiles.length} PDF file(s) validated and ready to upload.`,
                 });
             }
         } catch (error) {
             toast({
                 title: "Error",
-                description: "Failed to process images. Please try again.",
+                description: "Failed to process PDFs. Please try again.",
                 variant: "destructive",
             });
         } finally {
@@ -369,6 +364,7 @@ export default function FarmerTrainingForm() {
                 newImages,
                 {
                     maxSizeMB: MAX_IMAGE_SIZE_MB,
+                    fileType: 'image',
                     compressionOptions: {
                         maxSizeMB: 1,
                         maxWidthOrHeight: 1920,
@@ -452,11 +448,11 @@ export default function FarmerTrainingForm() {
         }
 
         const participants = parseInt(formData.numberOfParticipants);
-        if (participants > 30) {
+        if (participants > 50) {
             toast({
                 title: "Validation Error",
                 description:
-                    "Maximum 30 participants allowed per training session.",
+                    "Maximum 50 participants allowed per training session.",
                 variant: "destructive",
             });
             return;
@@ -500,17 +496,20 @@ export default function FarmerTrainingForm() {
         try {
             setUploadingImages(true);
 
-            // Upload participant list images
-            const imageTableEntries =
-                formData.participantListImages.length > 0
-                    ? await uploadImagesWithCompression(
-                        formData.participantListImages,
-                        {
-                            isPrivate: false,
-                            folder: "Home",
-                        },
-                    )
-                    : [];
+            const pdfUrls = formData.participantListImages.length > 0
+                ? await uploadImagesWithCompression(
+                    formData.participantListImages,
+                    {
+                        isPrivate: false,
+                        folder: "Home",
+                        fileType: 'pdf',
+                    },
+                )
+                : [];
+
+            const imageTableEntries = pdfUrls.map((item) => ({
+                pdf_file: item.image,
+            }));
 
             // Upload gallery images
             const galleryTableEntries =
@@ -520,6 +519,7 @@ export default function FarmerTrainingForm() {
                         {
                             isPrivate: false,
                             folder: "Home",
+                            fileType: 'image',
                         },
                     )
                     : [];
@@ -552,7 +552,7 @@ export default function FarmerTrainingForm() {
 
             router.push("/subadmin/farmer-training");
         } catch (error) {
-            console.error("Error submitting application:", error);
+            // Error already handled by toast
             toast({
                 title: "Submission Failed",
                 description:
@@ -932,7 +932,7 @@ export default function FarmerTrainingForm() {
                   Participants
                 </CardTitle>
                 <CardDescription>
-                  Enter number of participants (Maximum 30 per session)
+                  Enter number of participants (Maximum 50 per session)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -951,10 +951,10 @@ export default function FarmerTrainingForm() {
                       id="participants"
                       type="number"
                       min="1"
-                      max="30"
+                      max="50"
                       value={formData.numberOfParticipants}
                       onChange={(e) => handleInputChange("numberOfParticipants", e.target.value)}
-                      placeholder="Enter number (max 30)"
+                      placeholder="Enter number (max 50)"
                       data-testid="input-participants"
                     />
                   </div>
@@ -964,7 +964,7 @@ export default function FarmerTrainingForm() {
                       id="male-participants"
                       type="number"
                       min="0"
-                      max={totalParticipants || 30}
+                      max={totalParticipants || 50}
                       value={formData.numberOfMale}
                       onChange={(e) => handleInputChange("numberOfMale", e.target.value)}
                       placeholder="Enter male participants"
@@ -978,7 +978,7 @@ export default function FarmerTrainingForm() {
                       id="female-participants"
                       type="number"
                       min="0"
-                      max={totalParticipants || 30}
+                      max={totalParticipants || 50}
                       value={formData.numberOfFemale}
                       onChange={(e) => handleInputChange("numberOfFemale", e.target.value)}
                       placeholder="Enter female participants"
@@ -988,11 +988,11 @@ export default function FarmerTrainingForm() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="images">Participant List Images (Max {MAX_IMAGES})</Label>
+                  <Label htmlFor="images">Participant List PDF (Max {MAX_IMAGES})</Label>
                   <Input
                     id="images"
                     type="file"
-                    accept="image/*"
+                    accept=".pdf"
                     multiple
                     onChange={handleImageUpload}
                     data-testid="input-images"

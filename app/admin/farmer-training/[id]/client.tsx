@@ -1,17 +1,24 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { useFrappeGetDoc } from "frappe-react-sdk";
-import { useState } from "react";
+import { useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
+import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, FileText, GraduationCap, MapPin, Building, Users, Image, IndianRupee, Loader2, X } from "lucide-react";
+import { ArrowLeft, FileText, GraduationCap, MapPin, Building, Users, Image, IndianRupee, Loader2, X, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { uploadImagesWithCompression } from "@/lib/image-utils";
 
 interface ImageTableEntry {
+    name: string;
     image: string;
+}
+
+interface PDFTableEntry {
+    name: string;
+    pdf_file: string;
 }
 
 interface Application {
@@ -26,7 +33,7 @@ interface Application {
     number_of_participants: number;
     no_of_male?: number;
     no_of_female?: number;
-    images_table?: ImageTableEntry[];
+    images_table?: PDFTableEntry[];
     gallery_table?: ImageTableEntry[];
     training_material: number;
     logistics: number;
@@ -39,16 +46,20 @@ const EXPENSE_PER_HEAD = 360;
 
 export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
     const router = useRouter();
+    const { toast } = useToast();
+    const { updateDoc, loading: isUpdating } = useFrappeUpdateDoc();
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [deletingIdx, setDeletingIdx] = useState<number | null>(null);
+    const [uploadingGallery, setUploadingGallery] = useState(false);
+    const galleryInputRef = useRef<HTMLInputElement>(null);
 
     const applicationId = decodeURIComponent(id);
 
-    const { data: application, isLoading, error } = useFrappeGetDoc<Application>(
+    const { data: application, isLoading, error, mutate } = useFrappeGetDoc<Application>(
         "Farmer Training Application",
         applicationId || "",
         applicationId ? undefined : null
     );
-    console.log('application', application)
 
 
     const formatCurrency = (amount: number) => {
@@ -71,6 +82,98 @@ export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
 
     const getRemainingBudget = () => {
         return getExpectedBudget() - getTotalBudget();
+    };
+
+    const handleDeleteGalleryImage = async (idx: number, entryName: string) => {
+        if (!application) return;
+        
+        try {
+            setDeletingIdx(idx);
+            const updatedGalleryTable = application.gallery_table?.filter((_, i) => i !== idx) || [];
+            
+            await updateDoc("Farmer Training Application", application.name, {
+                gallery_table: updatedGalleryTable.map((entry) => ({
+                    name: entry.name,
+                    image: entry.image,
+                })),
+            });
+
+            await mutate();
+
+            toast({
+                title: "Image removed",
+                description: "Gallery image has been deleted successfully.",
+            });
+
+            if (application) {
+                application.gallery_table = updatedGalleryTable;
+            }
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to delete image. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setDeletingIdx(null);
+        }
+    };
+
+    const handleAddGalleryImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!application) return;
+        
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        try {
+            setUploadingGallery(true);
+            const fileCount = files.length;
+
+            // Show immediate feedback
+            toast({
+                title: "Uploading...",
+                description: `Adding ${fileCount} image(s) to gallery...`,
+            });
+            
+            const uploadedImages = await uploadImagesWithCompression(
+                Array.from(files),
+                { fileType: 'image' }
+            );
+
+            const existingGallery = application.gallery_table || [];
+            const newGalleryEntries = uploadedImages.map((img) => ({
+                image: img.image,
+            }));
+
+            await updateDoc("Farmer Training Application", application.name, {
+                gallery_table: [
+                    ...existingGallery.map((entry) => ({
+                        name: entry.name,
+                        image: entry.image,
+                    })),
+                    ...newGalleryEntries,
+                ],
+            });
+
+            await mutate();
+
+            toast({
+                title: "Images added successfully",
+                description: `${uploadedImages.length} image(s) added to gallery.`,
+            });
+
+            if (galleryInputRef.current) {
+                galleryInputRef.current.value = "";
+            }
+        } catch (error) {
+            toast({
+                title: "Upload failed",
+                description: "Failed to upload images. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setUploadingGallery(false);
+        }
     };
 
     if (isLoading) {
@@ -237,34 +340,34 @@ export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
                         <Card>
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-base flex items-center gap-2">
-                                    <Image className="w-4 h-4" />
-                                    Participant List Images
+                                    <FileText className="w-4 h-4" />
+                                    Participant List PDFs
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 {application.images_table && application.images_table.length > 0 ? (
-                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                                    <div className="space-y-2">
                                         {application.images_table.map((entry, idx) => {
-                                            const imageUrl = entry.image.startsWith('http') ? entry.image : `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${entry.image}`;
+                                            const pdfUrl = entry.pdf_file && entry.pdf_file.startsWith('http') ? entry.pdf_file : `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${entry.pdf_file || ''}`;
+                                            const fileName = pdfUrl.split('/').pop() || `PDF ${idx + 1}`;
                                             return (
-                                                <div
+                                                <a
                                                     key={idx}
-                                                    className="border rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-                                                    onClick={() => setPreviewImage(imageUrl)}
+                                                    href={pdfUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 p-3 border rounded-lg hover:bg-muted transition-colors"
                                                 >
-                                                    <img
-                                                        src={imageUrl}
-                                                        alt={`Participant list ${idx + 1}`}
-                                                        className="w-full h-32 object-cover"
-                                                    />
-                                                </div>
+                                                    <FileText className="w-5 h-5 text-red-500 flex-shrink-0" />
+                                                    <span className="font-medium text-sm truncate">{fileName}</span>
+                                                </a>
                                             );
                                         })}
                                     </div>
                                 ) : (
                                     <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                                        <Image className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                                        <p className="text-sm text-muted-foreground">No images uploaded</p>
+                                        <FileText className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                                        <p className="text-sm text-muted-foreground">No PDFs uploaded</p>
                                     </div>
                                 )}
                             </CardContent>
@@ -275,6 +378,33 @@ export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
                                 <CardTitle className="text-base flex items-center gap-2">
                                     <Image className="w-4 h-4" />
                                     Gallery Images
+                                    <Button
+                                        onClick={() => galleryInputRef.current?.click()}
+                                        disabled={uploadingGallery || isUpdating}
+                                        size="sm"
+                                        variant="outline"
+                                        className="gap-2"
+                                    >
+                                        {uploadingGallery ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Uploading...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Plus className="w-4 h-4" />
+                                                Add Images
+                                            </>
+                                        )}
+                                    </Button>
+                                    <input
+                                        ref={galleryInputRef}
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        onChange={handleAddGalleryImage}
+                                        className="hidden"
+                                    />
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -285,22 +415,43 @@ export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
                                             return (
                                                 <div
                                                     key={idx}
-                                                    className="border rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-                                                    onClick={() => setPreviewImage(imageUrl)}
+                                                    className={cn(
+                                                        "border rounded-lg overflow-hidden transition-shadow relative group",
+                                                        uploadingGallery ? "opacity-60" : "cursor-pointer hover:shadow-lg"
+                                                    )}
+                                                    onClick={() => !uploadingGallery && setPreviewImage(imageUrl)}
                                                 >
                                                     <img
                                                         src={imageUrl}
-                                                        alt={`Participant list ${idx + 1}`}
+                                                        alt={`Gallery image ${idx + 1}`}
                                                         className="w-full h-32 object-cover"
                                                     />
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDeleteGalleryImage(idx, entry.name);
+                                                        }}
+                                                        disabled={deletingIdx === idx || isUpdating || uploadingGallery}
+                                                        className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                                                    >
+                                                        {deletingIdx === idx ? (
+                                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                                        ) : (
+                                                            <Trash2 className="w-4 h-4" />
+                                                        )}
+                                                    </button>
                                                 </div>
                                             );
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                                    <div 
+                                        onClick={() => galleryInputRef.current?.click()}
+                                        className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:bg-muted/50 transition-colors"
+                                    >
                                         <Image className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
                                         <p className="text-sm text-muted-foreground">No images uploaded</p>
+                                        <p className="text-xs text-muted-foreground mt-1">Click to add images</p>
                                     </div>
                                 )}
                             </CardContent>

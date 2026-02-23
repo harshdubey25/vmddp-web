@@ -1,15 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useFrappeGetDoc } from "frappe-react-sdk";
-import { useState } from "react";
-import { ArrowLeft, FileText, MapPin, User, Stethoscope, Pill, Loader2, Image } from "lucide-react";
+import { useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
+import { useState, useRef } from "react";
+import { ArrowLeft, FileText, MapPin, User, Stethoscope, Pill, Loader2, Image, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { uploadImagesWithCompression } from "@/lib/image-utils";
+import { cn } from "@/lib/utils";
 
 interface ImageTableEntry {
+    name: string;
     image: string;
 }
 
@@ -49,11 +53,16 @@ interface TreatmentDoc {
 
 export default function ViewTreatmentApplication({ id }: { id: string }) {
     const router = useRouter();
+    const { toast } = useToast();
+    const { updateDoc, loading: isUpdating } = useFrappeUpdateDoc();
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [deletingIdx, setDeletingIdx] = useState<number | null>(null);
+    const [uploadingGallery, setUploadingGallery] = useState(false);
+    const galleryInputRef = useRef<HTMLInputElement>(null);
 
     const applicationId = id ? decodeURIComponent(id) : null;
 
-    const { data: treatmentDoc, isLoading, error } = useFrappeGetDoc<TreatmentDoc>(
+    const { data: treatmentDoc, isLoading, error, mutate } = useFrappeGetDoc<TreatmentDoc>(
         "Treatment of Infertile Animal",
         applicationId || "",
         applicationId ? undefined : null
@@ -103,6 +112,93 @@ export default function ViewTreatmentApplication({ id }: { id: string }) {
         },
     }
         : null;
+
+    const handleDeleteGalleryImage = async (idx: number, entryName: string) => {
+        if (!treatmentDoc) return;
+        
+        try {
+            setDeletingIdx(idx);
+            const updatedGalleryTable = treatmentDoc.gallery_table?.filter((_, i) => i !== idx) || [];
+            
+            await updateDoc("Treatment of Infertile Animal", treatmentDoc.name, {
+                gallery_table: updatedGalleryTable.map((entry) => ({
+                    name: entry.name,
+                    image: entry.image,
+                })),
+            });
+
+            await mutate();
+
+            toast({
+                title: "Image removed",
+                description: "Gallery image has been deleted successfully.",
+            });
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to delete image. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setDeletingIdx(null);
+        }
+    };
+
+    const handleAddGalleryImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!treatmentDoc) return;
+        
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        try {
+            setUploadingGallery(true);
+            const fileCount = files.length;
+
+            toast({
+                title: "Uploading...",
+                description: `Adding ${fileCount} image(s) to gallery...`,
+            });
+            
+            const uploadedImages = await uploadImagesWithCompression(
+                Array.from(files),
+                { fileType: 'image' }
+            );
+
+            const existingGallery = treatmentDoc.gallery_table || [];
+            const newGalleryEntries = uploadedImages.map((img) => ({
+                image: img.image,
+            }));
+
+            await updateDoc("Treatment of Infertile Animal", treatmentDoc.name, {
+                gallery_table: [
+                    ...existingGallery.map((entry) => ({
+                        name: entry.name,
+                        image: entry.image,
+                    })),
+                    ...newGalleryEntries,
+                ],
+            });
+
+            await mutate();
+
+            toast({
+                title: "Images added successfully",
+                description: `${uploadedImages.length} image(s) added to gallery.`,
+            });
+
+            if (galleryInputRef.current) {
+                galleryInputRef.current.value = "";
+            }
+        } catch (error) {
+            toast({
+                title: "Upload failed",
+                description: "Failed to upload images. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setUploadingGallery(false);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -341,6 +437,33 @@ export default function ViewTreatmentApplication({ id }: { id: string }) {
                                             <CardTitle className="text-base flex items-center gap-2">
                                                 <Image className="w-4 h-4" />
                                                 Gallery Images
+                                                <Button
+                                                    onClick={() => galleryInputRef.current?.click()}
+                                                    disabled={uploadingGallery || isUpdating}
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="gap-2"
+                                                >
+                                                    {uploadingGallery ? (
+                                                        <>
+                                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                                            Uploading...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Plus className="w-4 h-4" />
+                                                            Add Images
+                                                        </>
+                                                    )}
+                                                </Button>
+                                                <input
+                                                    ref={galleryInputRef}
+                                                    type="file"
+                                                    multiple
+                                                    accept="image/*"
+                                                    onChange={handleAddGalleryImage}
+                                                    className="hidden"
+                                                />
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent>
@@ -350,14 +473,31 @@ export default function ViewTreatmentApplication({ id }: { id: string }) {
                                                     return (
                                                         <div
                                                             key={idx}
-                                                            className="border rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-                                                            onClick={() => setPreviewImage(imageUrl)}
+                                                            className={cn(
+                                                                "border rounded-lg overflow-hidden transition-shadow relative group",
+                                                                uploadingGallery ? "opacity-60" : "cursor-pointer hover:shadow-lg"
+                                                            )}
+                                                            onClick={() => !uploadingGallery && setPreviewImage(imageUrl)}
                                                         >
                                                             <img
                                                                 src={imageUrl}
                                                                 alt={`Gallery ${idx + 1}`}
                                                                 className="w-full h-32 object-cover"
                                                             />
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteGalleryImage(idx, entry.name);
+                                                                }}
+                                                                disabled={deletingIdx === idx || isUpdating || uploadingGallery}
+                                                                className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                                                            >
+                                                                {deletingIdx === idx ? (
+                                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                                ) : (
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                )}
+                                                            </button>
                                                         </div>
                                                     );
                                                 })}
