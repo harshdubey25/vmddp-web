@@ -129,9 +129,16 @@ export default function AllocationForm({
 
     const { createDoc, loading: createLoading } = useFrappeCreateDoc<ComponentAllocationCreate>();
     const { updateDoc } = useFrappeUpdateDoc();
-    const { data: vendorsList, isLoading: vendorsLoading, error: vendorError } = useFrappeGetDocList<{ name: string, vendor_name: string }>('Vendor', { fields: ['name', 'vendor_name'], });
     const { data: insuranceCompaniesList, isLoading: insuranceLoading } = useFrappeGetDocList<{ name: string, insurance_company_name: string }>('Insurance Company', { fields: ['name', 'insurance_company_name'], });
+    const { data: vendorsData, isLoading: isLoadingFilteredVendors } = useFrappeGetCall<{
+        message: { data: Array<{ vendor_name: string; vendor_label: string }> }
+    }>(
+        'vmddp_app.api.components.get_vendors_by_component',
+        data?.message?.component ? { component: data.message.component } : undefined,
+        data?.message?.component ? `vendors_${data.message.component}` : null
+    );
     const { call: updateComponentStatus } = useFrappePostCall<void>('vmddp_app.api.v1.accountant.update_component_status');
+    const filteredVendors = vendorsData?.message?.data ?? [];
     const { toast } = useToast();
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -775,12 +782,12 @@ export default function AllocationForm({
                                                 }
                                             >
                                                 <SelectTrigger data-testid="select-animal-vendor">
-                                                    <SelectValue placeholder={vendorsLoading ? "Loading..." : "Select vendor"} />
+                                                    <SelectValue placeholder={isLoadingFilteredVendors ? "Loading..." : "Select vendor"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {vendorsList?.map((vendor) => (
-                                                        <SelectItem key={vendor.name} value={vendor.name}>
-                                                            {vendor.vendor_name}
+                                                    {filteredVendors?.map((vendor) => (
+                                                        <SelectItem key={vendor.vendor_name} value={vendor.vendor_name}>
+                                                            {vendor.vendor_label}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
@@ -1273,12 +1280,12 @@ export default function AllocationForm({
                                                 }
                                             >
                                                 <SelectTrigger data-testid="select-hgm-vendor">
-                                                    <SelectValue placeholder={vendorsLoading ? "Loading..." : "Select vendor"} />
+                                                    <SelectValue placeholder={isLoadingFilteredVendors ? "Loading..." : "Select vendor"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {vendorsList?.map((vendor) => (
-                                                        <SelectItem key={vendor.name} value={vendor.name}>
-                                                            {vendor.vendor_name}
+                                                    {filteredVendors.map((vendor) => (
+                                                        <SelectItem key={vendor.vendor_name} value={vendor.vendor_name}>
+                                                            {vendor.vendor_label}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
