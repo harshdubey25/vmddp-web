@@ -954,7 +954,7 @@ export default function AdminReports() {
                                     </CardContent>
                                 </Card>
                             </Link>
-                            <Link href="/admin/admin-expenses-report" className="block h-full">
+                            <Link href="/accountant/admin-expenses" className="block h-full">
                                 <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
                                     <CardContent className="p-4 flex items-center gap-3 h-full">
                                         <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
