@@ -26,6 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { frappeBrowser } from "@/lib/frappe";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import DDFilters from "@/components/DDFilters";
+import { useDebounce } from "@/hooks/use-debounce";
 
 interface DDApplication {
     name: string;
@@ -46,9 +47,6 @@ export default function DDCollection() {
     const searchParams = useSearchParams();
 
     const [selectedApplications, setselectedApplications] = useState<
-        DDApplication[]
-    >([]);
-    const [ddCompletedApplications, setddCompletedApplications] = useState<
         DDApplication[]
     >([]);
     const [loading, setLoading] = useState(true);
@@ -82,21 +80,35 @@ export default function DDCollection() {
     const [approvedPage, setApprovedPage] = useState(initialApprovedPage);
     const [selectedPage, setSelectedPage] = useState(initialSelectedPage);
     const [approvedTotal, setApprovedTotal] = useState(0);
-    const [selectedPagination, setSelectedPagination] = useState<{
-        total_items: number;
-        total_pages: number;
-        current_page: number;
-        page_size: number;
-        has_next_page: boolean;
-        has_previous_page: boolean;
-    } | null>(null);
     const pageSize = 20;
+
+    // Debounce collected filters for the hook
+    const debouncedCollectedAadhaar = useDebounce(collectedFilters.aadhaar, 500);
+    const debouncedCollectedDistrict = useDebounce(collectedFilters.district, 500);
+    const debouncedCollectedTaluka = useDebounce(collectedFilters.taluka, 500);
+    const debouncedCollectedVillage = useDebounce(collectedFilters.village, 500);
 
     const {
         data: statsData,
         isLoading: statsLoading,
         error: statsError,
     } = useFrappeGetCall("vmddp_app.api.v1.accountant.get_dd_stats");
+
+    // Fetch completed DD applications using the same hook pattern as dd-report
+    const { data: completedDDResponse, isLoading: completedDDLoading } = useFrappeGetCall(
+        "vmddp_app.api.v1.accountant.get_completed_dd_list",
+        {
+            limit_start: (selectedPage - 1) * pageSize,
+            limit_page_length: pageSize,
+            search_text: debouncedCollectedAadhaar || undefined,
+            district: debouncedCollectedDistrict || undefined,
+            taluka: debouncedCollectedTaluka || undefined,
+            village: debouncedCollectedVillage || undefined,
+        },
+    );
+
+    const ddCompletedApplications = completedDDResponse?.message?.data || [];
+    const selectedPagination = completedDDResponse?.message?.pagination || null;
     // Fetch approved applications
     const fetchselectedApplications = async () => {
         setLoading(true);
@@ -135,59 +147,15 @@ export default function DDCollection() {
         }
     };
 
-    // Fetch selected applications
-    const fetchddCompletedApplications = async () => {
-        setLoading(true);
-        try {
-            const params: any = {
-                limit_start: (selectedPage - 1) * pageSize,
-                limit_page_length: pageSize,
-            };
-
-            // Add all filter parameters
-            if (collectedFilters.aadhaar && collectedFilters.aadhaar.trim()) {
-                params.search_text = collectedFilters.aadhaar.trim();
-            }
-            if (collectedFilters.district && collectedFilters.district.trim()) {
-                params.district = collectedFilters.district.trim();
-            }
-            if (collectedFilters.taluka && collectedFilters.taluka.trim()) {
-                params.taluka = collectedFilters.taluka.trim();
-            }
-            if (collectedFilters.village && collectedFilters.village.trim()) {
-                params.village = collectedFilters.village.trim();
-            }
-
-            const response = await frappeBrowser
-                .call()
-                .get("vmddp_app.api.v1.accountant.get_completed_dd_list", params);
-            console.log("DD Completed Response:", JSON.stringify(response, null, 2));
-            const msg = response?.message ?? response;
-            const data = Array.isArray(msg) ? msg : (msg?.data || []);
-            setddCompletedApplications(data);
-            const pagination = msg?.pagination || null;
-            setSelectedPagination(pagination);
-        } catch (error) {
-            console.error("Error fetching completed DD applications:", error);
-            setddCompletedApplications([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-    console.log("ddCompletedApplications:", ddCompletedApplications);
-    // Fetch data when tab, pagination, or filters change
+    // Fetch data when tab, pagination, or filters change (only for approved tab)
     useEffect(() => {
         if (activeTab === "approved") {
             fetchselectedApplications();
-        } else {
-            fetchddCompletedApplications();
         }
     }, [
         activeTab,
         approvedPage,
-        selectedPage,
         approvedFilters,
-        collectedFilters,
     ]);
 
     // Keep page numbers in the URL so refresh preserves the current page
@@ -276,7 +244,6 @@ export default function DDCollection() {
                 return <Badge variant="outline">{status}</Badge>;
         }
     };
-    console.log("Stats Data:", statsData);
     // Calculate summary stats
     const totalCollected = statsData?.message.total_dd_amount || 0;
     const pendingCount = statsData?.message.pending_dd || 0;
@@ -671,7 +638,7 @@ export default function DDCollection() {
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                {loading ? (
+                                {completedDDLoading ? (
                                     <div className="text-center py-8 text-muted-foreground">
                                         Loading...
                                     </div>
@@ -704,7 +671,7 @@ export default function DDCollection() {
                                                     </thead>
                                                     <tbody>
                                                         {ddCompletedApplications.map(
-                                                            (app) => (
+                                                            (app: DDApplication) => (
                                                                 <tr
                                                                     key={app.name}
                                                                     data-testid={`row-dd-${app.name}`}
