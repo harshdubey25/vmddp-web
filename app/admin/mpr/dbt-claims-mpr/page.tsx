@@ -5,25 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-    TableFooter,
-} from "@/components/ui/table";
-import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Download, FileText, RefreshCw, ArrowLeft } from "lucide-react";
+import { FileSpreadsheet, FileText, RefreshCw, ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
-import * as XLSX from "xlsx";
+import { exportReport } from "@/lib/export-report";
 import Link from "next/link";
 
 // Type definitions for API response
@@ -167,77 +158,27 @@ export default function DBTClaimsMPRPage() {
         setIsExporting(true);
         toast({
             title: "Export started",
-            description: "Generating report...",
+            description: "Generating Excel report...",
         });
 
         try {
-            const headers = [
-                "Sr. No.",
-                "Name of District",
-                "Type",
-                "Quantity (No.)",
-                "Beneficiary Share (Rs.)",
-                "Subsidy (Rs.)",
-                "Total (Rs.)",
-                "Physical Balance",
-                "Financial Balance (Rs.)",
-            ];
-
-            const rows: (string | number)[][] = [];
-
-            districtData.forEach(({ name, data }, index) => {
-                // Monthly row
-                rows.push([
-                    index + 1,
-                    name,
-                    "Monthly",
-                    data.quantity || 0,
-                    data.beneficiary_share || 0,
-                    data.subsidy || 0,
-                    data.total || 0,
-                    data.physical_balance || 0,
-                    data.financial_balance || 0,
-                ]);
-                // Progress row
-                rows.push([
-                    "",
-                    "",
-                    "Progress",
-                    data.quantity || 0,
-                    data.beneficiary_share || 0,
-                    data.subsidy || 0,
-                    data.total || 0,
-                    data.physical_balance || 0,
-                    data.financial_balance || 0,
-                ]);
+            await exportReport({
+                method: "vmddp_app.api.v1.accountant.dbt_claims_mpr_export",
+                params: {
+                    month: selectedMonth,
+                    year: selectedYear,
+                    ...(selectedComponent !== "all" && { component: selectedComponent }),
+                },
+                format: "excel",
+                filename: `dbt_claims_mpr_${selectedComponent !== "all" ? selectedComponent + "_" : ""}${selectedMonth}_${selectedYear}`,
             });
-
-            // Total row
-            rows.push([
-                "",
-                "TOTAL",
-                "",
-                totals.total_quantity,
-                totals.total_beneficiary_share,
-                totals.total_subsidy,
-                totals.grand_total,
-                totals.total_physical_balance,
-                totals.total_financial_balance,
-            ]);
-
-            const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "DBT Claims MPR");
-
-            const componentName = selectedComponent === "all" ? "All" : selectedComponent;
-            XLSX.writeFile(wb, `DBT_Claims_MPR_${componentName}_${selectedMonth}_${selectedYear}.xlsx`);
 
             toast({
                 title: "Export completed",
                 description: "Report downloaded successfully.",
             });
         } catch (error) {
-            console.error('Export error:', error);
+            console.error("Export error:", error);
             toast({
                 title: "Export failed",
                 description: "Failed to generate report. Please try again.",
@@ -335,10 +276,12 @@ export default function DBTClaimsMPRPage() {
                     <Button variant="outline" size="icon" onClick={handleRefresh}>
                         <RefreshCw className="h-4 w-4" />
                     </Button>
-                    <Button onClick={handleExport} disabled={isExporting || isLoading} className="w-full sm:w-auto">
-                        <Download className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">{isExporting ? "Exporting..." : "Export Excel"}</span>
-                        <span className="sm:hidden">{isExporting ? "Export" : "Export"}</span>
+                    <Button onClick={handleExport} disabled={isExporting || isLoading} variant="default" size="sm" className="w-full sm:w-auto">
+                        {isExporting ? (
+                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Exporting...</>
+                        ) : (
+                            <><FileSpreadsheet className="h-4 w-4 mr-2" />Download Excel</>
+                        )}
                     </Button>
                 </div>
             </div>
