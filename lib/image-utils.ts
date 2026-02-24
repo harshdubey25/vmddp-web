@@ -181,7 +181,7 @@ export async function validateAndCompressImages(
         // For PDFs, just use as-is
         validFiles.push(file);
       }
-    } catch (error) {
+    } catch {
       errors.push(`Failed to process "${file.name}"`);
       validFiles.push(file);
     }
@@ -204,7 +204,7 @@ export async function uploadImagesWithCompression(
     fileType?: 'image' | 'pdf';
   }
 ): Promise<Array<{ image: string }>> {
-  const { validFiles, errors } = await validateAndCompressImages(files, {
+  const { validFiles } = await validateAndCompressImages(files, {
     maxSizeMB: options?.maxSizeMB,
     compressionOptions: options?.compressionOptions,
     fileType: options?.fileType,
