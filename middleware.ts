@@ -148,10 +148,13 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Matcher is derived from the same config + login
+// Matcher must be statically analyzable by Next.js — keep in sync with ROUTE_CONFIG above.
 export const config = {
   matcher: [
-    LOGIN_PATH,
-    ...ROUTE_CONFIG.map((cfg) => `${cfg.basePath}/:path*`),
+    "/login",
+    "/admin/:path*",
+    "/subadmin/:path*",
+    "/accountant/:path*",
+    "/secretory/:path*",
   ],
 };
