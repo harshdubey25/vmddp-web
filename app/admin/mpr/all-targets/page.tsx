@@ -13,10 +13,10 @@ import {
     TableRow,
     TableFooter,
 } from "@/components/ui/table";
-import { Download, FileText, RefreshCw, ArrowLeft } from "lucide-react";
+import { FileSpreadsheet, FileText, RefreshCw, ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import * as XLSX from "xlsx";
+import { exportReport } from "@/lib/export-report";
 import Link from "next/link";
 
 // Type definitions for all_targets API response
@@ -148,86 +148,23 @@ export default function AllTargetsReportPage() {
         setIsExporting(true);
         toast({
             title: "Export started",
-            description: "Generating report...",
+            description: "Generating Excel report...",
         });
 
         try {
-            // Build headers with Physical/Financial sub-columns
-            const headers1 = [
-                "Sr. No.",
-                "Name of District",
-            ];
-            const headers2 = ["", ""];
-
-            componentNames.forEach((compName) => {
-                headers1.push(compName, "");
-                headers2.push("Physical", "Financial (₹ Lakhs)");
+            await exportReport({
+                method: "vmddp_app.api.v1.accountant.all_targets_export",
+                params: {},
+                format: "excel",
+                filename: "all_targets",
             });
-            headers1.push("TOTAL", "");
-            headers2.push("Physical", "Financial (₹ Lakhs)");
-
-            const rows: (string | number)[][] = [];
-
-            districtNames.forEach((districtName, index) => {
-                const row: (string | number)[] = [
-                    index + 1,
-                    districtName,
-                ];
-
-                componentNames.forEach((compName) => {
-                    const physicalData = targetsData.physical_target?.[districtName];
-                    const financialData = targetsData.financial_target?.[districtName];
-                    row.push(physicalData?.components?.[compName] || 0);
-                    row.push((financialData?.components?.[compName] || 0) / 100000); // Convert to Lakhs
-                });
-
-                const physicalTotal = targetsData.physical_target?.[districtName]?.total || 0;
-                const financialTotal = targetsData.financial_target?.[districtName]?.total || 0;
-                row.push(physicalTotal);
-                row.push(financialTotal / 100000); // Convert to Lakhs
-                rows.push(row);
-            });
-
-            // Total row
-            const totalRow: (string | number)[] = ["", "TOTAL"];
-            componentNames.forEach((compName) => {
-                totalRow.push(componentTotals[compName]?.physical || 0);
-                totalRow.push((componentTotals[compName]?.financial || 0) / 100000); // Convert to Lakhs
-            });
-            totalRow.push(targetsData.totals?.total_physical_target || 0);
-            totalRow.push((targetsData.totals?.total_financial_target || 0) / 100000); // Convert to Lakhs
-            rows.push(totalRow);
-
-            // Admin Expense Target row
-            const adminRow: (string | number)[] = ["", "Admin Expense Target"];
-            componentNames.forEach(() => {
-                adminRow.push("", "");
-            });
-            adminRow.push("");
-            adminRow.push((targetsData.totals?.admin_expense_target || 0) / 100000); // Convert to Lakhs
-            rows.push(adminRow);
-
-            // Grand Total row
-            const grandTotalRow: (string | number)[] = ["", "GRAND TOTAL (Financial)"];
-            componentNames.forEach(() => {
-                grandTotalRow.push("", "");
-            });
-            grandTotalRow.push("");
-            grandTotalRow.push(((targetsData.totals?.total_financial_target || 0) + (targetsData.totals?.admin_expense_target || 0)) / 100000);
-            rows.push(grandTotalRow);
-
-            const ws = XLSX.utils.aoa_to_sheet([headers1, headers2, ...rows]);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "All Targets");
-
-            XLSX.writeFile(wb, `All_Targets_Report.xlsx`);
 
             toast({
                 title: "Export completed",
                 description: "Report downloaded successfully.",
             });
         } catch (error) {
-            console.error('Export error:', error);
+            console.error("Export error:", error);
             toast({
                 title: "Export failed",
                 description: "Failed to generate report. Please try again.",
@@ -267,10 +204,12 @@ export default function AllTargetsReportPage() {
                     <Button variant="outline" size="icon" onClick={handleRefresh}>
                         <RefreshCw className="h-4 w-4" />
                     </Button>
-                    <Button onClick={handleExport} disabled={isExporting || isLoading} className="w-full sm:w-auto">
-                        <Download className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">{isExporting ? "Exporting..." : "Export Excel"}</span>
-                        <span className="sm:hidden">{isExporting ? "Export" : "Export"}</span>
+                    <Button onClick={handleExport} disabled={isExporting || isLoading} variant="default" size="sm" className="w-full sm:w-auto">
+                        {isExporting ? (
+                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Exporting...</>
+                        ) : (
+                            <><FileSpreadsheet className="h-4 w-4 mr-2" />Download Excel</>
+                        )}
                     </Button>
                 </div>
             </div>
