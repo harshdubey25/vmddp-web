@@ -6,7 +6,7 @@ import type { FrappeCustomApiResponse, ComponentStatus } from "@/types";
 import { parseFrappeError } from "@/lib/frappe-error-parser";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall, useFrappeCreateDoc, useFrappeGetDocList, useFrappeFileUpload, useFrappeUpdateDoc, useFrappePostCall } from "frappe-react-sdk";
-import { ArrowLeft, User, Package, Check, AlertCircle, Tag, FileText, IndianRupee, MapPin, Upload, Shield, Truck, Loader2, X } from "lucide-react";
+import { ArrowLeft, User, Package, Check, AlertCircle, Tag, FileText, IndianRupee, MapPin, Upload, Shield, Truck, Loader2, X, Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,8 +128,9 @@ export default function AllocationForm({
     console.log("overall data:", data);
 
     const { createDoc, loading: createLoading } = useFrappeCreateDoc<ComponentAllocationCreate>();
+    const { createDoc: createInsuranceDoc, loading: creatingInsurance } = useFrappeCreateDoc<{ insurance_company_name: string }>();
     const { updateDoc } = useFrappeUpdateDoc();
-    const { data: insuranceCompaniesList, isLoading: insuranceLoading } = useFrappeGetDocList<{ name: string, insurance_company_name: string }>('Insurance Company', { fields: ['name', 'insurance_company_name'], });
+    const { data: insuranceCompaniesList, isLoading: insuranceLoading, mutate: mutateInsuranceList } = useFrappeGetDocList<{ name: string, insurance_company_name: string }>('Insurance Company', { fields: ['name', 'insurance_company_name'], });
     const { data: vendorsData, isLoading: isLoadingFilteredVendors } = useFrappeGetCall<{
         message: { data: Array<{ vendor_name: string; vendor_label: string }> }
     }>(
@@ -144,6 +145,9 @@ export default function AllocationForm({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [tagError, setTagError] = useState("");
     const [sumAssuredError, setSumAssuredError] = useState("");
+    const [showNewInsuranceDialog, setShowNewInsuranceDialog] = useState(false);
+    const [newInsuranceCompanyName, setNewInsuranceCompanyName] = useState("");
+    const [creatingInsuranceFor, setCreatingInsuranceFor] = useState<"animal" | "hgm">("animal");
 
     // File upload state tracking
     const [uploadingFiles, setUploadingFiles] = useState<{
@@ -918,12 +922,17 @@ export default function AllocationForm({
                                             <Label>Insurance Company Name</Label>
                                             <Select
                                                 value={animalData.insuranceCompanyName}
-                                                onValueChange={(value) =>
+                                                onValueChange={(value) => {
+                                                    if (value === "__add_new__") {
+                                                        setCreatingInsuranceFor("animal");
+                                                        setShowNewInsuranceDialog(true);
+                                                        return;
+                                                    }
                                                     setAnimalData({
                                                         ...animalData,
                                                         insuranceCompanyName: value,
-                                                    })
-                                                }
+                                                    });
+                                                }}
                                             >
                                                 <SelectTrigger data-testid="select-insurance-company">
                                                     <SelectValue placeholder={insuranceLoading ? "Loading..." : "Select company"} />
@@ -934,6 +943,11 @@ export default function AllocationForm({
                                                             {company.insurance_company_name}
                                                         </SelectItem>
                                                     ))}
+                                                    <SelectItem value="__add_new__">
+                                                        <span className="flex items-center gap-1 text-primary">
+                                                            <Plus className="h-3 w-3" /> Add New Company
+                                                        </span>
+                                                    </SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -1416,12 +1430,17 @@ export default function AllocationForm({
                                             <Label>Insurance Company Name</Label>
                                             <Select
                                                 value={hgmData.insuranceCompanyName}
-                                                onValueChange={(value) =>
+                                                onValueChange={(value) => {
+                                                    if (value === "__add_new__") {
+                                                        setCreatingInsuranceFor("hgm");
+                                                        setShowNewInsuranceDialog(true);
+                                                        return;
+                                                    }
                                                     setHgmData({
                                                         ...hgmData,
                                                         insuranceCompanyName: value,
-                                                    })
-                                                }
+                                                    });
+                                                }}
                                             >
                                                 <SelectTrigger data-testid="select-hgm-insurance">
                                                     <SelectValue placeholder={insuranceLoading ? "Loading..." : "Select company"} />
@@ -1432,6 +1451,11 @@ export default function AllocationForm({
                                                             {company.insurance_company_name}
                                                         </SelectItem>
                                                     ))}
+                                                    <SelectItem value="__add_new__">
+                                                        <span className="flex items-center gap-1 text-primary">
+                                                            <Plus className="h-3 w-3" /> Add New Company
+                                                        </span>
+                                                    </SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -1756,6 +1780,57 @@ export default function AllocationForm({
                         </Button>
                     </DialogFooter>
 
+                </DialogContent>
+            </Dialog>
+
+            {/* Create New Insurance Company Dialog */}
+            <Dialog open={showNewInsuranceDialog} onOpenChange={(open) => {
+                if (!open) { setShowNewInsuranceDialog(false); setNewInsuranceCompanyName(""); }
+            }}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add New Insurance Company</DialogTitle>
+                        <DialogDescription>Enter the name of the new insurance company to add it to the list.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2 py-2">
+                        <Label>Insurance Company Name *</Label>
+                        <Input
+                            placeholder="e.g. National Insurance Co."
+                            value={newInsuranceCompanyName}
+                            onChange={(e) => setNewInsuranceCompanyName(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault(); }}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => { setShowNewInsuranceDialog(false); setNewInsuranceCompanyName(""); }}>
+                            Cancel
+                        </Button>
+                        <Button
+                            disabled={!newInsuranceCompanyName.trim() || creatingInsurance}
+                            onClick={async () => {
+                                try {
+                                    const created = await createInsuranceDoc("Insurance Company", {
+                                        insurance_company_name: newInsuranceCompanyName.trim(),
+                                    });
+                                    await mutateInsuranceList();
+                                    // Auto-select the newly created company
+                                    if (creatingInsuranceFor === "animal") {
+                                        setAnimalData((prev) => ({ ...prev, insuranceCompanyName: created.name }));
+                                    } else {
+                                        setHgmData((prev) => ({ ...prev, insuranceCompanyName: created.name }));
+                                    }
+                                    toast({ title: "Insurance company added", description: newInsuranceCompanyName.trim() });
+                                    setShowNewInsuranceDialog(false);
+                                    setNewInsuranceCompanyName("");
+                                } catch (err: any) {
+                                    toast({ title: "Error", description: err?.message || "Failed to create", variant: "destructive" });
+                                }
+                            }}
+                        >
+                            {creatingInsurance ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                            {creatingInsurance ? "Creating..." : "Create"}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>
