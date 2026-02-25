@@ -105,17 +105,10 @@ export default function AdminRefundsApproval() {
     const [currentPage, setCurrentPage] = useState(1);
     const [approvedPage, setApprovedPage] = useState(1);
     const [rejectedPage, setRejectedPage] = useState(1);
-    const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
 
     const { toast } = useToast();
     const { updateDoc, loading: submitting } = useFrappeUpdateDoc();
     const { call: cancelDoc } = useFrappePostCall("frappe.client.cancel");
-
-    // Fetch districts for filter
-    const { data: districts } = useFrappeGetDocList<{ name: string }>("District Master", {
-        fields: ["name"],
-        limit: 100
-    });
 
     // Fetch pending approval refunds (docstatus = 0, status = Pending)
     const pendingFilters: any[] = [

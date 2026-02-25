@@ -11,8 +11,9 @@ import {
     Receipt,
     Calendar,
     Eye,
+    FileSpreadsheet,
+    FileText,
 } from "lucide-react";
-import * as XLSX from "xlsx";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,8 @@ import {
 import { useState } from "react";
 import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { FrappeCustomApiResponse } from "@/types";
+import { exportReport, type ExportFormat } from "@/lib/export-report";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export interface VendorPaymentReport {
     name: string;
@@ -83,6 +86,7 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
     const [detailsDialog, setDetailsDialog] = useState(false);
     const [selectedPayment, setSelectedPayment] = useState<VendorPaymentReport | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [isExporting, setIsExporting] = useState(false);
     const pageSize = 20;
 
     const { data: paymentsResponse, isLoading: loading } = useFrappeGetCall<FrappeCustomApiResponse<VendorPaymentReport[]>>(
@@ -114,52 +118,71 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
     const startIndex = (currentPage - 1) * pageSize;
     const paginatedPayments = vendorPayments.slice(startIndex, startIndex + pageSize);
 
-    const handleExport = () => {
-        if (vendorPayments.length === 0) return;
+    const handleExport = async (format: ExportFormat = "excel") => {
+        if (vendorPayments.length === 0 || isExporting) return;
+        setIsExporting(true);
+        try {
+            const params: Record<string, string> = {};
+            if (selectedVendor) params.vendor_name = selectedVendor;
+            if (searchText) params.search_text = searchText;
+            if (startDate) params.start_date = startDate;
+            if (endDate) params.end_date = endDate;
 
-        const exportData = vendorPayments.map((payment) => ({
-            "Payment ID": payment.name,
-            "Vendor Name": payment.vendor_name || payment.vendor,
-            "Cheque Number": payment.check_number,
-            "Cheque Date": payment.cheque_date,
-            "Bank Name": payment.bank_name,
-            "Cheque Amount": payment.cheque_amount,
-            "Component Allocations": payment.component_allocations?.map(a => a.component_allocation).join(", ") || "None",
-            "Allocation Count": payment.component_allocations?.length || 0,
-        }));
-
-        const worksheet = XLSX.utils.json_to_sheet(exportData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Vendor Payments");
-
-        XLSX.writeFile(workbook, `vendor_payments_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+            await exportReport({
+                method: "vmddp_app.api.v1.accountant.export_completed_vendor_payment_list",
+                params,
+                format,
+                filename: "vendor_payments_report",
+            });
+        } catch (error) {
+            console.error("Export failed:", error);
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     return (
-        <div className="h-screen bg-background w-full">
-            <div className="overflow-auto h-screen">
-                <div className="p-6 space-y-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+        <div className="flex-1 h-full overflow-auto bg-background">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 pb-10">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="flex items-center gap-3">
                             <Link href={backLink}>
                                 <Button variant="ghost" size="icon" data-testid="button-back">
                                     <ArrowLeft className="h-5 w-5" />
                                 </Button>
                             </Link>
                             <div>
-                                <h1 className="text-2xl font-display font-bold" data-testid="text-page-title">
+                                <h1 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-page-title">
                                     Vendor Payments Report
                                 </h1>
-                                <p className="text-muted-foreground">View all disbursed vendor payments and issued cheques</p>
+                                <p className="text-sm text-muted-foreground">View all disbursed vendor payments and issued cheques</p>
                             </div>
                         </div>
-                        <Button variant="outline" data-testid="button-export" onClick={handleExport} disabled={vendorPayments.length === 0}>
-                            <Download className="h-4 w-4 mr-2" />
-                            Export to Excel
-                        </Button>
+                        <div className="flex items-center gap-2 self-end sm:self-auto">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm" data-testid="button-export" disabled={vendorPayments.length === 0 || isExporting}>
+                                        {isExporting
+                                            ? <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
+                                            : <Download className="h-4 w-4 sm:mr-2" />}
+                                        <span className="hidden sm:inline">Export</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleExport("excel")}>
+                                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                        Export as Excel
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                                        <FileText className="h-4 w-4 mr-2" />
+                                        Export as PDF
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                         <Card data-testid="card-total-disbursed">
                             <CardContent className="pt-6">
                                 <div className="flex items-center gap-4">
@@ -213,8 +236,8 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex flex-wrap gap-4 items-center">
-                                <div className="w-56 relative">
+                            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:items-center">
+                                <div className="w-full sm:w-56 relative">
                                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input
                                         placeholder="Search cheque, vendor"
@@ -234,7 +257,7 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                                         setCurrentPage(1);
                                     }}
                                 >
-                                    <SelectTrigger className="w-44" data-testid="select-vendor">
+                                    <SelectTrigger className="w-full sm:w-44" data-testid="select-vendor">
                                         <SelectValue placeholder="Vendor" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -244,31 +267,35 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <div className="flex gap-2 items-center">
-                                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        type="date"
-                                        value={startDate}
-                                        onChange={(e) => {
-                                            setStartDate(e.target.value);
-                                            setCurrentPage(1);
-                                        }}
-                                        placeholder="Start Date"
-                                        className="w-40"
-                                        data-testid="input-start-date"
-                                    />
-                                    <span className="text-muted-foreground">to</span>
-                                    <Input
-                                        type="date"
-                                        value={endDate}
-                                        onChange={(e) => {
-                                            setEndDate(e.target.value);
-                                            setCurrentPage(1);
-                                        }}
-                                        placeholder="End Date"
-                                        className="w-40"
-                                        data-testid="input-end-date"
-                                    />
+                                <div className="flex flex-col xs:flex-row gap-2 items-start xs:items-center">
+                                    <div className="flex gap-2 items-center">
+                                        <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+                                        <Input
+                                            type="date"
+                                            value={startDate}
+                                            onChange={(e) => {
+                                                setStartDate(e.target.value);
+                                                setCurrentPage(1);
+                                            }}
+                                            placeholder="Start Date"
+                                            className="w-full sm:w-36"
+                                            data-testid="input-start-date"
+                                        />
+                                    </div>
+                                    <div className="flex gap-2 items-center">
+                                        <span className="text-muted-foreground text-sm">to</span>
+                                        <Input
+                                            type="date"
+                                            value={endDate}
+                                            onChange={(e) => {
+                                                setEndDate(e.target.value);
+                                                setCurrentPage(1);
+                                            }}
+                                            placeholder="End Date"
+                                            className="w-full sm:w-36"
+                                            data-testid="input-end-date"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
@@ -307,7 +334,7 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                                                     <tr key={payment.name} className="border-b last:border-0 hover:bg-muted/30 transition-colors" data-testid={`row-payment-${payment.name}`}>
                                                         <td className="p-3 text-sm text-muted-foreground">{startIndex + idx + 1}</td>
                                                         <td className="p-3">
-                                                            <p className="font-medium font-mono text-sm">{payment.name}</p>
+                                                            <p className="font-medium font-mono">{payment.name}</p>
                                                         </td>
                                                         <td className="p-3">
                                                             <div className="flex items-center gap-2">
@@ -326,7 +353,7 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                                                             <p className="font-medium">{new Date(payment.cheque_date).toLocaleDateString("en-GB")}</p>
                                                         </td>
                                                         <td className="p-3">
-                                                            <p className="text-sm">{payment.bank_name}</p>
+                                                            <p className="font-medium">{payment.bank_name}</p>
                                                         </td>
                                                         <td className="p-3 text-right">
                                                             <span className="font-bold text-green-600">
@@ -408,17 +435,16 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                         </CardContent>
                     </Card>
                 </div>
-            </div>
 
             <Dialog open={detailsDialog} onOpenChange={setDetailsDialog}>
-                <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className="w-[95vw] max-w-3xl max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Payment Details</DialogTitle>
                         <DialogDescription>Complete information about the vendor payment</DialogDescription>
                     </DialogHeader>
                     {selectedPayment && (
                         <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-sm text-muted-foreground">Payment ID</p>
                                     <p className="font-medium font-mono">{selectedPayment.name}</p>
@@ -467,7 +493,7 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                                             {selectedPayment.parantage_confirmations.map((parantage, idx) => (
                                                 <Card key={idx}>
                                                     <CardContent className="pt-4">
-                                                        <div className="grid grid-cols-2 gap-3">
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                             <div>
                                                                 <p className="text-xs text-muted-foreground">Parantage ID</p>
                                                                 <p className="font-medium font-mono text-sm">{parantage.parantage_confirmation}</p>
@@ -531,7 +557,7 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                                             {selectedPayment.component_allocations.map((allocation, idx) => (
                                                 <Card key={idx}>
                                                     <CardContent className="pt-4">
-                                                        <div className="grid grid-cols-2 gap-3">
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                             <div>
                                                                 <p className="text-xs text-muted-foreground">Component</p>
                                                                 <p className="font-medium">{allocation.component}</p>

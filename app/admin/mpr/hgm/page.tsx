@@ -23,7 +23,8 @@ import {
 import { FileSpreadsheet, FileText, RefreshCw, ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { exportReport } from "@/lib/export-report";
+import { exportReport, type ExportFormat } from "@/lib/export-report";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 
 // Type definitions for API response
@@ -119,12 +120,12 @@ export default function HGMMPRPage() {
         return new Intl.NumberFormat('en-IN').format(amount);
     };
 
-    // Export to Excel
-    const handleExport = async () => {
+    // Export report
+    const handleExport = async (format: ExportFormat = "excel") => {
         setIsExporting(true);
         toast({
             title: "Export started",
-            description: "Generating Excel report...",
+            description: `Generating ${format.toUpperCase()} report...`,
         });
 
         try {
@@ -134,7 +135,7 @@ export default function HGMMPRPage() {
                     month: selectedMonth,
                     year: selectedYear,
                 },
-                format: "excel",
+                format,
                 filename: `hgm_mpr_${selectedMonth}_${selectedYear}`,
             });
 
@@ -227,13 +228,27 @@ export default function HGMMPRPage() {
                     <Button variant="outline" size="icon" onClick={handleRefresh}>
                         <RefreshCw className="h-4 w-4" />
                     </Button>
-                    <Button onClick={handleExport} disabled={isExporting || isLoading} variant="default" size="sm" className="w-full sm:w-auto">
-                        {isExporting ? (
-                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Exporting...</>
-                        ) : (
-                            <><FileSpreadsheet className="h-4 w-4 mr-2" />Download Excel</>
-                        )}
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button disabled={isExporting || isLoading} variant="default" size="sm" className="w-full sm:w-auto">
+                                {isExporting ? (
+                                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Exporting...</>
+                                ) : (
+                                    <><FileSpreadsheet className="h-4 w-4 mr-2" />Export</>
+                                )}
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleExport("excel")}>
+                                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                Export as Excel
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                                <FileText className="h-4 w-4 mr-2" />
+                                Export as PDF
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
 

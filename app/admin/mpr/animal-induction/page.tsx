@@ -20,10 +20,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Download, FileText, RefreshCw, ArrowLeft } from "lucide-react";
+import { Download, FileText, FileSpreadsheet, RefreshCw, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import * as XLSX from "xlsx";
+import { exportReport, type ExportFormat } from "@/lib/export-report";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 
 // Type definitions for API response
@@ -152,122 +153,24 @@ export default function AnimalInductionMPRPage() {
         return new Intl.NumberFormat('en-IN').format(amount);
     };
 
-    // Export to Excel
-    const handleExport = async () => {
+    // Export report
+    const handleExport = async (format: ExportFormat = "excel") => {
         setIsExporting(true);
         toast({
             title: "Export started",
-            description: "Generating report...",
+            description: `Generating ${format.toUpperCase()} report...`,
         });
 
         try {
-            const headers = [
-                "Sr. No.",
-                "Name of District",
-                "Type",
-                "Animal Cost - Beneficiary Share (Rs.)",
-                "Animal Cost - Subsidy (Rs.)",
-                "Animal Cost - Total (Rs.)",
-                "Digital Collar - Beneficiary Share (Rs.)",
-                "Digital Collar - Subsidy (Rs.)",
-                "Digital Collar - Total (Rs.)",
-                "Insurance - Beneficiary Share (Rs.)",
-                "Insurance - Subsidy (Rs.)",
-                "Insurance - Total (Rs.)",
-                "Transportation - Beneficiary Share (Rs.)",
-                "Transportation - Subsidy (Rs.)",
-                "Transportation - Total (Rs.)",
-                "No. of Cow",
-                "No. of Cross-breed",
-                "No. of Buffalo",
-                "Total Expenditure - Beneficiary Share (Rs.)",
-                "Total Expenditure - Subsidy (Rs.)",
-                "Total Expenditure - Total (Rs.)",
-            ];
-
-            const rows: (string | number)[][] = [];
-
-            districtData.forEach(({ name, data }, index) => {
-                // Monthly row
-                rows.push([
-                    index + 1,
-                    name,
-                    "Monthly",
-                    data.animal_cost?.beneficiary_share || 0,
-                    data.animal_cost?.subsidy_share || 0,
-                    data.animal_cost?.total || 0,
-                    data.collar_cost?.beneficiary_share || 0,
-                    data.collar_cost?.subsidy_share || 0,
-                    data.collar_cost?.total || 0,
-                    data.premium_paid?.beneficiary_share || 0,
-                    data.premium_paid?.subsidy_share || 0,
-                    data.premium_paid?.total || 0,
-                    data.transportation_cost?.beneficiary_share || 0,
-                    data.transportation_cost?.subsidy_share || 0,
-                    data.transportation_cost?.total || 0,
-                    data.cow_count || 0,
-                    data.crossbreed_count || 0,
-                    data.buffalo_count || 0,
-                    data.total_expenditure?.benenficiary_share_total || 0,
-                    data.total_expenditure?.subsidy_share_total || 0,
-                    data.total_expenditure?.total || 0,
-                ]);
-                // Progress row (same as monthly for now)
-                rows.push([
-                    "",
-                    "",
-                    "Progress",
-                    data.animal_cost?.beneficiary_share || 0,
-                    data.animal_cost?.subsidy_share || 0,
-                    data.animal_cost?.total || 0,
-                    data.collar_cost?.beneficiary_share || 0,
-                    data.collar_cost?.subsidy_share || 0,
-                    data.collar_cost?.total || 0,
-                    data.premium_paid?.beneficiary_share || 0,
-                    data.premium_paid?.subsidy_share || 0,
-                    data.premium_paid?.total || 0,
-                    data.transportation_cost?.beneficiary_share || 0,
-                    data.transportation_cost?.subsidy_share || 0,
-                    data.transportation_cost?.total || 0,
-                    data.cow_count || 0,
-                    data.crossbreed_count || 0,
-                    data.buffalo_count || 0,
-                    data.total_expenditure?.benenficiary_share_total || 0,
-                    data.total_expenditure?.subsidy_share_total || 0,
-                    data.total_expenditure?.total || 0,
-                ]);
+            await exportReport({
+                method: "vmddp_app.api.v1.accountant.animal_induction_mpr_export",
+                params: {
+                    month: selectedMonth,
+                    year: selectedYear,
+                },
+                format,
+                filename: `Animal_Induction_MPR_${selectedMonth}_${selectedYear}`,
             });
-
-            // Total row
-            rows.push([
-                "",
-                "TOTAL",
-                "",
-                totals.animal_cost.beneficiary_share,
-                totals.animal_cost.subsidy_share,
-                totals.animal_cost.total,
-                totals.collar_cost.beneficiary_share,
-                totals.collar_cost.subsidy_share,
-                totals.collar_cost.total,
-                totals.premium_paid.beneficiary_share,
-                totals.premium_paid.subsidy_share,
-                totals.premium_paid.total,
-                totals.transportation_cost.beneficiary_share,
-                totals.transportation_cost.subsidy_share,
-                totals.transportation_cost.total,
-                totals.cow_count,
-                totals.crossbreed_count,
-                totals.buffalo_count,
-                totals.total_expenditure.benenficiary_share_total,
-                totals.total_expenditure.subsidy_share_total,
-                totals.total_expenditure.total,
-            ]);
-
-            const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Animal Induction MPR");
-
-            XLSX.writeFile(wb, `Animal_Induction_MPR_${selectedMonth}_${selectedYear}.xlsx`);
 
             toast({
                 title: "Export completed",
@@ -359,11 +262,25 @@ export default function AnimalInductionMPRPage() {
                     <Button variant="outline" size="icon" onClick={handleRefresh}>
                         <RefreshCw className="h-4 w-4" />
                     </Button>
-                    <Button onClick={handleExport} disabled={isExporting || isLoading} className="w-full sm:w-auto">
-                        <Download className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">{isExporting ? "Exporting..." : "Export Excel"}</span>
-                        <span className="sm:hidden">{isExporting ? "Export" : "Export"}</span>
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button disabled={isExporting || isLoading} className="w-full sm:w-auto">
+                                {isExporting
+                                    ? <><Download className="h-4 w-4 sm:mr-2 animate-pulse" /><span className="hidden sm:inline">Exporting...</span></>
+                                    : <><Download className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Export</span></>}
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleExport("excel")}>
+                                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                Export as Excel
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                                <FileText className="h-4 w-4 mr-2" />
+                                Export as PDF
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
 

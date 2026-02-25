@@ -164,17 +164,17 @@ export default function MPRPage() {
     const { data: farmerTrainingData, isLoading: farmerTrainingLoading } = useFrappeGetCall<{ message: ComponentSummary }>(
         'vmddp_app.api.v1.secretory.get_farmer_training_summary',
         { component: 'Farmer Training' },
+        undefined,
         { revalidateOnFocus: false }
     );
-        console.log('farmerTrainingData', farmerTrainingData)
 
 
     const { data: treatmentInfertileData, isLoading: treatmentInfertileLoading } = useFrappeGetCall<{ message: ComponentSummary }>(
         'vmddp_app.api.v1.secretory.get_treatment_infertile_animal_summary',
         { component: 'Treatment of Infertile Animal' },
+        undefined,
         { revalidateOnFocus: false }
     );
-    console.log('treatmentInfertileData', treatmentInfertileData)
 
     const animalInductionTotals = useMemo(() => {
         if (!animalInductionData?.message) {

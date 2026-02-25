@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
     RefreshCcw,
     AlertCircle,
@@ -9,87 +8,116 @@ import {
     Clock,
     Loader2,
     ArrowLeft,
+    XCircle,
+    CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetDocList } from "frappe-react-sdk";
 import * as XLSX from "xlsx";
 
-// Types for API response
-interface PendingRefund {
-    application_id: string;
-    first_name: string;
-    mid_name: string | null;
-    last_name: string;
-    district: string;
-    village: string;
-    dd_amount: number;
+interface Refund {
+    name: string;
+    application: string;
     component: string;
-    animal_cost: number;
-    collar_cost: number;
-    premium_paid: number;
-    transportation_cost: number;
+    component_allocation: string;
+    status: "Paid";
+    account_holder_name: string;
+    bank_name: string;
+    account_number: string;
+    ifsc_code: string;
+    transanction_id: string;
+    transanction_date: string;
     refund_amount: number;
-    eligible_subsidy: number;
+    rejection_reason: string;
 }
 
-interface PendingRefundResponse {
-    refunds: PendingRefund[];
-    total_count: number;
-    page: number;
-    page_size: number;
-    total_pages: number;
-}
 
-const getFullName = (refund: PendingRefund) => {
-    return [refund.first_name, refund.mid_name, refund.last_name].filter(Boolean).join(" ");
-};
+const pendingFilters: any[] = [
+    ["docstatus", "=", 0],
+    ["status", "=", "Pending"],
+];
+
+const approvedFilters: any[] = [
+    ["docstatus", "=", 1],
+];
+
+const rejectedFilters: any[] = [
+    ["status", "=", "Rejected"],
+];
 
 export default function RefundsReport() {
-    const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
+    const { data: refunds, isLoading: loading, error } = useFrappeGetDocList<Refund>("Refund", {
+        fields: [
+            "name",
+            "application",
+            "component",
+            "component_allocation",
+            "status",
+            "account_holder_name",
+            "bank_name",
+            "account_number",
+            "ifsc_code",
+            "transanction_id",
+            "transanction_date",
+            "refund_amount",
+            "rejection_reason",
+        ],
+        filters: [["docstatus", "=", 1], ["status", "=", "Paid"]],
+        orderBy: { field: "modified", order: "desc" },
+        limit: 500,
+    });
 
-    const { data: districts } = useFrappeGetDocList<{ name: string }>("District Master", { fields: ["name"], limit: 100 });
+    const { data: pendingRefunds } = useFrappeGetDocList<Refund>("Refund", {
+        fields: ["name", "refund_amount"],
+        filters: pendingFilters,
+        limit: 500,
+    });
 
-    const { data: refundsResponse, isLoading: loading, error } = useFrappeGetCall<{ message: PendingRefundResponse }>(
-        "vmddp_app.api.v1.accountant.pending_refund_list",
-        {
-            page: 1,
-            page_size: 500,
-            district: selectedDistrict || undefined,
-        },
-        `pending_refund_list_${selectedDistrict || 'all'}`
-    );
+    const { data: approvedRefunds } = useFrappeGetDocList<Refund>("Refund", {
+        fields: ["name", "refund_amount"],
+        filters: approvedFilters,
+        limit: 500,
+    });
 
-    const pendingRefunds = refundsResponse?.message?.refunds || [];
-    const totalCount = refundsResponse?.message?.total_count || 0;
+    const { data: rejectedRefunds } = useFrappeGetDocList<Refund>("Refund", {
+        fields: ["name", "refund_amount"],
+        filters: rejectedFilters,
+        limit: 500,
+    });
 
-    const totalPending = pendingRefunds.reduce((sum, r) => sum + (r.refund_amount || 0), 0);
+    const pendingCount = pendingRefunds?.length || 0;
+    const approvedCount = approvedRefunds?.length || 0;
+    const rejectedCount = rejectedRefunds?.length || 0;
 
-    const handleDistrictChange = (value: string) => {
-        setSelectedDistrict(value === "all" ? null : value);
+    const totalPendingAmount = pendingRefunds?.reduce((sum, r) => sum + (r.refund_amount || 0), 0) || 0;
+    const totalApprovedAmount = approvedRefunds?.reduce((sum, r) => sum + (r.refund_amount || 0), 0) || 0;
+    const totalRejectedAmount = rejectedRefunds?.reduce((sum, r) => sum + (r.refund_amount || 0), 0) || 0;
+
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+            case "Paid": return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Paid</Badge>;
+        }
     };
 
     const handleExport = () => {
-        if (!pendingRefunds || pendingRefunds.length === 0) return;
+        if (!refunds || refunds.length === 0) return;
 
-        const exportData = pendingRefunds.map((refund) => ({
-            "Application ID": refund.application_id,
-            "Beneficiary": getFullName(refund),
-            "District": refund.district,
-            "Village": refund.village,
+        const exportData = refunds.map((refund) => ({
+            "Refund ID": refund.name,
+            "Application": refund.application,
             "Component": refund.component,
-            "DD Amount": refund.dd_amount,
-            "Eligible Subsidy": refund.eligible_subsidy,
+            "Status": refund.status,
+            "Account Holder": refund.account_holder_name,
+            "Bank Name": refund.bank_name,
+            "Account Number": refund.account_number,
+            "IFSC Code": refund.ifsc_code,
+            "Transaction ID": refund.transanction_id,
+            "Transaction Date": refund.transanction_date,
             "Refund Amount": refund.refund_amount,
-            "Animal Cost": refund.animal_cost,
-            "Collar Cost": refund.collar_cost,
-            "Premium Paid": refund.premium_paid,
-            "Transportation Cost": refund.transportation_cost,
+            "Rejection Reason": refund.rejection_reason,
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -131,7 +159,7 @@ export default function RefundsReport() {
                         variant="outline"
                         data-testid="button-export"
                         onClick={handleExport}
-                        disabled={!pendingRefunds || pendingRefunds.length === 0}
+                        disabled={!refunds || refunds.length === 0}
                         className="w-full sm:w-auto"
                     >
                         <Download className="h-4 w-4 mr-2" />
@@ -152,80 +180,57 @@ export default function RefundsReport() {
                 </div>
 
                 {/* Summary Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                    <Card data-testid="card-pending-refunds">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card>
                         <CardContent className="pt-6">
-                            <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="p-2 sm:p-3 rounded-lg bg-yellow-500/10 flex-shrink-0">
-                                    <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-lg bg-yellow-500/10">
+                                    <Clock className="h-5 w-5 text-yellow-500" />
                                 </div>
-                                <div className="min-w-0">
-                                    <p className="text-xs sm:text-sm text-muted-foreground">Pending Refunds</p>
-                                    <p className="text-lg sm:text-2xl font-bold">₹{totalPending.toLocaleString("en-IN")}</p>
-                                    <p className="text-xs text-muted-foreground">{totalCount} beneficiaries</p>
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Pending Approval</p>
+                                    <p className="text-2xl font-bold">₹{totalPendingAmount.toLocaleString("en-IN")}</p>
+                                    <p className="text-xs text-muted-foreground">{pendingCount} requests</p>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card data-testid="card-total-cases">
+                    <Card>
                         <CardContent className="pt-6">
-                            <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="p-2 sm:p-3 rounded-lg bg-primary/10 flex-shrink-0">
-                                    <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-lg bg-green-500/10">
+                                    <CheckCircle className="h-5 w-5 text-green-500" />
                                 </div>
-                                <div className="min-w-0">
-                                    <p className="text-xs sm:text-sm text-muted-foreground">Total Cases</p>
-                                    <p className="text-lg sm:text-2xl font-bold">{totalCount}</p>
-                                    <p className="text-xs text-muted-foreground">All refund cases</p>
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Paid</p>
+                                    <p className="text-2xl font-bold">₹{totalApprovedAmount.toLocaleString("en-IN")}</p>
+                                    <p className="text-xs text-muted-foreground">{approvedCount} requests</p>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card data-testid="card-average-refund">
+                    <Card>
                         <CardContent className="pt-6">
-                            <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="p-2 sm:p-3 rounded-lg bg-purple-500/10 flex-shrink-0">
-                                    <RefreshCcw className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-lg bg-red-500/10">
+                                    <XCircle className="h-5 w-5 text-red-500" />
                                 </div>
-                                <div className="min-w-0">
-                                    <p className="text-xs sm:text-sm text-muted-foreground">Avg Refund</p>
-                                    <p className="text-lg sm:text-2xl font-bold">₹{totalCount > 0 ? Math.round(totalPending / totalCount).toLocaleString("en-IN") : 0}</p>
-                                    <p className="text-xs text-muted-foreground">Per beneficiary</p>
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Rejected</p>
+                                    <p className="text-2xl font-bold">₹{totalRejectedAmount.toLocaleString("en-IN")}</p>
+                                    <p className="text-xs text-muted-foreground">{rejectedCount} requests</p>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* Filter */}
-                <Card data-testid="card-filter">
-                    <CardContent className="pt-6">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                            <Label className="text-xs sm:text-sm">Filter by District:</Label>
-                            <Select value={selectedDistrict || "all"} onValueChange={handleDistrictChange}>
-                                <SelectTrigger className="w-full sm:w-48 text-xs sm:text-sm" data-testid="select-filter-district">
-                                    <SelectValue placeholder="All Districts" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Districts</SelectItem>
-                                    {districts?.map((d) => (
-                                        <SelectItem key={d.name} value={d.name}>
-                                            {d.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </CardContent>
-                </Card>
-
                 {/* Refunds List */}
                 <Card data-testid="card-refunds-list">
                     <CardHeader>
-                        <CardTitle className="text-base sm:text-lg">Pending Refunds</CardTitle>
-                        <CardDescription className="text-xs sm:text-sm">All pending refund cases and amounts</CardDescription>
+                        <CardTitle className="text-base sm:text-lg">Paid Refunds</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {loading ? (
@@ -243,41 +248,43 @@ export default function RefundsReport() {
                                     <table className="w-full min-w-[900px]">
                                         <thead className="bg-muted border-b sticky top-0 z-10 text-xs sm:text-sm">
                                             <tr>
-                                                <th className="text-left p-3 font-medium min-w-20 sm:min-w-28">Application ID</th>
-                                                <th className="text-left p-3 font-medium min-w-24 sm:min-w-32">Beneficiary</th>
-                                                <th className="text-left p-3 font-medium min-w-20 sm:min-w-24">District</th>
-                                                <th className="text-left p-3 font-medium min-w-20 sm:min-w-24">Village</th>
-                                                <th className="text-left p-3 font-medium min-w-24 sm:min-w-28">Component</th>
-                                                <th className="text-right p-3 font-medium min-w-20 sm:min-w-24">DD Amount</th>
-                                                <th className="text-right p-3 font-medium min-w-24 sm:min-w-28">Eligible Subsidy</th>
-                                                <th className="text-right p-3 font-medium min-w-20 sm:min-w-24">Refund Amount</th>
+                                                <th className="text-left p-3 font-medium min-w-28">Refund ID</th>
+                                                <th className="text-left p-3 font-medium min-w-28">Application</th>
+                                                <th className="text-left p-3 font-medium min-w-24">Component</th>
+                                                <th className="text-left p-3 font-medium min-w-32">Account Holder</th>
+                                                <th className="text-left p-3 font-medium min-w-24">Bank</th>
+                                                <th className="text-left p-3 font-medium min-w-32">Account No.</th>
+                                                <th className="text-left p-3 font-medium min-w-24">IFSC</th>
+                                                <th className="text-left p-3 font-medium min-w-28">Txn ID</th>
+                                                <th className="text-left p-3 font-medium min-w-24">Txn Date</th>
+                                                <th className="text-right p-3 font-medium min-w-24">Refund Amount</th>
+                                                <th className="text-left p-3 font-medium min-w-20">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {pendingRefunds.map((refund) => (
-                                                <tr key={refund.application_id} className="border-b last:border-0 hover:bg-muted/30 transition-colors" data-testid={`row-refund-${refund.application_id}`}>
+                                            {refunds?.map((refund) => (
+                                                <tr key={refund.name} className="border-b last:border-0 hover:bg-muted/30 transition-colors" data-testid={`row-refund-${refund.name}`}>
+                                                    <td className="p-3 font-mono text-xs">{refund.name}</td>
+                                                    <td className="p-3 font-mono text-xs">{refund.application}</td>
                                                     <td className="p-3">
-                                                        <span className="font-mono text-xs sm:text-xs">{refund.application_id}</span>
+                                                        <Badge variant="outline" className="text-xs">{refund.component}</Badge>
                                                     </td>
-                                                    <td className="p-3">
-                                                        <p className="font-medium text-xs sm:text-sm">{getFullName(refund)}</p>
-                                                    </td>
-                                                    <td className="p-3 text-xs sm:text-sm">{refund.district}</td>
-                                                    <td className="p-3 text-xs sm:text-sm">{refund.village}</td>
-                                                    <td className="p-3">
-                                                        <Badge variant="outline" className="text-xs sm:text-xs">{refund.component}</Badge>
-                                                    </td>
-                                                    <td className="p-3 text-right text-xs sm:text-sm">₹{refund.dd_amount.toLocaleString("en-IN")}</td>
-                                                    <td className="p-3 text-right text-green-600 text-xs sm:text-sm">₹{refund.eligible_subsidy.toLocaleString("en-IN")}</td>
+                                                    <td className="p-3 text-xs sm:text-sm">{refund.account_holder_name}</td>
+                                                    <td className="p-3 text-xs sm:text-sm">{refund.bank_name}</td>
+                                                    <td className="p-3 font-mono text-xs">{refund.account_number}</td>
+                                                    <td className="p-3 font-mono text-xs">{refund.ifsc_code}</td>
+                                                    <td className="p-3 font-mono text-xs">{refund.transanction_id || "—"}</td>
+                                                    <td className="p-3 text-xs sm:text-sm">{refund.transanction_date || "—"}</td>
                                                     <td className="p-3 text-right font-bold text-primary text-xs sm:text-sm">
-                                                        ₹{refund.refund_amount.toLocaleString("en-IN")}
+                                                        ₹{(refund.refund_amount || 0).toLocaleString("en-IN")}
                                                     </td>
+                                                    <td className="p-3">{getStatusBadge(refund.status)}</td>
                                                 </tr>
                                             ))}
-                                            {pendingRefunds.length === 0 && (
+                                            {(!refunds || refunds.length === 0) && (
                                                 <tr>
-                                                    <td colSpan={8} className="p-3 text-center py-8 text-muted-foreground text-xs sm:text-sm">
-                                                        No pending refunds
+                                                    <td colSpan={11} className="p-3 text-center py-8 text-muted-foreground text-xs sm:text-sm">
+                                                        No refund records found
                                                     </td>
                                                 </tr>
                                             )}

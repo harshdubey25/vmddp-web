@@ -194,49 +194,6 @@ export default function AdminReports() {
 
 
 
-
-    const districtData = [
-        { district: "Nagpur", applications: 245, approved: 189 },
-        { district: "Amravati", applications: 198, approved: 156 },
-        { district: "Akola", applications: 187, approved: 134 },
-        { district: "Yavatmal", applications: 156, approved: 98 },
-        { district: "Wardha", applications: 134, approved: 89 },
-    ];
-
-
-
-    const allApplications = [
-        { applicationId: "VMDDP2501234", farmerName: "Ramesh Kumar Patil", district: "Nagpur", taluka: "Umred", component: "Animal Induction", appliedDate: "2025-01-15", status: "Approved", amount: "₹50,000", approver: "Dr. Suresh Deshmukh" },
-        { applicationId: "VMDDP2501235", farmerName: "Suresh Bhaurao Deshmukh", district: "Amravati", taluka: "Achalpur", component: "HGM Purchase", appliedDate: "2025-01-18", status: "Pending", amount: "₹35,000" },
-        { applicationId: "VMDDP2501236", farmerName: "Anil Vishwanath Shinde", district: "Akola", taluka: "Barshitakli", component: "Fertility Feed", appliedDate: "2025-01-20", status: "Approved", amount: "₹25,000", approver: "Mrs. Anjali Patil" },
-        { applicationId: "VMDDP2501237", farmerName: "Prakash Tukaram Kale", district: "Yavatmal", taluka: "Arni", component: "Chaff Cutter", appliedDate: "2025-01-22", status: "Rejected", amount: "₹15,000", approver: "Dr. Rajesh Kulkarni" },
-        { applicationId: "VMDDP2501238", farmerName: "Vinod Shankar Gawande", district: "Wardha", taluka: "Deoli", component: "Animal Induction", appliedDate: "2025-01-23", status: "Approved", amount: "₹50,000", approver: "Mr. Prakash Jadhav" },
-        { applicationId: "VMDDP2501239", farmerName: "Rajendra Dattatray Pawar", district: "Nagpur", taluka: "Kuhi", component: "HGM Purchase", appliedDate: "2025-01-24", status: "Pending", amount: "₹35,000" },
-        { applicationId: "VMDDP2501240", farmerName: "Mahesh Ganesh Bhosale", district: "Amravati", taluka: "Dharni", component: "Fertility Feed", appliedDate: "2025-01-25", status: "Approved", amount: "₹25,000", approver: "Dr. Suresh Deshmukh" },
-        { applicationId: "VMDDP2501241", farmerName: "Santosh Maruti Jadhav", district: "Akola", taluka: "Akot", component: "Animal Induction", appliedDate: "2025-01-26", status: "Approved", amount: "₹50,000", approver: "Mrs. Anjali Patil" },
-        { applicationId: "VMDDP2501242", farmerName: "Digambar Raghunath Wagh", district: "Yavatmal", taluka: "Darwa", component: "Chaff Cutter", appliedDate: "2025-01-27", status: "Pending", amount: "₹15,000" },
-        { applicationId: "VMDDP2501243", farmerName: "Balasaheb Annasaheb Rathod", district: "Wardha", taluka: "Hinganghat", component: "HGM Purchase", appliedDate: "2025-01-28", status: "Approved", amount: "₹35,000", approver: "Dr. Rajesh Kulkarni" },
-        { applicationId: "VMDDP2501244", farmerName: "Dnyaneshwar Sopan Kamble", district: "Nagpur", taluka: "Katol", component: "Fertility Feed", appliedDate: "2025-01-29", status: "Rejected", amount: "₹25,000", approver: "Mr. Prakash Jadhav" },
-        { applicationId: "VMDDP2501245", farmerName: "Uttam Chandrakant Gavande", district: "Amravati", taluka: "Morshi", component: "Animal Induction", appliedDate: "2025-01-30", status: "Approved", amount: "₹50,000", approver: "Dr. Suresh Deshmukh" },
-        { applicationId: "VMDDP2501246", farmerName: "Shrikant Bhagwan Meshram", district: "Akola", taluka: "Patur", component: "HGM Purchase", appliedDate: "2025-01-31", status: "Pending", amount: "₹35,000" },
-        { applicationId: "VMDDP2501247", farmerName: "Mahadev Laxman Thakare", district: "Yavatmal", taluka: "Ghatanji", component: "Chaff Cutter", appliedDate: "2025-01-14", status: "Approved", amount: "₹15,000", approver: "Mrs. Anjali Patil" },
-        { applicationId: "VMDDP2501248", farmerName: "Ramdas Pandurang Ingole", district: "Wardha", taluka: "Karanja", component: "Fertility Feed", appliedDate: "2025-01-13", status: "Approved", amount: "₹25,000", approver: "Dr. Rajesh Kulkarni" },
-        { applicationId: "VMDDP2501249", farmerName: "Chandrakant Vasant Bansod", district: "Nagpur", taluka: "Narkhed", component: "Animal Induction", appliedDate: "2025-01-12", status: "Pending", amount: "₹50,000" },
-        { applicationId: "VMDDP2501250", farmerName: "Ashok Tulshiram Dhotre", district: "Amravati", taluka: "Warud", component: "HGM Purchase", appliedDate: "2025-01-11", status: "Approved", amount: "₹35,000", approver: "Mr. Prakash Jadhav" },
-        { applicationId: "VMDDP2501251", farmerName: "Vishnu Govind Mankar", district: "Akola", taluka: "Telhara", component: "Fertility Feed", appliedDate: "2025-01-10", status: "Rejected", amount: "₹25,000", approver: "Dr. Suresh Deshmukh" },
-        { applicationId: "VMDDP2501252", farmerName: "Bharat Mohan Uike", district: "Yavatmal", taluka: "Kalamb", component: "Animal Induction", appliedDate: "2025-01-09", status: "Approved", amount: "₹50,000", approver: "Mrs. Anjali Patil" },
-        { applicationId: "VMDDP2501253", farmerName: "Ganesh Narayan Sonkusare", district: "Wardha", taluka: "Samudrapur", component: "Chaff Cutter", appliedDate: "2025-01-08", status: "Approved", amount: "₹15,000", approver: "Dr. Rajesh Kulkarni" },
-    ];
-
-
-
-
-
-
-
-
-
-
     const handleExportDistrictWiseReport = async (format: "xlsx" | "csv") => {
         try {
             setIsDownloadingReport(true);
