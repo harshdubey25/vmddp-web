@@ -1,15 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import {
     ArrowLeft,
     Plus,
     IndianRupee,
     Loader2,
+    FileSpreadsheet,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import * as XLSX from "xlsx";
 
 import { useFrappeGetDocList } from "frappe-react-sdk";
 
@@ -32,6 +36,9 @@ interface AdminExpenseTarget {
 }
 
 export default function AdminExpenses() {
+    const { toast } = useToast();
+    const [isExporting, setIsExporting] = useState(false);
+
     const { data: expenses, isLoading, error } = useFrappeGetDocList<AdminExpense>("Admin Expense", {
         fields: ["name", "head", "amount", "date", "user", "reason", "docstatus"],
         orderBy: { field: "date", order: "desc" },
@@ -49,6 +56,50 @@ export default function AdminExpenses() {
     const totalSubmittedExpenses = expenses?.reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0;
     
     const balance = totalTarget - totalSubmittedExpenses;
+
+    const handleExportExcel = () => {
+        if (!expenses || expenses.length === 0) {
+            toast({ title: "No data", description: "No expense records to export.", variant: "destructive" });
+            return;
+        }
+        setIsExporting(true);
+        try {
+            const statusLabel = (docstatus: number) =>
+                docstatus === 1 ? "Submitted" : docstatus === 0 ? "Draft" : docstatus === 2 ? "Cancelled" : "Unknown";
+
+            const worksheetData = [
+                ["ID", "Date", "Head", "Reason", "Amount (₹)", "Status"],
+                ...expenses.map((exp) => [
+                    exp.name,
+                    exp.date,
+                    exp.head,
+                    exp.reason,
+                    exp.amount || 0,
+                    statusLabel(exp.docstatus),
+                ]),
+                [],
+                ["Total Target", "", "", "", totalTarget, ""],
+                ["Total Submitted Expenses", "", "", "", totalSubmittedExpenses, ""],
+                ["Balance Remaining", "", "", "", balance, ""],
+            ];
+
+            const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+            worksheet["!cols"] = [
+                { wch: 20 }, { wch: 12 }, { wch: 20 }, { wch: 30 }, { wch: 14 }, { wch: 12 },
+            ];
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Admin Expenses");
+            XLSX.writeFile(workbook, `admin-expenses-${new Date().toISOString().split("T")[0]}.xlsx`);
+
+            toast({ title: "Export completed", description: "Excel file downloaded successfully." });
+        } catch (err) {
+            console.error("Export error:", err);
+            toast({ title: "Export failed", description: "Failed to generate Excel file.", variant: "destructive" });
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     const getStatusBadge = (docstatus: number) => {
         switch (docstatus) {
@@ -99,13 +150,28 @@ export default function AdminExpenses() {
                             </div>
                         </div>
 
-                        {/* Add Expense Button */}
-                        <Link href="/accountant/admin-expenses/admin-expense-form">
-                            <Button data-testid="button-add-expense">
-                                <Plus className="h-4 w-4 mr-2" />
-                                Add Admin Expense
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={handleExportExcel}
+                                disabled={isExporting}
+                                data-testid="button-export-excel"
+                            >
+                                {isExporting ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                ) : (
+                                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                )}
+                                <span className="hidden sm:inline">{isExporting ? "Exporting..." : "Export Excel"}</span>
                             </Button>
-                        </Link>
+                            <Link href="/accountant/admin-expenses/admin-expense-form">
+                                <Button data-testid="button-add-expense">
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Add Admin Expense
+                                </Button>
+                            </Link>
+                        </div>
                     </div>
 
                     {/* Summary Cards */}
