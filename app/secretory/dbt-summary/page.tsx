@@ -372,7 +372,7 @@ export default function MPRPage() {
                                                                         Physical Achievement
                                                                     </th>
                                                                     <th className="bg-white border-0"></th>
-                                                                    <th colSpan={hasLandCovered ? 4 : 4} className="bg-green-100 border border-gray-300 text-center font-bold p-2">
+                                                                    <th colSpan={hasLandCovered ? 5 : 4} className="bg-green-100 border border-gray-300 text-center font-bold p-2">
                                                                         Financial Achievement
                                                                     </th>
                                                                 </tr>
