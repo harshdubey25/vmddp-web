@@ -14,6 +14,8 @@ import {
     Loader2,
     ChevronLeft,
     ChevronRight,
+    FileSpreadsheet,
+    FileText,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +27,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFrappeGetCall, useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
+import { exportReport, type ExportFormat } from "@/lib/export-report";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 // Types for API response
 interface PendingRefund {
@@ -95,8 +99,25 @@ export default function Refunds() {
     const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
     const [paidDistrict, setPaidDistrict] = useState<string | null>(null);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [isExporting, setIsExporting] = useState(false);
 
     const { toast } = useToast();
+
+    const handleExport = async (format: ExportFormat) => {
+        setIsExporting(true);
+        try {
+            await exportReport({
+                method: "vmddp_app.api.v1.accountant.export_paid_refund_list",
+                params: { export_format: format },
+                format,
+                filename: "paid-refund-list",
+            });
+        } catch {
+            toast({ title: "Export failed", description: "Could not export report. Please try again.", variant: "destructive" });
+        } finally {
+            setIsExporting(false);
+        }
+    };
     const { createDoc, loading: submitting } = useFrappeCreateDoc();
 
     // Fetch districts for filter
@@ -228,10 +249,26 @@ export default function Refunds() {
                                 <p className="text-sm text-muted-foreground">Process excess DD refunds via DBT</p>
                             </div>
                         </div>
-                        <Button variant="outline" data-testid="button-export" className="w-full sm:w-auto">
-                            <Download className="h-4 w-4 mr-2" />
-                            Export
-                        </Button>
+                        {activeTab === "paid" && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" data-testid="button-export" className="w-full sm:w-auto" disabled={isExporting}>
+                                        {isExporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                                        Export
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleExport("excel")}>
+                                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                        Excel (.xlsx)
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                                        <FileText className="h-4 w-4 mr-2" />
+                                        PDF (.pdf)
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
                     </div>
 
                     {/* Info Banner */}
@@ -342,63 +379,63 @@ export default function Refunds() {
                                         </div>
                                     ) : (
                                         <>
-                                    <div className="border rounded-lg overflow-hidden flex flex-col">
-                                        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
-                                            <table className="w-full min-w-[900px]">
-                                                <thead className="bg-muted sticky top-0 z-30 border-b">
-                                                    <tr>
-                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Application ID</th>
-                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Beneficiary</th>
-                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">District</th>
-                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Village</th>
-                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Component</th>
-                                                        <th className="text-right p-3 text-xs sm:text-sm font-medium">DD Amount</th>
-                                                        <th className="text-right p-3 text-xs sm:text-sm font-medium">Eligible Subsidy</th>
-                                                        <th className="text-right p-3 text-xs sm:text-sm font-medium">Refund Amount</th>
-                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {pendingRefunds.map((refund) => (
-                                                        <tr key={refund.application_id} data-testid={`row-refund-${refund.application_id}`} className="border-b hover:bg-muted/30">
-                                                            <td className="p-3 text-xs sm:text-sm">
-                                                                <span className="font-mono text-xs">{refund.application_id}</span>
-                                                            </td>
-                                                            <td className="p-3 text-xs sm:text-sm">
-                                                                <p className="font-medium">{getFullName(refund)}</p>
-                                                            </td>
-                                                            <td className="p-3 text-xs sm:text-sm">{refund.district}</td>
-                                                            <td className="p-3 text-xs sm:text-sm">{refund.village}</td>
-                                                            <td className="p-3 text-xs sm:text-sm">
-                                                                <div className="flex flex-col gap-1">
-                                                                    <Badge variant="outline" className="w-fit">{refund.component}</Badge>
-                                                                    {refund.component === "Animal Induction" && refund.type_of_animal && (
-                                                                        <span className="text-xs font-medium text-primary/70">{refund.type_of_animal}</span>
-                                                                    )}
-                                                                </div>
-                                                            </td>
-                                                            <td className="p-3 text-xs sm:text-sm text-right">₹{refund.dd_amount.toLocaleString("en-IN")}</td>
-                                                            <td className="p-3 text-xs sm:text-sm text-right text-green-600">₹{refund.eligible_subsidy.toLocaleString("en-IN")}</td>
-                                                            <td className="p-3 text-xs sm:text-sm text-right font-bold text-primary">₹{refund.refund_amount.toLocaleString("en-IN")}</td>
-                                                            <td className="p-3 text-xs sm:text-sm">
-                                                                <Button size="sm" onClick={() => handleOpenDBTDialog(refund)} data-testid={`button-dbt-${refund.application_id}`} className="whitespace-nowrap">
-                                                                    <Send className="h-4 w-4 mr-1" />
-                                                                    DBT
-                                                                </Button>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                    {pendingRefunds.length === 0 && (
-                                                        <tr>
-                                                            <td colSpan={9} className="text-center py-8 text-muted-foreground p-3">
-                                                                No pending refunds
-                                                            </td>
-                                                        </tr>
-                                                    )}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
+                                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                                    <table className="w-full min-w-[900px]">
+                                                        <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                            <tr>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Application ID</th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Beneficiary</th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">District</th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Village</th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Component</th>
+                                                                <th className="text-right p-3 text-xs sm:text-sm font-medium">DD Amount</th>
+                                                                <th className="text-right p-3 text-xs sm:text-sm font-medium">Eligible Subsidy</th>
+                                                                <th className="text-right p-3 text-xs sm:text-sm font-medium">Refund Amount</th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {pendingRefunds.map((refund) => (
+                                                                <tr key={refund.application_id} data-testid={`row-refund-${refund.application_id}`} className="border-b hover:bg-muted/30">
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <span className="font-mono text-xs">{refund.application_id}</span>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <p className="font-medium">{getFullName(refund)}</p>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">{refund.district}</td>
+                                                                    <td className="p-3 text-xs sm:text-sm">{refund.village}</td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div className="flex flex-col gap-1">
+                                                                            <Badge variant="outline" className="w-fit">{refund.component}</Badge>
+                                                                            {refund.component === "Animal Induction" && refund.type_of_animal && (
+                                                                                <span className="text-xs font-medium text-primary/70">{refund.type_of_animal}</span>
+                                                                            )}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm text-right">₹{refund.dd_amount.toLocaleString("en-IN")}</td>
+                                                                    <td className="p-3 text-xs sm:text-sm text-right text-green-600">₹{refund.eligible_subsidy.toLocaleString("en-IN")}</td>
+                                                                    <td className="p-3 text-xs sm:text-sm text-right font-bold text-primary">₹{refund.refund_amount.toLocaleString("en-IN")}</td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <Button size="sm" onClick={() => handleOpenDBTDialog(refund)} data-testid={`button-dbt-${refund.application_id}`} className="whitespace-nowrap">
+                                                                            <Send className="h-4 w-4 mr-1" />
+                                                                            DBT
+                                                                        </Button>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                            {pendingRefunds.length === 0 && (
+                                                                <tr>
+                                                                    <td colSpan={9} className="text-center py-8 text-muted-foreground p-3">
+                                                                        No pending refunds
+                                                                    </td>
+                                                                </tr>
+                                                            )}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
 
                                             {/* Pagination */}
                                             {totalPages > 1 && (
@@ -461,9 +498,11 @@ export default function Refunds() {
 
                             {/* Paid Refunds List */}
                             <Card data-testid="card-paid-refunds-list">
-                                <CardHeader>
-                                    <CardTitle className="text-lg sm:text-xl">Paid Refunds</CardTitle>
-                                    <CardDescription className="text-sm">History of completed refund transfers</CardDescription>
+                                <CardHeader className="flex flex-row items-start justify-between gap-4">
+                                    <div>
+                                        <CardTitle className="text-lg sm:text-xl">Paid Refunds</CardTitle>
+                                        <CardDescription className="text-sm">History of completed refund transfers</CardDescription>
+                                    </div>
                                 </CardHeader>
                                 <CardContent>
                                     {paidLoading ? (

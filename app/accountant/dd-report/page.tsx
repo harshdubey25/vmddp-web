@@ -36,6 +36,20 @@ export default function DDReportPage() {
     const [animalFilter, setAnimalFilter] = useState("all");
     const [districtFilter, setDistrictFilter] = useState("all");
 
+    const animalOptions: { value: string; label: string }[] =
+        componentFilter === "Animal Induction"
+            ? [
+                  { value: "Desi Cow", label: "Desi Cow" },
+                  { value: "CrossBreed", label: "CrossBreed" },
+                  { value: "Buffalo", label: "Buffalo" },
+              ]
+            : componentFilter === "HGM (Pregnant cow)"
+            ? [
+                  { value: "Buffalo", label: "Buffalo" },
+                  { value: "Cow", label: "Cow" },
+              ]
+            : [];
+
     // Initialize page from URL params
     const initialPage = Number(searchParams.get("page") || 1);
     const [currentPage, setCurrentPage] = useState(initialPage);
@@ -203,6 +217,7 @@ export default function DDReportPage() {
                                         value={componentFilter}
                                         onValueChange={(value) => {
                                             setComponentFilter(value);
+                                            setAnimalFilter("all");
                                             setCurrentPage(1);
                                         }}
                                     >
@@ -222,6 +237,7 @@ export default function DDReportPage() {
                                         </SelectContent>
                                     </Select>
 
+                                    {(componentFilter === "Animal Induction" || componentFilter === "HGM (Pregnant cow)") && (
                                     <Select
                                         value={animalFilter}
                                         onValueChange={(value) => {
@@ -236,20 +252,14 @@ export default function DDReportPage() {
                                             <SelectItem value="all">
                                                 All Animals
                                             </SelectItem>
-                                            <SelectItem value="Desi Cow">
-                                                Desi Cow
-                                            </SelectItem>
-                                            <SelectItem value="CrossBreed">
-                                                CrossBreed
-                                            </SelectItem>
-                                            <SelectItem value="Buffalo">
-                                                Buffalo
-                                            </SelectItem>
-                                            <SelectItem value="Cow">
-                                                Cow
-                                            </SelectItem>
+                                            {animalOptions.map((opt) => (
+                                                <SelectItem key={opt.value} value={opt.value}>
+                                                    {opt.label}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
+                                    )}
 
                                     <Select
                                         value={districtFilter}

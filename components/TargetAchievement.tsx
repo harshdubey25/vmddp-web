@@ -138,7 +138,6 @@ export default function TargetAchievement() {
 
         try {
             const headers = [
-                "Sr. No.",
                 "District",
                 "Physical Target",
                 "Financial Target (Rs.)",
@@ -153,7 +152,6 @@ export default function TargetAchievement() {
 
             districtData.forEach((item, index) => {
                 rows.push([
-                    index + 1,
                     item.district,
                     item.physical_target,
                     item.financial_target,
@@ -166,7 +164,6 @@ export default function TargetAchievement() {
             });
 
             rows.push([
-                "",
                 "TOTAL",
                 totals.physical_target,
                 totals.financial_target,
@@ -373,61 +370,55 @@ export default function TargetAchievement() {
                                 </div>
                             ) : (
                                 <div className="border rounded-lg overflow-hidden flex flex-col">
-                                    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
-                                        <table className="w-full min-w-[1200px]">
+                                    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)]">
+                                        <table className="w-full min-w-[900px]">
                                             <thead className="bg-muted sticky top-0 z-30 border-b">
                                                 <tr>
                                                     <th
                                                         rowSpan={2}
-                                                        className="text-center w-[60px] border-r align-middle p-3 text-xs sm:text-sm font-medium"
-                                                    >
-                                                        Sr. No.
-                                                    </th>
-                                                    <th
-                                                        rowSpan={2}
-                                                        className="min-w-[150px] border-r align-middle p-3 text-xs sm:text-sm font-medium"
+                                                        className="w-[120px] border-r align-middle px-2 py-1.5 text-xs sm:text-sm font-medium"
                                                     >
                                                         District
                                                     </th>
                                                     <th
                                                         colSpan={2}
-                                                        className="text-center bg-blue-50 dark:bg-blue-950/30 border-r border-b p-3 text-xs sm:text-sm font-medium"
+                                                        className="text-center bg-blue-50 dark:bg-blue-950/30 border-r border-b px-2 py-1.5 text-xs sm:text-sm font-medium"
                                                     >
                                                         Target
                                                     </th>
                                                     <th
                                                         colSpan={3}
-                                                        className="text-center bg-green-50 dark:bg-green-950/30 border-r border-b p-3 text-xs sm:text-sm font-medium"
+                                                        className="text-center bg-green-50 dark:bg-green-950/30 border-r border-b px-2 py-1.5 text-xs sm:text-sm font-medium"
                                                     >
                                                         Achievement
                                                     </th>
                                                     <th
                                                         colSpan={2}
-                                                        className="text-center bg-orange-50 dark:bg-orange-950/30 border-b p-3 text-xs sm:text-sm font-medium"
+                                                        className="text-center bg-orange-50 dark:bg-orange-950/30 border-b px-2 py-1.5 text-xs sm:text-sm font-medium"
                                                     >
                                                         Balance
                                                     </th>
                                                 </tr>
-                                                <tr className="bg-muted sticky top-[48px] z-30 border-b">
-                                                    <th className="text-center bg-blue-50 dark:bg-blue-950/30 p-3 text-xs sm:text-sm font-medium">
+                                                <tr className="bg-muted sticky top-[40px] z-30 border-b">
+                                                    <th className="text-center bg-blue-50 dark:bg-blue-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
                                                         Physical
                                                     </th>
-                                                    <th className="text-center bg-blue-50 dark:bg-blue-950/30 border-r p-3 text-xs sm:text-sm font-medium">
+                                                    <th className="text-center bg-blue-50 dark:bg-blue-950/30 border-r px-2 py-1.5 text-xs sm:text-sm font-medium">
                                                         Financial
                                                     </th>
-                                                    <th className="text-center bg-green-50 dark:bg-green-950/30 p-3 text-xs sm:text-sm font-medium">
+                                                    <th className="text-center bg-green-50 dark:bg-green-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
                                                         Physical
                                                     </th>
-                                                    <th className="text-center bg-green-50 dark:bg-green-950/30 p-3 text-xs sm:text-sm font-medium">
+                                                    <th className="text-center bg-green-50 dark:bg-green-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
                                                         Beneficiary Share
                                                     </th>
-                                                    <th className="text-center bg-green-50 dark:bg-green-950/30 border-r p-3 text-xs sm:text-sm font-medium">
+                                                    <th className="text-center bg-green-50 dark:bg-green-950/30 border-r px-2 py-1.5 text-xs sm:text-sm font-medium">
                                                         Subsidy Share
                                                     </th>
-                                                    <th className="text-center bg-orange-50 dark:bg-orange-950/30 p-3 text-xs sm:text-sm font-medium">
+                                                    <th className="text-center bg-orange-50 dark:bg-orange-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
                                                         Physical
                                                     </th>
-                                                    <th className="text-center bg-orange-50 dark:bg-orange-950/30 p-3 text-xs sm:text-sm font-medium">
+                                                    <th className="text-center bg-orange-50 dark:bg-orange-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
                                                         Financial
                                                     </th>
                                                 </tr>
@@ -435,31 +426,28 @@ export default function TargetAchievement() {
                                             <tbody>
                                                 {districtData.map((item, index) => (
                                                     <tr key={item.district} className="hover:bg-muted/30 transition-colors border-b">
-                                                        <td className="text-center border-r p-3 text-xs sm:text-sm">
-                                                            {index + 1}
-                                                        </td>
-                                                        <td className="font-medium border-r p-3 text-xs sm:text-sm">
+                                                        <td className="font-medium border-r px-2 py-1.5 text-xs sm:text-sm">
                                                             {item.district}
                                                         </td>
-                                                        <td className="text-center bg-blue-50/50 dark:bg-blue-950/20 p-3 text-xs sm:text-sm">
+                                                        <td className="text-center bg-blue-50/50 dark:bg-blue-950/20 px-2 py-1.5 text-xs sm:text-sm">
                                                             {item.physical_target.toLocaleString()}
                                                         </td>
-                                                        <td className="text-center bg-blue-50/50 dark:bg-blue-950/20 border-r p-3 text-xs sm:text-sm">
+                                                        <td className="text-center bg-blue-50/50 dark:bg-blue-950/20 border-r px-2 py-1.5 text-xs sm:text-sm">
                                                             {formatCurrency(item.financial_target)}
                                                         </td>
-                                                        <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold p-3 text-xs sm:text-sm">
+                                                        <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold px-2 py-1.5 text-xs sm:text-sm">
                                                             {item.physical_achievement.toLocaleString()}
                                                         </td>
-                                                        <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold p-3 text-xs sm:text-sm">
+                                                        <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold px-2 py-1.5 text-xs sm:text-sm">
                                                             {formatCurrency(item.beneficiary_share)}
                                                         </td>
-                                                        <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold border-r p-3 text-xs sm:text-sm">
+                                                        <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold border-r px-2 py-1.5 text-xs sm:text-sm">
                                                             {formatCurrency(item.subsidy_share)}
                                                         </td>
-                                                        <td className="text-center bg-orange-50/50 dark:bg-orange-950/20 font-semibold p-3 text-xs sm:text-sm">
+                                                        <td className="text-center bg-orange-50/50 dark:bg-orange-950/20 font-semibold px-2 py-1.5 text-xs sm:text-sm">
                                                             {item.physical_balance.toLocaleString()}
                                                         </td>
-                                                        <td className="text-center bg-orange-50/50 dark:bg-orange-950/20 font-semibold p-3 text-xs sm:text-sm">
+                                                        <td className="text-center bg-orange-50/50 dark:bg-orange-950/20 font-semibold px-2 py-1.5 text-xs sm:text-sm">
                                                             {formatCurrency(item.financial_balance)}
                                                         </td>
                                                     </tr>
@@ -467,27 +455,26 @@ export default function TargetAchievement() {
                                             </tbody>
                                             <tfoot>
                                                 <tr className="bg-muted font-bold border-t">
-                                                    <td className="border-r p-3 text-xs sm:text-sm"></td>
-                                                    <td className="border-r p-3 text-xs sm:text-sm">TOTAL</td>
-                                                    <td className="text-center p-3 text-xs sm:text-sm">
+                                                    <td className="border-r px-2 py-1.5 text-xs sm:text-sm">TOTAL</td>
+                                                    <td className="text-center px-2 py-1.5 text-xs sm:text-sm">
                                                         {totals.physical_target.toLocaleString()}
                                                     </td>
-                                                    <td className="text-center border-r p-3 text-xs sm:text-sm">
+                                                    <td className="text-center border-r px-2 py-1.5 text-xs sm:text-sm">
                                                         {formatCurrency(totals.financial_target)}
                                                     </td>
-                                                    <td className="text-center text-green-600 p-3 text-xs sm:text-sm">
+                                                    <td className="text-center text-green-600 px-2 py-1.5 text-xs sm:text-sm">
                                                         {totals.physical_achievement.toLocaleString()}
                                                     </td>
-                                                    <td className="text-center text-green-600 p-3 text-xs sm:text-sm">
+                                                    <td className="text-center text-green-600 px-2 py-1.5 text-xs sm:text-sm">
                                                         {formatCurrency(totals.beneficiary_share)}
                                                     </td>
-                                                    <td className="text-center text-green-600 border-r p-3 text-xs sm:text-sm">
+                                                    <td className="text-center text-green-600 border-r px-2 py-1.5 text-xs sm:text-sm">
                                                         {formatCurrency(totals.subsidy_share)}
                                                     </td>
-                                                    <td className="text-center p-3 text-xs sm:text-sm">
+                                                    <td className="text-center px-2 py-1.5 text-xs sm:text-sm">
                                                         {totals.physical_balance.toLocaleString()}
                                                     </td>
-                                                    <td className="text-center p-3 text-xs sm:text-sm">
+                                                    <td className="text-center px-2 py-1.5 text-xs sm:text-sm">
                                                         {formatCurrency(totals.financial_balance)}
                                                     </td>
                                                 </tr>
