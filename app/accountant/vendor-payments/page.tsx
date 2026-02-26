@@ -22,13 +22,15 @@ import { useState } from "react";
 import { useFrappeGetCall, useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
 import { PendingVendorPayment, FrappeCustomApiResponse } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-
+import { useDebounce } from "@/hooks/use-debounce";
 
 export default function VendorPayments() {
     const { toast } = useToast();
     const [openPaymentDialog, setOpenPaymentDialog] = useState(false)
     const [selectedPaymentIds, setSelectedPaymentIds] = useState<string[]>([])
     const [selectedVendor, setSelectedVendor] = useState<string | null>(null)
+    const [searchText, setSearchText] = useState("");
+    const debouncedSearchText = useDebounce(searchText, 500);
 
     // Form state for cheque dialog
     const [chequeNumber, setChequeNumber] = useState("");
@@ -41,7 +43,8 @@ export default function VendorPayments() {
         "vmddp_app.api.v1.accountant.pending_vendor_payment_list",
         {
             limit_page_length: 100,
-            vendor_name: selectedVendor || undefined
+            vendor_name: selectedVendor || undefined,
+            search_text: debouncedSearchText.trim().replace(/\s+/g, " ") || undefined
         },
         undefined,
         { revalidateOnFocus: false }
@@ -221,6 +224,8 @@ export default function VendorPayments() {
                                         placeholder="Search beneficiary, vendor..."
                                         className="pl-9"
                                         data-testid="input-search"
+                                        value={searchText}
+                                        onChange={(e)=> setSearchText(e.target.value)}
                                     />
                                 </div>
                                 <Select
