@@ -68,7 +68,7 @@ export default function DBTClaimsMPRPage() {
     const currentDate = new Date();
     const [selectedMonth, setSelectedMonth] = useState<string>(String(currentDate.getMonth() + 1));
     const [selectedYear, setSelectedYear] = useState<string>(String(currentDate.getFullYear()));
-    const [selectedComponent, setSelectedComponent] = useState<string>("all");
+    const [selectedComponent, setSelectedComponent] = useState<string>("Fertility Feed");
     const [isExporting, setIsExporting] = useState(false);
 
     // Fetch components (for_component_allocation: false)
@@ -301,25 +301,25 @@ export default function DBTClaimsMPRPage() {
                 </div>
             </div>
 
-            {/* Summary Cards */}
+            {/* Summary Cards*/}
             {!isLoading && districtData.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2 sm:gap-3 md:gap-4 mb-4">
                     <Card>
                         <CardHeader className="pb-2">
                             <CardDescription className="text-xs sm:text-sm">Total Districts</CardDescription>
-                            <CardTitle className="text-xl sm:text-2xl">{districtData.filter(d => d.data.total > 0).length}</CardTitle>
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl">{districtData.filter(d => d.data.total > 0).length}</CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
                             <CardDescription className="text-xs sm:text-sm">Total Quantity</CardDescription>
-                            <CardTitle className="text-xl sm:text-2xl text-amber-600">{formatCurrency(totals.total_quantity)}</CardTitle>
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-amber-600">{formatCurrency(totals.total_quantity)}</CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
                             <CardDescription className="text-xs sm:text-sm">Total Beneficiary Share</CardDescription>
-                            <CardTitle className="text-xl sm:text-2xl text-blue-600">
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-blue-600">
                                 ₹{formatCurrency(totals.total_beneficiary_share)}
                             </CardTitle>
                         </CardHeader>
@@ -327,7 +327,7 @@ export default function DBTClaimsMPRPage() {
                     <Card>
                         <CardHeader className="pb-2">
                             <CardDescription className="text-xs sm:text-sm">Total Subsidy</CardDescription>
-                            <CardTitle className="text-xl sm:text-2xl text-orange-600">
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-orange-600">
                                 ₹{formatCurrency(totals.total_subsidy)}
                             </CardTitle>
                         </CardHeader>
@@ -335,7 +335,7 @@ export default function DBTClaimsMPRPage() {
                     <Card>
                         <CardHeader className="pb-2">
                             <CardDescription className="text-xs sm:text-sm">Grand Total</CardDescription>
-                            <CardTitle className="text-xl sm:text-2xl text-green-600">
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-green-600">
                                 ₹{formatCurrency(totals.grand_total)}
                             </CardTitle>
                         </CardHeader>
@@ -343,7 +343,7 @@ export default function DBTClaimsMPRPage() {
                     <Card>
                         <CardHeader className="pb-2">
                             <CardDescription className="text-xs sm:text-sm">Physical Balance</CardDescription>
-                            <CardTitle className={`text-xl sm:text-2xl ${totals.total_physical_balance < 0 ? 'text-red-600' : 'text-purple-600'}`}>
+                            <CardTitle className={`text-lg sm:text-xl md:text-2xl ${totals.total_physical_balance < 0 ? 'text-red-600' : 'text-purple-600'}`}>
                                 {formatCurrency(totals.total_physical_balance)}
                             </CardTitle>
                         </CardHeader>
@@ -351,7 +351,7 @@ export default function DBTClaimsMPRPage() {
                     <Card>
                         <CardHeader className="pb-2">
                             <CardDescription className="text-xs sm:text-sm">Financial Balance</CardDescription>
-                            <CardTitle className={`text-xl sm:text-2xl ${totals.total_financial_balance < 0 ? 'text-red-600' : 'text-purple-600'}`}>
+                            <CardTitle className={`text-lg sm:text-xl md:text-2xl ${totals.total_financial_balance < 0 ? 'text-red-600' : 'text-purple-600'}`}>
                                 ₹{formatCurrency(totals.total_financial_balance)}
                             </CardTitle>
                         </CardHeader>
@@ -388,53 +388,53 @@ export default function DBTClaimsMPRPage() {
                         </div>
                     ) : (
                         <div className="border rounded-lg overflow-hidden flex flex-col">
-                            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
-                                <table className="w-full text-xs">
+                            <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 max-h-[calc(100vh-400px)]">
+                                <table className="w-full min-w-[700px] text-[11px] sm:text-xs md:text-sm">
                                     <thead className="bg-muted sticky top-0 z-30">
                                         {/* First header row - Main categories */}
                                         <tr className="bg-muted/50">
-                                            <th rowSpan={3} className="border text-center font-bold sticky left-0 bg-muted/50 z-20 min-w-[50px] p-2">
+                                            <th rowSpan={3} className="border text-center font-bold sticky left-0 bg-muted/50 z-20 min-w-[50px] p-1 sm:p-2">
                                                 Sr. No.
                                             </th>
-                                            <th rowSpan={3} className="border text-center font-bold sticky left-[50px] bg-muted/50 z-20 min-w-[120px] p-2">
+                                            <th rowSpan={3} className="border text-center font-bold sticky left-[50px] bg-muted/50 z-20 min-w-[120px] p-1 sm:p-2">
                                                 Name of District
                                             </th>
-                                            <th rowSpan={3} className="border text-center font-bold min-w-[70px] p-2">
+                                            <th rowSpan={3} className="border text-center font-bold min-w-[70px] p-1 sm:p-2">
 
                                             </th>
-                                            <th colSpan={6} className="border text-center font-bold bg-blue-50 p-2">
+                                            <th colSpan={6} className="border text-center font-bold bg-blue-50 p-1 sm:p-2">
                                                 DBT Claims - {selectedComponent !== "all" ? (components.find(c => c.name === selectedComponent)?.component_name || selectedComponent) : "All Components"}
                                             </th>
                                         </tr>
                                         {/* Second header row - Sub categories */}
                                         <tr className="bg-muted/30">
-                                            <th colSpan={1} className="border text-center font-bold min-w-[100px] bg-yellow-50 p-2">
+                                            <th colSpan={1} className="border text-center font-bold min-w-[100px] bg-yellow-50 p-1 sm:p-2">
                                                 Physical Achievement
                                             </th>
-                                            <th colSpan={3} className="border text-center font-bold min-w-[240px] bg-green-50 p-2">
+                                            <th colSpan={3} className="border text-center font-bold min-w-[240px] bg-green-50 p-1 sm:p-2">
                                                 Financial Achievement
                                             </th>
-                                            <th rowSpan={2} className="border text-center font-bold bg-purple-100 min-w-[100px] p-2">
+                                            <th rowSpan={2} className="border text-center font-bold bg-purple-100 min-w-[100px] p-1 sm:p-2">
                                                 Physical Balance
                                             </th>
-                                            <th rowSpan={2} className="border text-center font-bold bg-orange-100 min-w-[100px] p-2">
+                                            <th rowSpan={2} className="border text-center font-bold bg-orange-100 min-w-[100px] p-1 sm:p-2">
                                                 Financial Balance
                                             </th>
                                         </tr>
                                         {/* Third header row - Detail columns */}
                                         <tr className="bg-muted/20">
                                             {/* Physical Achievement */}
-                                            <th className="border text-center text-[9px] min-w-[80px] bg-yellow-50 p-2">
+                                            <th className="border text-center text-[9px] min-w-[80px] bg-yellow-50 p-1 sm:p-2">
                                                 Quantity (No.)
                                             </th>
                                             {/* Financial Achievement */}
-                                            <th className="border text-center text-[9px] min-w-[100px] bg-green-50 p-2">
+                                            <th className="border text-center text-[9px] min-w-[100px] bg-green-50 p-1 sm:p-2">
                                                 Beneficiary Share (Rs.)
                                             </th>
-                                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-2">
+                                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-1 sm:p-2">
                                                 Subsidy (Rs.)
                                             </th>
-                                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-2">
+                                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-1 sm:p-2">
                                                 Total (Rs.)
                                             </th>
                                         </tr>
@@ -444,56 +444,56 @@ export default function DBTClaimsMPRPage() {
                                             <Fragment key={name}>
                                                 {/* Monthly Row */}
                                                 <tr className="hover:bg-muted/30">
-                                                    <td rowSpan={2} className="border text-center font-medium sticky left-0 bg-background z-10 p-2">
+                                                    <td rowSpan={2} className="border text-center font-medium sticky left-0 bg-background z-10 p-1 sm:p-2">
                                                         {index + 1}
                                                     </td>
-                                                    <td rowSpan={2} className="border font-medium sticky left-[50px] bg-background z-10 p-2">
+                                                    <td rowSpan={2} className="border font-medium sticky left-[50px] bg-background z-10 p-1 sm:p-2">
                                                         {name}
                                                     </td>
-                                                    <td className="border text-center text-[10px] p-2">Monthly</td>
+                                                    <td className="border text-center text-[10px] p-1 sm:p-2">Monthly</td>
                                                     {/* Physical Achievement */}
-                                                    <td className="border text-center bg-yellow-50/50 p-2">{data.quantity || 0}</td>
+                                                    <td className="border text-center bg-yellow-50/50 p-1 sm:p-2">{data.quantity || 0}</td>
                                                     {/* Financial Achievement */}
-                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(data.beneficiary_share || 0)}</td>
-                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(data.subsidy || 0)}</td>
-                                                    <td className="border text-right font-bold bg-green-50/50 p-2">{formatCurrency(data.total || 0)}</td>
+                                                    <td className="border text-right bg-green-50/50 p-1 sm:p-2">{formatCurrency(data.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right bg-green-50/50 p-1 sm:p-2">{formatCurrency(data.subsidy || 0)}</td>
+                                                    <td className="border text-right font-bold bg-green-50/50 p-1 sm:p-2">{formatCurrency(data.total || 0)}</td>
                                                     {/* Physical Balance */}
-                                                    <td className="border text-right bg-purple-50/50 font-semibold p-2">{formatCurrency(data.physical_balance || 0)}</td>
+                                                    <td className="border text-right bg-purple-50/50 font-semibold p-1 sm:p-2">{formatCurrency(data.physical_balance || 0)}</td>
                                                     {/* Financial Balance */}
-                                                    <td className="border text-right bg-orange-50/50 font-semibold p-2">{formatCurrency(data.financial_balance || 0)}</td>
+                                                    <td className="border text-right bg-orange-50/50 font-semibold p-1 sm:p-2">{formatCurrency(data.financial_balance || 0)}</td>
                                                 </tr>
                                                 {/* Progress Row */}
                                                 <tr className="hover:bg-muted/30 bg-muted/10">
-                                                    <td className="border text-center text-[10px] p-2">Progressive</td>
+                                                    <td className="border text-center text-[10px] p-1 sm:p-2">Progressive</td>
                                                     {/* Physical Achievement */}
-                                                    <td className="border text-center bg-yellow-50/50 p-2">{data.quantity || 0}</td>
+                                                    <td className="border text-center bg-yellow-50/50 p-1 sm:p-2">{data.quantity || 0}</td>
                                                     {/* Financial Achievement */}
-                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(data.beneficiary_share || 0)}</td>
-                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(data.subsidy || 0)}</td>
-                                                    <td className="border text-right font-bold bg-green-50/50 p-2">{formatCurrency(data.total || 0)}</td>
+                                                    <td className="border text-right bg-green-50/50 p-1 sm:p-2">{formatCurrency(data.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right bg-green-50/50 p-1 sm:p-2">{formatCurrency(data.subsidy || 0)}</td>
+                                                    <td className="border text-right font-bold bg-green-50/50 p-1 sm:p-2">{formatCurrency(data.total || 0)}</td>
                                                     {/* Physical Balance */}
-                                                    <td className="border text-right bg-purple-50/50 font-semibold p-2">{formatCurrency(data.physical_balance || 0)}</td>
+                                                    <td className="border text-right bg-purple-50/50 font-semibold p-1 sm:p-2">{formatCurrency(data.physical_balance || 0)}</td>
                                                     {/* Financial Balance */}
-                                                    <td className="border text-right bg-orange-50/50 font-semibold p-2">{formatCurrency(data.financial_balance || 0)}</td>
+                                                    <td className="border text-right bg-orange-50/50 font-semibold p-1 sm:p-2">{formatCurrency(data.financial_balance || 0)}</td>
                                                 </tr>
                                             </Fragment>
                                         ))}
                                     </tbody>
                                     <tfoot>
                                         <tr className="bg-muted font-bold">
-                                            <td className="border text-center sticky left-0 bg-muted z-10 p-2" colSpan={1}></td>
-                                            <td className="border sticky left-[50px] bg-muted z-10 p-2">TOTAL</td>
-                                            <td className="border p-2"></td>
+                                            <td className="border text-center sticky left-0 bg-muted z-10 p-1 sm:p-2" colSpan={1}></td>
+                                            <td className="border sticky left-[50px] bg-muted z-10 p-1 sm:p-2">TOTAL</td>
+                                            <td className="border p-1 sm:p-2"></td>
                                             {/* Physical Achievement */}
-                                            <td className="border text-center bg-yellow-100 p-2">{totals.total_quantity}</td>
+                                            <td className="border text-center bg-yellow-100 p-1 sm:p-2">{totals.total_quantity}</td>
                                             {/* Financial Achievement */}
-                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(totals.total_beneficiary_share)}</td>
-                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(totals.total_subsidy)}</td>
-                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(totals.grand_total)}</td>
+                                            <td className="border text-right bg-green-100 p-1 sm:p-2">{formatCurrency(totals.total_beneficiary_share)}</td>
+                                            <td className="border text-right bg-green-100 p-1 sm:p-2">{formatCurrency(totals.total_subsidy)}</td>
+                                            <td className="border text-right bg-green-100 p-1 sm:p-2">{formatCurrency(totals.grand_total)}</td>
                                             {/* Physical Balance */}
-                                            <td className="border text-right bg-purple-100 font-bold p-2">{formatCurrency(totals.total_physical_balance)}</td>
+                                            <td className="border text-right bg-purple-100 font-bold p-1 sm:p-2">{formatCurrency(totals.total_physical_balance)}</td>
                                             {/* Financial Balance */}
-                                            <td className="border text-right bg-orange-100 font-bold p-2">{formatCurrency(totals.total_financial_balance)}</td>
+                                            <td className="border text-right bg-orange-100 font-bold p-1 sm:p-2">{formatCurrency(totals.total_financial_balance)}</td>
                                         </tr>
                                     </tfoot>
                                 </table>
