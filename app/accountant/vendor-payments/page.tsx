@@ -23,23 +23,6 @@ import { useFrappeGetCall, useFrappeGetDocList, useFrappeCreateDoc } from "frapp
 import { PendingVendorPayment, FrappeCustomApiResponse } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
-// Helper for status badge
-const getStatusBadge = (status: string) => {
-    if (status === "pending") {
-        return (
-            <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
-                <Clock className="h-3 w-3 mr-1" />
-                Pending
-            </Badge>
-        );
-    }
-    return (
-        <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Disbursed
-        </Badge>
-    );
-};
 
 export default function VendorPayments() {
     const { toast } = useToast();

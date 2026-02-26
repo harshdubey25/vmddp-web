@@ -334,11 +334,11 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                                                     <tr key={payment.name} className="border-b last:border-0 hover:bg-muted/30 transition-colors" data-testid={`row-payment-${payment.name}`}>
                                                         <td className="p-3 text-sm text-muted-foreground">{startIndex + idx + 1}</td>
                                                         <td className="p-3">
-                                                            <p className="font-medium font-mono">{payment.name}</p>
+                                                            <p className="font-medium font-mono text-sm">{payment.name}</p>
                                                         </td>
                                                         <td className="p-3">
                                                             <div className="flex items-center gap-2">
-                                                                <p className="font-medium">{payment.vendor_name || payment.vendor}</p>
+                                                                <p className="font-medium text-sm">{payment.vendor_name || payment.vendor}</p>
                                                                 {payment.for_parantage ? (
                                                                     <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/20">
                                                                         Parantage
@@ -347,10 +347,10 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                                                             </div>
                                                         </td>
                                                         <td className="p-3">
-                                                            <p className="font-medium">{payment.check_number}</p>
+                                                            <p className="font-medium text-sm">{payment.check_number}</p>
                                                         </td>
                                                         <td className="p-3">
-                                                            <p className="font-medium">{new Date(payment.cheque_date).toLocaleDateString("en-GB")}</p>
+                                                            <p className="font-medium text-sm">{new Date(payment.cheque_date).toLocaleDateString("en-GB")}</p>
                                                         </td>
                                                         <td className="p-3">
                                                             <p className="font-medium">{payment.bank_name}</p>
