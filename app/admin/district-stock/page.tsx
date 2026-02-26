@@ -35,6 +35,7 @@ import {
 interface StockItem {
     name: string;
     item_name: string;
+    rate?: number;
 }
 
 interface District {
@@ -60,7 +61,7 @@ export default function DistrictStockManagement() {
     const [filterItem, setFilterItem] = useState<string>("all");
 
     const { data: stockItems, isLoading: loadingItems } = useFrappeGetDocList<StockItem>("Stock Item", {
-        fields: ["name", "item_name"],
+        fields: ["name", "item_name", "rate"],
         limit: 100,
     });
 
@@ -198,17 +199,26 @@ export default function DistrictStockManagement() {
                                     <TableHead>District</TableHead>
                                     <TableHead>Item</TableHead>
                                     <TableHead>Quantity</TableHead>
+                                    <TableHead>Total Price</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {stockEntries.map((entry) => (
-                                    <TableRow key={entry.name}>
-                                        <TableCell>{entry.date}</TableCell>
-                                        <TableCell>{entry.district}</TableCell>
-                                        <TableCell>{entry.item}</TableCell>
-                                        <TableCell>{entry.quantity}</TableCell>
-                                    </TableRow>
-                                ))}
+                                {stockEntries.map((entry) => {
+                                    const itemDetails = stockItems?.find(i => i.name === entry.item);
+                                    const rate = itemDetails?.rate || 0;
+                                    const quantity = entry.quantity || 0;
+                                    const totalPrice = rate * quantity;
+
+                                    return (
+                                        <TableRow key={entry.name}>
+                                            <TableCell>{entry.date}</TableCell>
+                                            <TableCell>{entry.district}</TableCell>
+                                            <TableCell>{entry.item}</TableCell>
+                                            <TableCell>{entry.quantity}</TableCell>
+                                            <TableCell>₹{totalPrice.toFixed(2)}</TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     ) : (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +36,7 @@ import {
 interface StockItem {
     name: string;
     item_name: string;
+    rate?: number;
 }
 
 interface Stock {
@@ -53,7 +55,7 @@ export default function StockManagement() {
     const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
     const { data: stockItems, isLoading: loadingItems } = useFrappeGetDocList<StockItem>("Stock Item", {
-        fields: ["name", "item_name"],
+        fields: ["name", "item_name", "rate"],
         limit: 100,
     });
 
@@ -111,9 +113,16 @@ export default function StockManagement() {
                         Manage stock entries.
                     </p>
                 </div>
-                <Button onClick={() => setIsAddStockDialogOpen(true)}>
-                    <Plus className="mr-2 h-4 w-4" /> Add Stock Entry
-                </Button>
+                <div className="flex gap-2">
+                    <Link href="/admin/stock-items">
+                        <Button variant="outline">
+                            <Package className="mr-2 h-4 w-4" /> Manage Items
+                        </Button>
+                    </Link>
+                    <Button onClick={() => setIsAddStockDialogOpen(true)}>
+                        <Plus className="mr-2 h-4 w-4" /> Add Stock Entry
+                    </Button>
+                </div>
             </div>
 
             <Card>
@@ -135,16 +144,26 @@ export default function StockManagement() {
                                     <TableHead>Date</TableHead>
                                     <TableHead>Item</TableHead>
                                     <TableHead>Quantity</TableHead>
+                                    <TableHead>Total Price</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {stockEntries.map((entry) => (
-                                    <TableRow key={entry.name}>
-                                        <TableCell>{entry.date}</TableCell>
-                                        <TableCell>{entry.item}</TableCell>
-                                        <TableCell>{entry.quantity}</TableCell>
-                                    </TableRow>
-                                ))}
+                                {stockEntries.map((entry) => {
+                                    const itemDetails = stockItems?.find(i => i.name === entry.item);
+                                    console.log("Entry:", entry, "Item Details:", itemDetails);
+                                    const rate = itemDetails?.rate || 0;
+                                    const quantity = parseFloat(entry.quantity) || 0;
+                                    const totalPrice = rate * quantity;
+
+                                    return (
+                                        <TableRow key={entry.name}>
+                                            <TableCell>{entry.date}</TableCell>
+                                            <TableCell>{entry.item}</TableCell>
+                                            <TableCell>{entry.quantity}</TableCell>
+                                            <TableCell>₹{totalPrice.toFixed(2)}</TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     ) : (

@@ -21,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFrappeGetCall, useFrappeGetDocCount, useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { Component, DBTClaim } from "@/types";
 import DisbursedClaimsTable from "@/components/DisbursedClaimsTable";
 import * as XLSX from "xlsx";

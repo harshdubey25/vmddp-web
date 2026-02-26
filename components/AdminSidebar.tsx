@@ -59,6 +59,10 @@ const adminMenuItems: MenuItem[] = [
     path: "/admin/refunds",
   },
   { icon: BarChart3, label: "Reports", path: "/admin/reports" },
+  { type: "separator", label: "Stock Management" },
+  { icon: Package, label: "Total Stock", path: "/admin/stock" },
+  { icon: Package, label: "District Stock", path: "/admin/district-stock" },
+  { icon: BarChart3, label: "Stock Report", path: "/admin/stock-report" },
   { type: "separator", label: "Target Based Allocation" },
   { icon: GraduationCap, label: "Farmer Training", path: "/admin/farmer-training" },
   { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/admin/treatment" }
