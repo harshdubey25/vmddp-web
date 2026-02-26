@@ -491,11 +491,11 @@ export default function AllocationForm({
                 // Attach uploaded file URLs
                 invoice_upload: invoiceUploadUrl,
                 collar_invoice_upload: collarInvoiceUploadUrl,
+                collar_cost: formData.collarCost ? parseFloat(formData.collarCost) : undefined,
             };
 
             // Add Animal Induction specific fields
             if (isAnimalInduction) {
-                componentAllocationData.collar_cost = animalData.collarCost ? parseFloat(animalData.collarCost) : undefined;
                 componentAllocationData.transportation_cost = animalData.transportCost ? parseFloat(animalData.transportCost) : undefined;
                 componentAllocationData.transportation_invoice_upload = transportationInvoiceUploadUrl;
             }
