@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import { useFrappeGetDocList, useFrappeGetCall } from "frappe-react-sdk";
+import { useAuth } from "@/context/AuthContext";
 import {
     Package,
     ChevronRight,
@@ -25,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import { UserRole } from "@/enums/roles";
 
 const getComponentIcon = (component: string) => {
     if (component === "Animal Induction") return <Tag className="h-5 w-5" />;
@@ -90,7 +92,8 @@ export default function ComponentAllocation() {
             total_applications: number;
         }
     }>('vmddp_app.api.v1.accountant.get_component_allocation_stats')
-
+    const { user } = useAuth()
+    const isAccountant = user?.roles?.includes(UserRole.VMDDP_ACCOUNTANT);
     const pendingApplications = (ddCompletedApplications?.message?.data ?? []).filter(
         (app) => app.component_status !== 'Component Allocated'
     );
@@ -323,7 +326,9 @@ export default function ComponentAllocation() {
                                                         <th className="text-left p-3 text-xs sm:text-sm font-medium border">District</th>
                                                         <th className="text-left p-3 text-xs sm:text-sm font-medium border">Component</th>
                                                         <th className="text-left p-3 text-xs sm:text-sm font-medium border">Status</th>
-                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium border">Action</th>
+                                                        {isAccountant && (
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium border">Action</th>
+                                                        )}
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -344,23 +349,25 @@ export default function ComponentAllocation() {
                                                                     {app.component_status}
                                                                 </Badge>
                                                             </td>
-                                                            <td className="p-3 text-xs sm:text-sm border">
-                                                                <Link href={`/accountant/component-allocation/${encodeURIComponent(app.name)}`}>
-                                                                    <Button
-                                                                        size="sm"
-                                                                        variant="outline"
-                                                                        data-testid={`button-allocate-${app.name}`}
-                                                                    >
-                                                                        <ChevronRight className="h-4 w-4 mr-1" />
-                                                                        Allocate
-                                                                    </Button>
-                                                                </Link>
-                                                            </td>
+                                                            {isAccountant && (
+                                                                <td className="p-3 text-xs sm:text-sm border">
+                                                                    <Link href={`/accountant/component-allocation/${encodeURIComponent(app.name)}`}>
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="outline"
+                                                                            data-testid={`button-allocate-${app.name}`}
+                                                                        >
+                                                                            <ChevronRight className="h-4 w-4 mr-1" />
+                                                                            Allocate
+                                                                        </Button>
+                                                                    </Link>
+                                                                </td>
+                                                            )}
                                                         </tr>
                                                     ))}
                                                     {pendingApplications.length === 0 && (
                                                         <tr>
-                                                            <td colSpan={7} className="text-center py-8 text-sm text-muted-foreground border">
+                                                            <td colSpan={isAccountant ? 7 : 6} className="text-center py-8 text-sm text-muted-foreground border">
                                                                 No applications awaiting allocation
                                                             </td>
                                                         </tr>
