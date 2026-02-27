@@ -50,6 +50,12 @@ interface DBTBeneficiary {
 
 const PAGE_SIZE = 20;
 
+const maskAccountNumber = (accountNumber?: string) => {
+    if (!accountNumber) return "N/A";
+    if (accountNumber.length <= 4) return accountNumber;
+    return "X".repeat(accountNumber.length - 4) + accountNumber.slice(-4);
+};
+
 export default function DBTClaims() {
     const { data: components } = useFrappeGetDocList<Pick<Component, 'name' | 'subsidy_percent' | 'maximum_subsidy_amount' | 'rate_per_kg' | 'max_quantity' | 'multiple_claims_allowed' | 'unit'>>("Component", { fields: ['name', 'subsidy_percent', 'maximum_subsidy_amount', 'rate_per_kg', 'max_quantity', 'multiple_claims_allowed', 'unit'], filters: [['for_dbt_claims', '=', '1']] });
     const [selectedComponent, setSelectedComponent] = useState<{ name: string, subsidy_percent: number, maximum_subsidy_amount: number, rate_per_kg: number, max_quantity: number, multiple_claims_allowed: boolean, unit: string } | null>(null);
@@ -356,7 +362,7 @@ export default function DBTClaims() {
                                                                 </td>
                                                                 <td className="p-3 text-xs sm:text-sm">
                                                                     <div>
-                                                                        <p className="text-sm">Account: {beneficiary.account_number}</p>
+                                                                        <p className="text-sm">Account: {maskAccountNumber(beneficiary.account_number)}</p>
                                                                         <p className="text-xs text-muted-foreground">{beneficiary.ifsc_code}</p>
                                                                         <p className="text-xs text-muted-foreground">{beneficiary.bank_name}</p>
                                                                     </div>

@@ -322,7 +322,8 @@ export default function AdminRefundsApproval() {
     const renderRefundTable = (
         refunds: Refund[] | undefined,
         loading: boolean,
-        showActions: boolean = false
+        showActions: boolean = false,
+        showTransactionDetails: boolean = true
     ) => {
         if (loading) {
             return (
@@ -352,8 +353,8 @@ export default function AdminRefundsApproval() {
                                 <th className="text-left p-3 text-xs sm:text-sm font-medium">Component</th>
                                 <th className="text-left p-3 text-xs sm:text-sm font-medium">Bank Details</th>
                                 <th className="text-right p-3 text-xs sm:text-sm font-medium">Amount</th>
-                                {!showActions && <th className="text-left p-3 text-xs sm:text-sm font-medium">Transaction ID</th>}
-                                {!showActions && <th className="text-left p-3 text-xs sm:text-sm font-medium">Transaction Date</th>}
+                                {!showActions && showTransactionDetails && <th className="text-left p-3 text-xs sm:text-sm font-medium">Transaction ID</th>}
+                                {!showActions && showTransactionDetails && <th className="text-left p-3 text-xs sm:text-sm font-medium">Transaction Date</th>}
                                 <th className="text-left p-3 text-xs sm:text-sm font-medium">Created On</th>
                                 <th className="text-left p-3 text-xs sm:text-sm font-medium">Status</th>
                                 {showActions && <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>}
@@ -382,12 +383,12 @@ export default function AdminRefundsApproval() {
                                     <td className="p-3 text-xs sm:text-sm text-right font-bold text-primary">
                                         ₹{refund.refund_amount.toLocaleString("en-IN")}
                                     </td>
-                                    {!showActions && (
+                                    {!showActions && showTransactionDetails && (
                                         <td className="p-3 text-xs sm:text-sm">
                                             <span className="font-mono text-xs">{refund.transanction_id}</span>
                                         </td>
                                     )}
-                                    {!showActions && (
+                                    {!showActions && showTransactionDetails && (
                                         <td className="p-3 text-xs sm:text-sm">
                                             {refund.transanction_date ? new Date(refund.transanction_date).toLocaleDateString("en-IN") : "N/A"}
                                         </td>
@@ -609,7 +610,7 @@ export default function AdminRefundsApproval() {
                                     <CardDescription className="text-sm">History of rejected refunds</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    {renderRefundTable(rejectedRefunds, rejectedLoading, false)}
+                                    {renderRefundTable(rejectedRefunds, rejectedLoading, false, false)}
 
                                     {/* Pagination */}
                                     {rejectedTotalPages > 1 && (
