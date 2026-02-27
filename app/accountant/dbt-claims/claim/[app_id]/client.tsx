@@ -652,7 +652,7 @@ export default function ClaimForm({
                                         Clear
                                     </Button>
                                     <Link href="/accountant/dbt-claims">
-                                        <Button variant="ghost" data-testid="button-cancel">
+                                        <Button variant="ghost" className="border-red-500 focus:border-red-600" data-testid="button-cancel">
                                             Cancel
                                         </Button>
                                     </Link>

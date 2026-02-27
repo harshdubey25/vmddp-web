@@ -21,6 +21,12 @@ interface PDFTableEntry {
     pdf_file: string;
 }
 
+interface InventoryItem {
+    inventory_item: string;
+    quantity: number;
+    rate: number;
+}
+
 interface Application {
     name: string;
     event_name: string;
@@ -40,6 +46,7 @@ interface Application {
     refreshment: number;
     docstatus: number;
     creation: string;
+    inventory_items?: InventoryItem[];
 }
 
 const EXPENSE_PER_HEAD = 360;
@@ -72,7 +79,10 @@ export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
 
     const getTotalBudget = () => {
         if (!application) return 0;
-        return (application.training_material || 0) + (application.logistics || 0) + (application.refreshment || 0);
+        const inventoryTotal = (application.inventory_items || []).reduce((sum, item) => {
+            return sum + ((item.quantity || 0) * (item.rate || 0));
+        }, 0);
+        return (application.training_material || 0) + (application.logistics || 0) + (application.refreshment || 0) + inventoryTotal;
     };
 
     const getExpectedBudget = () => {
@@ -86,11 +96,11 @@ export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
 
     const handleDeleteGalleryImage = async (idx: number, entryName: string) => {
         if (!application) return;
-        
+
         try {
             setDeletingIdx(idx);
             const updatedGalleryTable = application.gallery_table?.filter((_, i) => i !== idx) || [];
-            
+
             await updateDoc("Farmer Training Application", application.name, {
                 gallery_table: updatedGalleryTable.map((entry) => ({
                     name: entry.name,
@@ -121,7 +131,7 @@ export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
 
     const handleAddGalleryImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!application) return;
-        
+
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
@@ -134,7 +144,7 @@ export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
                 title: "Uploading...",
                 description: `Adding ${fileCount} image(s) to gallery...`,
             });
-            
+
             const uploadedImages = await uploadImagesWithCompression(
                 Array.from(files),
                 { fileType: 'image' }
@@ -445,7 +455,7 @@ export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
                                         })}
                                     </div>
                                 ) : (
-                                    <div 
+                                    <div
                                         onClick={() => galleryInputRef.current?.click()}
                                         className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:bg-muted/50 transition-colors"
                                     >
@@ -512,6 +522,30 @@ export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
                                             <p className="font-semibold">{formatCurrency(application.refreshment)}</p>
                                         </div>
                                     </div>
+                                    {/* Inventory Items Section */}
+                                    {application.inventory_items && application.inventory_items.length > 0 && (
+                                        <div className="mt-6">
+                                            <p className="font-semibold mb-2">Inventory Items</p>
+                                            <table className="min-w-full border text-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th className="border p-2">Item Name</th>
+                                                        <th className="border p-2">Quantity</th>
+                                                        <th className="border p-2">Rate</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {application.inventory_items.map((item: any, idx: number) => (
+                                                        <tr key={idx}>
+                                                            <td className="border p-2">{item.inventory_item}</td>
+                                                            <td className="border p-2">{item.quantity}</td>
+                                                            <td className="border p-2">{item.rate ?? ""}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
                                     <div className="border-t pt-4">
                                         <div className="flex justify-between items-center">
                                             <span className="font-semibold">Balance Remaining</span>
