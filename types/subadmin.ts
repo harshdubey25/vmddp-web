@@ -34,6 +34,12 @@ export interface TreatmentFormData {
     galleryImages: File[];
 }
 
+export interface InventoryItem {
+    inventory_item: string;
+    quantity: number;
+    rate?: string | number;
+}
+
 export interface FarmerTrainingFormData {
     eventName: string;
     eventDate: Date | undefined;
@@ -51,6 +57,7 @@ export interface FarmerTrainingFormData {
     logistics: string;
     refreshment: string;
     totalAmount: string;
+    inventoryItems: InventoryItem[];
 }
 
 export const PREDEFINED_SYMPTOMS = [
@@ -121,6 +128,11 @@ export interface Application {
     total_budget: number;
     docstatus: number;
     creation: string;
+    inventory_items?: Array<{
+        inventory_item: string;
+        quantity: number;
+        rate: number;
+    }>;
 }
 
 export interface TreatmentDoc {

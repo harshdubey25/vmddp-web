@@ -13,6 +13,8 @@ import {
     uploadImagesWithCompression,
 } from "@/lib/image-utils";
 import { Button } from "@/components/ui/button";
+import { InventoryItem } from "@/types/subadmin";
+import { InventoryItemsTable } from "@/components/InventoryItemsTable";
 import {
     Card,
     CardContent,
@@ -134,24 +136,25 @@ export default function FarmerTrainingForm() {
 
     const safeTargetData = mounted ? targetData : { physical: 0, achieved: 0 };
 
-  const [formData, setFormData] = useState<FarmerTrainingFormData>({
-    eventName: "",
-    eventDate: undefined,
-    district: "",
-    taluka: "",
-    village: "",
-    venueType: "",
-    venueName: "",
-    numberOfParticipants: "",
-    numberOfMale: "",
-    numberOfFemale: "",
-    participantListImages: [],
-    galleryImages: [],
-    trainingMaterial: "",
-    logistics: "",
-    refreshment: "",
-    totalAmount: "0",
-  });
+    const [formData, setFormData] = useState<FarmerTrainingFormData>({
+        eventName: "",
+        eventDate: undefined,
+        district: "",
+        taluka: "",
+        village: "",
+        venueType: "",
+        venueName: "",
+        numberOfParticipants: "",
+        numberOfMale: "",
+        numberOfFemale: "",
+        participantListImages: [],
+        galleryImages: [],
+        trainingMaterial: "",
+        logistics: "",
+        refreshment: "",
+        totalAmount: "0",
+        inventoryItems: [],
+    });
 
     const { data: districtData } = useFrappeGetDocList("District Master", {
         fields: ["name", "name1"],
@@ -215,10 +218,17 @@ export default function FarmerTrainingForm() {
     const wouldExceedTarget = mounted && currentParticipants > remainingTarget;
 
     const expectedBudget = currentParticipants * EXPENSE_PER_HEAD;
+    const inventoryTotal = (formData.inventoryItems || []).reduce((sum, item) => {
+        const qty = Number(item.quantity) || 0;
+        const rate = typeof item.rate === 'string' ? parseFloat(item.rate) || 0 : (item.rate || 0);
+        return sum + qty * rate;
+    }, 0);
+
     const allocatedBudget =
         (parseFloat(formData.trainingMaterial) || 0) +
         (parseFloat(formData.logistics) || 0) +
-        (parseFloat(formData.refreshment) || 0);
+        (parseFloat(formData.refreshment) || 0) +
+        inventoryTotal;
     const remainingBudget = expectedBudget - allocatedBudget;
     const exceedsTotal = allocatedBudget > expectedBudget;
 
@@ -228,7 +238,7 @@ export default function FarmerTrainingForm() {
 
     const handleInputChange = (
         field: keyof FarmerTrainingFormData,
-        value: string | Date | undefined,
+        value: string | Date | undefined | InventoryItem[],
     ) => {
         if (field === "district") {
             setFormData((prev) => ({
@@ -251,7 +261,7 @@ export default function FarmerTrainingForm() {
             const otherField = field === "numberOfMale" ? "numberOfFemale" : "numberOfMale";
             const otherValue = parseInt(formData[otherField]) || 0;
             const total = parseInt(formData.numberOfParticipants) || 0;
-            
+
             if (newValue + otherValue > total && total > 0) {
                 toast({
                     title: "Invalid Input",
@@ -261,6 +271,8 @@ export default function FarmerTrainingForm() {
                 return;
             }
             setFormData((prev) => ({ ...prev, [field]: value }));
+        } else if (field === "inventoryItems") {
+            setFormData((prev) => ({ ...prev, inventoryItems: value as InventoryItem[] }));
         } else {
             setFormData((prev) => ({ ...prev, [field]: value }));
         }
@@ -526,23 +538,24 @@ export default function FarmerTrainingForm() {
 
             setUploadingImages(false);
 
-      await createDoc('Farmer Training Application', {
-        event_name: formData.eventName,
-        event_date: format(formData.eventDate!, 'yyyy-MM-dd'),
-        district: formData.district,
-        taluka: formData.taluka,
-        village: formData.village,
-        venue_type: formData.venueType,
-        venue_name: formData.venueName,
-        number_of_participants: parseInt(formData.numberOfParticipants),
-        no_of_male: formData.numberOfMale ? parseInt(formData.numberOfMale) : 0,
-        no_of_female: formData.numberOfFemale ? parseInt(formData.numberOfFemale) : 0,
-        images_table: imageTableEntries,
-        gallery_table: galleryTableEntries,
-        training_material: parseFloat(formData.trainingMaterial) || 0,
-        logistics: parseFloat(formData.logistics) || 0,
-        refreshment: parseFloat(formData.refreshment) || 0,
-      });
+            await createDoc('Farmer Training Application', {
+                event_name: formData.eventName,
+                event_date: format(formData.eventDate!, 'yyyy-MM-dd'),
+                district: formData.district,
+                taluka: formData.taluka,
+                village: formData.village,
+                venue_type: formData.venueType,
+                venue_name: formData.venueName,
+                number_of_participants: parseInt(formData.numberOfParticipants),
+                no_of_male: formData.numberOfMale ? parseInt(formData.numberOfMale) : 0,
+                no_of_female: formData.numberOfFemale ? parseInt(formData.numberOfFemale) : 0,
+                images_table: imageTableEntries,
+                gallery_table: galleryTableEntries,
+                training_material: parseFloat(formData.trainingMaterial) || 0,
+                logistics: parseFloat(formData.logistics) || 0,
+                refreshment: parseFloat(formData.refreshment) || 0,
+                inventory_items: formData.inventoryItems,
+            });
 
             toast({
                 title: "Application Submitted",
@@ -583,7 +596,7 @@ export default function FarmerTrainingForm() {
 
     return (
         <div className="flex h-screen w-full overflow-hidden bg-background">
-            <div className="flex flex-col flex-1 overflow-hidden">
+            <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
                 <header className="flex items-center justify-between p-6 border-b bg-card">
                     <div className="flex items-center gap-4">
                         <Button
@@ -610,7 +623,7 @@ export default function FarmerTrainingForm() {
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto p-6 bg-muted/30">
+                <main className="flex-1 min-h-0 overflow-y-auto p-6 bg-muted/30">
                     <form
                         onSubmit={handleSubmit}
                         className="space-y-6 max-w-4xl mx-auto pb-6"
@@ -925,128 +938,128 @@ export default function FarmerTrainingForm() {
                             </CardContent>
                         </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="w-5 h-5" />
-                  Participants
-                </CardTitle>
-                <CardDescription>
-                  Enter number of participants (Maximum 50 per session)
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {genderExceedsTotal && totalParticipants > 0 && totalGenderCount > 0 && (
-                  <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>
-                      Male + Female participants ({totalGenderCount}) exceeds total participants ({totalParticipants})
-                    </AlertDescription>
-                  </Alert>
-                )}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="participants">Total Participants *</Label>
-                    <Input
-                      id="participants"
-                      type="number"
-                      min="1"
-                      max="50"
-                      value={formData.numberOfParticipants}
-                      onChange={(e) => handleInputChange("numberOfParticipants", e.target.value)}
-                      placeholder="Enter number (max 50)"
-                      data-testid="input-participants"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="male-participants">Male Participants</Label>
-                    <Input
-                      id="male-participants"
-                      type="number"
-                      min="0"
-                      max={totalParticipants || 50}
-                      value={formData.numberOfMale}
-                      onChange={(e) => handleInputChange("numberOfMale", e.target.value)}
-                      placeholder="Enter male participants"
-                      data-testid="input-male-participants"
-                      className={genderExceedsTotal ? "border-red-500" : ""}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="female-participants">Female Participants</Label>
-                    <Input
-                      id="female-participants"
-                      type="number"
-                      min="0"
-                      max={totalParticipants || 50}
-                      value={formData.numberOfFemale}
-                      onChange={(e) => handleInputChange("numberOfFemale", e.target.value)}
-                      placeholder="Enter female participants"
-                      data-testid="input-female-participants"
-                      className={genderExceedsTotal ? "border-red-500" : ""}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="images">Participant List PDF (Max {MAX_IMAGES})</Label>
-                  <Input
-                    id="images"
-                    type="file"
-                    accept=".pdf"
-                    multiple
-                    onChange={handleImageUpload}
-                    data-testid="input-images"
-                  />
-                  {formData.participantListImages.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                      {formData.participantListImages.map((img, idx) => (
-                        <div key={idx} className="relative border rounded p-2">
-                          <p className="text-xs truncate">{img.name}</p>
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            className="mt-1"
-                            onClick={() => removeImage(idx)}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gallery-images">Gallery Images (Max {MAX_IMAGES})</Label>
-                  <Input
-                    id="gallery-images"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleGalleryUpload}
-                    data-testid="input-gallery-images"
-                  />
-                  {formData.galleryImages.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                      {formData.galleryImages.map((img, idx) => (
-                        <div key={idx} className="relative border rounded p-2">
-                          <p className="text-xs truncate">{img.name}</p>
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            className="mt-1"
-                            onClick={() => removeGalleryImage(idx)}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Upload className="w-5 h-5" />
+                                    Participants
+                                </CardTitle>
+                                <CardDescription>
+                                    Enter number of participants (Maximum 50 per session)
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {genderExceedsTotal && totalParticipants > 0 && totalGenderCount > 0 && (
+                                    <Alert variant="destructive">
+                                        <AlertTriangle className="h-4 w-4" />
+                                        <AlertDescription>
+                                            Male + Female participants ({totalGenderCount}) exceeds total participants ({totalParticipants})
+                                        </AlertDescription>
+                                    </Alert>
+                                )}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="participants">Total Participants *</Label>
+                                        <Input
+                                            id="participants"
+                                            type="number"
+                                            min="1"
+                                            max="50"
+                                            value={formData.numberOfParticipants}
+                                            onChange={(e) => handleInputChange("numberOfParticipants", e.target.value)}
+                                            placeholder="Enter number (max 50)"
+                                            data-testid="input-participants"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="male-participants">Male Participants</Label>
+                                        <Input
+                                            id="male-participants"
+                                            type="number"
+                                            min="0"
+                                            max={totalParticipants || 50}
+                                            value={formData.numberOfMale}
+                                            onChange={(e) => handleInputChange("numberOfMale", e.target.value)}
+                                            placeholder="Enter male participants"
+                                            data-testid="input-male-participants"
+                                            className={genderExceedsTotal ? "border-red-500" : ""}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="female-participants">Female Participants</Label>
+                                        <Input
+                                            id="female-participants"
+                                            type="number"
+                                            min="0"
+                                            max={totalParticipants || 50}
+                                            value={formData.numberOfFemale}
+                                            onChange={(e) => handleInputChange("numberOfFemale", e.target.value)}
+                                            placeholder="Enter female participants"
+                                            data-testid="input-female-participants"
+                                            className={genderExceedsTotal ? "border-red-500" : ""}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="images">Participant List PDF (Max {MAX_IMAGES})</Label>
+                                    <Input
+                                        id="images"
+                                        type="file"
+                                        accept=".pdf"
+                                        multiple
+                                        onChange={handleImageUpload}
+                                        data-testid="input-images"
+                                    />
+                                    {formData.participantListImages.length > 0 && (
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                                            {formData.participantListImages.map((img, idx) => (
+                                                <div key={idx} className="relative border rounded p-2">
+                                                    <p className="text-xs truncate">{img.name}</p>
+                                                    <Button
+                                                        type="button"
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        className="mt-1"
+                                                        onClick={() => removeImage(idx)}
+                                                    >
+                                                        Remove
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="gallery-images">Gallery Images (Max {MAX_IMAGES})</Label>
+                                    <Input
+                                        id="gallery-images"
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        onChange={handleGalleryUpload}
+                                        data-testid="input-gallery-images"
+                                    />
+                                    {formData.galleryImages.length > 0 && (
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                                            {formData.galleryImages.map((img, idx) => (
+                                                <div key={idx} className="relative border rounded p-2">
+                                                    <p className="text-xs truncate">{img.name}</p>
+                                                    <Button
+                                                        type="button"
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        className="mt-1"
+                                                        onClick={() => removeGalleryImage(idx)}
+                                                    >
+                                                        Remove
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
 
                         <Card>
                             <CardHeader>
@@ -1055,8 +1068,7 @@ export default function FarmerTrainingForm() {
                                     Fund Allocation
                                 </CardTitle>
                                 <CardDescription>
-                                    Allocate budget across different expense
-                                    categories
+                                    Allocate budget across different expense categories, including inventory items
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -1070,8 +1082,7 @@ export default function FarmerTrainingForm() {
                                         </span>
                                     </div>
                                     <div className="text-xs text-muted-foreground">
-                                        {currentParticipants} participants × ₹
-                                        {EXPENSE_PER_HEAD} per head
+                                        {currentParticipants} participants × ₹{EXPENSE_PER_HEAD} per head
                                     </div>
                                 </div>
 
@@ -1085,12 +1096,7 @@ export default function FarmerTrainingForm() {
                                             type="number"
                                             min="0"
                                             value={formData.trainingMaterial}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "trainingMaterial",
-                                                    e.target.value,
-                                                )
-                                            }
+                                            onChange={(e) => handleInputChange("trainingMaterial", e.target.value)}
                                             placeholder="0"
                                             data-testid="input-training-material"
                                         />
@@ -1104,12 +1110,7 @@ export default function FarmerTrainingForm() {
                                             type="number"
                                             min="0"
                                             value={formData.logistics}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "logistics",
-                                                    e.target.value,
-                                                )
-                                            }
+                                            onChange={(e) => handleInputChange("logistics", e.target.value)}
                                             placeholder="0"
                                             data-testid="input-logistics"
                                         />
@@ -1123,16 +1124,19 @@ export default function FarmerTrainingForm() {
                                             type="number"
                                             min="0"
                                             value={formData.refreshment}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "refreshment",
-                                                    e.target.value,
-                                                )
-                                            }
+                                            onChange={(e) => handleInputChange("refreshment", e.target.value)}
                                             placeholder="0"
                                             data-testid="input-refreshment"
                                         />
                                     </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Inventory Items</Label>
+                                    <InventoryItemsTable
+                                        items={formData.inventoryItems}
+                                        onChange={(items) => handleInputChange("inventoryItems", items)}
+                                    />
                                 </div>
 
                                 <div className="border-t pt-4 space-y-3">
@@ -1140,40 +1144,15 @@ export default function FarmerTrainingForm() {
                                         <span className="text-muted-foreground">
                                             Total Allocated
                                         </span>
-                                        <span
-                                            className={cn(
-                                                "font-semibold",
-                                                exceedsTotal &&
-                                                "text-destructive",
-                                            )}
-                                        >
-                                            {formatCurrency(allocatedBudget)}
-                                        </span>
+                                        <span className={cn("font-semibold", exceedsTotal && "text-destructive")}>{formatCurrency(allocatedBudget)}</span>
                                     </div>
                                     <Progress
-                                        value={
-                                            (allocatedBudget / expectedBudget) *
-                                            100
-                                        }
-                                        className={cn(
-                                            "h-2",
-                                            exceedsTotal && "bg-destructive/20",
-                                        )}
+                                        value={(allocatedBudget / expectedBudget) * 100}
+                                        className={cn("h-2", exceedsTotal && "bg-destructive/20")}
                                     />
                                     <div className="flex justify-between items-center">
-                                        <span className="font-semibold">
-                                            Balance Remaining
-                                        </span>
-                                        <span
-                                            className={cn(
-                                                "font-bold text-lg",
-                                                remainingBudget < 0
-                                                    ? "text-destructive"
-                                                    : "text-green-600",
-                                            )}
-                                        >
-                                            {formatCurrency(remainingBudget)}
-                                        </span>
+                                        <span className="font-semibold">Balance Remaining</span>
+                                        <span className={cn("font-bold text-lg", remainingBudget < 0 ? "text-destructive" : "text-green-600")}>{formatCurrency(remainingBudget)}</span>
                                     </div>
                                 </div>
 
@@ -1181,16 +1160,14 @@ export default function FarmerTrainingForm() {
                                     <Alert variant="destructive">
                                         <AlertTriangle className="h-4 w-4" />
                                         <AlertDescription>
-                                            Sub-allocations exceed expected
-                                            budget by{" "}
-                                            {formatCurrency(
-                                                Math.abs(remainingBudget),
-                                            )}
+                                            Sub-allocations exceed expected budget by {formatCurrency(Math.abs(remainingBudget))}
                                         </AlertDescription>
                                     </Alert>
                                 )}
                             </CardContent>
                         </Card>
+
+
 
                         <div className="flex justify-end gap-4">
                             <Button
