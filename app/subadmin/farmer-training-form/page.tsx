@@ -1097,8 +1097,8 @@ export default function FarmerTrainingForm() {
                                             min="0"
                                             value={formData.trainingMaterial}
                                             onChange={(e) => handleInputChange("trainingMaterial", e.target.value)}
-                                            placeholder="0"
                                             data-testid="input-training-material"
+                                            hideSpinners
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -1111,8 +1111,8 @@ export default function FarmerTrainingForm() {
                                             min="0"
                                             value={formData.logistics}
                                             onChange={(e) => handleInputChange("logistics", e.target.value)}
-                                            placeholder="0"
                                             data-testid="input-logistics"
+                                            hideSpinners
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -1125,8 +1125,8 @@ export default function FarmerTrainingForm() {
                                             min="0"
                                             value={formData.refreshment}
                                             onChange={(e) => handleInputChange("refreshment", e.target.value)}
-                                            placeholder="0"
                                             data-testid="input-refreshment"
+                                            hideSpinners
                                         />
                                     </div>
                                 </div>

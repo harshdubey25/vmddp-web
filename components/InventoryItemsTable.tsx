@@ -85,6 +85,7 @@ export const InventoryItemsTable: React.FC<InventoryItemsTableProps> = ({ items,
                     value={item.quantity}
                     onChange={e => handleItemChange(idx, "quantity", Number(e.target.value))}
                     placeholder="Quantity"
+                    hideSpinners
                   />
                 </td>
                 <td className="border p-2">
@@ -93,6 +94,7 @@ export const InventoryItemsTable: React.FC<InventoryItemsTableProps> = ({ items,
                     value={item.rate ?? ""}
                     onChange={e => handleItemChange(idx, "rate", e.target.value)}
                     placeholder="Rate"
+                    hideSpinners
                   />
                 </td>
                 <td className="border p-2">
