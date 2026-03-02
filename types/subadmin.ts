@@ -36,8 +36,6 @@ export interface TreatmentFormData {
 
 export interface InventoryItem {
     inventory_item: string;
-    quantity: number;
-    rate?: string | number;
 }
 
 export interface FarmerTrainingFormData {
@@ -130,8 +128,6 @@ export interface Application {
     creation: string;
     inventory_items?: Array<{
         inventory_item: string;
-        quantity: number;
-        rate: number;
     }>;
 }
 

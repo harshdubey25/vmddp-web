@@ -401,7 +401,6 @@ export default function DDCollectionForm({
                                         id="ddDate"
                                         type="date"
                                         value={ddFormData.ddDate}
-                                        min={new Date().toISOString().split('T')[0]}
                                         onChange={(e) => setDdFormData({ ...ddFormData, ddDate: e.target.value })}
                                         data-testid="input-dd-date"
                                     />

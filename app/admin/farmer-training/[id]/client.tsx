@@ -23,8 +23,6 @@ interface PDFTableEntry {
 
 interface InventoryItem {
     inventory_item: string;
-    quantity: number;
-    rate: number;
 }
 
 interface Application {
@@ -79,10 +77,7 @@ export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
 
     const getTotalBudget = () => {
         if (!application) return 0;
-        const inventoryTotal = (application.inventory_items || []).reduce((sum, item) => {
-            return sum + ((item.quantity || 0) * (item.rate || 0));
-        }, 0);
-        return (application.training_material || 0) + (application.logistics || 0) + (application.refreshment || 0) + inventoryTotal;
+        return (application.training_material || 0) + (application.logistics || 0) + (application.refreshment || 0);
     };
 
     const getExpectedBudget = () => {
@@ -530,16 +525,12 @@ export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
                                                 <thead>
                                                     <tr>
                                                         <th className="border p-2">Item Name</th>
-                                                        <th className="border p-2">Quantity</th>
-                                                        <th className="border p-2">Rate</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {application.inventory_items.map((item: any, idx: number) => (
                                                         <tr key={idx}>
                                                             <td className="border p-2">{item.inventory_item}</td>
-                                                            <td className="border p-2">{item.quantity}</td>
-                                                            <td className="border p-2">{item.rate ?? ""}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>

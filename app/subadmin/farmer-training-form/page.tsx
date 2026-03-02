@@ -218,17 +218,11 @@ export default function FarmerTrainingForm() {
     const wouldExceedTarget = mounted && currentParticipants > remainingTarget;
 
     const expectedBudget = currentParticipants * EXPENSE_PER_HEAD;
-    const inventoryTotal = (formData.inventoryItems || []).reduce((sum, item) => {
-        const qty = Number(item.quantity) || 0;
-        const rate = typeof item.rate === 'string' ? parseFloat(item.rate) || 0 : (item.rate || 0);
-        return sum + qty * rate;
-    }, 0);
 
     const allocatedBudget =
         (parseFloat(formData.trainingMaterial) || 0) +
         (parseFloat(formData.logistics) || 0) +
-        (parseFloat(formData.refreshment) || 0) +
-        inventoryTotal;
+        (parseFloat(formData.refreshment) || 0);
     const remainingBudget = expectedBudget - allocatedBudget;
     const exceedsTotal = allocatedBudget > expectedBudget;
 
@@ -596,8 +590,8 @@ export default function FarmerTrainingForm() {
 
     return (
         <div className="flex h-screen w-full overflow-hidden bg-background">
-            <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-                <header className="flex items-center justify-between p-6 border-b bg-card">
+            <div className="flex flex-col flex-1">
+                <header className="flex items-center justify-between p-6 border-b bg-card flex-shrink-0">
                     <div className="flex items-center gap-4">
                         <Button
                             variant="ghost"
@@ -623,7 +617,7 @@ export default function FarmerTrainingForm() {
                     </div>
                 </header>
 
-                <main className="flex-1 min-h-0 overflow-y-auto p-6 bg-muted/30">
+                <main className="flex-1 overflow-y-auto p-6 bg-muted/30">
                     <form
                         onSubmit={handleSubmit}
                         className="space-y-6 max-w-4xl mx-auto pb-6"
