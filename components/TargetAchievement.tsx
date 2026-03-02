@@ -26,6 +26,7 @@ interface DistrictData {
     financial_achievement: number;
     beneficiary_share: number;
     subsidy_share: number;
+    admin_expense: number;
     physical_balance: number;
     financial_balance: number;
 }
@@ -37,6 +38,7 @@ interface Totals {
     financial_achievement: number;
     beneficiary_share: number;
     subsidy_share: number;
+    admin_expense: number;
     physical_balance: number;
     financial_balance: number;
 }
@@ -105,6 +107,7 @@ export default function TargetAchievement() {
         financial_achievement: 0,
         beneficiary_share: 0,
         subsidy_share: 0,
+        admin_expense: 0,
         physical_balance: 0,
         financial_balance: 0,
     };
@@ -144,6 +147,7 @@ export default function TargetAchievement() {
                 "Physical Achievement",
                 "Beneficiary Share (Rs.)",
                 "Subsidy Share (Rs.)",
+                "Admin Expense (Rs.)",
                 "Physical Balance",
                 "Financial Balance",
             ];
@@ -158,6 +162,7 @@ export default function TargetAchievement() {
                     item.physical_achievement,
                     item.beneficiary_share,
                     item.subsidy_share,
+                    item.admin_expense,
                     item.physical_balance,
                     item.financial_balance,
                 ]);
@@ -170,6 +175,7 @@ export default function TargetAchievement() {
                 totals.physical_achievement,
                 totals.beneficiary_share,
                 totals.subsidy_share,
+                totals.admin_expense,
                 totals.physical_balance,
                 totals.financial_balance,
             ]);
@@ -387,7 +393,7 @@ export default function TargetAchievement() {
                                                         Target
                                                     </th>
                                                     <th
-                                                        colSpan={3}
+                                                        colSpan={4}
                                                         className="text-center bg-green-50 dark:bg-green-950/30 border-r border-b px-2 py-1.5 text-xs sm:text-sm font-medium"
                                                     >
                                                         Achievement
@@ -412,8 +418,11 @@ export default function TargetAchievement() {
                                                     <th className="text-center bg-green-50 dark:bg-green-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
                                                         Beneficiary Share
                                                     </th>
-                                                    <th className="text-center bg-green-50 dark:bg-green-950/30 border-r px-2 py-1.5 text-xs sm:text-sm font-medium">
+                                                    <th className="text-center bg-green-50 dark:bg-green-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
                                                         Subsidy Share
+                                                    </th>
+                                                    <th className="text-center bg-green-50 dark:bg-green-950/30 border-r px-2 py-1.5 text-xs sm:text-sm font-medium">
+                                                        Admin Expense
                                                     </th>
                                                     <th className="text-center bg-orange-50 dark:bg-orange-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
                                                         Physical
@@ -441,8 +450,11 @@ export default function TargetAchievement() {
                                                         <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold px-2 py-1.5 text-xs sm:text-sm">
                                                             {formatCurrency(item.beneficiary_share)}
                                                         </td>
-                                                        <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold border-r px-2 py-1.5 text-xs sm:text-sm">
+                                                        <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold px-2 py-1.5 text-xs sm:text-sm">
                                                             {formatCurrency(item.subsidy_share)}
+                                                        </td>
+                                                        <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold border-r px-2 py-1.5 text-xs sm:text-sm">
+                                                            {formatCurrency(item.admin_expense)}
                                                         </td>
                                                         <td className="text-center bg-orange-50/50 dark:bg-orange-950/20 font-semibold px-2 py-1.5 text-xs sm:text-sm">
                                                             {item.physical_balance.toLocaleString()}
@@ -468,8 +480,11 @@ export default function TargetAchievement() {
                                                     <td className="text-center text-green-600 px-2 py-1.5 text-xs sm:text-sm">
                                                         {formatCurrency(totals.beneficiary_share)}
                                                     </td>
-                                                    <td className="text-center text-green-600 border-r px-2 py-1.5 text-xs sm:text-sm">
+                                                    <td className="text-center text-green-600 px-2 py-1.5 text-xs sm:text-sm">
                                                         {formatCurrency(totals.subsidy_share)}
+                                                    </td>
+                                                    <td className="text-center text-green-600 border-r px-2 py-1.5 text-xs sm:text-sm">
+                                                        {formatCurrency(totals.admin_expense)}
                                                     </td>
                                                     <td className="text-center px-2 py-1.5 text-xs sm:text-sm">
                                                         {totals.physical_balance.toLocaleString()}
