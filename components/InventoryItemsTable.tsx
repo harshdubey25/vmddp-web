@@ -49,7 +49,7 @@ export const InventoryItemsTable: React.FC<InventoryItemsTableProps> = ({ items,
               {items.length === 0 ? (
                 <tr>
                   <td colSpan={2} className="px-6 py-8 text-center text-sm text-gray-500">
-                    No items added. Click "Add Item" to get started.
+                    No items added. Click &ldquo;Add Item&rdquo; to get started.
                   </td>
                 </tr>
               ) : (
