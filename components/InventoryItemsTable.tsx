@@ -1,8 +1,6 @@
 import { InventoryItem } from "@/types/subadmin";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import React, { useEffect, useState } from "react";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import React from "react";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 
 interface InventoryItemsTableProps {
@@ -11,29 +9,15 @@ interface InventoryItemsTableProps {
 }
 
 export const InventoryItemsTable: React.FC<InventoryItemsTableProps> = ({ items, onChange }) => {
-  const handleItemChange = (index: number, field: keyof InventoryItem, value: string | number) => {
-    const updated = items.map((item, i) =>
-      i === index ? { ...item, [field]: value } : item
-    );
-    onChange(updated);
-  };
-
   const handleStockItemSelect = (index: number, stockName: string) => {
-    const stock = stockItems?.find((s: any) => s.name === stockName);
     const updated = items.map((item, i) =>
-      i === index
-        ? {
-            ...item,
-            inventory_item: stockName,
-            rate: stock?.rate ?? ""
-          }
-        : item
+      i === index ? { inventory_item: stockName } : item
     );
     onChange(updated);
   };
 
   const handleAdd = () => {
-    onChange([...items, { inventory_item: "", quantity: 0, rate: "" }]);
+    onChange([...items, { inventory_item: "" }]);
   };
 
   const handleRemove = (index: number) => {
@@ -47,67 +31,71 @@ export const InventoryItemsTable: React.FC<InventoryItemsTableProps> = ({ items,
   });
 
   return (
-    <div>
-      <table className="min-w-full border text-sm">
-        <thead>
-          <tr>
-            <th className="border p-2">Item Name</th>
-            <th className="border p-2">Quantity</th>
-            <th className="border p-2">Rate</th>
-            <th className="border p-2">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item, idx) => {
-            const selectedStock = stockItems?.find((s: any) => s.name === item.inventory_item);
-            return (
-              <tr key={idx}>
-                <td className="border p-2">
-                  <Select
-                    value={item.inventory_item}
-                    onValueChange={value => handleStockItemSelect(idx, value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select item" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {stockItems?.map((stock: any) => (
-                        <SelectItem key={stock.name} value={stock.name}>
-                          {stock.item_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </td>
-                <td className="border p-2">
-                  <Input
-                    type="number"
-                    value={item.quantity}
-                    onChange={e => handleItemChange(idx, "quantity", Number(e.target.value))}
-                    placeholder="Quantity"
-                    hideSpinners
-                  />
-                </td>
-                <td className="border p-2">
-                  <Input
-                    type="number"
-                    value={item.rate ?? ""}
-                    onChange={e => handleItemChange(idx, "rate", e.target.value)}
-                    placeholder="Rate"
-                    hideSpinners
-                  />
-                </td>
-                <td className="border p-2">
-                  <Button type="button" variant="destructive" size="sm" onClick={() => handleRemove(idx)}>
-                    Remove
-                  </Button>
-                </td>
+    <div className="space-y-4">
+      <div className="rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                  Item Name
+                </th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-48">
+                  Action
+                </th>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <Button type="button" className="mt-2" onClick={handleAdd}>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {items.length === 0 ? (
+                <tr>
+                  <td colSpan={2} className="px-6 py-8 text-center text-sm text-gray-500">
+                    No items added. Click &ldquo;Add Item&rdquo; to get started.
+                  </td>
+                </tr>
+              ) : (
+                items.map((item, idx) => {
+                  return (
+                    <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <select
+                          value={item.inventory_item}
+                          onChange={(e) => handleStockItemSelect(idx, e.target.value)}
+                          className="h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary hover:border-gray-400 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <option value="">Select an item from the list</option>
+                          {stockItems?.map((stock: any) => (
+                            <option key={stock.name} value={stock.name}>
+                              {stock.item_name}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <Button 
+                          type="button" 
+                          variant="destructive" 
+                          onClick={() => handleRemove(idx)}
+                          className="h-11 px-6 shadow-sm hover:shadow transition-shadow"
+                        >
+                          Remove
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <Button 
+        type="button" 
+        onClick={handleAdd}
+        className="h-11 px-6 shadow-sm hover:shadow-md transition-shadow"
+        variant="outline"
+      >
+        <span className="text-lg mr-2">+</span>
         Add Item
       </Button>
     </div>

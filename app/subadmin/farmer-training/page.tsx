@@ -75,10 +75,7 @@ export default function FarmerTraining() {
   };
 
   const getTotalBudget = (app: Application) => {
-    const inventoryTotal = (app.inventory_items || []).reduce((sum, item) => {
-      return sum + ((item.quantity || 0) * (item.rate || 0));
-    }, 0);
-    return (app.training_material || 0) + (app.logistics || 0) + (app.refreshment || 0) + inventoryTotal;
+    return (app.training_material || 0) + (app.logistics || 0) + (app.refreshment || 0);
   };
 
   const handleExport = async () => {
