@@ -131,13 +131,6 @@ export default function AllTargetsReportPage() {
         return totals;
     }, [targetsData, componentNames]);
 
-    // Format currency in lakhs
-    const formatInLakhs = (amount: number) => {
-        if (amount === 0) return "0";
-        const inLakhs = amount / 100000;
-        return inLakhs.toFixed(3);
-    };
-
     // Format currency
     const formatCurrency = (amount: number) => {
         if (amount === 0) return "₹0";
@@ -279,7 +272,7 @@ export default function AllTargetsReportPage() {
                         Physical & Financial Targets - All Components
                     </CardTitle>
                     <CardDescription>
-                        District-wise breakdown of physical and financial targets for all components (Financial values in Lakhs)
+                        District-wise breakdown of physical and financial targets for all components
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -323,7 +316,7 @@ export default function AllTargetsReportPage() {
                                                         Physical
                                                     </th>
                                                     <th className="border text-center font-semibold min-w-[80px] bg-blue-50 p-2">
-                                                        Financial (₹ Lakhs)
+                                                        Financial (₹)
                                                     </th>
                                                 </Fragment>
                                             ))}
@@ -331,7 +324,7 @@ export default function AllTargetsReportPage() {
                                                 Physical
                                             </th>
                                             <th className="border text-center font-semibold min-w-[80px] bg-green-100 p-2">
-                                                Financial (₹ Lakhs)
+                                                Financial (₹)
                                             </th>
                                         </tr>
                                     </thead>
@@ -356,7 +349,7 @@ export default function AllTargetsReportPage() {
                                                                     {physicalValue}
                                                                 </td>
                                                                 <td className="border text-right p-2">
-                                                                    {formatInLakhs(financialValue)}
+                                                                    {formatCurrency(financialValue)}
                                                                 </td>
                                                             </Fragment>
                                                         );
@@ -365,7 +358,7 @@ export default function AllTargetsReportPage() {
                                                         {physicalData?.total || 0}
                                                     </td>
                                                     <td className="border text-right font-bold bg-green-50 p-2">
-                                                        {formatInLakhs(financialData?.total || 0)}
+                                                        {formatCurrency(financialData?.total || 0)}
                                                     </td>
                                                 </tr>
                                             );
@@ -381,7 +374,7 @@ export default function AllTargetsReportPage() {
                                                         {componentTotals[compName]?.physical || 0}
                                                     </td>
                                                     <td className="border text-right p-2">
-                                                        {formatInLakhs(componentTotals[compName]?.financial || 0)}
+                                                        {formatCurrency(componentTotals[compName]?.financial || 0)}
                                                     </td>
                                                 </Fragment>
                                             ))}
@@ -389,7 +382,7 @@ export default function AllTargetsReportPage() {
                                                 {targetsData.totals?.total_physical_target || 0}
                                             </td>
                                             <td className="border text-right bg-green-100 p-2">
-                                                {formatInLakhs(targetsData.totals?.total_financial_target || 0)}
+                                                {formatCurrency(targetsData.totals?.total_financial_target || 0)}
                                             </td>
                                         </tr>
                                         <tr className="bg-purple-50 font-bold">
@@ -402,7 +395,7 @@ export default function AllTargetsReportPage() {
                                             ))}
                                             <td className="border text-right p-2"></td>
                                             <td className="border text-right bg-purple-100 p-2">
-                                                {formatInLakhs(targetsData.totals?.admin_expense_target || 0)}
+                                                {formatCurrency(targetsData.totals?.admin_expense_target || 0)}
                                             </td>
                                         </tr>
                                         <tr className="bg-green-50 font-bold text-sm">
@@ -415,7 +408,7 @@ export default function AllTargetsReportPage() {
                                             ))}
                                             <td className="border text-right p-2"></td>
                                             <td className="border text-right bg-green-200 p-2">
-                                                {formatInLakhs((targetsData.totals?.total_financial_target || 0) + (targetsData.totals?.admin_expense_target || 0))}
+                                                {formatCurrency((targetsData.totals?.total_financial_target || 0) + (targetsData.totals?.admin_expense_target || 0))}
                                             </td>
                                         </tr>
                                     </tfoot>
