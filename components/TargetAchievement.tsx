@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Target, TrendingUp, IndianRupee, BarChart3, RefreshCw, Download } from "lucide-react";
+import { Target, TrendingUp, IndianRupee, BarChart3, RefreshCw, Download, FileSpreadsheet, FileText } from "lucide-react";
 import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
-import * as XLSX from "xlsx";
+
+import { ExportFormat } from "@/lib/export-report";
+import { useExport } from "@/hooks/use-export";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -16,6 +18,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 
 interface DistrictData {
@@ -62,7 +65,10 @@ export default function TargetAchievement() {
     const { toast } = useToast();
     const [selectedComponent, setSelectedComponent] = useState<string>("");
     const [selectedDistrict, setSelectedDistrict] = useState<string>("all");
-    const [isExporting, setIsExporting] = useState(false);
+
+    const { isExporting, handleExport: exportData } = useExport({
+        method: "vmddp_app.api.v1.accountant.export_target_and_achievement",
+    });
 
     const { data: componentsData } = useFrappeGetDocList<Component>("Component", {
         fields: ["name"],
@@ -97,7 +103,7 @@ export default function TargetAchievement() {
 
     const districtData = useMemo(() => {
         const data = apiResponse?.message?.districts || [];
-        return [...data].sort((a, b) => a.district.localeCompare(b.district));
+        return [...data]
     }, [apiResponse]);
 
     const totals = apiResponse?.message?.totals || {
@@ -132,75 +138,21 @@ export default function TargetAchievement() {
         });
     };
 
-    const handleExport = async () => {
-        setIsExporting(true);
-        toast({
-            title: "Export started",
-            description: "Generating report...",
-        });
-
-        try {
-            const headers = [
-                "District",
-                "Physical Target",
-                "Financial Target (Rs.)",
-                "Physical Achievement",
-                "Beneficiary Share (Rs.)",
-                "Subsidy Share (Rs.)",
-                "Admin Expense (Rs.)",
-                "Physical Balance",
-                "Financial Balance",
-            ];
-
-            const rows: (string | number)[][] = [];
-
-            districtData.forEach((item, index) => {
-                rows.push([
-                    item.district,
-                    item.physical_target,
-                    item.financial_target,
-                    item.physical_achievement,
-                    item.beneficiary_share,
-                    item.subsidy_share,
-                    item.admin_expense,
-                    item.physical_balance,
-                    item.financial_balance,
-                ]);
-            });
-
-            rows.push([
-                "TOTAL",
-                totals.physical_target,
-                totals.financial_target,
-                totals.physical_achievement,
-                totals.beneficiary_share,
-                totals.subsidy_share,
-                totals.admin_expense,
-                totals.physical_balance,
-                totals.financial_balance,
-            ]);
-
-            const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Target & Achievement");
-
-            const componentName = selectedComponent ? selectedComponent.replace(/\s+/g, "_") : "Component";
-            XLSX.writeFile(wb, `Target_Achievement_${componentName}.xlsx`);
-
-            toast({
-                title: "Export completed",
-                description: "Report downloaded successfully.",
-            });
-        } catch (error) {
-            console.error("Export error:", error);
-            toast({
-                title: "Export failed",
-                description: "Failed to generate report. Please try again.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsExporting(false);
+    const handleExport = (format: ExportFormat, allComponents = false) => {
+        const params: Record<string, string> = {};
+        if (!allComponents && selectedComponent) {
+            params.component = selectedComponent;
         }
+        if (selectedDistrict !== "all") {
+            params.district = selectedDistrict;
+        }
+        exportData({
+            params,
+            format,
+            filename: allComponents
+                ? "Target_Achievement_All_Components"
+                : `Target_Achievement_${selectedComponent.replace(/\s+/g, "_")}`,
+        });
     };
 
     return (
@@ -245,10 +197,42 @@ export default function TargetAchievement() {
                             <Button variant="outline" size="icon" onClick={handleRefresh}>
                                 <RefreshCw className="h-4 w-4" />
                             </Button>
-                            <Button onClick={handleExport} disabled={isExporting || isLoading}>
-                                <Download className="h-4 w-4 mr-2" />
-                                {isExporting ? "Exporting..." : "Export Excel"}
-                            </Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="default"
+                                        disabled={isExporting || isLoading}
+                                    >
+                                        <Download className="h-4 w-4 mr-2" />
+                                        {isExporting ? "Exporting..." : "Export"}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                        onClick={() => handleExport("excel")}
+                                        disabled={!selectedComponent}
+                                    >
+                                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                        Export as Excel
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={() => handleExport("pdf")}
+                                        disabled={!selectedComponent}
+                                    >
+                                        <FileText className="h-4 w-4 mr-2" />
+                                        Export as PDF
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => handleExport("excel", true)}>
+                                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                        All Components (Excel)
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleExport("pdf", true)}>
+                                        <FileText className="h-4 w-4 mr-2" />
+                                        All Components (PDF)
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     </div>
 
