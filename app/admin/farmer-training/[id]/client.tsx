@@ -21,10 +21,6 @@ interface PDFTableEntry {
     pdf_file: string;
 }
 
-interface InventoryItem {
-    inventory_item: string;
-}
-
 interface Application {
     name: string;
     event_name: string;
@@ -44,7 +40,6 @@ interface Application {
     refreshment: number;
     docstatus: number;
     creation: string;
-    inventory_items?: InventoryItem[];
 }
 
 const EXPENSE_PER_HEAD = 360;
@@ -517,26 +512,6 @@ export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
                                             <p className="font-semibold">{formatCurrency(application.refreshment)}</p>
                                         </div>
                                     </div>
-                                    {/* Inventory Items Section */}
-                                    {application.inventory_items && application.inventory_items.length > 0 && (
-                                        <div className="mt-6">
-                                            <p className="font-semibold mb-2">Inventory Items</p>
-                                            <table className="min-w-full border text-sm">
-                                                <thead>
-                                                    <tr>
-                                                        <th className="border p-2">Item Name</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {application.inventory_items.map((item: any, idx: number) => (
-                                                        <tr key={idx}>
-                                                            <td className="border p-2">{item.inventory_item}</td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    )}
                                     <div className="border-t pt-4">
                                         <div className="flex justify-between items-center">
                                             <span className="font-semibold">Balance Remaining</span>

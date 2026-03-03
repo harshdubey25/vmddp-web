@@ -49,7 +49,6 @@ export default function FarmerTraining() {
       "training_material",
       "logistics",
       "refreshment",
-      "inventory_items",
       "docstatus",
       "creation"
     ],

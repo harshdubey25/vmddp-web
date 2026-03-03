@@ -12,9 +12,8 @@ import {
     validateAndCompressImages,
     uploadImagesWithCompression,
 } from "@/lib/image-utils";
+import { parseFrappeError } from "@/lib/frappe-error-parser";
 import { Button } from "@/components/ui/button";
-import { InventoryItem } from "@/types/subadmin";
-import { InventoryItemsTable } from "@/components/InventoryItemsTable";
 import {
     Card,
     CardContent,
@@ -153,7 +152,6 @@ export default function FarmerTrainingForm() {
         logistics: "",
         refreshment: "",
         totalAmount: "0",
-        inventoryItems: [],
     });
 
     const { data: districtData } = useFrappeGetDocList("District Master", {
@@ -232,7 +230,7 @@ export default function FarmerTrainingForm() {
 
     const handleInputChange = (
         field: keyof FarmerTrainingFormData,
-        value: string | Date | undefined | InventoryItem[],
+        value: string | Date | undefined,
     ) => {
         if (field === "district") {
             setFormData((prev) => ({
@@ -265,8 +263,6 @@ export default function FarmerTrainingForm() {
                 return;
             }
             setFormData((prev) => ({ ...prev, [field]: value }));
-        } else if (field === "inventoryItems") {
-            setFormData((prev) => ({ ...prev, inventoryItems: value as InventoryItem[] }));
         } else {
             setFormData((prev) => ({ ...prev, [field]: value }));
         }
@@ -548,7 +544,6 @@ export default function FarmerTrainingForm() {
                 training_material: parseFloat(formData.trainingMaterial) || 0,
                 logistics: parseFloat(formData.logistics) || 0,
                 refreshment: parseFloat(formData.refreshment) || 0,
-                inventory_items: formData.inventoryItems,
             });
 
             toast({
@@ -559,13 +554,15 @@ export default function FarmerTrainingForm() {
 
             router.push("/subadmin/farmer-training");
         } catch (error) {
-            // Error already handled by toast
+            const { title, message } = parseFrappeError(
+                error,
+                "Submission Failed",
+                "Failed to submit application. Please try again."
+            );
+            
             toast({
-                title: "Submission Failed",
-                description:
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to submit application. Please try again.",
+                title,
+                description: message,
                 variant: "destructive",
             });
         } finally {
@@ -1062,7 +1059,7 @@ export default function FarmerTrainingForm() {
                                     Fund Allocation
                                 </CardTitle>
                                 <CardDescription>
-                                    Allocate budget across different expense categories, including inventory items
+                                    Allocate budget across different expense categories
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -1123,14 +1120,6 @@ export default function FarmerTrainingForm() {
                                             hideSpinners
                                         />
                                     </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Inventory Items</Label>
-                                    <InventoryItemsTable
-                                        items={formData.inventoryItems}
-                                        onChange={(items) => handleInputChange("inventoryItems", items)}
-                                    />
                                 </div>
 
                                 <div className="border-t pt-4 space-y-3">
