@@ -105,6 +105,12 @@ export interface ApplicationDetails {
     bank_name: string;
     account_number: string;
     ifsc_code: string;
+    response?: Array<{
+        question: string;
+        type: string;
+        options: string[] | null;
+        value: string;
+    }>;
 }
 
 export interface QuotaDetails {
@@ -132,6 +138,7 @@ export interface DBTClaim {
     type_of_animal: string | null;
     number_of_animals_benefitted: number;
     land_covered: number;
+    fodder_seed_variety?: string;
     creation: string;
     application_id: string;
     first_name: string;

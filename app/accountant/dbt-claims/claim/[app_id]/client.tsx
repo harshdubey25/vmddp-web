@@ -51,6 +51,7 @@ export default function ClaimForm({
         typeOfAnimal: "",
         land_covered: "",
         numberOfAnimalsBenefitted: "",
+        fodderSeedVariety: "",
     });
     const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -85,6 +86,15 @@ export default function ClaimForm({
         component ? undefined : null // Only fetch if component is available
     );
 
+    const { data: fodderSeedList, isLoading: fodderSeedLoading } = useFrappeGetDocList(
+        "Fodder Seed Master",
+        {
+            fields: ["name", "fodder_seed"],
+            orderBy: { field: "fodder_seed", order: "asc" }
+        },
+        component === "Fodder Seed" ? undefined : null
+    );
+
     const { upload, loading: uploadLoading } = useFrappeFileUpload();
     const { createDoc, loading: createLoading } = useFrappeCreateDoc();
 
@@ -107,7 +117,7 @@ export default function ClaimForm({
 
     // Check if all required fields are filled
     const isFormValid = () => {
-        return !!(
+        const baseFieldsValid = !!(
             formData.invoiceNumber &&
             formData.purchaseDate &&
             formData.quantity &&
@@ -115,6 +125,12 @@ export default function ClaimForm({
             formData.typeOfAnimal &&
             formData.acknowledgement
         );
+        
+        if (beneficiary?.component_name === "Fodder Seed") {
+            return baseFieldsValid && !!formData.fodderSeedVariety && !!formData.land_covered;
+        }
+        
+        return baseFieldsValid;
     };
 
     // Calculate eligible DBT amount based on form input and subsidy percent or rate_per_kg
@@ -131,6 +147,11 @@ export default function ClaimForm({
     // Helper to get full name
     const getFullName = (b: ApplicationDetails) => {
         return [b.first_name, b.mid_name, b.last_name].filter(Boolean).join(" ");
+    };
+
+    const getResponseValue = (questionText: string) => {
+        const answer = beneficiary?.response?.find(r => r.question === questionText);
+        return answer?.value || "-";
     };
 
     // Handle file selection
@@ -158,6 +179,7 @@ export default function ClaimForm({
             typeOfAnimal: "",
             land_covered: "",
             numberOfAnimalsBenefitted: "",
+            fodderSeedVariety: "",
         });
         setInvoiceFile(null);
         if (fileInputRef.current) {
@@ -182,6 +204,15 @@ export default function ClaimForm({
             toast({
                 title: "Missing Fields",
                 description: "Please fill all required fields.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        if (beneficiary?.component_name === "Fodder Seed" && (!formData.fodderSeedVariety || !formData.land_covered)) {
+            toast({
+                title: "Missing Fields",
+                description: "Please fill in Fodder Seed Variety and Land Covered fields.",
                 variant: "destructive",
             });
             return;
@@ -239,6 +270,7 @@ export default function ClaimForm({
                 type_of_animal: formData.typeOfAnimal,
                 land_covered: formData.land_covered ? parseFloat(formData.land_covered) : undefined,
                 number_of_animals_benefitted: parseInt(formData.numberOfAnimalsBenefitted),
+                fodder_seed_variety: formData.fodderSeedVariety || undefined,
             });
 
             toast({
@@ -347,7 +379,7 @@ export default function ClaimForm({
                                         <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                                         <div>
                                             <p className="text-sm text-muted-foreground">Location</p>
-                                            <p className="font-medium">{beneficiary.village}</p>
+                                            <p className="font-medium">{beneficiary.village || "-"}</p>
                                             <p className="text-sm text-muted-foreground">{beneficiary.taluka}, {beneficiary.district}</p>
                                         </div>
                                     </div>
@@ -367,6 +399,18 @@ export default function ClaimForm({
                                         </div>
                                     </div>
                                 </div>
+                                {beneficiary.response && beneficiary.response.length > 0 && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t">
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Type of Seed</p>
+                                            <p className="font-medium">{getResponseValue("Fodder Seed Variety")}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Requested Quantity</p>
+                                            <p className="font-medium">{getResponseValue("Quantity")}</p>
+                                        </div>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 
@@ -565,17 +609,45 @@ export default function ClaimForm({
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                {beneficiary.component_name === "Fodder Seed" && (<div className="space-y-2">
-                                    <Label>Land covered *</Label>
-                                    <Input
-                                        type="number"
-                                        placeholder="Enter land covered"
-                                        value={formData.land_covered}
-                                        onChange={(e) => handleInputChange("land_covered", e.target.value)}
-                                        min="1"
-                                        data-testid="input-land-covered"
-                                    />
-                                </div>)}
+                                {beneficiary.component_name === "Fodder Seed" && (
+                                    <>
+                                        <div className="space-y-2">
+                                            <Label>Fodder Seed Variety *</Label>
+                                            <Select
+                                                value={formData.fodderSeedVariety}
+                                                onValueChange={(value) => handleInputChange("fodderSeedVariety", value)}
+                                            >
+                                                <SelectTrigger data-testid="select-fodder-seed-variety">
+                                                    <SelectValue placeholder="Select fodder seed variety" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {fodderSeedLoading ? (
+                                                        <div className="p-2 text-sm text-muted-foreground">Loading...</div>
+                                                    ) : fodderSeedList && fodderSeedList.length > 0 ? (
+                                                        fodderSeedList.map((seed: any) => (
+                                                            <SelectItem key={seed.name} value={seed.name}>
+                                                                {seed.fodder_seed}
+                                                            </SelectItem>
+                                                        ))
+                                                    ) : (
+                                                        <div className="p-2 text-sm text-muted-foreground">No varieties found</div>
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Land covered *</Label>
+                                            <Input
+                                                type="number"
+                                                placeholder="Enter land covered"
+                                                value={formData.land_covered}
+                                                onChange={(e) => handleInputChange("land_covered", e.target.value)}
+                                                min="1"
+                                                data-testid="input-land-covered"
+                                            />
+                                        </div>
+                                    </>
+                                )}
 
                                 <div className="space-y-2">
                                     <Label>Number of Animals Benefitted</Label>
