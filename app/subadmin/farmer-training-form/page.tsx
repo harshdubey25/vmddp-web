@@ -956,6 +956,7 @@ export default function FarmerTrainingForm() {
                                             type="number"
                                             min="1"
                                             max="50"
+                                            hideSpinners
                                             value={formData.numberOfParticipants}
                                             onChange={(e) => handleInputChange("numberOfParticipants", e.target.value)}
                                             placeholder="Enter number (max 50)"
@@ -970,6 +971,7 @@ export default function FarmerTrainingForm() {
                                             min="0"
                                             max={totalParticipants || 50}
                                             value={formData.numberOfMale}
+                                            hideSpinners
                                             onChange={(e) => handleInputChange("numberOfMale", e.target.value)}
                                             placeholder="Enter male participants"
                                             data-testid="input-male-participants"
@@ -985,6 +987,7 @@ export default function FarmerTrainingForm() {
                                             max={totalParticipants || 50}
                                             value={formData.numberOfFemale}
                                             onChange={(e) => handleInputChange("numberOfFemale", e.target.value)}
+                                            hideSpinners
                                             placeholder="Enter female participants"
                                             data-testid="input-female-participants"
                                             className={genderExceedsTotal ? "border-red-500" : ""}
