@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { DBTClaim, Component } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,7 @@ interface DisbursedClaimsTableProps {
     showFilters?: boolean;
     defaultDistrict?: string | null;
     defaultComponent?: string | null;
+    onFiltersChange?: (filters: { component: string | null; district: string | null; searchText: string }) => void;
 }
 
 export default function DisbursedClaimsTable({
@@ -25,12 +26,23 @@ export default function DisbursedClaimsTable({
     showFilters = true,
     defaultDistrict = null,
     defaultComponent = null,
+    onFiltersChange,
 }: DisbursedClaimsTableProps) {
     // Disbursed claims filters
     const [disbursedSearchText, setDisbursedSearchText] = useState("");
     const [disbursedDistrict, setDisbursedDistrict] = useState<string | null>(defaultDistrict);
     const [disbursedComponent, setDisbursedComponent] = useState<string | null>(defaultComponent);
     const [disbursedPage, setDisbursedPage] = useState(1);
+
+    useEffect(() => {
+        if (onFiltersChange) {
+            onFiltersChange({
+                component: disbursedComponent,
+                district: disbursedDistrict,
+                searchText: disbursedSearchText,
+            });
+        }
+    }, [disbursedComponent, disbursedDistrict, disbursedSearchText]);
 
     // Fetch components for filter
     const { data: components } = useFrappeGetDocList<Pick<Component, 'name' | 'subsidy_percent' | 'maximum_subsidy_amount' | 'rate_per_kg' | 'max_quantity' | 'multiple_claims_allowed'>>("Component", {

@@ -11,20 +11,22 @@ import {
     Search,
     ChevronLeft,
     ChevronRight,
+    FileSpreadsheet,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { Component, DBTClaim } from "@/types";
 import DisbursedClaimsTable from "@/components/DisbursedClaimsTable";
-import * as XLSX from "xlsx";
+import { exportReport, type ExportFormat } from "@/lib/export-report";
+import { useToast } from "@/hooks/use-toast";
 interface DBTBeneficiary {
     name: string;
     first_name: string;
@@ -57,6 +59,9 @@ const maskAccountNumber = (accountNumber?: string) => {
 };
 
 export default function DBTClaims() {
+    const { toast } = useToast();
+    const [isExporting, setIsExporting] = useState(false);
+    const [activeTab, setActiveTab] = useState("new-claim");
     const { data: components } = useFrappeGetDocList<Pick<Component, 'name' | 'subsidy_percent' | 'maximum_subsidy_amount' | 'rate_per_kg' | 'max_quantity' | 'multiple_claims_allowed' | 'unit'>>("Component", { fields: ['name', 'subsidy_percent', 'maximum_subsidy_amount', 'rate_per_kg', 'max_quantity', 'multiple_claims_allowed', 'unit'], filters: [['for_dbt_claims', '=', '1']] });
     const [selectedComponent, setSelectedComponent] = useState<{ name: string, subsidy_percent: number, maximum_subsidy_amount: number, rate_per_kg: number, max_quantity: number, multiple_claims_allowed: boolean, unit: string } | null>(null);
 
@@ -71,6 +76,23 @@ export default function DBTClaims() {
     const [searchText, setSearchText] = useState("");
     const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
+
+    // Disbursed history filters (for export when on history tab)
+    const [disbursedFilters, setDisbursedFilters] = useState<{
+        component: string | null;
+        district: string | null;
+        searchText: string;
+    }>({
+        component: null,
+        district: null,
+        searchText: "",
+    });
+
+    // Memoize the filter change callback
+    const handleDisbursedFiltersChange = useCallback((filters: { component: string | null; district: string | null; searchText: string }) => {
+        console.log('Disbursed filters updated:', filters);
+        setDisbursedFilters(filters);
+    }, []);
 
     // Fetch districts for filter
     const { data: districts } = useFrappeGetDocList<{ name: string }>("District Master", { fields: ["name"], limit: 100 });
@@ -132,42 +154,54 @@ export default function DBTClaims() {
         total_components: components?.length || 0,
     };
 
-    const handleExport = () => {
-        if (!disbursedClaims || disbursedClaims.length === 0) return;
-
-        const exportData = disbursedClaims.map((claim) => {
-            const beneficiaryName = [claim.first_name, claim.mid_name, claim.last_name].filter(Boolean).join(' ');
-            return {
-                "Date": new Date(claim.creation).toLocaleDateString("en-IN"),
-                "Claim ID": claim.dbt_claim_id,
-                "Application ID": claim.application_id,
-                "Beneficiary Name": beneficiaryName,
-                "Aadhar Number": claim.aadhar_number,
-                "District": claim.district,
-                "Component": claim.component,
-                "Invoice Number": claim.invoice_number,
-                "Purchase Date": claim.purchase_date,
-                "Quantity": claim.quantity,
-                "Total Amount": claim.total_amount,
-                "Subsidy Given": claim.subsidy_given ? parseFloat(claim.subsidy_given) : 0,
-            };
+    const handleExport = async (format: ExportFormat = "excel") => {
+        setIsExporting(true);
+        toast({
+            title: "Export started",
+            description: `Generating ${format.toUpperCase()} report...`,
         });
 
-        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        try {
+            const params: Record<string, string> = {};
 
-        const maxWidth = 50;
-        const colWidths = Object.keys(exportData[0] || {}).map(key => {
-            const maxLength = Math.max(
-                key.length,
-                ...exportData.map(row => String(row[key as keyof typeof row] || "").length)
-            );
-            return { wch: Math.min(maxLength + 2, maxWidth) };
-        });
-        worksheet["!cols"] = colWidths;
+            // Use filters based on active tab
+            if (activeTab === "history") {
+                // Export from Disbursed History tab
+                console.log('Exporting from history tab with filters:', disbursedFilters);
+                if (disbursedFilters.district) params.district = disbursedFilters.district;
+                if (disbursedFilters.searchText) params.search_text = disbursedFilters.searchText;
+                if (disbursedFilters.component) params.component_filter = disbursedFilters.component;
+            } else {
+                // Export from New Claim tab
+                console.log('Exporting from new claim tab');
+                if (selectedDistrict) params.district = selectedDistrict;
+                if (searchText) params.search_text = searchText;
+                if (selectedComponent?.name) params.component_filter = selectedComponent.name;
+            }
 
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "DBT Claims");
-        XLSX.writeFile(workbook, `dbt_claims_${new Date().toISOString().split('T')[0]}.xlsx`);
+            console.log('Export params:', params);
+
+            await exportReport({
+                method: "vmddp_app.api.v1.accountant.export_dbt_completed_list",
+                params,
+                format,
+                filename: "dbt-claims",
+            });
+
+            toast({
+                title: "Export completed",
+                description: "Report downloaded successfully.",
+            });
+        } catch (error) {
+            console.error("Export error:", error);
+            toast({
+                title: "Export failed",
+                description: "Failed to export report. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     return (
@@ -184,10 +218,37 @@ export default function DBTClaims() {
                                 <p className="text-muted-foreground">Process Direct Benefit Transfer claims for beneficiaries</p>
                             </div>
                         </div>
-                        <Button variant="outline" data-testid="button-export" onClick={handleExport} disabled={!disbursedClaims || disbursedClaims.length === 0}>
-                            <Download className="h-4 w-4 mr-2" />
-                            Export
-                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    data-testid="button-export"
+                                    disabled={isExporting}
+                                >
+                                    {isExporting ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            Exporting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Download className="h-4 w-4 mr-2" />
+                                            Export
+                                        </>
+                                    )}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleExport("excel")} data-testid="export-excel">
+                                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                    Export as Excel
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleExport("pdf")} data-testid="export-pdf">
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    Export as PDF
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -237,7 +298,7 @@ export default function DBTClaims() {
                         </Card>
                     </div>
 
-                    <Tabs defaultValue="new-claim" className="space-y-4">
+                    <Tabs defaultValue="new-claim" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                         <TabsList>
                             <TabsTrigger value="new-claim">New Claim</TabsTrigger>
                             <TabsTrigger value="history">Disbursed History ({disbursedClaims?.length || 0})</TabsTrigger>
@@ -442,7 +503,9 @@ export default function DBTClaims() {
                         </TabsContent>
 
                         <TabsContent value="history">
-                            <DisbursedClaimsTable />
+                            <DisbursedClaimsTable
+                                onFiltersChange={handleDisbursedFiltersChange}
+                            />
                         </TabsContent>
                     </Tabs>
 
