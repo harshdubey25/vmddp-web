@@ -17,7 +17,7 @@ import {
     RefreshCw
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { exportReport } from "@/lib/export-report";
+import { useExport } from "@/hooks/use-export";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +62,11 @@ export default function ComponentAllocation() {
     const [completedPage, setCompletedPage] = useState(1)
 
     const { toast } = useToast();
-    const [isExporting, setIsExporting] = useState(false);
+
+    const { isExporting, handleExport: exportData } = useExport({
+        method: "vmddp_app.api.v1.component_allocation.export_completed_component_allocation_list",
+        filename: "component-allocation-report",
+    });
 
     const { data: districts } = useFrappeGetDocList('District Master')
     const { data: components } = useFrappeGetDocList('Component', {
@@ -129,41 +133,14 @@ export default function ComponentAllocation() {
         handleFilterChange();
     };
 
-    const handleExport = async (format: "excel" | "pdf") => {
-        setIsExporting(true);
-        toast({
-            title: "Export started",
-            description: `Generating ${format.toUpperCase()} report...`,
-        });
+    const handleExport = (format: "excel" | "pdf") => {
+        const params: Record<string, string> = {};
 
-        try {
-            const params: Record<string, string> = {};
+        if (aadharFilter) params.search_text = aadharFilter;
+        if (componentFilter !== "all") params.component = componentFilter;
+        if (districtFilter !== "all") params.district = districtFilter;
 
-            if (aadharFilter) params.search_text = aadharFilter;
-            if (componentFilter !== "all") params.component = componentFilter;
-            if (districtFilter !== "all") params.district = districtFilter;
-
-            await exportReport({
-                method: "vmddp_app.api.v1.component_allocation.export_completed_component_allocation_list",
-                params,
-                format,
-                filename: "component-allocation-report",
-            });
-
-            toast({
-                title: "Export completed",
-                description: "Report downloaded successfully.",
-            });
-        } catch (error) {
-            console.error("Export error:", error);
-            toast({
-                title: "Export failed",
-                description: "Failed to export report. Please try again.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsExporting(false);
-        }
+        exportData({ params, format });
     };
 
     return (
