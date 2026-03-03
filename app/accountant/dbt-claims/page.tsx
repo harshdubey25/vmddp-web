@@ -3,7 +3,6 @@ import Link from "next/link";
 import {
     FileText,
     User,
-    Download,
     CheckCircle,
     Banknote,
     Info,
@@ -11,7 +10,6 @@ import {
     Search,
     ChevronLeft,
     ChevronRight,
-    FileSpreadsheet,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
@@ -77,7 +74,6 @@ export default function DBTClaims() {
     const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Disbursed history filters (for export when on history tab)
     const [disbursedFilters, setDisbursedFilters] = useState<{
         component: string | null;
         district: string | null;
@@ -88,9 +84,7 @@ export default function DBTClaims() {
         searchText: "",
     });
 
-    // Memoize the filter change callback
     const handleDisbursedFiltersChange = useCallback((filters: { component: string | null; district: string | null; searchText: string }) => {
-        console.log('Disbursed filters updated:', filters);
         setDisbursedFilters(filters);
     }, []);
 
@@ -164,20 +158,9 @@ export default function DBTClaims() {
         try {
             const params: Record<string, string> = {};
 
-            // Use filters based on active tab
-            if (activeTab === "history") {
-                // Export from Disbursed History tab
-                console.log('Exporting from history tab with filters:', disbursedFilters);
-                if (disbursedFilters.district) params.district = disbursedFilters.district;
-                if (disbursedFilters.searchText) params.search_text = disbursedFilters.searchText;
-                if (disbursedFilters.component) params.component_filter = disbursedFilters.component;
-            } else {
-                // Export from New Claim tab
-                console.log('Exporting from new claim tab');
-                if (selectedDistrict) params.district = selectedDistrict;
-                if (searchText) params.search_text = searchText;
-                if (selectedComponent?.name) params.component_filter = selectedComponent.name;
-            }
+            if (disbursedFilters.district) params.district = disbursedFilters.district;
+            if (disbursedFilters.searchText) params.search_text = disbursedFilters.searchText;
+            if (disbursedFilters.component) params.component_filter = disbursedFilters.component;
 
             console.log('Export params:', params);
 
@@ -218,37 +201,6 @@ export default function DBTClaims() {
                                 <p className="text-muted-foreground">Process Direct Benefit Transfer claims for beneficiaries</p>
                             </div>
                         </div>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    data-testid="button-export"
-                                    disabled={isExporting}
-                                >
-                                    {isExporting ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                            Exporting...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Download className="h-4 w-4 mr-2" />
-                                            Export
-                                        </>
-                                    )}
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleExport("excel")} data-testid="export-excel">
-                                    <FileSpreadsheet className="h-4 w-4 mr-2" />
-                                    Export as Excel
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleExport("pdf")} data-testid="export-pdf">
-                                    <FileText className="h-4 w-4 mr-2" />
-                                    Export as PDF
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -505,6 +457,8 @@ export default function DBTClaims() {
                         <TabsContent value="history">
                             <DisbursedClaimsTable
                                 onFiltersChange={handleDisbursedFiltersChange}
+                                onExport={handleExport}
+                                isExporting={isExporting}
                             />
                         </TabsContent>
                     </Tabs>

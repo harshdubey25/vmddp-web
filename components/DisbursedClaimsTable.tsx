@@ -6,8 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, ChevronLeft, ChevronRight, Loader2, ExternalLink } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Loader2, ExternalLink, Download, FileSpreadsheet, FileText } from "lucide-react";
+import { type ExportFormat } from "@/lib/export-report";
 
 const PAGE_SIZE = 20;
 
@@ -18,6 +20,8 @@ interface DisbursedClaimsTableProps {
     defaultDistrict?: string | null;
     defaultComponent?: string | null;
     onFiltersChange?: (filters: { component: string | null; district: string | null; searchText: string }) => void;
+    onExport?: (format: ExportFormat) => void;
+    isExporting?: boolean;
 }
 
 export default function DisbursedClaimsTable({
@@ -27,6 +31,8 @@ export default function DisbursedClaimsTable({
     defaultDistrict = null,
     defaultComponent = null,
     onFiltersChange,
+    onExport,
+    isExporting = false,
 }: DisbursedClaimsTableProps) {
     // Disbursed claims filters
     const [disbursedSearchText, setDisbursedSearchText] = useState("");
@@ -73,8 +79,45 @@ export default function DisbursedClaimsTable({
     return (
         <Card data-testid="card-disbursed-history">
             <CardHeader>
-                <CardTitle>{title}</CardTitle>
-                <CardDescription>{description}</CardDescription>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>{title}</CardTitle>
+                        <CardDescription>{description}</CardDescription>
+                    </div>
+                    {onExport && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    data-testid="button-export"
+                                    disabled={isExporting}
+                                >
+                                    {isExporting ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            Exporting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Download className="h-4 w-4 mr-2" />
+                                            Export
+                                        </>
+                                    )}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => onExport("excel")} data-testid="export-excel">
+                                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                    Export as Excel
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onExport("pdf")} data-testid="export-pdf">
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    Export as PDF
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
+                </div>
             </CardHeader>
             <CardContent className="space-y-4">
                 {/* Filters */}
