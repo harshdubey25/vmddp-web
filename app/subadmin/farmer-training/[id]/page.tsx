@@ -58,9 +58,6 @@ interface Application {
   refreshment: number;
   docstatus: number;
   creation: string;
-  inventory_items?: Array<{
-    inventory_item: string;
-  }>;
 }
 
 const EXPENSE_PER_HEAD = 360;
@@ -393,28 +390,6 @@ export default function ViewFarmerTrainingApplication() {
                       <p className="font-semibold">{formatCurrency(application.refreshment)}</p>
                     </div>
                   </div>
-                  {/* Inventory Items Table */}
-                  {Array.isArray(application.inventory_items) && application.inventory_items.length > 0 && (
-                    <div className="mt-6">
-                      <h3 className="font-semibold mb-2">Inventory Items</h3>
-                      <div className="overflow-x-auto">
-                        <table className="min-w-full border text-sm">
-                          <thead>
-                            <tr className="bg-muted">
-                              <th className="px-3 py-2 border">Item Name</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {application.inventory_items.map((item: any, idx: number) => (
-                              <tr key={idx}>
-                                <td className="px-3 py-2 border">{item.inventory_item}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
                   <div className="border-t pt-4">
                     <div className="flex justify-between items-center">
                       <span className="font-semibold">Balance Remaining</span>
