@@ -10,7 +10,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Check, Loader2, Upload } from "lucide-react";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Check, Loader2, Upload, Plus } from "lucide-react";
 import { useFrappeCreateDoc, useFrappeFileUpload, useFrappeGetDocList } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
 
@@ -32,7 +40,7 @@ export default function ParantageDetailsForm({
     const { toast } = useToast();
     const { createDoc, loading } = useFrappeCreateDoc();
     const { upload, loading: uploading, progress } = useFrappeFileUpload();
-    const { data: agencies } = useFrappeGetDocList<{
+    const { data: agencies, mutate: mutateAgencies } = useFrappeGetDocList<{
         name: string;
         agency_name: string;
     }>("Agency", {
@@ -45,6 +53,9 @@ export default function ParantageDetailsForm({
     const [certifiedByAgency, setCertifiedByAgency] = useState<string>("");
     const [certificateFile, setCertificateFile] = useState<File | null>(null);
     const [certificateUrl, setCertificateUrl] = useState<string>("");
+    const [showNewAgencyDialog, setShowNewAgencyDialog] = useState(false);
+    const [newAgencyName, setNewAgencyName] = useState("");
+    const [creatingAgency, setCreatingAgency] = useState(false);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -71,6 +82,44 @@ export default function ParantageDetailsForm({
                 variant: "destructive",
             });
             setCertificateFile(null);
+        }
+    };
+
+    const handleCreateNewAgency = async () => {
+        if (!newAgencyName.trim()) {
+            toast({
+                title: "Validation Error",
+                description: "Please enter an agency name",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setCreatingAgency(true);
+        try {
+            const newAgency = await createDoc("Agency", {
+                agency_name: newAgencyName.trim(),
+            });
+
+            toast({
+                title: "Success",
+                description: "Agency created successfully",
+            });
+
+            await mutateAgencies();
+
+            setCertifiedByAgency(newAgency.name);
+
+            setShowNewAgencyDialog(false);
+            setNewAgencyName("");
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error?.message || "Failed to create agency",
+                variant: "destructive",
+            });
+        } finally {
+            setCreatingAgency(false);
         }
     };
 
@@ -167,20 +216,35 @@ export default function ParantageDetailsForm({
                     <Label className="text-xs">Certified By Agency *</Label>
                     <Select
                         value={certifiedByAgency}
-                        onValueChange={setCertifiedByAgency}
+                        onValueChange={(value) => {
+                            if (value === "add_new") {
+                                setShowNewAgencyDialog(true);
+                            } else {
+                                setCertifiedByAgency(value);
+                            }
+                        }}
                     >
                         <SelectTrigger data-testid={`select-agency-${entryId}`}>
                             <SelectValue placeholder="Select agency" />
                         </SelectTrigger>
                         <SelectContent>
-                            {agencies?.map((agency) => (
-                                <SelectItem
-                                    key={agency.name}
-                                    value={agency.name}
-                                >
-                                    {agency.agency_name}
-                                </SelectItem>
-                            ))}
+                            <SelectItem value="add_new" className="text-primary font-medium">
+                                + Add New Agency
+                            </SelectItem>
+                            {agencies && agencies.length > 0 ? (
+                                agencies.map((agency) => (
+                                    <SelectItem
+                                        key={agency.name}
+                                        value={agency.name}
+                                    >
+                                        {agency.agency_name}
+                                    </SelectItem>
+                                ))
+                            ) : (
+                                <div className="p-2 text-xs text-muted-foreground">
+                                    No agencies found
+                                </div>
+                            )}
                         </SelectContent>
                     </Select>
                 </div>
@@ -209,6 +273,66 @@ export default function ParantageDetailsForm({
                     Cancel
                 </Button>
             </div>
+
+            {/* New Agency Dialog */}
+            <Dialog open={showNewAgencyDialog} onOpenChange={setShowNewAgencyDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add New Agency</DialogTitle>
+                        <DialogDescription>
+                            Create a new agency to certify parantage confirmations
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="agency-name">Agency Name *</Label>
+                            <Input
+                                id="agency-name"
+                                placeholder="Enter agency name"
+                                value={newAgencyName}
+                                onChange={(e) => setNewAgencyName(e.target.value)}
+                                disabled={creatingAgency}
+                                data-testid="input-new-agency-name"
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        handleCreateNewAgency();
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setShowNewAgencyDialog(false);
+                                setNewAgencyName("");
+                            }}
+                            disabled={creatingAgency}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleCreateNewAgency}
+                            disabled={creatingAgency || !newAgencyName.trim()}
+                            data-testid="button-create-agency"
+                        >
+                            {creatingAgency ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Creating...
+                                </>
+                            ) : (
+                                <>
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Create Agency
+                                </>
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

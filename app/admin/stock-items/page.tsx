@@ -37,10 +37,16 @@ interface StockItem {
     item_name: string;
     unit_of_measure: string;
     rate: number;
+    stock_item_group: string;
 }
 
 interface Unit {
     name: string;
+}
+
+interface ItemGroup {
+    name: string;
+    group_name: string;
 }
 
 export default function StockItemsManagement() {
@@ -48,14 +54,21 @@ export default function StockItemsManagement() {
     const [itemName, setItemName] = useState<string>("");
     const [unitOfMeasure, setUnitOfMeasure] = useState<string>("");
     const [rate, setRate] = useState<string>("");
+    const [itemGroup, setItemGroup] = useState<string>("");
 
     const { data: units, isLoading: loadingUnits } = useFrappeGetDocList<Unit>("Unit", {
         fields: ["name"],
         limit: 100,
     });
 
+    const { data: itemGroups, isLoading: loadingItemGroups } = useFrappeGetDocList<ItemGroup>("Item Group", {
+        fields: ["name", "group_name"],
+        orderBy: { field: "group_name", order: "asc" },
+        limit: 100,
+    });
+
     const { data: stockItems, isLoading: loadingItems, mutate: mutateItems } = useFrappeGetDocList<StockItem>("Stock Item", {
-        fields: ["name", "item_name", "unit_of_measure", "rate"],
+        fields: ["name", "item_name", "unit_of_measure", "rate","stock_item_group"],
         orderBy: { field: "creation", order: "desc" },
         limit: 100,
     });
@@ -77,6 +90,7 @@ export default function StockItemsManagement() {
                 item_name: itemName,
                 unit_of_measure: unitOfMeasure,
                 rate: parseFloat(rate),
+                stock_item_group: itemGroup
             });
 
             toast({
@@ -88,6 +102,7 @@ export default function StockItemsManagement() {
             setItemName("");
             setUnitOfMeasure("");
             setRate("");
+            setItemGroup("");
             mutateItems();
         } catch (error) {
             console.error("Error adding stock item:", error);
@@ -132,6 +147,7 @@ export default function StockItemsManagement() {
                                     <TableHead>Item Name</TableHead>
                                     <TableHead>Unit of Measure</TableHead>
                                     <TableHead>Rate</TableHead>
+                                    <TableHead>Item Group</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -140,6 +156,7 @@ export default function StockItemsManagement() {
                                         <TableCell>{item.item_name}</TableCell>
                                         <TableCell>{item.unit_of_measure}</TableCell>
                                         <TableCell>₹{item.rate}</TableCell>
+                                        <TableCell>{item.stock_item_group}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -199,6 +216,31 @@ export default function StockItemsManagement() {
                                 value={rate}
                                 onChange={(e) => setRate(e.target.value)}
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="item_group">Item Group</Label>
+                            <Select
+                                value={itemGroup}
+                                onValueChange={setItemGroup}
+                                disabled={loadingItemGroups}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select item group" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {itemGroups && itemGroups.length > 0 ? (
+                                        itemGroups.map((group) => (
+                                            <SelectItem key={group.name} value={group.name}>
+                                                {group.group_name}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <div className="p-2 text-xs text-muted-foreground">
+                                            No item groups found
+                                        </div>
+                                    )}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                     <DialogFooter>
