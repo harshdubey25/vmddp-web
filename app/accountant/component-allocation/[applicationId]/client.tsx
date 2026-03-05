@@ -42,6 +42,7 @@ type ComponentAllocationCreate = {
     vendor?: string;
     tag_number?: string;
     digital_collar_number?: string;
+    collar_vendor?: string;
     collar_cost?: number;
     collar_invoice_upload?: string;
     animal_cost?: number;
@@ -51,8 +52,10 @@ type ComponentAllocationCreate = {
     insurance_end_date?: string;
     sum_assured?: number;
     premium_paid?: number;
+    insurance_vendor?: string;
     transportation_cost?: number;
     transportation_invoice_upload?: string;
+    transportation_vendor?: string;
 }
 // Animal Induction Types
 type AnimalInductionData = {
@@ -63,11 +66,13 @@ type AnimalInductionData = {
     vendorName: string;
     tagNumber: string;
     digitalCollarNumber: string;
+    collarVendor: string;
     collarCost: string;
     collarInvoiceFile: File | null;
     animalCost: string;
     // Insurance Details
     insuranceCompanyName: string;
+    insuranceVendor: string;
     policyNumber: string;
     insuranceStartDate: string;
     insuranceEndDate: string;
@@ -76,6 +81,7 @@ type AnimalInductionData = {
     // Transportation
     transportCost: string;
     transportInvoiceFile: File | null;
+    transportationVendor: string;
 };
 
 // HGM Types
@@ -86,11 +92,13 @@ type HGMData = {
     vendorName: string;
     tagNumber: string;
     digitalCollarNumber: string;
+    collarVendor: string;
     collarCost: string;
     collarInvoiceFile: File | null;
     animalCost: string;
     // Insurance Details
     insuranceCompanyName: string;
+    insuranceVendor: string;
     policyNumber: string;
     insuranceStartDate: string;
     insuranceEndDate: string;
@@ -106,6 +114,13 @@ type HGMData = {
 
 const animalTypes = ["Crossbreed", "Desi Cow", "Buffalo"];
 const hgmAnimalTypes = ["Cow", "Buffalo"];
+
+export const VENDOR_CATEGORIES = {
+    ANIMAL: "Animal",
+    COLLAR: "Collar",
+    INSURANCE: "Insurance",
+    TRANSPORTATION: "Transportation",
+} as const;
 
 
 
@@ -131,15 +146,43 @@ export default function AllocationForm({
     const { createDoc: createInsuranceDoc, loading: creatingInsurance } = useFrappeCreateDoc<{ insurance_company_name: string }>();
     const { updateDoc } = useFrappeUpdateDoc();
     const { data: insuranceCompaniesList, isLoading: insuranceLoading, mutate: mutateInsuranceList } = useFrappeGetDocList<{ name: string, insurance_company_name: string }>('Insurance Company', { fields: ['name', 'insurance_company_name'], });
-    const { data: vendorsData, isLoading: isLoadingFilteredVendors } = useFrappeGetCall<{
+    const { data: animalVendorsData, isLoading: isLoadingAnimalVendors } = useFrappeGetCall<{
         message: { data: Array<{ vendor_name: string; vendor_label: string }> }
     }>(
         'vmddp_app.api.components.get_vendors_by_component',
-        data?.message?.component ? { component: data.message.component } : undefined,
-        data?.message?.component ? `vendors_${data.message.component}` : null
+        data?.message?.component ? { component: data.message.component, vendor_criteria: VENDOR_CATEGORIES.ANIMAL } : undefined,
+        data?.message?.component ? `vendors_${data.message.component}_${VENDOR_CATEGORIES.ANIMAL}` : null
     );
+
+    const { data: collarVendorsData, isLoading: isLoadingCollarVendors } = useFrappeGetCall<{
+        message: { data: Array<{ vendor_name: string; vendor_label: string }> }
+    }>(
+        'vmddp_app.api.components.get_vendors_by_component',
+        data?.message?.component ? { component: data.message.component, vendor_criteria: VENDOR_CATEGORIES.COLLAR } : undefined,
+        data?.message?.component ? `vendors_${data.message.component}_${VENDOR_CATEGORIES.COLLAR}` : null
+    );
+
+    const { data: insuranceVendorsData, isLoading: isLoadingInsuranceVendors } = useFrappeGetCall<{
+        message: { data: Array<{ vendor_name: string; vendor_label: string }> }
+    }>(
+        'vmddp_app.api.components.get_vendors_by_component',
+        data?.message?.component ? { component: data.message.component, vendor_criteria: VENDOR_CATEGORIES.INSURANCE } : undefined,
+        data?.message?.component ? `vendors_${data.message.component}_${VENDOR_CATEGORIES.INSURANCE}` : null
+    );
+
+    const { data: transportVendorsData, isLoading: isLoadingTransportVendors } = useFrappeGetCall<{
+        message: { data: Array<{ vendor_name: string; vendor_label: string }> }
+    }>(
+        'vmddp_app.api.components.get_vendors_by_component',
+        data?.message?.component ? { component: data.message.component, vendor_criteria: VENDOR_CATEGORIES.TRANSPORTATION } : undefined,
+        data?.message?.component ? `vendors_${data.message.component}_${VENDOR_CATEGORIES.TRANSPORTATION}` : null
+    );
+
     const { call: updateComponentStatus } = useFrappePostCall<void>('vmddp_app.api.v1.accountant.update_component_status');
-    const filteredVendors = vendorsData?.message?.data ?? [];
+    const filteredVendors = animalVendorsData?.message?.data ?? [];
+    const collarVendors = collarVendorsData?.message?.data ?? [];
+    const insuranceVendors = insuranceVendorsData?.message?.data ?? [];
+    const transportVendors = transportVendorsData?.message?.data ?? [];
     const { toast } = useToast();
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -187,10 +230,12 @@ export default function AllocationForm({
         vendorName: "",
         tagNumber: "",
         digitalCollarNumber: "",
+        collarVendor: "",
         collarCost: "",
         collarInvoiceFile: null,
         animalCost: "",
         insuranceCompanyName: "",
+        insuranceVendor: "",
         policyNumber: "",
         insuranceStartDate: "",
         insuranceEndDate: "",
@@ -198,6 +243,7 @@ export default function AllocationForm({
         premiumPaid: "",
         transportCost: "",
         transportInvoiceFile: null,
+        transportationVendor: "",
     });
 
     // HGM State
@@ -208,10 +254,12 @@ export default function AllocationForm({
         vendorName: "",
         tagNumber: "",
         digitalCollarNumber: "",
+        collarVendor: "",
         collarCost: "",
         collarInvoiceFile: null,
         animalCost: "",
         insuranceCompanyName: "",
+        insuranceVendor: "",
         policyNumber: "",
         insuranceStartDate: "",
         insuranceEndDate: "",
@@ -375,6 +423,7 @@ export default function AllocationForm({
                 animalData.vendorName &&
                 animalData.tagNumber &&
                 tagValid &&
+                animalData.collarVendor &&
                 animalData.animalCost
             );
         }
@@ -386,6 +435,7 @@ export default function AllocationForm({
                 hgmData.vendorName &&
                 hgmData.tagNumber &&
                 tagValid &&
+                hgmData.collarVendor &&
                 hgmData.animalCost
             );
         }
@@ -481,6 +531,7 @@ export default function AllocationForm({
                 vendor: formData.vendorName || undefined,
                 tag_number: formData.tagNumber || undefined,
                 digital_collar_number: formData.digitalCollarNumber || undefined,
+                collar_vendor: formData.collarVendor || undefined,
                 animal_cost: formData.animalCost ? parseFloat(formData.animalCost) : undefined,
                 insurance_company_name: formData.insuranceCompanyName || undefined,
                 policy_no: formData.policyNumber || undefined,
@@ -488,6 +539,7 @@ export default function AllocationForm({
                 insurance_end_date: formData.insuranceEndDate || undefined,
                 sum_assured: formData.sumAssured ? parseFloat(formData.sumAssured) : undefined,
                 premium_paid: formData.premiumPaid ? parseFloat(formData.premiumPaid) : undefined,
+                insurance_vendor: formData.insuranceVendor || undefined,
                 // Attach uploaded file URLs
                 invoice_upload: invoiceUploadUrl,
                 collar_invoice_upload: collarInvoiceUploadUrl,
@@ -498,6 +550,7 @@ export default function AllocationForm({
             if (isAnimalInduction) {
                 componentAllocationData.transportation_cost = animalData.transportCost ? parseFloat(animalData.transportCost) : undefined;
                 componentAllocationData.transportation_invoice_upload = transportationInvoiceUploadUrl;
+                componentAllocationData.transportation_vendor = animalData.transportationVendor || undefined;
             }
 
             // Create the document (Draft state - docstatus: 0)
@@ -786,7 +839,7 @@ export default function AllocationForm({
                                                 }
                                             >
                                                 <SelectTrigger data-testid="select-animal-vendor">
-                                                    <SelectValue placeholder={isLoadingFilteredVendors ? "Loading..." : "Select vendor"} />
+                                                    <SelectValue placeholder={isLoadingAnimalVendors ? "Loading..." : "Select vendor"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {filteredVendors?.map((vendor) => (
@@ -812,6 +865,35 @@ export default function AllocationForm({
                                                 <p className="text-xs text-destructive">{tagError}</p>
                                             )}
                                         </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Animal Cost (₹) *</Label>
+                                            <Input
+                                                type="number"
+                                                placeholder="Enter animal cost"
+                                                value={animalData.animalCost}
+                                                onChange={(e) =>
+                                                    setAnimalData({
+                                                        ...animalData,
+                                                        animalCost: e.target.value,
+                                                    })
+                                                }
+                                                data-testid="input-animal-cost"
+                                                hideSpinners
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <Separator />
+
+                                {/* Collar Details Section */}
+                                <div>
+                                    <h4 className="font-semibold text-sm mb-4 flex items-center gap-2">
+                                        <Tag className="h-4 w-4" />
+                                        Collar Details
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         <div className="space-y-2">
                                             <Label>Digital Collar Number</Label>
                                             <Input
@@ -825,6 +907,29 @@ export default function AllocationForm({
                                                 }
                                                 data-testid="input-collar-number"
                                             />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Collar Vendor *</Label>
+                                            <Select
+                                                value={animalData.collarVendor}
+                                                onValueChange={(value) =>
+                                                    setAnimalData({
+                                                        ...animalData,
+                                                        collarVendor: value,
+                                                    })
+                                                }
+                                            >
+                                                <SelectTrigger data-testid="select-collar-vendor">
+                                                    <SelectValue placeholder={isLoadingCollarVendors ? "Loading..." : "Select collar vendor"} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {collarVendors?.map((vendor) => (
+                                                        <SelectItem key={vendor.vendor_name} value={vendor.vendor_name}>
+                                                            {vendor.vendor_label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                         <div className="space-y-2">
                                             <Label>Collar Cost (₹)</Label>
@@ -890,22 +995,6 @@ export default function AllocationForm({
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label>Animal Cost (₹) *</Label>
-                                            <Input
-                                                type="number"
-                                                placeholder="Enter animal cost"
-                                                value={animalData.animalCost}
-                                                onChange={(e) =>
-                                                    setAnimalData({
-                                                        ...animalData,
-                                                        animalCost: e.target.value,
-                                                    })
-                                                }
-                                                data-testid="input-animal-cost"
-                                                hideSpinners
-                                            />
-                                        </div>
                                     </div>
                                 </div>
 
@@ -918,6 +1007,29 @@ export default function AllocationForm({
                                         Insurance Details
                                     </h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Insurance Vendor</Label>
+                                            <Select
+                                                value={animalData.insuranceVendor}
+                                                onValueChange={(value) =>
+                                                    setAnimalData({
+                                                        ...animalData,
+                                                        insuranceVendor: value,
+                                                    })
+                                                }
+                                            >
+                                                <SelectTrigger data-testid="select-animal-insurance-vendor">
+                                                    <SelectValue placeholder={isLoadingInsuranceVendors ? "Loading..." : "Select vendor"} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {insuranceVendors?.map((vendor) => (
+                                                        <SelectItem key={vendor.vendor_name} value={vendor.vendor_name}>
+                                                            {vendor.vendor_label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                         <div className="space-y-2">
                                             <Label>Insurance Company Name</Label>
                                             <Select
@@ -1041,7 +1153,30 @@ export default function AllocationForm({
                                         <Truck className="h-4 w-4" />
                                         Transportation
                                     </h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Transportation Vendor</Label>
+                                            <Select
+                                                value={animalData.transportationVendor}
+                                                onValueChange={(value) =>
+                                                    setAnimalData({
+                                                        ...animalData,
+                                                        transportationVendor: value,
+                                                    })
+                                                }
+                                            >
+                                                <SelectTrigger data-testid="select-animal-transport-vendor">
+                                                    <SelectValue placeholder={isLoadingTransportVendors ? "Loading..." : "Select vendor"} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {transportVendors?.map((vendor) => (
+                                                        <SelectItem key={vendor.vendor_name} value={vendor.vendor_name}>
+                                                            {vendor.vendor_label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                         <div className="space-y-2">
                                             <Label>Transport Cost (₹)</Label>
                                             <Input
@@ -1294,7 +1429,7 @@ export default function AllocationForm({
                                                 }
                                             >
                                                 <SelectTrigger data-testid="select-hgm-vendor">
-                                                    <SelectValue placeholder={isLoadingFilteredVendors ? "Loading..." : "Select vendor"} />
+                                                    <SelectValue placeholder={isLoadingAnimalVendors ? "Loading..." : "Select vendor"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {filteredVendors.map((vendor) => (
@@ -1321,6 +1456,34 @@ export default function AllocationForm({
                                                 <p className="text-xs text-destructive">{tagError}</p>
                                             )}
                                         </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Animal Cost (₹) *</Label>
+                                            <Input
+                                                type="number"
+                                                value={hgmData.animalCost}
+                                                onChange={(e) =>
+                                                    setHgmData({ ...hgmData, animalCost: e.target.value })
+                                                }
+                                                placeholder="Enter actual cost"
+                                                data-testid="input-hgm-cost"
+                                            />
+                                            <p className="text-xs text-muted-foreground">
+                                                Max eligible: ₹2,10,000
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <Separator />
+
+                                {/* Collar Details Section */}
+                                <div>
+                                    <h4 className="font-semibold text-sm mb-4 flex items-center gap-2">
+                                        <Tag className="h-4 w-4" />
+                                        Collar Details
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         <div className="space-y-2">
                                             <Label>Digital Collar Number</Label>
                                             <Input
@@ -1334,6 +1497,29 @@ export default function AllocationForm({
                                                 }
                                                 data-testid="input-hgm-collar"
                                             />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Collar Vendor *</Label>
+                                            <Select
+                                                value={hgmData.collarVendor}
+                                                onValueChange={(value) =>
+                                                    setHgmData({
+                                                        ...hgmData,
+                                                        collarVendor: value,
+                                                    })
+                                                }
+                                            >
+                                                <SelectTrigger data-testid="select-hgm-collar-vendor">
+                                                    <SelectValue placeholder={isLoadingCollarVendors ? "Loading..." : "Select collar vendor"} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {collarVendors?.map((vendor) => (
+                                                        <SelectItem key={vendor.vendor_name} value={vendor.vendor_name}>
+                                                            {vendor.vendor_label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                         <div className="space-y-2">
                                             <Label>Collar Cost (₹)</Label>
@@ -1399,21 +1585,6 @@ export default function AllocationForm({
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label>Animal Cost (₹) *</Label>
-                                            <Input
-                                                type="number"
-                                                value={hgmData.animalCost}
-                                                onChange={(e) =>
-                                                    setHgmData({ ...hgmData, animalCost: e.target.value })
-                                                }
-                                                placeholder="Enter actual cost"
-                                                data-testid="input-hgm-cost"
-                                            />
-                                            <p className="text-xs text-muted-foreground">
-                                                Max eligible: ₹2,10,000
-                                            </p>
-                                        </div>
                                     </div>
                                 </div>
 
@@ -1426,6 +1597,29 @@ export default function AllocationForm({
                                         Insurance Details
                                     </h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Insurance Vendor</Label>
+                                            <Select
+                                                value={hgmData.insuranceVendor}
+                                                onValueChange={(value) =>
+                                                    setHgmData({
+                                                        ...hgmData,
+                                                        insuranceVendor: value,
+                                                    })
+                                                }
+                                            >
+                                                <SelectTrigger data-testid="select-hgm-insurance-vendor">
+                                                    <SelectValue placeholder={isLoadingInsuranceVendors ? "Loading..." : "Select vendor"} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {insuranceVendors?.map((vendor) => (
+                                                        <SelectItem key={vendor.vendor_name} value={vendor.vendor_name}>
+                                                            {vendor.vendor_label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                         <div className="space-y-2">
                                             <Label>Insurance Company Name</Label>
                                             <Select
