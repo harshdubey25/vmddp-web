@@ -8,6 +8,7 @@ import {
     CreditCard,
     Check,
     Loader2,
+    Plus,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,10 @@ export default function VendorPayments() {
     const [chequeDate, setChequeDate] = useState("");
     const [chequeAmount, setChequeAmount] = useState<number>(0);
     const [bankName, setBankName] = useState("");
+    const [showNewBankDialog, setShowNewBankDialog] = useState(false);
+    const [newBankName, setNewBankName] = useState("");
+    const { createDoc: createbankDoc, loading: creatingBank } = useFrappeCreateDoc<{ bank_name: string }>();
+
 
     // Fetch pending vendor payments from API
     const { data: paymentsResponse, isLoading: loading, mutate: refetchPayments } = useFrappeGetCall<FrappeCustomApiResponse<PendingVendorPayment[]>>(
@@ -57,7 +62,7 @@ export default function VendorPayments() {
         fields: ["name", "vendor_name"],
         limit: 100
     });
-    const { data: BankList } = useFrappeGetDocList("Bank")
+    const { data: BankList, mutate: refetchBanks } = useFrappeGetDocList("Bank")
     // Create doc hook for Vendor Payments
     const { createDoc, loading: submitting } = useFrappeCreateDoc();
 
@@ -225,7 +230,7 @@ export default function VendorPayments() {
                                         className="pl-9"
                                         data-testid="input-search"
                                         value={searchText}
-                                        onChange={(e)=> setSearchText(e.target.value)}
+                                        onChange={(e) => setSearchText(e.target.value)}
                                     />
                                 </div>
                                 <Select
@@ -441,7 +446,15 @@ export default function VendorPayments() {
 
                         <div className="space-y-2">
                             <Label htmlFor="bankName">Bank Name *</Label>
-                            <Select value={bankName} onValueChange={setBankName}>
+                            <Select value={bankName}
+                                onValueChange={(value) => {
+                                    if (value === "__add_new__") {
+                                        setShowNewBankDialog(true);
+                                        return;
+                                    }
+                                    setBankName(value);
+                                }}
+                            >
                                 <SelectTrigger data-testid="select-bank-name">
                                     <SelectValue placeholder="Select bank" />
                                 </SelectTrigger>
@@ -451,6 +464,11 @@ export default function VendorPayments() {
                                         return (
                                             <SelectItem key={bank.name} value={bank.name}>{bank.name}</SelectItem>)
                                     })}
+                                    <SelectItem value="__add_new__">
+                                        <span className="flex items-center gap-1 text-primary">
+                                            <Plus className="h-3 w-3" /> Add New Bank
+                                        </span>
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -467,6 +485,87 @@ export default function VendorPayments() {
                                 <CheckCircle className="h-4 w-4 mr-2" />
                             )}
                             {submitting ? "Processing..." : "Disburse Payment"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={showNewBankDialog}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setShowNewBankDialog(false);
+                        setNewBankName("");
+                    }
+                }}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add New Bank</DialogTitle>
+                        <DialogDescription>
+                            Enter the name of the new bank to add it to the list.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-2 py-2">
+                        <Label>Bank Name *</Label>
+                        <Input
+                            placeholder="e.g. State Bank of India"
+                            value={newBankName}
+                            onChange={(e) => setNewBankName(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") e.preventDefault();
+                            }}
+                        />
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setShowNewBankDialog(false);
+                                setNewBankName("");
+                            }}
+                        >
+                            Cancel
+                        </Button>
+
+                        <Button
+                            disabled={!newBankName.trim() || submitting}
+                            onClick={async () => {
+                                try {
+                                    const created = await createDoc("Bank", {
+                                        bank_name: newBankName.trim(),
+                                    });
+
+                                    await refetchBanks?.();
+
+                                    setBankName(created.name);
+
+                                    toast({
+                                        title: "Bank added",
+                                        description: newBankName.trim(),
+                                    });
+
+                                    setShowNewBankDialog(false);
+                                    setNewBankName("");
+
+                                } catch (err: any) {
+                                    toast({
+                                        title: "Error",
+                                        description: err?.message || "Failed to create bank",
+                                        variant: "destructive",
+                                    });
+                                }
+                            }}
+                        >
+                            {submitting ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            ) : (
+                                <Plus className="h-4 w-4 mr-2" />
+                            )}
+
+                            {submitting ? "Creating..." : "Create"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
