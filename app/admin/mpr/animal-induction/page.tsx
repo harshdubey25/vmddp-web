@@ -346,10 +346,10 @@ export default function AnimalInductionMPRPage() {
                                     <thead className="bg-muted sticky top-0 z-30">
                                         {/* First header row - Main categories */}
                                         <tr className="bg-muted/50">
-                                            <th rowSpan={4} className="border text-center font-bold sticky left-0 bg-muted/50 z-30 min-w-[50px] p-2">
+                                            <th rowSpan={4} className="border text-center font-bold sticky left-0 bg-muted z-30 min-w-[50px] p-2">
                                                 Sr. No.
                                             </th>
-                                            <th rowSpan={4} className="border text-center font-bold sticky left-[50px] bg-muted/50 z-30 min-w-[120px] p-2">
+                                            <th rowSpan={4} className="border text-center font-bold sticky left-[50px] bg-muted z-30 min-w-[120px] p-2">
                                                 Name of District
                                             </th>
                                             <th rowSpan={4} className="border text-center font-bold min-w-[70px] p-2">
