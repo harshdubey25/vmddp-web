@@ -9,6 +9,8 @@ import {
     Check,
     Loader2,
     Plus,
+    ChevronLeft,
+    ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,17 +23,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useFrappeGetCall, useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
-import { PendingVendorPayment, FrappeCustomApiResponse } from "@/types";
+import { PendingVendorPayment, FrappeCustomApiResponse, PaginatedVendorPaymentResponse } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/use-debounce";
 
 export default function VendorPayments() {
     const { toast } = useToast();
     const [openPaymentDialog, setOpenPaymentDialog] = useState(false)
-    const [selectedPaymentIds, setSelectedPaymentIds] = useState<string[]>([])
+    const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([])
     const [selectedVendor, setSelectedVendor] = useState<string | null>(null)
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
     const [searchText, setSearchText] = useState("");
     const debouncedSearchText = useDebounce(searchText, 500);
+    const [currentPage, setCurrentPage] = useState(1);
 
     // Form state for cheque dialog
     const [chequeNumber, setChequeNumber] = useState("");
@@ -43,19 +47,26 @@ export default function VendorPayments() {
     const { createDoc: createbankDoc, loading: creatingBank } = useFrappeCreateDoc<{ bank_name: string }>();
 
 
+    // Unique row key helper
+    const getRowKey = (payment: PendingVendorPayment) =>
+        `${payment.component_allocation_id}__${payment.vendor_category || 'default'}`;
+
     // Fetch pending vendor payments from API
-    const { data: paymentsResponse, isLoading: loading, mutate: refetchPayments } = useFrappeGetCall<FrappeCustomApiResponse<PendingVendorPayment[]>>(
+    const { data: paymentsResponse, isLoading: loading, mutate: refetchPayments } = useFrappeGetCall<FrappeCustomApiResponse<PaginatedVendorPaymentResponse>>(
         "vmddp_app.api.v1.accountant.pending_vendor_payment_list",
         {
-            limit_page_length: 100,
+            page: currentPage,
+            page_size: 20,
             vendor_name: selectedVendor || undefined,
+            vendor_category: selectedCategory || undefined,
             search_text: debouncedSearchText.trim().replace(/\s+/g, " ") || undefined
         },
         undefined,
         { revalidateOnFocus: false }
     );
 
-    const vendorPayments = paymentsResponse?.message || [];
+    const vendorPayments = paymentsResponse?.message?.data || [];
+    const pagination = paymentsResponse?.message?.pagination;
 
     // Fetch vendors for filter dropdown
     const { data: vendors } = useFrappeGetDocList<{ name: string; vendor_name: string }>("Vendor", {
@@ -63,42 +74,46 @@ export default function VendorPayments() {
         limit: 100
     });
     const { data: BankList, mutate: refetchBanks } = useFrappeGetDocList("Bank")
+    const { data: vendorCategories } = useFrappeGetDocList<{ name: string }>("Vendor Categories", {
+        fields: ["name"],
+        limit: 100
+    });
     // Create doc hook for Vendor Payments
     const { createDoc, loading: submitting } = useFrappeCreateDoc();
 
     // Computed values from API data
-    const totalPending = vendorPayments.reduce((sum, p) => sum + p.total_cost, 0);
+    const totalPending = vendorPayments.reduce((sum, p) => sum + p.amount_to_pay, 0);
 
     // Compute selected total and vendor name from selected payments
     const selectedTotal = vendorPayments
-        .filter((p) => selectedPaymentIds.includes(p.component_allocation_id))
-        .reduce((sum, p) => sum + p.total_cost, 0);
+        .filter((p) => selectedRowKeys.includes(getRowKey(p)))
+        .reduce((sum, p) => sum + p.amount_to_pay, 0);
 
     // Get vendor ID (link name) from selected payments
-    const selectedVendorId = selectedPaymentIds.length > 0
-        ? vendorPayments.find((p) => p.component_allocation_id === selectedPaymentIds[0])?.vendor || ""
+    const selectedVendorId = selectedRowKeys.length > 0
+        ? vendorPayments.find((p) => getRowKey(p) === selectedRowKeys[0])?.selected_vendor || ""
         : "";
 
-    const selectedVendorName = selectedPaymentIds.length > 0
-        ? vendorPayments.find((p) => p.component_allocation_id === selectedPaymentIds[0])?.vendor_name || "-"
+    const selectedVendorName = selectedRowKeys.length > 0
+        ? vendorPayments.find((p) => getRowKey(p) === selectedRowKeys[0])?.vendor_name || "-"
         : "-";
 
-    // Get the vendor of the first selected payment (used to restrict selection to same vendor)
-    const firstSelectedVendor = selectedPaymentIds.length > 0
-        ? vendorPayments.find((p) => p.component_allocation_id === selectedPaymentIds[0])?.vendor
+    // Get the vendor_name of the first selected payment (used to restrict selection to same vendor)
+    const firstSelectedVendorName = selectedRowKeys.length > 0
+        ? vendorPayments.find((p) => getRowKey(p) === selectedRowKeys[0])?.vendor_name
         : null;
 
-    const handleTogglePayment = (paymentId: string, checked: boolean) => {
+    const handleTogglePayment = (rowKey: string, checked: boolean) => {
         if (checked) {
-            setSelectedPaymentIds((prev) => [...prev, paymentId]);
+            setSelectedRowKeys((prev) => [...prev, rowKey]);
         } else {
-            setSelectedPaymentIds((prev) => prev.filter((id) => id !== paymentId));
+            setSelectedRowKeys((prev) => prev.filter((id) => id !== rowKey));
         }
     };
 
     const canSelectPayment = (payment: PendingVendorPayment) => {
-        if (selectedPaymentIds.length === 0) return true;
-        return payment.vendor === firstSelectedVendor;
+        if (selectedRowKeys.length === 0) return true;
+        return payment.vendor_name === firstSelectedVendorName;
     };
 
     // Reset form state
@@ -134,24 +149,30 @@ export default function VendorPayments() {
             toast({ title: "Error", description: "Please select a bank", variant: "destructive" });
             return;
         }
+        if (!selectedVendorId) {
+            toast({ title: "Error", description: "Vendor is required", variant: "destructive" });
+            return;
+        }
 
         try {
+            const selectedPayments = vendorPayments.filter((p) => selectedRowKeys.includes(getRowKey(p)));
             await createDoc("Vendor Payments", {
                 vendor: selectedVendorId,
                 check_number: chequeNumber,
                 cheque_date: chequeDate,
                 cheque_amount: chequeAmount,
                 bank_name: bankName,
-                component_allocations: selectedPaymentIds.map((id) => ({
-                    component_allocation: id,
-                    amount: vendorPayments.find((p) => p.component_allocation_id === id)?.total_cost || 0
+                component_allocations: selectedPayments.map((p) => ({
+                    component_allocation: p.component_allocation_id,
+                    vendor_category: p.vendor_category,
+                    amount: p.amount_to_pay
                 }))
             });
 
             toast({ title: "Success", description: "Vendor payment created successfully" });
             setOpenPaymentDialog(false);
             resetForm();
-            setSelectedPaymentIds([]);
+            setSelectedRowKeys([]);
             refetchPayments();
         } catch (error: any) {
             toast({
@@ -192,7 +213,7 @@ export default function VendorPayments() {
                                     <div>
                                         <p className="text-sm text-muted-foreground">Pending Payments</p>
                                         <p className="text-2xl font-bold">₹{(totalPending / 100000).toFixed(2)}L</p>
-                                        <p className="text-xs text-muted-foreground">{vendorPayments.length} records</p>
+                                        <p className="text-xs text-muted-foreground">{pagination?.total_items ?? vendorPayments.length} records</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -237,7 +258,8 @@ export default function VendorPayments() {
                                     value={selectedVendor || "all"}
                                     onValueChange={(value) => {
                                         setSelectedVendor(value === "all" ? null : value);
-                                        setSelectedPaymentIds([]); // Clear selection when vendor changes
+                                        setSelectedRowKeys([]); // Clear selection when vendor changes
+                                        setCurrentPage(1); // Reset page on filter change
                                     }}
                                 >
                                     <SelectTrigger className="w-44" data-testid="select-vendor">
@@ -250,12 +272,30 @@ export default function VendorPayments() {
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                <Select
+                                    value={selectedCategory || "all"}
+                                    onValueChange={(value) => {
+                                        setSelectedCategory(value === "all" ? null : value);
+                                        setSelectedRowKeys([]);
+                                        setCurrentPage(1);
+                                    }}
+                                >
+                                    <SelectTrigger className="w-44" data-testid="select-category">
+                                        <SelectValue placeholder="Category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Categories</SelectItem>
+                                        {vendorCategories?.map((c) => (
+                                            <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </CardContent>
                     </Card>
 
                     {/* Selection Summary Card - visible when payments are selected */}
-                    {selectedPaymentIds.length > 0 && (
+                    {selectedRowKeys.length > 0 && (
                         <Card className="border-primary" data-testid="card-selection-summary">
                             <CardContent className="pt-4">
                                 <div className="flex items-center justify-between">
@@ -264,14 +304,14 @@ export default function VendorPayments() {
                                             <CreditCard className="h-5 w-5 text-primary" />
                                         </div>
                                         <div>
-                                            <p className="font-medium">{selectedPaymentIds.length} payment(s) selected</p>
+                                            <p className="font-medium">{selectedRowKeys.length} payment(s) selected</p>
                                             <p className="text-sm text-muted-foreground">
                                                 Vendor: {selectedVendorName} | Total: ₹{selectedTotal.toLocaleString("en-IN")}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <Button variant="outline" data-testid="button-clear-selection" onClick={() => setSelectedPaymentIds([])}>
+                                        <Button variant="outline" data-testid="button-clear-selection" onClick={() => setSelectedRowKeys([])}>
                                             Clear Selection
                                         </Button>
                                         <Button data-testid="button-issue-cheque" onClick={handleOpenDialog}>
@@ -297,83 +337,121 @@ export default function VendorPayments() {
                                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                                 </div>
                             ) : vendorPayments.length > 0 ? (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-12">
-                                                <Check data-testid="checkbox-select-all" />
-                                            </TableHead>
-                                            <TableHead>Beneficiary</TableHead>
-                                            <TableHead>Component</TableHead>
-                                            <TableHead>Animal</TableHead>
-                                            <TableHead>Vendor</TableHead>
-                                            <TableHead className="text-right">Cost Breakdown</TableHead>
-                                            <TableHead className="text-right">Total</TableHead>
-                                            <TableHead>Date</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {vendorPayments.map((payment) => {
-                                            const isSelected = selectedPaymentIds.includes(payment.component_allocation_id);
+                                <>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="w-12">
+                                                    <Check data-testid="checkbox-select-all" />
+                                                </TableHead>
+                                                <TableHead>Beneficiary</TableHead>
+                                                <TableHead>Component</TableHead>
+                                                <TableHead>Animal</TableHead>
+                                                <TableHead>Vendor</TableHead>
+                                                <TableHead>Category</TableHead>
+                                                <TableHead className="text-right">Amount to Pay</TableHead>
+                                                <TableHead>Date</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {vendorPayments.map((payment) => {
+                                                const rowKey = getRowKey(payment);
+                                                const isSelected = selectedRowKeys.includes(rowKey);
 
-                                            return (
-                                                <TableRow
-                                                    key={payment.component_allocation_id}
-                                                    className={isSelected ? "bg-primary/5" : ""}
-                                                    data-testid={`row-payment-${payment.component_allocation_id}`}
+                                                const categoryColors: Record<string, string> = {
+                                                    Animal: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+                                                    Collar: "bg-purple-500/10 text-purple-700 border-purple-500/20",
+                                                    Insurance: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+                                                    Transportation: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+                                                };
+
+                                                return (
+                                                    <TableRow
+                                                        key={rowKey}
+                                                        className={isSelected ? "bg-primary/5" : ""}
+                                                        data-testid={`row-payment-${rowKey}`}
+                                                    >
+                                                        <TableCell>
+                                                            <Checkbox
+                                                                checked={isSelected}
+                                                                disabled={!isSelected && !canSelectPayment(payment)}
+                                                                onCheckedChange={(checked) => handleTogglePayment(rowKey, !!checked)}
+                                                                data-testid={`checkbox-${rowKey}`}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div>
+                                                                <p className="font-medium">{payment.beneficiary_name}</p>
+                                                                <p className="text-xs text-muted-foreground">{payment.aadhar_number}</p>
+                                                                <p className="text-xs text-muted-foreground">{payment.district}, {payment.taluka}</p>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="space-y-1">
+                                                                <p className="text-sm font-medium">{payment.component_name}</p>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div>
+                                                                <p className="font-medium">{payment.type_of_animal}</p>
+                                                                <p className="text-xs text-muted-foreground">Tag: {payment.tag_number}</p>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div>
+                                                                <p className="font-medium">{payment.vendor_name}</p>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Badge variant="outline" className={categoryColors[payment.vendor_category] || ""}>
+                                                                {payment.vendor_category}
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <span className="font-bold text-green-600">
+                                                                ₹{payment.amount_to_pay.toLocaleString("en-IN")}
+                                                            </span>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <p className="text-sm">{payment.date_of_purchase}</p>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
+                                        </TableBody>
+                                    </Table>
+
+                                    {/* Pagination Controls */}
+                                    {pagination && pagination.total_pages > 1 && (
+                                        <div className="flex items-center justify-between pt-4 border-t">
+                                            <p className="text-sm text-muted-foreground">
+                                                Page {pagination.current_page} of {pagination.total_pages} ({pagination.total_items} total)
+                                            </p>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    disabled={!pagination.has_previous_page}
+                                                    onClick={() => setCurrentPage((p) => p - 1)}
+                                                    data-testid="button-prev-page"
                                                 >
-                                                    <TableCell>
-                                                        <Checkbox
-                                                            checked={isSelected}
-                                                            disabled={!isSelected && !canSelectPayment(payment)}
-                                                            onCheckedChange={(checked) => handleTogglePayment(payment.component_allocation_id, !!checked)}
-                                                            data-testid={`checkbox-${payment.component_allocation_id}`}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div>
-                                                            <p className="font-medium">{payment.beneficiary_name}</p>
-                                                            <p className="text-xs text-muted-foreground">{payment.aadhar_number}</p>
-                                                            <p className="text-xs text-muted-foreground">{payment.district}, {payment.taluka}</p>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="space-y-1">
-                                                            <p className="text-sm font-medium">{payment.component_name}</p>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div>
-                                                            <p className="font-medium">{payment.type_of_animal}</p>
-                                                            <p className="text-xs text-muted-foreground">Tag: {payment.tag_number}</p>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div>
-                                                            <p className="font-medium">{payment.vendor_name}</p>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <div className="text-xs space-y-0.5">
-                                                            <p>Animal: ₹{payment.animal_cost.toLocaleString("en-IN")}</p>
-                                                            {payment.collar_cost > 0 && <p>Collar: ₹{payment.collar_cost.toLocaleString("en-IN")}</p>}
-                                                            {payment.premium_paid > 0 && <p>Premium: ₹{payment.premium_paid.toLocaleString("en-IN")}</p>}
-                                                            {payment.transportation_cost > 0 && <p>Transport: ₹{payment.transportation_cost.toLocaleString("en-IN")}</p>}
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <span className="font-bold text-green-600">
-                                                            ₹{payment.total_cost.toLocaleString("en-IN")}
-                                                        </span>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <p className="text-sm">{payment.date_of_purchase}</p>
-                                                    </TableCell>
-                                                </TableRow>
-                                            );
-                                        })}
-                                    </TableBody>
-                                </Table>
+                                                    <ChevronLeft className="h-4 w-4 mr-1" />
+                                                    Previous
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    disabled={!pagination.has_next_page}
+                                                    onClick={() => setCurrentPage((p) => p + 1)}
+                                                    data-testid="button-next-page"
+                                                >
+                                                    Next
+                                                    <ChevronRight className="h-4 w-4 ml-1" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
                             ) : (
                                 <p className="text-center text-muted-foreground py-8">No pending vendor payments found</p>
                             )}
@@ -388,7 +466,7 @@ export default function VendorPayments() {
                     <DialogHeader>
                         <DialogTitle>Issue Cheque</DialogTitle>
                         <DialogDescription>
-                            Enter cheque details for {selectedPaymentIds.length} payment(s) to {selectedVendorName}
+                            Enter cheque details for {selectedRowKeys.length} payment(s) to {selectedVendorName}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -396,7 +474,7 @@ export default function VendorPayments() {
                         <div className="p-3 bg-muted rounded-lg">
                             <div className="flex justify-between text-sm">
                                 <span>Selected Payments:</span>
-                                <span className="font-medium">{selectedPaymentIds.length}</span>
+                                <span className="font-medium">{selectedRowKeys.length}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span>Vendor:</span>
