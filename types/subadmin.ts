@@ -114,7 +114,7 @@ export interface Application {
     venue_type: string;
     number_of_participants: number;
     no_of_male: number;
-    no_of_female: number;               
+    no_of_female: number;
     training_material: number;
     logistics: number;
     refreshment: number;
@@ -141,6 +141,7 @@ export interface TreatmentDoc {
     treatment_given?: string;
     primary_treatment?: string;
     actual_treatment_outcome?: string;
+    docstatus: number;
     creation: string;
     modified: string;
 }
