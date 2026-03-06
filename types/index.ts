@@ -36,7 +36,7 @@ export interface ComponentList extends Doctype {
 
 
 export interface Component extends Doctype {
-    unit:string;
+    unit: string;
     component_name: string;
     criteria_table: any[];
     questions: any[];
@@ -53,7 +53,7 @@ export interface Component extends Doctype {
     parantage_confirmation: number;
     max_quantity: number;
     rate_per_kg: number;
-    multiple_claims_allowed:boolean;
+    multiple_claims_allowed: boolean;
 }
 
 export interface AppForm extends Doctype {
@@ -152,13 +152,13 @@ export interface DBTClaim {
 export interface PendingVendorPayment {
     component_allocation_id: string;
     type_of_animal: string;
-    animal_cost: number;
-    collar_cost: number;
-    premium_paid: number;
-    transportation_cost: number;
-    vendor: string;
     date_of_purchase: string;
     tag_number: string;
+    selected_vendor: string;
+    vendor_name: string;
+    vendor_category: string;
+    amount_to_pay: number;
+    total_cost: number;
     application_id: string;
     first_name: string;
     mid_name: string;
@@ -169,7 +169,15 @@ export interface PendingVendorPayment {
     village: string;
     component: string;
     component_name: string;
-    vendor_name: string;
-    total_cost: number;
+    is_hgm: number;
     beneficiary_name: string;
+    vendor: string;
+    // Category-specific cost fields (only one present per row)
+    animal_cost?: number;
+    collar_cost?: number;
+    premium_paid?: number;
+    transportation_cost?: number;
+    collar_vendor?: string;
+    insurance_vendor?: string;
+    transportation_vendor?: string;
 }
