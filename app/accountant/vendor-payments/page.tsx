@@ -9,6 +9,8 @@ import {
     Check,
     Loader2,
     Plus,
+    ChevronLeft,
+    ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -72,6 +74,10 @@ export default function VendorPayments() {
         limit: 100
     });
     const { data: BankList, mutate: refetchBanks } = useFrappeGetDocList("Bank")
+    const { data: vendorCategories } = useFrappeGetDocList<{ name: string }>("Vendor Categories", {
+        fields: ["name"],
+        limit: 100
+    });
     // Create doc hook for Vendor Payments
     const { createDoc, loading: submitting } = useFrappeCreateDoc();
 
