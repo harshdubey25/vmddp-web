@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
     Dialog,
     DialogContent,
@@ -24,6 +24,7 @@ import {
     Upload,
     Phone,
     Eye,
+    Printer,
 } from "lucide-react";
 import { getStatusBadge } from "@/lib/status-utils";
 import { useFrappeGetDoc } from "frappe-react-sdk";
@@ -56,6 +57,57 @@ export default function ApplicationDetailsDialog({
     const [remarks, setRemarks] = useState("");
     const [villageName, setVillageName] = useState<string>("");
     const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
+    const printRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useCallback(() => {
+        const printContent = printRef.current;
+        if (!printContent) return;
+
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return;
+
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Application Details - ${application?.id || ''}</title>
+                    <style>
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; color: #1a1a1a; }
+                        .print-header { text-align: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #e5e7eb; }
+                        .print-header h1 { font-size: 20px; font-weight: 700; }
+                        .print-header p { font-size: 12px; color: #6b7280; margin-top: 4px; }
+                        h3 { font-size: 14px; font-weight: 600; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; }
+                        .section { margin-bottom: 20px; }
+                        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+                        .field { margin-bottom: 8px; }
+                        .field label { font-size: 11px; color: #6b7280; display: block; margin-bottom: 2px; }
+                        .field p { font-size: 13px; font-weight: 500; }
+                        .status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #f3f4f6; }
+                        .component-box { padding: 10px; background: #f9fafb; border-radius: 6px; margin-bottom: 8px; border: 1px solid #e5e7eb; }
+                        .doc-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; }
+                        .id-box { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 8px; margin-bottom: 16px; }
+                        .id-box .id { font-family: monospace; font-size: 16px; font-weight: 600; }
+                        .id-box .date { font-size: 12px; color: #6b7280; }
+                        button { display: none !important; }
+                        @media print { body { padding: 16px; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-header">
+                        <h1>Application Details</h1>
+                        <p>Generated on ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                    ${printContent.innerHTML}
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 250);
+    }, [application?.id]);
 
     // Fetch full application details including criteria child table
     const { data: fullAppDoc, isLoading: isLoadingFullApp } = useFrappeGetDoc(
@@ -144,15 +196,25 @@ export default function ApplicationDetailsDialog({
             <Dialog open={isOpen} onOpenChange={onClose}>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-3">
-                            <FileText className="w-5 h-5" />
-                            Application Details
-                        </DialogTitle>
+                        <div className="flex items-center justify-between">
+                            <DialogTitle className="flex items-center gap-3">
+                                <FileText className="w-5 h-5" />
+                                Application Details
+                            </DialogTitle>
+                            <Button
+                                size="sm"
+                                onClick={handlePrint}
+                                className="flex items-center gap-2 mt-6 mr-6 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm print:hidden"
+                            >
+                                <Printer className="w-4 h-4" />
+                                Print
+                            </Button>
+                        </div>
                         <DialogDescription>
                             Review complete application information
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-6">
+                    <div className="space-y-6" ref={printRef}>
                         <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
                             <div>
                                 <p className="font-mono font-semibold text-lg">{application.id}</p>

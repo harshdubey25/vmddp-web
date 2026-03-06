@@ -125,11 +125,11 @@ export default function ClaimForm({
             formData.typeOfAnimal &&
             formData.acknowledgement
         );
-        
+
         if (beneficiary?.component_name === "Fodder Seed") {
             return baseFieldsValid && !!formData.fodderSeedVariety && !!formData.land_covered;
         }
-        
+
         return baseFieldsValid;
     };
 
@@ -574,41 +574,6 @@ export default function ClaimForm({
                                         data-testid="input-purchase-date"
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Quantity *</Label>
-                                    <Input
-                                        type="number"
-                                        placeholder={quota?.max_quantity ? `Max: ${quota.remaining_quantity} units` : "Enter quantity"}
-                                        value={formData.quantity}
-                                        onChange={(e) => handleInputChange("quantity", e.target.value)}
-                                        data-testid="input-quantity"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Total Amount *</Label>
-                                    <Input
-                                        type="number"
-                                        placeholder="Enter total amount"
-                                        value={formData.totalAmount}
-                                        onChange={(e) => handleInputChange("totalAmount", e.target.value)}
-                                        data-testid="input-total-amount"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Type of Animal *</Label>
-                                    <Select
-                                        value={formData.typeOfAnimal}
-                                        onValueChange={(value) => handleInputChange("typeOfAnimal", value)}
-                                    >
-                                        <SelectTrigger data-testid="select-type-of-animal">
-                                            <SelectValue placeholder="Select animal type" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Cow">Cow</SelectItem>
-                                            <SelectItem value="Buffalo">Buffalo</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
                                 {beneficiary.component_name === "Fodder Seed" && (
                                     <>
                                         <div className="space-y-2">
@@ -648,6 +613,42 @@ export default function ClaimForm({
                                         </div>
                                     </>
                                 )}
+                                <div className="space-y-2">
+                                    <Label>Quantity *</Label>
+                                    <Input
+                                        type="number"
+                                        placeholder={quota?.max_quantity ? `Max: ${quota.remaining_quantity} units` : "Enter quantity"}
+                                        value={formData.quantity}
+                                        onChange={(e) => handleInputChange("quantity", e.target.value)}
+                                        data-testid="input-quantity"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Total Amount *</Label>
+                                    <Input
+                                        type="number"
+                                        placeholder="Enter total amount"
+                                        value={formData.totalAmount}
+                                        onChange={(e) => handleInputChange("totalAmount", e.target.value)}
+                                        data-testid="input-total-amount"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Type of Animal *</Label>
+                                    <Select
+                                        value={formData.typeOfAnimal}
+                                        onValueChange={(value) => handleInputChange("typeOfAnimal", value)}
+                                    >
+                                        <SelectTrigger data-testid="select-type-of-animal">
+                                            <SelectValue placeholder="Select animal type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Cow">Cow</SelectItem>
+                                            <SelectItem value="Buffalo">Buffalo</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
 
                                 <div className="space-y-2">
                                     <Label>Number of Animals Benefitted</Label>
