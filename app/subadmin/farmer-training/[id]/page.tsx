@@ -1,6 +1,7 @@
 "use client";
 export const runtime = 'edge';
 
+
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useFrappeGetDoc, useFrappeAuth } from "frappe-react-sdk";
@@ -145,12 +146,18 @@ export default function ViewFarmerTrainingApplication() {
               Back
             </Button>
             <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-title">
-                <FileText className="w-6 h-6" />
-                Training Application Details
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-title">
+                  <FileText className="w-6 h-6" />
+                  Training Application Details
+                </h1>
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                  Farmer Training
+                </Badge>
+              </div>
               <p className="text-sm text-muted-foreground" data-testid="text-app-id">{application.name}</p>
             </div>
+
           </div>
         </header>
 

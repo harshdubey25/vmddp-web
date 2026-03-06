@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/pagination";
 import { Download, GraduationCap, Upload, Search, FileText, Loader2 } from "lucide-react";
 import { Application } from "@/types/subadmin";
+import { cn } from "@/lib/utils";
+
 
 
 
@@ -102,7 +104,7 @@ export default function FarmerTraining() {
 
     try {
       const XLSX = await import('xlsx');
-      
+
       // Prepare data for export
       const exportData = filteredApplications.map(app => ({
         'Application ID': app.name,
@@ -124,7 +126,7 @@ export default function FarmerTraining() {
 
       // Create worksheet
       const worksheet = XLSX.utils.json_to_sheet(exportData);
-      
+
       // Auto-size columns
       const headers = Object.keys(exportData[0]);
       const colWidths = headers.map(header => {
@@ -170,7 +172,7 @@ export default function FarmerTraining() {
               Farmer Training
             </h1>
             <p className="text-sm text-muted-foreground">
-              Manage training applications 
+              Manage training applications
             </p>
           </div>
           <Button variant="outline" className="gap-2" onClick={handleExport} data-testid="button-export">
@@ -238,7 +240,9 @@ export default function FarmerTraining() {
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Venue</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Participants</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Budget</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Status</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
+
                           </tr>
                         </thead>
                         <tbody>
@@ -251,6 +255,18 @@ export default function FarmerTraining() {
                               <td className="p-3 text-xs sm:text-sm">{app.venue_name}</td>
                               <td className="p-3 text-xs sm:text-sm">{app.number_of_participants}</td>
                               <td className="p-3 text-xs sm:text-sm">{formatCurrency(getTotalBudget(app))}</td>
+                              <td className="p-3 text-xs sm:text-sm">
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    app.docstatus === 0 && "bg-yellow-50 text-yellow-700 border-yellow-200",
+                                    app.docstatus === 1 && "bg-green-50 text-green-700 border-green-200",
+                                    app.docstatus === 2 && "bg-red-50 text-red-700 border-red-200"
+                                  )}
+                                >
+                                  {app.docstatus === 0 ? "Draft" : app.docstatus === 1 ? "Submitted" : "Cancelled"}
+                                </Badge>
+                              </td>
                               <td className="p-3 text-xs sm:text-sm">
                                 <Button
                                   variant="ghost"

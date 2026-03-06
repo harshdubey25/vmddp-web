@@ -8,6 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
 import {
   Pagination,
   PaginationContent,
@@ -62,7 +65,9 @@ interface Application {
     benefits: string[];
     customQuestions: { label: string; answer: string }[];
   };
+  docstatus: number;
 }
+
 
 
 export default function TreatmentPage() {
@@ -73,7 +78,7 @@ export default function TreatmentPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
 
- 
+
 
   const { data: treatmentApplications, isLoading, error } = useFrappeGetDocList<TreatmentDoc>(
     "Treatment of Infertile Animal",
@@ -96,8 +101,10 @@ export default function TreatmentPage() {
         "treatment_given",
         "primary_treatment",
         "actual_treatment_outcome",
+        "docstatus",
         "creation",
         "modified",
+
       ],
       orderBy: {
         field: "creation",
@@ -109,7 +116,7 @@ export default function TreatmentPage() {
   const applications: Application[] = (treatmentApplications || []).map((doc) => ({
     id: doc.name,
     applicantName: `${doc.first_name} ${doc.middle_name ? doc.middle_name + " " : ""}${doc.surname}`,
-    aadharNumber: doc.aadhar_number, 
+    aadharNumber: doc.aadhar_number,
     district: doc.district,
     taluka: doc.taluka,
     village: doc.village,
@@ -119,7 +126,9 @@ export default function TreatmentPage() {
       benefits: [],
       customQuestions: [],
     },
+    docstatus: doc.docstatus,
   }));
+
 
   const filteredApplications = applications.filter((app) => {
     const matchesSearch =
@@ -153,7 +162,7 @@ export default function TreatmentPage() {
 
     try {
       const XLSX = await import('xlsx');
-      
+
       const exportData = filteredApplications.map(app => ({
         'Application ID': app.id,
         'Applicant Name': app.applicantName,
@@ -166,14 +175,14 @@ export default function TreatmentPage() {
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(exportData);
-      
+
       const headers = Object.keys(exportData[0]);
       const colWidths = headers.map(header => {
         const maxLength = Math.max(
           header.length,
           ...exportData.map(row => String(row[header as keyof typeof row] || '').length)
         );
-        return { wch: maxLength + 2 }; 
+        return { wch: maxLength + 2 };
       });
       worksheet['!cols'] = colWidths;
 
@@ -208,7 +217,7 @@ export default function TreatmentPage() {
               Treatment of Infertile Animal
             </h1>
             <p className="text-sm text-muted-foreground">
-              Manage applications 
+              Manage applications
             </p>
           </div>
           <Button variant="outline" className="gap-2" data-testid="button-export" onClick={handleExport}>
@@ -274,7 +283,9 @@ export default function TreatmentPage() {
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Taluka</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Village</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Submitted Date</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Status</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
+
                           </tr>
                         </thead>
                         <tbody>
@@ -288,6 +299,18 @@ export default function TreatmentPage() {
                               <td className="p-3 text-xs sm:text-sm">{app.taluka}</td>
                               <td className="p-3 text-xs sm:text-sm">{app.village}</td>
                               <td className="p-3 text-xs sm:text-sm text-muted-foreground">{app.submittedDate}</td>
+                              <td className="p-3 text-xs sm:text-sm">
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    app.docstatus === 0 && "bg-yellow-50 text-yellow-700 border-yellow-200",
+                                    app.docstatus === 1 && "bg-green-50 text-green-700 border-green-200",
+                                    app.docstatus === 2 && "bg-red-50 text-red-700 border-red-200"
+                                  )}
+                                >
+                                  {app.docstatus === 0 ? "Draft" : app.docstatus === 1 ? "Submitted" : "Cancelled"}
+                                </Badge>
+                              </td>
                               <td className="p-3 text-xs sm:text-sm">
                                 <Button
                                   variant="ghost"

@@ -1,6 +1,7 @@
 "use client";
 export const runtime = 'edge';
 
+
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
@@ -157,12 +158,18 @@ export default function AccountantViewTreatmentApplication() {
                             Back
                         </Button>
                         <div>
-                            <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-title">
-                                <FileText className="w-6 h-6" />
-                                Review Treatment Application
-                            </h1>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-title">
+                                    <Stethoscope className="w-6 h-6" />
+                                    Review Application
+                                </h1>
+                                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                                    Treatment of Infertile Animal
+                                </Badge>
+                            </div>
                             <p className="text-sm text-muted-foreground" data-testid="text-app-id">{treatmentDoc.name}</p>
                         </div>
+
                     </div>
 
                     {treatmentDoc.docstatus === 0 && (
