@@ -47,6 +47,7 @@ export interface VendorPaymentReport {
     component_allocations: Array<{
         component_allocation: string;
         amount: number;
+        vendor_category?: string;
         application?: string;
         component?: string;
         type_of_animal?: string;
@@ -144,297 +145,318 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
     return (
         <div className="flex-1 h-full overflow-auto bg-background">
             <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 pb-10">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                            <Link href={backLink}>
-                                <Button variant="ghost" size="icon" data-testid="button-back">
-                                    <ArrowLeft className="h-5 w-5" />
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <Link href={backLink}>
+                            <Button variant="ghost" size="icon" data-testid="button-back">
+                                <ArrowLeft className="h-5 w-5" />
+                            </Button>
+                        </Link>
+                        <div>
+                            <h1 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-page-title">
+                                Vendor Payments Report
+                            </h1>
+                            <p className="text-sm text-muted-foreground">View all disbursed vendor payments and issued cheques</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" data-testid="button-export" disabled={vendorPayments.length === 0 || isExporting}>
+                                    {isExporting
+                                        ? <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
+                                        : <Download className="h-4 w-4 sm:mr-2" />}
+                                    <span className="hidden sm:inline">Export</span>
                                 </Button>
-                            </Link>
-                            <div>
-                                <h1 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-page-title">
-                                    Vendor Payments Report
-                                </h1>
-                                <p className="text-sm text-muted-foreground">View all disbursed vendor payments and issued cheques</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2 self-end sm:self-auto">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm" data-testid="button-export" disabled={vendorPayments.length === 0 || isExporting}>
-                                        {isExporting
-                                            ? <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
-                                            : <Download className="h-4 w-4 sm:mr-2" />}
-                                        <span className="hidden sm:inline">Export</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => handleExport("excel")}>
-                                        <FileSpreadsheet className="h-4 w-4 mr-2" />
-                                        Export as Excel
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleExport("pdf")}>
-                                        <FileText className="h-4 w-4 mr-2" />
-                                        Export as PDF
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleExport("excel")}>
+                                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                    Export as Excel
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    Export as PDF
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
+                </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                        <Card data-testid="card-total-disbursed">
-                            <CardContent className="pt-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-green-500/10">
-                                        <CheckCircle className="h-5 w-5 text-green-600" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Total Disbursed</p>
-                                        <p className="text-2xl font-bold">₹{(totalDisbursed / 100000).toFixed(2)}L</p>
-                                        <p className="text-xs text-muted-foreground">{totalCheques} cheques</p>
-                                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                    <Card data-testid="card-total-disbursed">
+                        <CardContent className="pt-6">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-lg bg-green-500/10">
+                                    <CheckCircle className="h-5 w-5 text-green-600" />
                                 </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card data-testid="card-cheques-issued">
-                            <CardContent className="pt-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-blue-500/10">
-                                        <Receipt className="h-5 w-5 text-blue-600" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Cheques Issued</p>
-                                        <p className="text-2xl font-bold">{totalCheques}</p>
-                                        <p className="text-xs text-muted-foreground">Total payments</p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card data-testid="card-vendors">
-                            <CardContent className="pt-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-purple-500/10">
-                                        <Building2 className="h-5 w-5 text-purple-600" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Vendors</p>
-                                        <p className="text-2xl font-bold">{vendors?.length}</p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <Card data-testid="card-filters">
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <Filter className="h-4 w-4" />
-                                Filters
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:items-center">
-                                <div className="w-full sm:w-56 relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Search cheque, vendor"
-                                        className="pl-9"
-                                        value={searchText}
-                                        onChange={(e) => {
-                                            setSearchText(e.target.value);
-                                            setCurrentPage(1);
-                                        }}
-                                        data-testid="input-search"
-                                    />
-                                </div>
-                                <Select
-                                    value={selectedVendor || "all"}
-                                    onValueChange={(value) => {
-                                        setSelectedVendor(value === "all" ? null : value);
-                                        setCurrentPage(1);
-                                    }}
-                                >
-                                    <SelectTrigger className="w-full sm:w-44" data-testid="select-vendor">
-                                        <SelectValue placeholder="Vendor" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All Vendors</SelectItem>
-                                        {vendors?.map((v) => (
-                                            <SelectItem key={v.name} value={v.name}>{v.vendor_name || v.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <div className="flex flex-col xs:flex-row gap-2 items-start xs:items-center">
-                                    <div className="flex gap-2 items-center">
-                                        <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-                                        <Input
-                                            type="date"
-                                            value={startDate}
-                                            onChange={(e) => {
-                                                setStartDate(e.target.value);
-                                                setCurrentPage(1);
-                                            }}
-                                            placeholder="Start Date"
-                                            className="w-full sm:w-36"
-                                            data-testid="input-start-date"
-                                        />
-                                    </div>
-                                    <div className="flex gap-2 items-center">
-                                        <span className="text-muted-foreground text-sm">to</span>
-                                        <Input
-                                            type="date"
-                                            value={endDate}
-                                            onChange={(e) => {
-                                                setEndDate(e.target.value);
-                                                setCurrentPage(1);
-                                            }}
-                                            placeholder="End Date"
-                                            className="w-full sm:w-36"
-                                            data-testid="input-end-date"
-                                        />
-                                    </div>
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Total Disbursed</p>
+                                    <p className="text-2xl font-bold">₹{(totalDisbursed / 100000).toFixed(2)}L</p>
+                                    <p className="text-xs text-muted-foreground">{totalCheques} cheques</p>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card data-testid="card-payments-table">
-                        <CardHeader>
-                            <CardTitle>Disbursed Payments</CardTitle>
-                            <CardDescription>
-                                All vendor payments that have been processed via cheque • Showing {totalRecords} records
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {loading ? (
-                                <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    <Card data-testid="card-cheques-issued">
+                        <CardContent className="pt-6">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-lg bg-blue-500/10">
+                                    <Receipt className="h-5 w-5 text-blue-600" />
                                 </div>
-                            ) : vendorPayments.length > 0 ? (
-                                <div className="border rounded-lg overflow-hidden flex flex-col">
-                                    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
-                                        <table className="w-full min-w-[900px]">
-                                            <thead className="bg-muted border-b sticky top-0 z-10">
-                                                <tr>
-                                                    <th className="text-left p-3 font-medium w-12">#</th>
-                                                    <th className="text-left p-3 font-medium">Payment ID</th>
-                                                    <th className="text-left p-3 font-medium">Vendor</th>
-                                                    <th className="text-left p-3 font-medium">Cheque Number</th>
-                                                    <th className="text-left p-3 font-medium">Cheque Date</th>
-                                                    <th className="text-left p-3 font-medium">Bank</th>
-                                                    <th className="text-right p-3 font-medium">Amount</th>
-                                                    <th className="text-left p-3 font-medium">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {paginatedPayments.map((payment, idx) => (
-                                                    <tr key={payment.name} className="border-b last:border-0 hover:bg-muted/30 transition-colors" data-testid={`row-payment-${payment.name}`}>
-                                                        <td className="p-3 text-sm text-muted-foreground">{startIndex + idx + 1}</td>
-                                                        <td className="p-3">
-                                                            <p className="font-medium font-mono text-sm">{payment.name}</p>
-                                                        </td>
-                                                        <td className="p-3">
-                                                            <div className="flex items-center gap-2">
-                                                                <p className="font-medium text-sm">{payment.vendor_name || payment.vendor}</p>
-                                                                {payment.for_parantage ? (
-                                                                    <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/20">
-                                                                        Parantage
-                                                                    </Badge>
-                                                                ) : null}
-                                                            </div>
-                                                        </td>
-                                                        <td className="p-3">
-                                                            <p className="font-medium text-sm">{payment.check_number}</p>
-                                                        </td>
-                                                        <td className="p-3">
-                                                            <p className="font-medium text-sm">{new Date(payment.cheque_date).toLocaleDateString("en-GB")}</p>
-                                                        </td>
-                                                        <td className="p-3">
-                                                            <p className="font-medium">{payment.bank_name}</p>
-                                                        </td>
-                                                        <td className="p-3 text-right">
-                                                            <span className="font-bold text-green-600">
-                                                                ₹{payment.cheque_amount.toLocaleString("en-IN")}
-                                                            </span>
-                                                        </td>
-                                                        <td className="p-3">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => {
-                                                                    setSelectedPayment(payment);
-                                                                    setDetailsDialog(true);
-                                                                }}
-                                                            >
-                                                                <Eye className="h-4 w-4" />
-                                                            </Button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Cheques Issued</p>
+                                    <p className="text-2xl font-bold">{totalCheques}</p>
+                                    <p className="text-xs text-muted-foreground">Total payments</p>
                                 </div>
-                            ) : (
-                                <p className="text-center text-muted-foreground py-8">No disbursed payments found</p>
-                            )}
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                            {/* Pagination */}
-                            {totalPages > 1 && paginatedPayments.length > 0 && (
-                                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t">
-                                    <p className="text-sm text-muted-foreground">
-                                        Showing {paginatedPayments.length} of {totalRecords} records • Page {currentPage} of {totalPages}
-                                    </p>
-                                    <Pagination>
-                                        <PaginationContent>
-                                            <PaginationItem>
-                                                <PaginationPrevious
-                                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                                                />
-                                            </PaginationItem>
-
-                                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                                let pageNum;
-                                                if (totalPages <= 5) {
-                                                    pageNum = i + 1;
-                                                } else if (currentPage <= 3) {
-                                                    pageNum = i + 1;
-                                                } else if (currentPage >= totalPages - 2) {
-                                                    pageNum = totalPages - 4 + i;
-                                                } else {
-                                                    pageNum = currentPage - 2 + i;
-                                                }
-
-                                                return (
-                                                    <PaginationItem key={pageNum}>
-                                                        <PaginationLink
-                                                            onClick={() => setCurrentPage(pageNum)}
-                                                            isActive={currentPage === pageNum}
-                                                            className="cursor-pointer"
-                                                        >
-                                                            {pageNum}
-                                                        </PaginationLink>
-                                                    </PaginationItem>
-                                                );
-                                            })}
-
-                                            <PaginationItem>
-                                                <PaginationNext
-                                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                                                />
-                                            </PaginationItem>
-                                        </PaginationContent>
-                                    </Pagination>
+                    <Card data-testid="card-vendors">
+                        <CardContent className="pt-6">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-lg bg-purple-500/10">
+                                    <Building2 className="h-5 w-5 text-purple-600" />
                                 </div>
-                            )}
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Vendors</p>
+                                    <p className="text-2xl font-bold">{vendors?.length}</p>
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
+
+                <Card data-testid="card-filters">
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                            <Filter className="h-4 w-4" />
+                            Filters
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:items-center">
+                            <div className="w-full sm:w-56 relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search cheque, vendor"
+                                    className="pl-9"
+                                    value={searchText}
+                                    onChange={(e) => {
+                                        setSearchText(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                    data-testid="input-search"
+                                />
+                            </div>
+                            <Select
+                                value={selectedVendor || "all"}
+                                onValueChange={(value) => {
+                                    setSelectedVendor(value === "all" ? null : value);
+                                    setCurrentPage(1);
+                                }}
+                            >
+                                <SelectTrigger className="w-full sm:w-44" data-testid="select-vendor">
+                                    <SelectValue placeholder="Vendor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Vendors</SelectItem>
+                                    {vendors?.map((v) => (
+                                        <SelectItem key={v.name} value={v.name}>{v.vendor_name || v.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <div className="flex flex-col xs:flex-row gap-2 items-start xs:items-center">
+                                <div className="flex gap-2 items-center">
+                                    <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+                                    <Input
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => {
+                                            setStartDate(e.target.value);
+                                            setCurrentPage(1);
+                                        }}
+                                        placeholder="Start Date"
+                                        className="w-full sm:w-36"
+                                        data-testid="input-start-date"
+                                    />
+                                </div>
+                                <div className="flex gap-2 items-center">
+                                    <span className="text-muted-foreground text-sm">to</span>
+                                    <Input
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => {
+                                            setEndDate(e.target.value);
+                                            setCurrentPage(1);
+                                        }}
+                                        placeholder="End Date"
+                                        className="w-full sm:w-36"
+                                        data-testid="input-end-date"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card data-testid="card-payments-table">
+                    <CardHeader>
+                        <CardTitle>Disbursed Payments</CardTitle>
+                        <CardDescription>
+                            All vendor payments that have been processed via cheque • Showing {totalRecords} records
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {loading ? (
+                            <div className="flex items-center justify-center py-8">
+                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                            </div>
+                        ) : vendorPayments.length > 0 ? (
+                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                    <table className="w-full min-w-[900px]">
+                                        <thead className="bg-muted border-b sticky top-0 z-10">
+                                            <tr>
+                                                <th className="text-left p-3 font-medium w-12">#</th>
+                                                <th className="text-left p-3 font-medium">Payment ID</th>
+                                                <th className="text-left p-3 font-medium">Vendor</th>
+                                                <th className="text-left p-3 font-medium">Category</th>
+                                                <th className="text-left p-3 font-medium">Cheque Number</th>
+                                                <th className="text-left p-3 font-medium">Cheque Date</th>
+                                                <th className="text-left p-3 font-medium">Bank</th>
+                                                <th className="text-right p-3 font-medium">Amount</th>
+                                                <th className="text-left p-3 font-medium">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {paginatedPayments.map((payment, idx) => (
+                                                <tr key={payment.name} className="border-b last:border-0 hover:bg-muted/30 transition-colors" data-testid={`row-payment-${payment.name}`}>
+                                                    <td className="p-3 text-sm text-muted-foreground">{startIndex + idx + 1}</td>
+                                                    <td className="p-3">
+                                                        <p className="font-medium font-mono text-sm">{payment.name}</p>
+                                                    </td>
+                                                    <td className="p-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="font-medium text-sm">{payment.vendor_name || payment.vendor}</p>
+                                                            {payment.for_parantage ? (
+                                                                <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/20">
+                                                                    Parantage
+                                                                </Badge>
+                                                            ) : null}
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-3">
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {(() => {
+                                                                const categoryColors: Record<string, string> = {
+                                                                    Animal: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+                                                                    Collar: "bg-purple-500/10 text-purple-700 border-purple-500/20",
+                                                                    Insurance: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+                                                                    Transportation: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+                                                                };
+                                                                const categories = [...new Set(payment.component_allocations?.map(a => a.vendor_category).filter(Boolean))];
+                                                                return categories.length > 0
+                                                                    ? categories.map(cat => (
+                                                                        <Badge key={cat} variant="outline" className={categoryColors[cat!] || ""}>
+                                                                            {cat}
+                                                                        </Badge>
+                                                                    ))
+                                                                    : <span className="text-sm text-muted-foreground">-</span>;
+                                                            })()}
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-3">
+                                                        <p className="font-medium text-sm">{payment.check_number}</p>
+                                                    </td>
+                                                    <td className="p-3">
+                                                        <p className="font-medium text-sm">{new Date(payment.cheque_date).toLocaleDateString("en-GB")}</p>
+                                                    </td>
+                                                    <td className="p-3">
+                                                        <p className="font-medium">{payment.bank_name}</p>
+                                                    </td>
+                                                    <td className="p-3 text-right">
+                                                        <span className="font-bold text-green-600">
+                                                            ₹{payment.cheque_amount.toLocaleString("en-IN")}
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-3">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                setSelectedPayment(payment);
+                                                                setDetailsDialog(true);
+                                                            }}
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-center text-muted-foreground py-8">No disbursed payments found</p>
+                        )}
+
+                        {/* Pagination */}
+                        {totalPages > 1 && paginatedPayments.length > 0 && (
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t">
+                                <p className="text-sm text-muted-foreground">
+                                    Showing {paginatedPayments.length} of {totalRecords} records • Page {currentPage} of {totalPages}
+                                </p>
+                                <Pagination>
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                            />
+                                        </PaginationItem>
+
+                                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                            let pageNum;
+                                            if (totalPages <= 5) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage <= 3) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage >= totalPages - 2) {
+                                                pageNum = totalPages - 4 + i;
+                                            } else {
+                                                pageNum = currentPage - 2 + i;
+                                            }
+
+                                            return (
+                                                <PaginationItem key={pageNum}>
+                                                    <PaginationLink
+                                                        onClick={() => setCurrentPage(pageNum)}
+                                                        isActive={currentPage === pageNum}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        {pageNum}
+                                                    </PaginationLink>
+                                                </PaginationItem>
+                                            );
+                                        })}
+
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
 
             <Dialog open={detailsDialog} onOpenChange={setDetailsDialog}>
                 <DialogContent className="w-[95vw] max-w-3xl max-h-[85vh] overflow-y-auto">
@@ -566,6 +588,19 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                                                                 <p className="text-xs text-muted-foreground">Application ID</p>
                                                                 <p className="font-medium font-mono text-sm">{allocation.application}</p>
                                                             </div>
+                                                            {allocation.vendor_category && (
+                                                                <div>
+                                                                    <p className="text-xs text-muted-foreground">Category</p>
+                                                                    <Badge variant="outline" className={{
+                                                                        Animal: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+                                                                        Collar: "bg-purple-500/10 text-purple-700 border-purple-500/20",
+                                                                        Insurance: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+                                                                        Transportation: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+                                                                    }[allocation.vendor_category] || ""}>
+                                                                        {allocation.vendor_category}
+                                                                    </Badge>
+                                                                </div>
+                                                            )}
                                                             <div>
                                                                 <p className="text-xs text-muted-foreground">Animal Type</p>
                                                                 <p className="font-medium">{allocation.type_of_animal}</p>
@@ -579,7 +614,7 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                                                                 <p className="font-medium">₹{allocation.animal_cost?.toLocaleString("en-IN")}</p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-xs text-muted-foreground">Allocated Amount</p>
+                                                                <p className="text-xs text-muted-foreground">Amount</p>
                                                                 <p className="font-semibold text-green-600">₹{allocation.amount.toLocaleString("en-IN")}</p>
                                                             </div>
                                                         </div>
