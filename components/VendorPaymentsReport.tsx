@@ -81,6 +81,7 @@ interface VendorPaymentsReportProps {
 
 export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportProps) {
     const [selectedVendor, setSelectedVendor] = useState<string | null>(null);
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [searchText, setSearchText] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
@@ -95,6 +96,7 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
         {
             limit_page_length: 1000,
             vendor_name: selectedVendor || undefined,
+            vendor_category: selectedCategory || undefined,
             search_text: searchText || undefined,
             start_date: startDate || undefined,
             end_date: endDate || undefined,
@@ -105,6 +107,10 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
 
     const { data: vendors } = useFrappeGetDocList<{ name: string; vendor_name: string }>("Vendor", {
         fields: ["name", "vendor_name"],
+        limit: 100
+    });
+    const { data: vendorCategories } = useFrappeGetDocList<{ name: string }>("Vendor Categories", {
+        fields: ["name"],
         limit: 100
     });
 
@@ -265,6 +271,23 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                                     <SelectItem value="all">All Vendors</SelectItem>
                                     {vendors?.map((v) => (
                                         <SelectItem key={v.name} value={v.name}>{v.vendor_name || v.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select
+                                value={selectedCategory || "all"}
+                                onValueChange={(value) => {
+                                    setSelectedCategory(value === "all" ? null : value);
+                                    setCurrentPage(1);
+                                }}
+                            >
+                                <SelectTrigger className="w-full sm:w-44" data-testid="select-category">
+                                    <SelectValue placeholder="Category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Categories</SelectItem>
+                                    {vendorCategories?.map((c) => (
+                                        <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
