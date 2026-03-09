@@ -67,6 +67,7 @@ interface AccountantTreatmentReviewDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onApproved?: () => void | Promise<void>;
+    canApprove?: boolean;
 }
 
 function getFileUrl(path: string) {
@@ -82,6 +83,7 @@ export default function AccountantTreatmentReviewDialog({
     open,
     onOpenChange,
     onApproved,
+    canApprove = true,
 }: AccountantTreatmentReviewDialogProps) {
     const { toast } = useToast();
     const { updateDoc } = useFrappeUpdateDoc();
@@ -164,7 +166,7 @@ export default function AccountantTreatmentReviewDialog({
                                 </DialogDescription>
                             </div>
 
-                            {treatmentDoc?.docstatus === 0 && (
+                            {canApprove && treatmentDoc?.docstatus === 0 && (
                                 <Button
                                     className="gap-2 self-start"
                                     onClick={handleApproveAndSubmit}
@@ -193,7 +195,7 @@ export default function AccountantTreatmentReviewDialog({
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                {treatmentDoc.docstatus === 0 && (
+                                {canApprove && treatmentDoc.docstatus === 0 && (
                                     <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
                                         <strong>Review needed:</strong> This application is currently in <strong>Draft</strong>.
                                         Verify the treatment and medicine details before approving fund release.
@@ -404,7 +406,7 @@ export default function AccountantTreatmentReviewDialog({
                                     </Card>
                                 )}
 
-                                {treatmentDoc.docstatus === 0 && (
+                                {canApprove && treatmentDoc.docstatus === 0 && (
                                     <div className="flex justify-center pt-2">
                                         <Button
                                             size="lg"

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Download, GraduationCap, Upload, Search, FileText, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import AccountantFarmerTrainingReviewDialog from "@/components/AccountantFarmerTrainingReviewDialog";
 import { Application } from "@/types/subadmin";
 import { cn } from "@/lib/utils";
 
@@ -22,9 +23,11 @@ export default function FarmerTraining() {
   const { currentUser } = useFrappeAuth();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter] = useState("all");
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
 
-  const { data: dpoData, isLoading: dpoLoading } = useFrappeGetDoc("DPO", currentUser || undefined);
+  const { data: dpoData } = useFrappeGetDoc("DPO", currentUser || undefined);
   const assignedDistrict = dpoData?.district;
 
   const { data: applications, isLoading, error } = useFrappeGetDocList<Application>("Farmer Training Application", {
@@ -65,7 +68,8 @@ export default function FarmerTraining() {
 
 
   const handleViewDetails = (app: Application) => {
-    router.push(`/subadmin/farmer-training/${encodeURIComponent(app.name)}`);
+    setSelectedApplicationId(app.name);
+    setIsReviewOpen(true);
   };
 
   const formatCurrency = (amount: number) => {
@@ -141,7 +145,7 @@ export default function FarmerTraining() {
         title: "Export successful",
         description: `Exported ${filteredApplications.length} applications.`,
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Export failed",
         description: "Failed to export applications. Please try again.",
@@ -278,6 +282,18 @@ export default function FarmerTraining() {
           </div>
         </main>
       </div>
+
+      <AccountantFarmerTrainingReviewDialog
+        applicationId={selectedApplicationId}
+        open={isReviewOpen}
+        onOpenChange={(open) => {
+          setIsReviewOpen(open);
+          if (!open) {
+            setSelectedApplicationId(null);
+          }
+        }}
+        canApprove={false}
+      />
     </div>
   );
 }

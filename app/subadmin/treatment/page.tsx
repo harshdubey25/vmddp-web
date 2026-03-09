@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Download, Stethoscope, Upload, Search, FileText, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import AccountantTreatmentReviewDialog from "@/components/AccountantTreatmentReviewDialog";
 import { TreatmentDoc } from "@/types/subadmin";
 import { cn } from "@/lib/utils";
 
@@ -66,6 +67,8 @@ export default function TreatmentPage() {
   const router = useRouter();
   const { currentUser } = useFrappeAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: dpoData } = useFrappeGetDoc("DPO", currentUser || undefined);
@@ -133,7 +136,8 @@ export default function TreatmentPage() {
 
 
   const handleViewDetails = (app: Application) => {
-    router.push(`/subadmin/treatment/${encodeURIComponent(app.id)}`);
+    setSelectedApplicationId(app.id);
+    setIsReviewOpen(true);
   };
 
   const handleExport = async () => {
@@ -184,7 +188,7 @@ export default function TreatmentPage() {
         title: "Export successful",
         description: `Exported ${filteredApplications.length} applications.`,
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Export failed",
         description: "Failed to export applications. Please try again.",
@@ -325,6 +329,18 @@ export default function TreatmentPage() {
           </div>
         </main>
       </div>
+
+      <AccountantTreatmentReviewDialog
+        applicationId={selectedApplicationId}
+        open={isReviewOpen}
+        onOpenChange={(open) => {
+          setIsReviewOpen(open);
+          if (!open) {
+            setSelectedApplicationId(null);
+          }
+        }}
+        canApprove={false}
+      />
     </div>
   );
 }

@@ -54,6 +54,7 @@ interface AccountantFarmerTrainingReviewDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onApproved?: () => void | Promise<void>;
+    canApprove?: boolean;
 }
 
 const EXPENSE_PER_HEAD = 360;
@@ -71,6 +72,7 @@ export default function AccountantFarmerTrainingReviewDialog({
     open,
     onOpenChange,
     onApproved,
+    canApprove = true,
 }: AccountantFarmerTrainingReviewDialogProps) {
     const { toast } = useToast();
     const { updateDoc } = useFrappeUpdateDoc();
@@ -173,7 +175,7 @@ export default function AccountantFarmerTrainingReviewDialog({
                                 </DialogDescription>
                             </div>
 
-                            {application?.docstatus === 0 && (
+                            {canApprove && application?.docstatus === 0 && (
                                 <Button
                                     className="gap-2 self-start"
                                     onClick={handleApproveAndSubmit}
@@ -202,7 +204,7 @@ export default function AccountantFarmerTrainingReviewDialog({
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                {application.docstatus === 0 && (
+                                {canApprove && application.docstatus === 0 && (
                                     <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
                                         <strong>Attention:</strong> This application is in <strong>Draft</strong> status.
                                         Review it before approving.
@@ -457,7 +459,7 @@ export default function AccountantFarmerTrainingReviewDialog({
                                     </CardContent>
                                 </Card>
 
-                                {application.docstatus === 0 && (
+                                {canApprove && application.docstatus === 0 && (
                                     <div className="flex justify-center pt-2">
                                         <Button
                                             size="lg"
