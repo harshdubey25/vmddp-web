@@ -308,9 +308,15 @@ export default function AnimalInductionMPRPage() {
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
+                            <CardDescription className="text-xs sm:text-sm">Total CrossBreed</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-purple-600">{totals.crossbreed_count}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
                             <CardDescription className="text-xs sm:text-sm">Total Expenditure</CardDescription>
                             <CardTitle className="text-xl sm:text-2xl text-green-600">
-                                ₹{formatCurrency(totals.total_expenditure.total)}
+                                ₹{formatCurrency(totals.total_expenditure.subsidy_share_total)}
                             </CardTitle>
                         </CardHeader>
                     </Card>
