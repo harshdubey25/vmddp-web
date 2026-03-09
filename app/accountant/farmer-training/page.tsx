@@ -1,24 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useFrappeGetDocList, useFrappeAuth } from "frappe-react-sdk";
+import { useFrappeGetDocList } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Download, GraduationCap, Search, FileText, Loader2 } from "lucide-react";
+import AccountantFarmerTrainingReviewDialog from "@/components/AccountantFarmerTrainingReviewDialog";
 import { Application } from "@/types/subadmin";
 
 export default function AccountantFarmerTraining() {
-    const router = useRouter();
     const { toast } = useToast();
-    const { currentUser } = useFrappeAuth();
 
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("0");
+    const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+    const [isReviewOpen, setIsReviewOpen] = useState(false);
 
-    const { data: applications, isLoading, error } = useFrappeGetDocList<Application>("Farmer Training Application", {
+    const { data: applications, isLoading, error, mutate } = useFrappeGetDocList<Application>("Farmer Training Application", {
         fields: [
             "name",
             "event_name",
@@ -54,7 +54,8 @@ export default function AccountantFarmerTraining() {
     });
 
     const handleViewDetails = (app: Application) => {
-        router.push(`/accountant/farmer-training/${encodeURIComponent(app.name)}`);
+        setSelectedApplicationId(app.name);
+        setIsReviewOpen(true);
     };
 
     const formatCurrency = (amount: number) => {
@@ -124,7 +125,7 @@ export default function AccountantFarmerTraining() {
                 title: "Export successful",
                 description: `Exported ${filteredApplications.length} applications.`,
             });
-        } catch (error) {
+        } catch {
             toast({
                 title: "Export failed",
                 description: "Failed to export applications. Please try again.",
@@ -261,6 +262,20 @@ export default function AccountantFarmerTraining() {
                     </div>
                 </main>
             </div>
+
+            <AccountantFarmerTrainingReviewDialog
+                applicationId={selectedApplicationId}
+                open={isReviewOpen}
+                onOpenChange={(open) => {
+                    setIsReviewOpen(open);
+                    if (!open) {
+                        setSelectedApplicationId(null);
+                    }
+                }}
+                onApproved={async () => {
+                    await mutate();
+                }}
+            />
         </div>
     );
 }
