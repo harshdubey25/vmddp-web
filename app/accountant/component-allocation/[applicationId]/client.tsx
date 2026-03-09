@@ -390,6 +390,12 @@ export default function AllocationForm({
         const dd_amount = parseFloat(data?.message.dd_amount || "0");
         const refundAmount = dd_amount > subsidyAmount ? dd_amount - subsidyAmount : 0;
         return {
+            vendorPayments: {
+                animal: animalCost,
+                collar: collarCost,
+                insurance: premiumPaid,
+                transportation: transportCost,
+            },
             totalCost,
             subsidyAmount,
             refundAmount
@@ -399,20 +405,30 @@ export default function AllocationForm({
         const animalCost = parseFloat(hgmData.animalCost) || 0;
         const collarCost = parseFloat(hgmData.collarCost) || 0;
         const premiumPaid = parseFloat(hgmData.premiumPaid) || 0;
-
-        const subsidyAmount = Math.min(animalCost * 0.75, HGM_MAX_SUBSIDY) + premiumPaid + collarCost;
+        const animalCurrentPayment = Math.min(animalCost * 0.75, HGM_MAX_SUBSIDY);
+        const subsidyAmount = animalCurrentPayment + premiumPaid + collarCost;
         const amount_paid_by_user = animalCost * 0.25;
         const dd_amount = parseFloat(data?.message.dd_amount || "0");
         const refundAmount = dd_amount > amount_paid_by_user ? dd_amount - amount_paid_by_user : 0;
         const currentVendorPayment = subsidyAmount;
-        const afterParantageVendorPayment = animalCost * 0.25;
+        const afterParantageVendorPayment = amount_paid_by_user;
         return {
             subsidyAmount,
             currentVendorPayment,
             refundAmount,
             afterParantageVendorPayment,
+            vendorPayments: {
+                animalCurrent: animalCurrentPayment,
+                animalAfterParantage: afterParantageVendorPayment,
+                collar: collarCost,
+                insurance: premiumPaid,
+            },
         }
     }
+
+    const animalSubsidy = calculateAnimalSubsidy();
+    const hgmSubsidy = calculateNewHgmSubsidy();
+
     const isFormValid = () => {
         if (!data?.message) return false;
         if (data.message.component === ANIMAL_INDUCTION) {
@@ -1251,14 +1267,58 @@ export default function AllocationForm({
                                         data-testid="subsidy-calculation"
                                     >
                                         <h4 className="font-semibold mb-3">System Calculations</h4>
-                                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Animal Vendor Payment
+                                                </p>
+                                                <p className="font-medium">
+                                                    ₹
+                                                    {animalSubsidy.vendorPayments.animal.toLocaleString(
+                                                        "en-IN",
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Collar Vendor Payment
+                                                </p>
+                                                <p className="font-medium">
+                                                    ₹
+                                                    {animalSubsidy.vendorPayments.collar.toLocaleString(
+                                                        "en-IN",
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Insurance Vendor Payment
+                                                </p>
+                                                <p className="font-medium">
+                                                    ₹
+                                                    {animalSubsidy.vendorPayments.insurance.toLocaleString(
+                                                        "en-IN",
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Transportation Vendor Payment
+                                                </p>
+                                                <p className="font-medium">
+                                                    ₹
+                                                    {animalSubsidy.vendorPayments.transportation.toLocaleString(
+                                                        "en-IN",
+                                                    )}
+                                                </p>
+                                            </div>
                                             <div>
                                                 <p className="text-xs text-muted-foreground">
                                                     Total Expenditure
                                                 </p>
                                                 <p className="font-medium">
                                                     ₹
-                                                    {calculateAnimalSubsidy().totalCost.toLocaleString(
+                                                    {animalSubsidy.totalCost.toLocaleString(
                                                         "en-IN",
                                                     )}
                                                 </p>
@@ -1269,7 +1329,7 @@ export default function AllocationForm({
                                                 </p>
                                                 <p className="font-medium text-green-600">
                                                     ₹
-                                                    {calculateAnimalSubsidy().subsidyAmount.toLocaleString(
+                                                    {animalSubsidy.subsidyAmount.toLocaleString(
                                                         "en-IN",
                                                     )}
                                                 </p>
@@ -1280,7 +1340,7 @@ export default function AllocationForm({
                                                 </p>
                                                 <p className="font-medium text-blue-600">
                                                     ₹
-                                                    {calculateAnimalSubsidy().refundAmount.toLocaleString(
+                                                    {animalSubsidy.refundAmount.toLocaleString(
                                                         "en-IN",
                                                     )}
                                                 </p>
@@ -1741,7 +1801,7 @@ export default function AllocationForm({
                                         data-testid="hgm-calculation"
                                     >
                                         <h4 className="font-semibold mb-3">Payment Calculation</h4>
-                                        <div className={`grid grid-cols-2 gap-4 ${calculateNewHgmSubsidy().refundAmount ? 'md:grid-cols-5' : 'md:grid-cols-4'}`}>
+                                        <div className={`grid grid-cols-2 gap-4 ${hgmSubsidy.refundAmount ? 'md:grid-cols-5' : 'md:grid-cols-4'}`}>
                                             <div>
                                                 <p className="text-xs text-muted-foreground">
                                                     Animal Cost
@@ -1755,22 +1815,66 @@ export default function AllocationForm({
                                             </div>
                                             <div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Current Vendor Payment
+                                                    Animal Payment (Current 75%)
                                                 </p>
                                                 <p className="font-medium text-green-600">
                                                     ₹
-                                                    {calculateNewHgmSubsidy().currentVendorPayment.toLocaleString(
+                                                    {hgmSubsidy.vendorPayments.animalCurrent.toLocaleString(
                                                         "en-IN",
                                                     )}
                                                 </p>
                                             </div>
                                             <div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    After Parantage Payment
+                                                    Collar Vendor Payment
+                                                </p>
+                                                <p className="font-medium">
+                                                    ₹
+                                                    {hgmSubsidy.vendorPayments.collar.toLocaleString(
+                                                        "en-IN",
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Insurance Vendor Payment
+                                                </p>
+                                                <p className="font-medium">
+                                                    ₹
+                                                    {hgmSubsidy.vendorPayments.insurance.toLocaleString(
+                                                        "en-IN",
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Current Vendor Payment Total
+                                                </p>
+                                                <p className="font-medium text-green-600">
+                                                    ₹
+                                                    {hgmSubsidy.currentVendorPayment.toLocaleString(
+                                                        "en-IN",
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Animal Payment (After Parantage 25%)
                                                 </p>
                                                 <p className="font-medium text-blue-600">
                                                     ₹
-                                                    {calculateNewHgmSubsidy().afterParantageVendorPayment.toLocaleString(
+                                                    {hgmSubsidy.vendorPayments.animalAfterParantage.toLocaleString(
+                                                        "en-IN",
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Total Subsidy
+                                                </p>
+                                                <p className="font-medium">
+                                                    ₹
+                                                    {hgmSubsidy.subsidyAmount.toLocaleString(
                                                         "en-IN",
                                                     )}
                                                 </p>
@@ -1783,14 +1887,14 @@ export default function AllocationForm({
                                                     ₹{data.message.dd_amount}
                                                 </p>
                                             </div>
-                                            {calculateNewHgmSubsidy().refundAmount > 0 && (
+                                            {hgmSubsidy.refundAmount > 0 && (
                                                 <div>
                                                     <p className="text-xs text-muted-foreground">
                                                         Refund Amount
                                                     </p>
                                                     <p className="font-medium text-red-600">
                                                         ₹
-                                                        {calculateNewHgmSubsidy().refundAmount.toLocaleString(
+                                                        {hgmSubsidy.refundAmount.toLocaleString(
                                                             "en-IN",
                                                         )}
                                                     </p>
@@ -1802,7 +1906,7 @@ export default function AllocationForm({
                                                 <AlertCircle className="h-3 w-3" />
                                                 No Transportation Cost
                                             </span>
-                                            {calculateNewHgmSubsidy().refundAmount ? (
+                                            {hgmSubsidy.refundAmount ? (
                                                 <span className="flex items-center gap-1 text-red-600">
                                                     <AlertCircle className="h-3 w-3" />
                                                     Refund escalated after Parantage Confirmation
@@ -1880,7 +1984,7 @@ export default function AllocationForm({
                                             <span className="text-muted-foreground">Subsidy</span>
                                             <span className="font-bold text-green-600">
                                                 ₹
-                                                {calculateAnimalSubsidy().subsidyAmount.toLocaleString(
+                                                {animalSubsidy.subsidyAmount.toLocaleString(
                                                     "en-IN",
                                                 )}
                                             </span>
@@ -1911,34 +2015,67 @@ export default function AllocationForm({
                                     </div>
                                     <div className="flex justify-between text-lg">
                                         <span className="text-muted-foreground">
-                                            Current Vendor Payment
+                                            Current Vendor Payment Total
                                         </span>
                                         <span className="font-bold text-primary">
                                             ₹
-                                            {calculateNewHgmSubsidy().currentVendorPayment.toLocaleString(
+                                            {hgmSubsidy.currentVendorPayment.toLocaleString(
                                                 "en-IN",
                                             )}
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">
-                                            After Parantage Payment
+                                            Animal Payment (Current 75%)
                                         </span>
-                                        <span className="font-medium text-blue-600">
+                                        <span className="font-medium text-green-600">
                                             ₹
-                                            {calculateNewHgmSubsidy().afterParantageVendorPayment.toLocaleString(
+                                            {hgmSubsidy.vendorPayments.animalCurrent.toLocaleString(
                                                 "en-IN",
                                             )}
                                         </span>
                                     </div>
-                                    {calculateNewHgmSubsidy().refundAmount > 0 && (
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">
+                                            Animal Payment (After Parantage 25%)
+                                        </span>
+                                        <span className="font-medium text-blue-600">
+                                            ₹
+                                            {hgmSubsidy.vendorPayments.animalAfterParantage.toLocaleString(
+                                                "en-IN",
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">
+                                            Collar Vendor Payment
+                                        </span>
+                                        <span className="font-medium">
+                                            ₹
+                                            {hgmSubsidy.vendorPayments.collar.toLocaleString(
+                                                "en-IN",
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">
+                                            Insurance Vendor Payment
+                                        </span>
+                                        <span className="font-medium">
+                                            ₹
+                                            {hgmSubsidy.vendorPayments.insurance.toLocaleString(
+                                                "en-IN",
+                                            )}
+                                        </span>
+                                    </div>
+                                    {hgmSubsidy.refundAmount > 0 && (
                                         <div className="flex justify-between">
                                             <span className="text-muted-foreground">
                                                 Refund (after Parantage)
                                             </span>
                                             <span className="font-medium text-red-600">
                                                 ₹
-                                                {calculateNewHgmSubsidy().refundAmount.toLocaleString(
+                                                {hgmSubsidy.refundAmount.toLocaleString(
                                                     "en-IN",
                                                 )}
                                             </span>
