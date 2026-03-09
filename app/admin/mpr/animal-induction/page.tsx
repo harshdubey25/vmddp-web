@@ -4,15 +4,7 @@ import { useState, useMemo, Fragment } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-    TableFooter,
-} from "@/components/ui/table";
+
 import {
     Select,
     SelectContent,
@@ -63,13 +55,110 @@ interface DistrictData {
     balance: Balance;
 }
 
+interface ReportSection {
+    [districtName: string]: DistrictData | number;
+    total_cows: number;
+    total_buffaloes: number;
+    total_crossbreed: number;
+}
+
+interface ReportFilters {
+    month: number;
+    year: number;
+    financial_year_start: string;
+    progressive_start_date: string;
+    progressive_end_date: string;
+    current_month_start_date: string;
+    current_month_end_date: string;
+}
+
 interface AnimalInductionMPRResponse {
     message: {
-        [districtName: string]: DistrictData | number;
-        total_cows: number;
-        total_buffaloes: number;
+        progressive: ReportSection;
+        current_month: ReportSection;
+        filters: ReportFilters;
     };
 }
+
+const EMPTY_DISTRICT_DATA: DistrictData = {
+    cow_count: 0,
+    buffalo_count: 0,
+    crossbreed_count: 0,
+    animal_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
+    collar_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
+    premium_paid: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
+    transportation_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
+    total_expenditure: { benenficiary_share_total: 0, subsidy_share_total: 0, total: 0 },
+    target: { financial_target: 0, physical_target: 0 },
+    balance: { financial_balance: 0, physical_balance: 0 },
+};
+
+const extractDistrictData = (section: ReportSection | undefined) => {
+    const districts: { name: string; data: DistrictData }[] = [];
+
+    Object.entries(section || {}).forEach(([key, value]) => {
+        if (
+            key !== "total_cows" &&
+            key !== "total_buffaloes" &&
+            key !== "total_crossbreed" &&
+            typeof value === "object" &&
+            value !== null
+        ) {
+            districts.push({ name: key, data: value as DistrictData });
+        }
+    });
+
+    return districts.sort((a, b) => a.name.localeCompare(b.name));
+};
+
+const calculateTotals = (districtData: { name: string; data: DistrictData }[]) => {
+    const result = {
+        cow_count: 0,
+        buffalo_count: 0,
+        crossbreed_count: 0,
+        animal_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
+        collar_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
+        premium_paid: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
+        transportation_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
+        total_expenditure: { benenficiary_share_total: 0, subsidy_share_total: 0, total: 0 },
+        target: { financial_target: 0, physical_target: 0 },
+        balance: { financial_balance: 0, physical_balance: 0 },
+    };
+
+    districtData.forEach(({ data }) => {
+        result.cow_count += data.cow_count || 0;
+        result.buffalo_count += data.buffalo_count || 0;
+        result.crossbreed_count += data.crossbreed_count || 0;
+
+        result.animal_cost.beneficiary_share += data.animal_cost?.beneficiary_share || 0;
+        result.animal_cost.subsidy_share += data.animal_cost?.subsidy_share || 0;
+        result.animal_cost.total += data.animal_cost?.total || 0;
+
+        result.collar_cost.beneficiary_share += data.collar_cost?.beneficiary_share || 0;
+        result.collar_cost.subsidy_share += data.collar_cost?.subsidy_share || 0;
+        result.collar_cost.total += data.collar_cost?.total || 0;
+
+        result.premium_paid.beneficiary_share += data.premium_paid?.beneficiary_share || 0;
+        result.premium_paid.subsidy_share += data.premium_paid?.subsidy_share || 0;
+        result.premium_paid.total += data.premium_paid?.total || 0;
+
+        result.transportation_cost.beneficiary_share += data.transportation_cost?.beneficiary_share || 0;
+        result.transportation_cost.subsidy_share += data.transportation_cost?.subsidy_share || 0;
+        result.transportation_cost.total += data.transportation_cost?.total || 0;
+
+        result.total_expenditure.benenficiary_share_total += data.total_expenditure?.benenficiary_share_total || 0;
+        result.total_expenditure.subsidy_share_total += data.total_expenditure?.subsidy_share_total || 0;
+        result.total_expenditure.total += data.total_expenditure?.total || 0;
+
+        result.target.financial_target += data.target?.financial_target || 0;
+        result.target.physical_target += data.target?.physical_target || 0;
+
+        result.balance.financial_balance += data.balance?.financial_balance || 0;
+        result.balance.physical_balance += data.balance?.physical_balance || 0;
+    });
+
+    return result;
+};
 
 export default function AnimalInductionMPRPage() {
     const { toast } = useToast();
@@ -89,63 +178,34 @@ export default function AnimalInductionMPRPage() {
         { revalidateOnFocus: false }
     );
 
-    const reportData = apiResponse?.message || {};
+    const reportData = apiResponse?.message;
+    const progressiveReport = reportData?.progressive;
+    const currentMonthReport = reportData?.current_month;
+    const filters = reportData?.filters;
 
-    // Extract district data (exclude total_cows and total_buffaloes)
-    const districtData = useMemo(() => {
-        const districts: { name: string; data: DistrictData }[] = [];
-        Object.entries(reportData).forEach(([key, value]) => {
-            if (key !== "total_cows" && key !== "total_buffaloes" && typeof value === "object" && value !== null) {
-                districts.push({ name: key, data: value as DistrictData });
-            }
-        });
-        return districts.sort((a, b) => a.name.localeCompare(b.name));
-    }, [reportData]);
+    const progressiveDistrictData = useMemo(() => extractDistrictData(progressiveReport), [progressiveReport]);
+    const currentMonthDistrictData = useMemo(() => extractDistrictData(currentMonthReport), [currentMonthReport]);
 
-    // Calculate totals
-    const totals = useMemo(() => {
-        const result = {
-            cow_count: 0,
-            buffalo_count: 0,
-            crossbreed_count: 0,
-            animal_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
-            collar_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
-            premium_paid: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
-            transportation_cost: { beneficiary_share: 0, subsidy_share: 0, total: 0 },
-            total_expenditure: { benenficiary_share_total: 0, subsidy_share_total: 0, total: 0 },
-            balance: { financial_balance: 0, physical_balance: 0 },
-        };
+    const mergedDistrictData = useMemo(() => {
+        const districtNames = Array.from(
+            new Set([
+                ...currentMonthDistrictData.map(({ name }) => name),
+                ...progressiveDistrictData.map(({ name }) => name),
+            ])
+        ).sort((a, b) => a.localeCompare(b));
 
-        districtData.forEach(({ data }) => {
-            result.cow_count += data.cow_count || 0;
-            result.buffalo_count += data.buffalo_count || 0;
-            result.crossbreed_count += data.crossbreed_count || 0;
-            result.animal_cost.beneficiary_share += data.animal_cost?.beneficiary_share || 0;
-            result.animal_cost.subsidy_share += data.animal_cost?.subsidy_share || 0;
-            result.animal_cost.total += data.animal_cost?.total || 0;
+        const currentMonthMap = new Map(currentMonthDistrictData.map(({ name, data }) => [name, data]));
+        const progressiveMap = new Map(progressiveDistrictData.map(({ name, data }) => [name, data]));
 
-            result.collar_cost.beneficiary_share += data.collar_cost?.beneficiary_share || 0;
-            result.collar_cost.subsidy_share += data.collar_cost?.subsidy_share || 0;
-            result.collar_cost.total += data.collar_cost?.total || 0;
+        return districtNames.map((name) => ({
+            name,
+            currentMonth: currentMonthMap.get(name) || EMPTY_DISTRICT_DATA,
+            progressive: progressiveMap.get(name) || EMPTY_DISTRICT_DATA,
+        }));
+    }, [currentMonthDistrictData, progressiveDistrictData]);
 
-            result.premium_paid.beneficiary_share += data.premium_paid?.beneficiary_share || 0;
-            result.premium_paid.subsidy_share += data.premium_paid?.subsidy_share || 0;
-            result.premium_paid.total += data.premium_paid?.total || 0;
-
-            result.transportation_cost.beneficiary_share += data.transportation_cost?.beneficiary_share || 0;
-            result.transportation_cost.subsidy_share += data.transportation_cost?.subsidy_share || 0;
-            result.transportation_cost.total += data.transportation_cost?.total || 0;
-
-            result.total_expenditure.benenficiary_share_total += data.total_expenditure?.benenficiary_share_total || 0;
-            result.total_expenditure.subsidy_share_total += data.total_expenditure?.subsidy_share_total || 0;
-            result.total_expenditure.total += data.total_expenditure?.total || 0;
-
-            result.balance.financial_balance += data.balance?.financial_balance || 0;
-            result.balance.physical_balance += data.balance?.physical_balance || 0;
-        });
-
-        return result;
-    }, [districtData]);
+    const currentMonthTotals = useMemo(() => calculateTotals(currentMonthDistrictData), [currentMonthDistrictData]);
+    const progressiveTotals = useMemo(() => calculateTotals(progressiveDistrictData), [progressiveDistrictData]);
 
     // Format currency
     const formatCurrency = (amount: number) => {
@@ -217,6 +277,8 @@ export default function AnimalInductionMPRPage() {
         { value: "2026", label: "2026" },
     ];
 
+    const selectedMonthLabel = months.find((month) => month.value === selectedMonth)?.label || "Current Month";
+
     return (
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-auto w-full">
             {/* Header */}
@@ -286,37 +348,49 @@ export default function AnimalInductionMPRPage() {
 
 
             {/* Summary Cards */}
-            {!isLoading && districtData.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 print:hidden">
+            {!isLoading && mergedDistrictData.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 print:hidden">
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">Total Districts</CardDescription>
-                            <CardTitle className="text-xl sm:text-2xl">{districtData.length}</CardTitle>
+                            <CardDescription className="text-xs sm:text-sm">Current Month Districts</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl">{currentMonthDistrictData.length}</CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">Total Cows</CardDescription>
-                            <CardTitle className="text-xl sm:text-2xl text-blue-600">{totals.cow_count}</CardTitle>
+                            <CardDescription className="text-xs sm:text-sm">Current Month Animals</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-blue-600">
+                                {currentMonthTotals.cow_count + currentMonthTotals.crossbreed_count + currentMonthTotals.buffalo_count}
+                            </CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">Total Buffaloes</CardDescription>
-                            <CardTitle className="text-xl sm:text-2xl text-purple-600">{totals.buffalo_count}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">Total CrossBreed</CardDescription>
-                            <CardTitle className="text-xl sm:text-2xl text-purple-600">{totals.crossbreed_count}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">Total Expenditure</CardDescription>
+                            <CardDescription className="text-xs sm:text-sm">{selectedMonthLabel} Expenditure</CardDescription>
                             <CardTitle className="text-xl sm:text-2xl text-green-600">
-                                ₹{formatCurrency(totals.total_expenditure.subsidy_share_total)}
+                                ₹{formatCurrency(currentMonthTotals.total_expenditure.subsidy_share_total)}
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription className="text-xs sm:text-sm">Progressive Districts</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl">{progressiveDistrictData.length}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription className="text-xs sm:text-sm">Progressive Animals</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-purple-600">
+                                {progressiveTotals.cow_count + progressiveTotals.crossbreed_count + progressiveTotals.buffalo_count}
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription className="text-xs sm:text-sm">Progressive Expenditure</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-emerald-600">
+                                ₹{formatCurrency(progressiveTotals.total_expenditure.subsidy_share_total)}
                             </CardTitle>
                         </CardHeader>
                     </Card>
@@ -331,7 +405,8 @@ export default function AnimalInductionMPRPage() {
                         Animal Induction - Financial Achievement Report
                     </CardTitle>
                     <CardDescription>
-                        District-wise breakdown of costs and physical achievement
+                        District-wise breakdown of current month and progressive costs and physical achievement
+                        {filters && ` • Current month: ${filters.current_month_start_date} to ${filters.current_month_end_date} • Progressive: ${filters.progressive_start_date} to ${filters.progressive_end_date}`}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -340,7 +415,7 @@ export default function AnimalInductionMPRPage() {
                             <Skeleton className="h-8 w-full" />
                             <Skeleton className="h-64 w-full" />
                         </div>
-                    ) : districtData.length === 0 ? (
+                    ) : mergedDistrictData.length === 0 ? (
                         <div className="text-center py-12 text-muted-foreground">
                             <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                             <p>No data available for the selected period.</p>
@@ -459,9 +534,9 @@ export default function AnimalInductionMPRPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {districtData.map(({ name, data }, index) => (
+                                        {mergedDistrictData.map(({ name, currentMonth, progressive }, index) => (
                                             <Fragment key={name}>
-                                                {/* Monthly Row */}
+                                                {/* Current Month Row */}
                                                 <tr className="hover:bg-muted/30">
                                                     <td rowSpan={2} className="border text-center font-medium sticky left-0 bg-background z-10 p-2">
                                                         {index + 1}
@@ -469,66 +544,66 @@ export default function AnimalInductionMPRPage() {
                                                     <td rowSpan={2} className="border font-medium sticky left-[50px] bg-background z-10 p-2">
                                                         {name}
                                                     </td>
-                                                    <td className="border text-center text-[10px] p-2">Monthly</td>
+                                                    <td className="border text-center text-[10px] p-2">Current Month</td>
                                                     {/* Physical Achievement */}
-                                                    <td className="border text-center bg-yellow-50 p-2">{data.cow_count || 0}</td>
-                                                    <td className="border text-center bg-yellow-50 p-2">{data.crossbreed_count || 0}</td>
-                                                    <td className="border text-center bg-yellow-50 p-2">{data.buffalo_count || 0}</td>
+                                                    <td className="border text-center bg-yellow-50 p-2">{currentMonth.cow_count || 0}</td>
+                                                    <td className="border text-center bg-yellow-50 p-2">{currentMonth.crossbreed_count || 0}</td>
+                                                    <td className="border text-center bg-yellow-50 p-2">{currentMonth.buffalo_count || 0}</td>
                                                     {/* Animal Cost */}
-                                                    <td className="border text-right p-2">{formatCurrency(data.animal_cost?.beneficiary_share || 0)}</td>
-                                                    <td className="border text-right p-2">{formatCurrency(data.animal_cost?.subsidy_share || 0)}</td>
-                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.animal_cost?.total || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(currentMonth.animal_cost?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(currentMonth.animal_cost?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(currentMonth.animal_cost?.total || 0)}</td>
                                                     {/* Collar Cost */}
-                                                    <td className="border text-right p-2">{formatCurrency(data.collar_cost?.beneficiary_share || 0)}</td>
-                                                    <td className="border text-right p-2">{formatCurrency(data.collar_cost?.subsidy_share || 0)}</td>
-                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.collar_cost?.total || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(currentMonth.collar_cost?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(currentMonth.collar_cost?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(currentMonth.collar_cost?.total || 0)}</td>
                                                     {/* Insurance */}
-                                                    <td className="border text-right p-2">{formatCurrency(data.premium_paid?.beneficiary_share || 0)}</td>
-                                                    <td className="border text-right p-2">{formatCurrency(data.premium_paid?.subsidy_share || 0)}</td>
-                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.premium_paid?.total || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(currentMonth.premium_paid?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(currentMonth.premium_paid?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(currentMonth.premium_paid?.total || 0)}</td>
                                                     {/* Transportation */}
-                                                    <td className="border text-right p-2">{formatCurrency(data.transportation_cost?.beneficiary_share || 0)}</td>
-                                                    <td className="border text-right p-2">{formatCurrency(data.transportation_cost?.subsidy_share || 0)}</td>
-                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.transportation_cost?.total || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(currentMonth.transportation_cost?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(currentMonth.transportation_cost?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(currentMonth.transportation_cost?.total || 0)}</td>
                                                     {/* Total Expenditure */}
-                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(data.total_expenditure?.benenficiary_share_total || 0)}</td>
-                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(data.total_expenditure?.subsidy_share_total || 0)}</td>
-                                                    <td className="border text-right font-bold bg-green-50/50 p-2">{formatCurrency(data.total_expenditure?.total || 0)}</td>
+                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(currentMonth.total_expenditure?.benenficiary_share_total || 0)}</td>
+                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(currentMonth.total_expenditure?.subsidy_share_total || 0)}</td>
+                                                    <td className="border text-right font-bold bg-green-50/50 p-2">{formatCurrency(currentMonth.total_expenditure?.total || 0)}</td>
                                                     {/* Balance */}
                                                     <td className="border text-right bg-orange-50/50 font-semibold p-2">
-                                                        {formatCurrency(data.balance?.financial_balance || 0)}
+                                                        {formatCurrency(currentMonth.balance?.financial_balance || 0)}
                                                     </td>
                                                 </tr>
                                                 {/* Progress Row */}
                                                 <tr className="hover:bg-muted/30 bg-muted/10">
                                                     <td className="border text-center text-[10px] p-2">Progressive</td>
                                                     {/* Physical Achievement */}
-                                                    <td className="border text-center bg-yellow-50/50 p-2">{data.cow_count || 0}</td>
-                                                    <td className="border text-center bg-yellow-50/50 p-2">{data.crossbreed_count || 0}</td>
-                                                    <td className="border text-center bg-yellow-50/50 p-2">{data.buffalo_count || 0}</td>
+                                                    <td className="border text-center bg-yellow-50/50 p-2">{progressive.cow_count || 0}</td>
+                                                    <td className="border text-center bg-yellow-50/50 p-2">{progressive.crossbreed_count || 0}</td>
+                                                    <td className="border text-center bg-yellow-50/50 p-2">{progressive.buffalo_count || 0}</td>
                                                     {/* Animal Cost */}
-                                                    <td className="border text-right p-2">{formatCurrency(data.animal_cost?.beneficiary_share || 0)}</td>
-                                                    <td className="border text-right p-2">{formatCurrency(data.animal_cost?.subsidy_share || 0)}</td>
-                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.animal_cost?.total || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(progressive.animal_cost?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(progressive.animal_cost?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(progressive.animal_cost?.total || 0)}</td>
                                                     {/* Collar Cost */}
-                                                    <td className="border text-right p-2">{formatCurrency(data.collar_cost?.beneficiary_share || 0)}</td>
-                                                    <td className="border text-right p-2">{formatCurrency(data.collar_cost?.subsidy_share || 0)}</td>
-                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.collar_cost?.total || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(progressive.collar_cost?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(progressive.collar_cost?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(progressive.collar_cost?.total || 0)}</td>
                                                     {/* Insurance */}
-                                                    <td className="border text-right p-2">{formatCurrency(data.premium_paid?.beneficiary_share || 0)}</td>
-                                                    <td className="border text-right p-2">{formatCurrency(data.premium_paid?.subsidy_share || 0)}</td>
-                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.premium_paid?.total || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(progressive.premium_paid?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(progressive.premium_paid?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(progressive.premium_paid?.total || 0)}</td>
                                                     {/* Transportation */}
-                                                    <td className="border text-right p-2">{formatCurrency(data.transportation_cost?.beneficiary_share || 0)}</td>
-                                                    <td className="border text-right p-2">{formatCurrency(data.transportation_cost?.subsidy_share || 0)}</td>
-                                                    <td className="border text-right font-medium p-2">{formatCurrency(data.transportation_cost?.total || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(progressive.transportation_cost?.beneficiary_share || 0)}</td>
+                                                    <td className="border text-right p-2">{formatCurrency(progressive.transportation_cost?.subsidy_share || 0)}</td>
+                                                    <td className="border text-right font-medium p-2">{formatCurrency(progressive.transportation_cost?.total || 0)}</td>
                                                     {/* Total Expenditure */}
-                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(data.total_expenditure?.benenficiary_share_total || 0)}</td>
-                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(data.total_expenditure?.subsidy_share_total || 0)}</td>
-                                                    <td className="border text-right font-bold bg-green-50/50 p-2">{formatCurrency(data.total_expenditure?.total || 0)}</td>
+                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(progressive.total_expenditure?.benenficiary_share_total || 0)}</td>
+                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(progressive.total_expenditure?.subsidy_share_total || 0)}</td>
+                                                    <td className="border text-right font-bold bg-green-50/50 p-2">{formatCurrency(progressive.total_expenditure?.total || 0)}</td>
                                                     {/* Balance */}
                                                     <td className="border text-right bg-orange-50/50 font-semibold p-2">
-                                                        {formatCurrency(data.balance?.financial_balance || 0)}
+                                                        {formatCurrency(progressive.balance?.financial_balance || 0)}
                                                     </td>
                                                 </tr>
                                             </Fragment>
@@ -536,36 +611,67 @@ export default function AnimalInductionMPRPage() {
                                     </tbody>
                                     <tfoot>
                                         <tr className="bg-muted font-bold">
-                                            <td className="border text-center sticky left-0 bg-muted z-10 p-2" colSpan={1}></td>
-                                            <td className="border sticky left-[50px] bg-muted z-10 p-2">TOTAL</td>
-                                            <td className="border p-2"></td>
+                                            <td rowSpan={2} className="border text-center sticky left-0 bg-muted z-10 p-2" colSpan={1}></td>
+                                            <td rowSpan={2} className="border sticky left-[50px] bg-muted z-10 p-2">TOTAL</td>
+                                            <td className="border p-2">Current Month</td>
                                             {/* Physical Achievement */}
-                                            <td className="border text-center bg-yellow-100 p-2">{totals.cow_count}</td>
-                                            <td className="border text-center bg-yellow-100 p-2">{totals.crossbreed_count || 0}</td>
-                                            <td className="border text-center bg-yellow-100 p-2">{totals.buffalo_count}</td>
+                                            <td className="border text-center bg-yellow-100 p-2">{currentMonthTotals.cow_count}</td>
+                                            <td className="border text-center bg-yellow-100 p-2">{currentMonthTotals.crossbreed_count || 0}</td>
+                                            <td className="border text-center bg-yellow-100 p-2">{currentMonthTotals.buffalo_count}</td>
                                             {/* Animal Cost */}
-                                            <td className="border text-right p-2">{formatCurrency(totals.animal_cost.beneficiary_share)}</td>
-                                            <td className="border text-right p-2">{formatCurrency(totals.animal_cost.subsidy_share)}</td>
-                                            <td className="border text-right p-2">{formatCurrency(totals.animal_cost.total)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(currentMonthTotals.animal_cost.beneficiary_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(currentMonthTotals.animal_cost.subsidy_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(currentMonthTotals.animal_cost.total)}</td>
                                             {/* Collar Cost */}
-                                            <td className="border text-right p-2">{formatCurrency(totals.collar_cost.beneficiary_share)}</td>
-                                            <td className="border text-right p-2">{formatCurrency(totals.collar_cost.subsidy_share)}</td>
-                                            <td className="border text-right p-2">{formatCurrency(totals.collar_cost.total)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(currentMonthTotals.collar_cost.beneficiary_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(currentMonthTotals.collar_cost.subsidy_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(currentMonthTotals.collar_cost.total)}</td>
                                             {/* Insurance */}
-                                            <td className="border text-right p-2">{formatCurrency(totals.premium_paid.beneficiary_share)}</td>
-                                            <td className="border text-right p-2">{formatCurrency(totals.premium_paid.subsidy_share)}</td>
-                                            <td className="border text-right p-2">{formatCurrency(totals.premium_paid.total)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(currentMonthTotals.premium_paid.beneficiary_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(currentMonthTotals.premium_paid.subsidy_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(currentMonthTotals.premium_paid.total)}</td>
                                             {/* Transportation */}
-                                            <td className="border text-right p-2">{formatCurrency(totals.transportation_cost.beneficiary_share)}</td>
-                                            <td className="border text-right p-2">{formatCurrency(totals.transportation_cost.subsidy_share)}</td>
-                                            <td className="border text-right p-2">{formatCurrency(totals.transportation_cost.total)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(currentMonthTotals.transportation_cost.beneficiary_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(currentMonthTotals.transportation_cost.subsidy_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(currentMonthTotals.transportation_cost.total)}</td>
                                             {/* Total Expenditure */}
-                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(totals.total_expenditure.benenficiary_share_total)}</td>
-                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(totals.total_expenditure.subsidy_share_total)}</td>
-                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(totals.total_expenditure.total)}</td>
+                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(currentMonthTotals.total_expenditure.benenficiary_share_total)}</td>
+                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(currentMonthTotals.total_expenditure.subsidy_share_total)}</td>
+                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(currentMonthTotals.total_expenditure.total)}</td>
                                             {/* Balance */}
                                             <td className="border text-right bg-orange-100 font-bold p-2">
-                                                {formatCurrency(totals.balance.financial_balance)}
+                                                {formatCurrency(currentMonthTotals.balance.financial_balance)}
+                                            </td>
+                                        </tr>
+                                        <tr className="bg-muted font-bold">
+                                            <td className="border p-2">Progressive</td>
+                                            {/* Physical Achievement */}
+                                            <td className="border text-center bg-yellow-100 p-2">{progressiveTotals.cow_count}</td>
+                                            <td className="border text-center bg-yellow-100 p-2">{progressiveTotals.crossbreed_count || 0}</td>
+                                            <td className="border text-center bg-yellow-100 p-2">{progressiveTotals.buffalo_count}</td>
+                                            {/* Animal Cost */}
+                                            <td className="border text-right p-2">{formatCurrency(progressiveTotals.animal_cost.beneficiary_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(progressiveTotals.animal_cost.subsidy_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(progressiveTotals.animal_cost.total)}</td>
+                                            {/* Collar Cost */}
+                                            <td className="border text-right p-2">{formatCurrency(progressiveTotals.collar_cost.beneficiary_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(progressiveTotals.collar_cost.subsidy_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(progressiveTotals.collar_cost.total)}</td>
+                                            {/* Insurance */}
+                                            <td className="border text-right p-2">{formatCurrency(progressiveTotals.premium_paid.beneficiary_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(progressiveTotals.premium_paid.subsidy_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(progressiveTotals.premium_paid.total)}</td>
+                                            {/* Transportation */}
+                                            <td className="border text-right p-2">{formatCurrency(progressiveTotals.transportation_cost.beneficiary_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(progressiveTotals.transportation_cost.subsidy_share)}</td>
+                                            <td className="border text-right p-2">{formatCurrency(progressiveTotals.transportation_cost.total)}</td>
+                                            {/* Total Expenditure */}
+                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(progressiveTotals.total_expenditure.benenficiary_share_total)}</td>
+                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(progressiveTotals.total_expenditure.subsidy_share_total)}</td>
+                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(progressiveTotals.total_expenditure.total)}</td>
+                                            {/* Balance */}
+                                            <td className="border text-right bg-orange-100 font-bold p-2">
+                                                {formatCurrency(progressiveTotals.balance.financial_balance)}
                                             </td>
                                         </tr>
                                     </tfoot>
