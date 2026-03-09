@@ -65,6 +65,7 @@ interface PendingRefundResponse {
 interface PaidRefund {
     name: string;
     application: string;
+    beneficiary_name: string;
     component: string;
     refund_amount: number;
     transanction_id: string;
@@ -74,6 +75,14 @@ interface PaidRefund {
     bank_name?: string;
     account_number?: string;
     ifsc_code?: string;
+}
+
+interface PaidRefundResponse {
+    refunds: PaidRefund[];
+    total_count: number;
+    page: number;
+    page_size: number;
+    total_pages: number;
 }
 
 const PAGE_SIZE = 20;
@@ -138,42 +147,19 @@ export default function Refunds() {
     const totalCount = refundsResponse?.message?.total_count || 0;
     const totalPages = refundsResponse?.message?.total_pages || 1;
 
-    // Fetch paid refunds - submitted refunds with docstatus = 1
-    const paidFilters: any[] = [["docstatus", "=", 1]];
-    if (paidDistrict) {
-        paidFilters.push(["application", "like", `%${paidDistrict}%`]);
-    }
+    const { data: paidRefundsResponse, isLoading: paidLoading } = useFrappeGetCall<{ message: PaidRefundResponse }>(
+        "vmddp_app.api.v1.accountant.paid_refund_list",
+        {
+            page: paidPage,
+            page_size: PAGE_SIZE,
+            district: paidDistrict || undefined,
+        },
+        `paid_refund_list_${paidPage}_${paidDistrict || "all"}`
+    );
 
-    const { data: paidRefundsData, isLoading: paidLoading } = useFrappeGetDocList<PaidRefund>("Refund", {
-        fields: [
-            "name",
-            "application",
-            "component",
-            "refund_amount",
-            "transanction_id",
-            "transanction_date",
-            "creation",
-            "account_holder_name",
-            "bank_name",
-            "account_number",
-            "ifsc_code"
-        ],
-        filters: paidFilters,
-        limit_start: (paidPage - 1) * PAGE_SIZE,
-        limit: PAGE_SIZE,
-        orderBy: { field: "creation", order: "desc" },
-    });
-
-    // Get total count of paid refunds
-    const { data: paidCountData } = useFrappeGetDocList<PaidRefund>("Refund", {
-        fields: ["name"],
-        filters: paidFilters,
-        limit: 0,
-    });
-
-    const paidRefunds = paidRefundsData || [];
-    const paidTotalCount = paidCountData?.length || paidRefunds.length;
-    const paidTotalPages = Math.ceil(paidTotalCount / PAGE_SIZE) || 1;
+    const paidRefunds = paidRefundsResponse?.message?.refunds || [];
+    const paidTotalCount = paidRefundsResponse?.message?.total_count || 0;
+    const paidTotalPages = paidRefundsResponse?.message?.total_pages || 1;
 
     // Calculate totals
     const totalPending = pendingRefunds.reduce((sum, r) => sum + (r.refund_amount || 0), 0);
@@ -517,6 +503,7 @@ export default function Refunds() {
                                                         <thead className="bg-muted sticky top-0 z-30 border-b">
                                                             <tr>
                                                                 <th className="text-left p-3 text-xs sm:text-sm font-medium">Application ID</th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">Beneficiary</th>
                                                                 <th className="text-left p-3 text-xs sm:text-sm font-medium">Component</th>
                                                                 <th className="text-left p-3 text-xs sm:text-sm font-medium">Bank Details</th>
                                                                 <th className="text-right p-3 text-xs sm:text-sm font-medium">Refund Amount</th>
@@ -527,10 +514,13 @@ export default function Refunds() {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {paidRefunds.map((refund: any) => (
+                                                            {paidRefunds.map((refund: PaidRefund) => (
                                                                 <tr key={refund.name} data-testid={`row-paid-refund-${refund.name}`} className="border-b hover:bg-muted/30">
                                                                     <td className="p-3 text-xs sm:text-sm">
                                                                         <span className="font-mono text-xs">{refund.application}</span>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <span className="font-medium">{refund.beneficiary_name || "N/A"}</span>
                                                                     </td>
                                                                     <td className="p-3 text-xs sm:text-sm">
                                                                         <Badge variant="outline" className="w-fit">{refund.component}</Badge>
@@ -565,7 +555,7 @@ export default function Refunds() {
                                                             ))}
                                                             {paidRefunds.length === 0 && (
                                                                 <tr>
-                                                                    <td colSpan={8} className="text-center py-8 text-muted-foreground p-3">
+                                                                    <td colSpan={9} className="text-center py-8 text-muted-foreground p-3">
                                                                         No paid refunds found
                                                                     </td>
                                                                 </tr>
