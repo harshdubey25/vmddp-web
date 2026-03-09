@@ -417,7 +417,7 @@ export default function FarmerTrainingForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (isProcessing || isSubmitting) {
+        if (isProcessing || isSubmitting || uploadingImages || compressingImages) {
             return;
         }
 
@@ -559,7 +559,7 @@ export default function FarmerTrainingForm() {
                 "Submission Failed",
                 "Failed to submit application. Please try again."
             );
-            
+
             toast({
                 title,
                 description: message,

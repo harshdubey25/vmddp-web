@@ -198,9 +198,17 @@ export default function ApplicationDetailsDialog({
                     <DialogHeader>
                         <div className="flex items-center justify-between">
                             <DialogTitle className="flex items-center gap-3">
-                                <FileText className="w-5 h-5" />
-                                Application Details
+                                <div className="flex items-center gap-2">
+                                    <FileText className="w-5 h-5 text-primary" />
+                                    <span>Application Details</span>
+                                </div>
+                                {application?.component && (
+                                    <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 ml-2">
+                                        {application.component}
+                                    </Badge>
+                                )}
                             </DialogTitle>
+
                             <Button
                                 size="sm"
                                 onClick={handlePrint}

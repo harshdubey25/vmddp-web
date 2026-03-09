@@ -9,7 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Download, Stethoscope, Upload, Search, FileText, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import AccountantTreatmentReviewDialog from "@/components/AccountantTreatmentReviewDialog";
 import { TreatmentDoc } from "@/types/subadmin";
+import { cn } from "@/lib/utils";
+
 
 interface TreatmentDetails {
   ownerFirstName: string;
@@ -54,13 +58,17 @@ interface Application {
     benefits: string[];
     customQuestions: { label: string; answer: string }[];
   };
+  docstatus: number;
 }
+
 
 
 export default function TreatmentPage() {
   const router = useRouter();
   const { currentUser } = useFrappeAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: dpoData } = useFrappeGetDoc("DPO", currentUser || undefined);
@@ -87,8 +95,10 @@ export default function TreatmentPage() {
         "treatment_given",
         "primary_treatment",
         "actual_treatment_outcome",
+        "docstatus",
         "creation",
         "modified",
+
       ],
       filters: assignedDistrict ? [["district", "=", assignedDistrict]] : [],
       orderBy: {
@@ -101,7 +111,7 @@ export default function TreatmentPage() {
   const applications: Application[] = (treatmentApplications || []).map((doc) => ({
     id: doc.name,
     applicantName: `${doc.first_name} ${doc.middle_name ? doc.middle_name + " " : ""}${doc.surname}`,
-    aadharNumber: doc.aadhar_number, 
+    aadharNumber: doc.aadhar_number,
     district: doc.district,
     taluka: doc.taluka,
     village: doc.village,
@@ -111,7 +121,9 @@ export default function TreatmentPage() {
       benefits: [],
       customQuestions: [],
     },
+    docstatus: doc.docstatus,
   }));
+
 
   const filteredApplications = applications.filter((app) => {
     const matchesSearch =
@@ -124,7 +136,8 @@ export default function TreatmentPage() {
 
 
   const handleViewDetails = (app: Application) => {
-    router.push(`/subadmin/treatment/${encodeURIComponent(app.id)}`);
+    setSelectedApplicationId(app.id);
+    setIsReviewOpen(true);
   };
 
   const handleExport = async () => {
@@ -139,7 +152,7 @@ export default function TreatmentPage() {
 
     try {
       const XLSX = await import('xlsx');
-      
+
       const exportData = filteredApplications.map(app => ({
         'Application ID': app.id,
         'Applicant Name': app.applicantName,
@@ -152,14 +165,14 @@ export default function TreatmentPage() {
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(exportData);
-      
+
       const headers = Object.keys(exportData[0]);
       const colWidths = headers.map(header => {
         const maxLength = Math.max(
           header.length,
           ...exportData.map(row => String(row[header as keyof typeof row] || '').length)
         );
-        return { wch: maxLength + 2 }; 
+        return { wch: maxLength + 2 };
       });
       worksheet['!cols'] = colWidths;
 
@@ -175,7 +188,7 @@ export default function TreatmentPage() {
         title: "Export successful",
         description: `Exported ${filteredApplications.length} applications.`,
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Export failed",
         description: "Failed to export applications. Please try again.",
@@ -265,7 +278,9 @@ export default function TreatmentPage() {
                             <th className="text-left p-3 text-sm font-medium">Taluka</th>
                             <th className="text-left p-3 text-sm font-medium">Village</th>
                             <th className="text-left p-3 text-sm font-medium">Submitted Date</th>
+                            <th className="text-left p-3 text-sm font-medium">Status</th>
                             <th className="text-left p-3 text-sm font-medium">Actions</th>
+
                           </tr>
                         </thead>
                         <tbody>
@@ -279,6 +294,19 @@ export default function TreatmentPage() {
                               <td className="p-3 text-sm">{app.village}</td>
                               <td className="p-3 text-sm text-muted-foreground">{app.submittedDate}</td>
                               <td className="p-3 text-sm">
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    app.docstatus === 0 && "bg-yellow-50 text-yellow-700 border-yellow-200",
+                                    app.docstatus === 1 && "bg-green-50 text-green-700 border-green-200",
+                                    app.docstatus === 2 && "bg-red-50 text-red-700 border-red-200"
+                                  )}
+                                >
+                                  {app.docstatus === 0 ? "Draft" : app.docstatus === 1 ? "Submitted" : "Cancelled"}
+                                </Badge>
+                              </td>
+                              <td className="p-3 text-sm">
+
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -301,6 +329,18 @@ export default function TreatmentPage() {
           </div>
         </main>
       </div>
+
+      <AccountantTreatmentReviewDialog
+        applicationId={selectedApplicationId}
+        open={isReviewOpen}
+        onOpenChange={(open) => {
+          setIsReviewOpen(open);
+          if (!open) {
+            setSelectedApplicationId(null);
+          }
+        }}
+        canApprove={false}
+      />
     </div>
   );
 }
