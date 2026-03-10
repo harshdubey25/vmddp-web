@@ -73,7 +73,7 @@ export default function ComponentAllocation() {
         fields: ['name'],
         filters: [['name', 'in', ['HGM (Pregnant cow)', 'Animal Induction']]],
     })
-    const { data: ddCompletedApplications } = useFrappeGetCall<DDCompletedApplication>('vmddp_app.api.v1.accountant.get_completed_dd_list', {
+    const { data: ddCompletedApplications } = useFrappeGetCall<DDCompletedApplication>('vmddp_app.api.v1.accountant.get_pending_component_allocation_list', {
         district: districtFilter === 'all' ? null : districtFilter,
         search_text: aadharFilter.length === 0 ? null : aadharFilter,
         component: componentFilter === 'all' ? null : componentFilter,
@@ -98,9 +98,7 @@ export default function ComponentAllocation() {
     }>('vmddp_app.api.v1.accountant.get_component_allocation_stats')
     const { user } = useAuth()
     const isAccountant = user?.roles?.includes(UserRole.VMDDP_ACCOUNTANT);
-    const pendingApplications = (ddCompletedApplications?.message?.data ?? []).filter(
-        (app) => app.component_status !== 'Component Allocated'
-    );
+    const pendingApplications = ddCompletedApplications?.message?.data ?? []
 
     const completedList = completedAllocations?.message?.data ?? [];
 

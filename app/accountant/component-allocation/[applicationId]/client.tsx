@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { FrappeCustomApiResponse, ComponentStatus } from "@/types";
 import { parseFrappeError } from "@/lib/frappe-error-parser";
 import { useToast } from "@/hooks/use-toast";
-import { useFrappeGetCall, useFrappeCreateDoc, useFrappeGetDocList, useFrappeFileUpload, useFrappeUpdateDoc, useFrappePostCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappeCreateDoc, useFrappeGetDocList, useFrappeFileUpload, useFrappeUpdateDoc, useFrappePostCall, useFrappeGetDoc } from "frappe-react-sdk";
 import { ArrowLeft, User, Package, Check, AlertCircle, Tag, FileText, IndianRupee, MapPin, Upload, Shield, Truck, Loader2, X, Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Components } from "@/constants";
 
 type AppFormResponse = FrappeCustomApiResponse<{
     name: string;
@@ -125,9 +126,10 @@ export const VENDOR_CATEGORIES = {
 
 
 
-const HGM_MAX_COST = 210000; // Maximum eligible expenditure
-const HGM_MAX_SUBSIDY = 157000; // Maximum subsidy (75% of max);
-const HGM_DD_AMOUNT = 52500; // Fixed DD amount (25% of max)
+let HGM_MAX_COST = 210000; // Maximum eligible expenditure
+let HGM_MAX_SUBSIDY = 157000; // Maximum subsidy (75% of max);
+let HGM_DD_AMOUNT = 52500; // Fixed DD amount (25% of max)
+let HGM_SUBSIDY_PERCENT = 75;
 const HGM_PREGNANT_COW = "HGM (Pregnant cow)";
 const ANIMAL_INDUCTION = "Animal Induction";
 
@@ -136,7 +138,13 @@ export default function AllocationForm({
 }: {
     applicationId: string;
 }) {
-
+    const { data: hgmComponentData, error: hgmComponentDataError } = useFrappeGetDoc("Component", Components.HGM_PREGNANT_COW)
+    if (hgmComponentData) {
+        HGM_MAX_COST =
+            HGM_MAX_SUBSIDY = hgmComponentData.maximum_subsidy_amount;
+        HGM_SUBSIDY_PERCENT = hgmComponentData.subsidy_percent;
+        HGM_DD_AMOUNT = hgmComponentData.amount;
+    }
     const router = useRouter();
     const { upload, isCompleted, loading, error: fileUploadError, progress, reset } = useFrappeFileUpload()
     const { data, isLoading, error } = useFrappeGetCall<AppFormResponse>('vmddp_app.api.v1.accountant.get_application_data_and_dd_amount', { application_id: applicationId })
@@ -356,29 +364,7 @@ export default function AllocationForm({
     // Animal Induction Calculations
 
 
-    // HGM Calculations - 75% of actual cost (max ₹2,10,000), DD fixed at ₹52,500
-    // Refund escalated after Parantage Confirmation when DD + Vendor Payment > Animal Cost
-    const calculateHGMPayment = () => {
-        const animalCost = parseFloat(hgmData.animalCost) || 0;
-        const eligibleCost = Math.min(animalCost, HGM_MAX_COST); // Cap at max ₹2,10,000
-        const vendorPayment = Math.round(eligibleCost * 0.75); // 75% of eligible cost
-        const ddCollected = HGM_DD_AMOUNT; // Fixed DD amount ₹52,500
-        const subsidyAmount = Math.min(animalCost * 0.75, HGM_MAX_SUBSIDY)
-        const amountPaidByUser = animalCost - subsidyAmount;
-        const ddAmount = data ? data.message.dd_amount ? parseFloat(data.message.dd_amount) : 0 : 0
-        const refundAmount = ddAmount > amountPaidByUser ? ddAmount - amountPaidByUser : 0;
-        // Calculate refund when DD + Vendor Paym8ent exceeds Animal Cost
 
-
-        return {
-            animalCost,
-            eligibleCost,
-            vendorPayment,
-            ddCollected,
-            refundAmount,
-            physicalAchievement: 1,
-        };
-    };
 
     function calculateAnimalSubsidy() {
         const animalCost = parseFloat(animalData.animalCost) || 0;
@@ -405,12 +391,12 @@ export default function AllocationForm({
         const animalCost = parseFloat(hgmData.animalCost) || 0;
         const collarCost = parseFloat(hgmData.collarCost) || 0;
         const premiumPaid = parseFloat(hgmData.premiumPaid) || 0;
-        const animalCurrentPayment = Math.min(animalCost * 0.75, HGM_MAX_SUBSIDY);
-        const subsidyAmount = animalCurrentPayment + premiumPaid + collarCost;
-        const amount_paid_by_user = animalCost * 0.25;
+        const animalCurrentPayment = animalCost * (HGM_SUBSIDY_PERCENT / 100);
+        const subsidyAmount = Math.min(animalCurrentPayment, HGM_MAX_SUBSIDY)
+        const amount_paid_by_user = animalCost * ((100 - HGM_SUBSIDY_PERCENT) / 100);
         const dd_amount = parseFloat(data?.message.dd_amount || "0");
         const refundAmount = dd_amount > amount_paid_by_user ? dd_amount - amount_paid_by_user : 0;
-        const currentVendorPayment = subsidyAmount;
+        const currentVendorPayment = animalCurrentPayment + collarCost + premiumPaid;
         const afterParantageVendorPayment = amount_paid_by_user;
         return {
             subsidyAmount,
@@ -1870,7 +1856,7 @@ export default function AllocationForm({
                                             </div>
                                             <div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Total Subsidy
+                                                    Total Subsidy (75% of animal cost , max {HGM_MAX_SUBSIDY})
                                                 </p>
                                                 <p className="font-medium">
                                                     ₹
