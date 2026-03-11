@@ -106,8 +106,9 @@ export default function TreatmentForm() {
     limit: 1000,
   });
 
-  const { data: medicineData } = useFrappeGetDocList("Medicine", {
-    fields: ["name", "medicine_name"],
+  const { data: medicineData } = useFrappeGetDocList("Stock Item", {
+    fields: ["name", "item_name", "unit_of_measure", "rate", "stock_item_group"],
+    filters: [["stock_item_group", "=", "Medicine"]],
     limit: 1000,
   });
 
@@ -1015,7 +1016,7 @@ export default function TreatmentForm() {
                                 <SelectContent>
                                   {medicineData?.map((med: any) => (
                                     <SelectItem key={med.name} value={med.name}>
-                                      {med.medicine_name || med.name}
+                                      {med.item_name || med.name}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
