@@ -152,7 +152,7 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
     <>
       {/* Toggle Arrow Button - Always visible on mobile */}
       <button
-        className="md:hidden fixed left-0 top-3 z-50 bg-primary text-primary-foreground p-2 rounded-r-lg shadow-lg hover:bg-primary/90 transition-all"
+        className="md:hidden fixed left-0 top-3 z-50 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-2 rounded-r-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all"
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
       >
         {mobileMenuOpen ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
@@ -169,18 +169,19 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
       {/* Sidebar - Desktop always visible, Mobile slide-out */}
       <div className={`
         fixed md:relative
-        h-screen w-72 sm:w-80 md:w-56 lg:w-64 flex flex-col border-r bg-background shadow-2xl md:shadow-none
+        h-screen w-72 sm:w-80 md:w-56 lg:w-64 flex flex-col border-r bg-gradient-to-b from-background via-background to-muted/20 shadow-2xl md:shadow-none
         z-50 transition-transform duration-300 ease-in-out
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0
       `}>
-        <div className="flex h-16 md:h-14 lg:h-16 items-center gap-3 md:gap-2 lg:gap-3 border-b px-5 md:px-4 lg:px-6 pt-1">
-          <div className="w-10 h-10 md:w-8 md:h-8 lg:w-10 lg:h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Shield className="w-5 h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-primary" />
+        <div className="flex h-16 md:h-14 lg:h-16 items-center gap-3 md:gap-2 lg:gap-3 border-b bg-gradient-to-r from-primary/10 via-primary/5 to-background px-5 md:px-4 lg:px-6 pt-1 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-50" />
+          <div className="w-10 h-10 md:w-8 md:h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0 shadow-md relative z-10">
+            <Shield className="w-5 h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-primary-foreground" />
           </div>
-          <div className="min-w-0">
-            <h2 className="font-display font-semibold text-sm md:text-xs lg:text-sm truncate">VMDDP</h2>
-            <p className="text-xs md:text-[10px] lg:text-xs text-muted-foreground truncate">
+          <div className="min-w-0 relative z-10">
+            <h2 className="font-display font-bold text-sm md:text-xs lg:text-sm truncate bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">VMDDP</h2>
+            <p className="text-xs md:text-[10px] lg:text-xs text-muted-foreground font-medium truncate">
               {sidebarTitle}
             </p>
           </div>
@@ -191,10 +192,10 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
             {menuItems.map((item, index) => {
               if (item.type === "separator") {
                 return (
-                  <div key={`separator-${index}`} className="my-3">
-                    <Separator className="bg-border h-[2px] " />
+                  <div key={`separator-${index}`} className="my-4">
+                    <Separator className="bg-gradient-to-r from-transparent via-primary/30 to-transparent h-[2px]" />
                     {item.label && (
-                      <p className="text-sm text-muted-foreground mt-2 px-3 font-bold">
+                      <p className="text-xs text-muted-foreground mt-3 px-3 font-bold uppercase tracking-wider">
                         {item.label}
                       </p>
                     )}
@@ -209,11 +210,26 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
                 <Link key={item.path} href={item.path}>
                   <Button
                     variant={isActive ? "secondary" : "ghost"}
-                    className="w-full justify-start gap-3 md:gap-2 lg:gap-3 text-sm md:text-xs lg:text-sm px-3 md:px-2 lg:px-3 h-10 md:h-9"
+                    className={`w-full justify-start gap-3 md:gap-2 lg:gap-3 text-sm md:text-xs lg:text-sm px-3 md:px-2 lg:px-3 h-10 md:h-9 transition-all duration-200 group relative overflow-hidden ${
+                      isActive 
+                        ? "bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 shadow-sm font-semibold" 
+                        : "hover:bg-primary/5 hover:translate-x-1"
+                    }`}
                     data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <Icon className="w-5 h-5 md:w-4 md:h-4 flex-shrink-0" />
+                    {isActive && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-primary/50 rounded-r-full" />
+                    )}
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all ${
+                      isActive 
+                        ? "bg-gradient-to-br from-primary to-primary/70 shadow-md" 
+                        : "bg-muted/50 group-hover:bg-primary/10 group-hover:scale-110"
+                    }`}>
+                      <Icon className={`w-4 h-4 md:w-3.5 md:h-3.5 flex-shrink-0 transition-colors ${
+                        isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-primary"
+                      }`} />
+                    </div>
                     <span className="truncate">{item.label}</span>
                   </Button>
                 </Link>
@@ -222,20 +238,22 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
           </nav>
         </ScrollArea>
 
-        <Separator />
+        <Separator className="bg-gradient-to-r from-transparent via-border to-transparent" />
 
-        <div className="p-3 md:p-2 lg:p-3">
+        <div className="p-3 md:p-2 lg:p-3 bg-gradient-to-t from-muted/20 to-transparent">
           <Button
             variant="ghost"
-            className="w-full justify-start gap-3 md:gap-2 lg:gap-3 text-sm md:text-xs lg:text-sm px-3 md:px-2 lg:px-3 h-10 md:h-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+            className="w-full justify-start gap-3 md:gap-2 lg:gap-3 text-sm md:text-xs lg:text-sm px-3 md:px-2 lg:px-3 h-10 md:h-9 text-destructive hover:text-destructive hover:bg-destructive/10 hover:translate-x-1 transition-all group relative overflow-hidden border border-transparent hover:border-destructive/20"
             data-testid="button-logout"
             onClick={() => {
               setMobileMenuOpen(false);
               logout();
             }}
           >
-            <LogOut className="w-5 h-5 md:w-4 md:h-4 flex-shrink-0" />
-            <span>Logout</span>
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-destructive/10 group-hover:bg-destructive/20 group-hover:scale-110 transition-all">
+              <LogOut className="w-4 h-4 md:w-3.5 md:h-3.5 flex-shrink-0" />
+            </div>
+            <span className="font-medium">Logout</span>
           </Button>
         </div>
       </div>

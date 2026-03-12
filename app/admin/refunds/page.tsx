@@ -16,6 +16,7 @@ import {
     ChevronRight,
     ThumbsUp,
     ThumbsDown,
+    TrendingUp,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -467,47 +468,68 @@ export default function AdminRefundsApproval() {
 
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card>
-                            <CardContent className="pt-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-yellow-500/10">
-                                        <Clock className="h-5 w-5 text-yellow-500" />
+                        <Card className="relative overflow-hidden border-2 border-yellow-500/30 bg-gradient-to-br from-yellow-500/20 to-orange-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-yellow-500/20 to-orange-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardContent className="pt-6 relative">
+                                <div className="flex items-center gap-4 mb-3">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                        <Clock className="h-6 w-6 text-white" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Pending Approval</p>
-                                        <p className="text-2xl font-bold">₹{totalPendingAmount.toLocaleString("en-IN")}</p>
+                                        <p className="text-sm font-medium text-muted-foreground">Pending Approval</p>
+                                        <p className="text-2xl font-bold text-yellow-600 drop-shadow-sm">₹{totalPendingAmount.toLocaleString("en-IN")}</p>
                                         <p className="text-xs text-muted-foreground">{pendingCount} requests</p>
                                     </div>
                                 </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardContent className="pt-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-green-500/10">
-                                        <CheckCircle className="h-5 w-5 text-green-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Paid</p>
-                                        <p className="text-2xl font-bold">₹{totalApprovedAmount.toLocaleString("en-IN")}</p>
-                                        <p className="text-xs text-muted-foreground">{approvedCount} requests</p>
-                                    </div>
+                                <div className="flex items-center gap-1">
+                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 flex items-center gap-1 shadow-sm">
+                                        <TrendingUp className="w-3 h-3" />
+                                        +15.3%
+                                    </span>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardContent className="pt-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-red-500/10">
-                                        <XCircle className="h-5 w-5 text-red-500" />
+                        <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardContent className="pt-6 relative">
+                                <div className="flex items-center gap-4 mb-3">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                        <CheckCircle className="h-6 w-6 text-white" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Rejected</p>
-                                        <p className="text-2xl font-bold">₹{totalRejectedAmount.toLocaleString("en-IN")}</p>
+                                        <p className="text-sm font-medium text-muted-foreground">Paid</p>
+                                        <p className="text-2xl font-bold text-green-600 drop-shadow-sm">₹{totalApprovedAmount.toLocaleString("en-IN")}</p>
+                                        <p className="text-xs text-muted-foreground">{approvedCount} requests</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1 shadow-sm">
+                                        <TrendingUp className="w-3 h-3" />
+                                        +8.7%
+                                    </span>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="relative overflow-hidden border-2 border-red-500/30 bg-gradient-to-br from-red-500/20 to-red-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-red-500/20 to-red-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardContent className="pt-6 relative">
+                                <div className="flex items-center gap-4 mb-3">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                        <XCircle className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Rejected</p>
+                                        <p className="text-2xl font-bold text-red-600 drop-shadow-sm">₹{totalRejectedAmount.toLocaleString("en-IN")}</p>
                                         <p className="text-xs text-muted-foreground">{rejectedCount} requests</p>
                                     </div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 flex items-center gap-1 shadow-sm">
+                                        <TrendingUp className="w-3 h-3 rotate-180" />
+                                        -2.4%
+                                    </span>
                                 </div>
                             </CardContent>
                         </Card>

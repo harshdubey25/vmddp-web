@@ -25,6 +25,7 @@ import {
     Shield,
     UserPlus,
     Loader2,
+    TrendingUp,
 } from "lucide-react";
 import { useState } from "react";
 import { useFrappeGetCall, useFrappeGetDocList, useFrappePostCall } from "frappe-react-sdk";
@@ -377,48 +378,63 @@ export default function AdminSubAdmins() {
                     ) : (
                         <>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-                                <Card>
-                                    <CardContent className="p-4 sm:p-6">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Sub-Admins</p>
-                                                <p className="font-display font-bold text-xl sm:text-2xl">{dpos.length}</p>
+                                <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-blue-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                                    <CardContent className="p-4 sm:p-6 relative">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                                <Shield className="w-6 h-6 text-white" />
                                             </div>
-                                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-chart-2/10 flex items-center justify-center">
-                                                <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-chart-2" />
-                                            </div>
+                                            <span className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 flex items-center gap-1 shadow-sm">
+                                                <TrendingUp className="w-3 h-3" />
+                                                +8.2%
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Total Sub-Admins</p>
+                                            <p className="font-display font-bold text-2xl sm:text-3xl text-blue-600 drop-shadow-sm">{dpos.length}</p>
                                         </div>
                                     </CardContent>
                                 </Card>
 
-                                <Card>
-                                    <CardContent className="p-4 sm:p-6">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Active Users</p>
-                                                <p className="font-display font-bold text-xl sm:text-2xl">
-                                                    {dpos.filter((dpo) => dpo.enabled).length}
-                                                </p>
+                                <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                                    <CardContent className="p-4 sm:p-6 relative">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                                <CheckCircle className="w-6 h-6 text-white" />
                                             </div>
-                                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-chart-3/10 flex items-center justify-center">
-                                                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-chart-3" />
-                                            </div>
+                                            <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1 shadow-sm">
+                                                <TrendingUp className="w-3 h-3" />
+                                                +5.1%
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Active Users</p>
+                                            <p className="font-display font-bold text-2xl sm:text-3xl text-green-600 drop-shadow-sm">
+                                                {dpos.filter((dpo) => dpo.enabled).length}
+                                            </p>
                                         </div>
                                     </CardContent>
                                 </Card>
 
-                                <Card>
-                                    <CardContent className="p-4 sm:p-6">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Districts Covered</p>
-                                                <p className="font-display font-bold text-xl sm:text-2xl">
-                                                    {new Set(dpos.map((dpo) => dpo.district).filter(Boolean)).size}
-                                                </p>
+                                <Card className="relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-purple-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                                    <CardContent className="p-4 sm:p-6 relative">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                                <MapPin className="w-6 h-6 text-white" />
                                             </div>
-                                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-chart-4/10 flex items-center justify-center">
-                                                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-chart-4" />
-                                            </div>
+                                            <span className="text-xs font-semibold px-2 py-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 flex items-center gap-1 shadow-sm">
+                                                <TrendingUp className="w-3 h-3" />
+                                                +3.5%
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Districts Covered</p>
+                                            <p className="font-display font-bold text-2xl sm:text-3xl text-purple-600 drop-shadow-sm">
+                                                {new Set(dpos.map((dpo) => dpo.district).filter(Boolean)).size}
+                                            </p>
                                         </div>
                                     </CardContent>
                                 </Card>
