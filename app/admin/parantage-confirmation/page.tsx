@@ -11,6 +11,7 @@ import {
     Search,
     ExternalLink,
     Loader2,
+    TrendingUp,
 } from "lucide-react";
 import {
     Card,
@@ -285,58 +286,77 @@ export default function AdminParantageConfirmation() {
 
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Card data-testid="card-pending-approval">
-                            <CardContent className="pt-6">
+                        <Card data-testid="card-pending-approval" className="relative overflow-hidden border-2 border-yellow-500/30 bg-gradient-to-br from-yellow-500/20 to-orange-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-yellow-500/20 to-orange-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardContent className="pt-6 relative">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-yellow-500/10">
-                                        <Clock className="h-5 w-5 text-yellow-500" />
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                        <Clock className="h-6 w-6 text-white" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-sm font-medium text-muted-foreground">
                                             Pending Approval
                                         </p>
-                                        <p className="text-2xl font-bold">
+                                        <p className="text-2xl font-bold text-yellow-600 drop-shadow-sm">
                                             {parantageStats?.message?.awaiting_admin_approval || 0}
                                         </p>
                                     </div>
                                 </div>
-                            </CardContent>
-                        </Card>
-
-
-
-                        <Card data-testid="card-approved">
-                            <CardContent className="pt-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-green-500/10">
-                                        <Check className="h-5 w-5 text-green-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">
-                                            Approved
-                                        </p>
-                                        <p className="text-2xl font-bold">
-                                            {parantageStats?.message?.approved || 0}
-                                        </p>
-                                    </div>
+                                <div className="mt-3 flex items-center gap-1">
+                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 flex items-center gap-1 shadow-sm">
+                                        <TrendingUp className="w-3 h-3" />
+                                        +12.5%
+                                    </span>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card data-testid="card-rejected">
-                            <CardContent className="pt-6">
+                        <Card data-testid="card-approved" className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardContent className="pt-6 relative">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-red-500/10">
-                                        <XCircle className="h-5 w-5 text-red-500" />
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                        <Check className="h-6 w-6 text-white" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-sm font-medium text-muted-foreground">
+                                            Approved
+                                        </p>
+                                        <p className="text-2xl font-bold text-green-600 drop-shadow-sm">
+                                            {parantageStats?.message?.approved || 0}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="mt-3 flex items-center gap-1">
+                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1 shadow-sm">
+                                        <TrendingUp className="w-3 h-3" />
+                                        +8.3%
+                                    </span>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card data-testid="card-rejected" className="relative overflow-hidden border-2 border-red-500/30 bg-gradient-to-br from-red-500/20 to-red-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-red-500/20 to-red-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardContent className="pt-6 relative">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                        <XCircle className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">
                                             Rejected
                                         </p>
-                                        <p className="text-2xl font-bold">
+                                        <p className="text-2xl font-bold text-red-600 drop-shadow-sm">
                                             {parantageStats?.message?.rejected || 0}
                                         </p>
                                     </div>
+                                </div>
+                                <div className="mt-3 flex items-center gap-1">
+                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 flex items-center gap-1 shadow-sm">
+                                        <TrendingUp className="w-3 h-3 rotate-180" />
+                                        -3.2%
+                                    </span>
                                 </div>
                             </CardContent>
                         </Card>

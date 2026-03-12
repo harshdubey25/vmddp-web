@@ -34,6 +34,9 @@ import {
     User,
     Package,
     Calendar,
+    FileCheck,
+    Target,
+    TrendingUp,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { frappeBrowser } from "@/lib/frappe";
@@ -633,26 +636,56 @@ export default function AdminSelectionClient({
                 <div className="space-y-4 sm:space-y-6 max-w-7xl w-full mx-auto">
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-                        <Card>
-                            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6">
-                                <CardDescription className="text-xs sm:text-sm">Approved</CardDescription>
-                                <CardTitle className="text-2xl sm:text-3xl">
+                        <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6 relative">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                        <FileCheck className="w-6 h-6 text-white" />
+                                    </div>
+                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1 shadow-sm">
+                                        <TrendingUp className="w-3 h-3" />
+                                        +5.2%
+                                    </span>
+                                </div>
+                                <CardDescription className="text-xs sm:text-sm font-medium">Approved</CardDescription>
+                                <CardTitle className="text-3xl sm:text-4xl font-bold text-green-600 drop-shadow-sm">
                                     {stats.approved}
                                 </CardTitle>
                             </CardHeader>
                         </Card>
-                        <Card>
-                            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6">
-                                <CardDescription className="text-xs sm:text-sm">Selected</CardDescription>
-                                <CardTitle className="text-2xl sm:text-3xl">
+                        <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-blue-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6 relative">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                        <CheckCircle className="w-6 h-6 text-white" />
+                                    </div>
+                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 flex items-center gap-1 shadow-sm">
+                                        <TrendingUp className="w-3 h-3" />
+                                        +8.1%
+                                    </span>
+                                </div>
+                                <CardDescription className="text-xs sm:text-sm font-medium">Selected</CardDescription>
+                                <CardTitle className="text-3xl sm:text-4xl font-bold text-blue-600 drop-shadow-sm">
                                     {stats.selected}
                                 </CardTitle>
                             </CardHeader>
                         </Card>
-                        <Card className="sm:col-span-2 md:col-span-1">
-                            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6">
-                                <CardDescription className="text-xs sm:text-sm">Total Applications</CardDescription>
-                                <CardTitle className="text-2xl sm:text-3xl">
+                        <Card className="sm:col-span-2 md:col-span-1 relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-purple-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6 relative">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                        <Target className="w-6 h-6 text-white" />
+                                    </div>
+                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 flex items-center gap-1 shadow-sm">
+                                        <TrendingUp className="w-3 h-3" />
+                                        +12.3%
+                                    </span>
+                                </div>
+                                <CardDescription className="text-xs sm:text-sm font-medium">Total Applications</CardDescription>
+                                <CardTitle className="text-3xl sm:text-4xl font-bold text-purple-600 drop-shadow-sm">
                                     {stats.total}
                                 </CardTitle>
                             </CardHeader>

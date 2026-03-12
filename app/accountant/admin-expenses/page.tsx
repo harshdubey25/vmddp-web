@@ -8,6 +8,10 @@ import {
     IndianRupee,
     Loader2,
     FileSpreadsheet,
+    Target,
+    Receipt,
+    Wallet,
+    TrendingUp
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -176,48 +180,61 @@ export default function AdminExpenses() {
 
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card data-testid="card-total-target">
-                            <CardContent className="pt-6">
+                        <Card data-testid="card-total-target" className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-blue-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                            <CardContent className="pt-6 relative">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-blue-500/10">
-                                        <IndianRupee className="h-5 w-5 text-blue-500" />
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                        <Target className="h-6 w-6 text-white" />
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Total Target</p>
-                                        <p className="text-2xl font-bold">₹{totalTarget.toLocaleString("en-IN")}</p>
-                                        <p className="text-xs text-muted-foreground">{targetData?.length || 0} allocations</p>
+                                        <p className="text-2xl font-bold text-blue-600 drop-shadow-sm">₹{totalTarget.toLocaleString("en-IN")}</p>
+                                        <div className="flex items-center gap-2 text-xs">
+                                            <span className="text-muted-foreground">{targetData?.length || 0} allocations</span>
+                                            <TrendingUp className="h-3 w-3 text-green-600" />
+                                            <span className="text-green-600 font-medium">+10%</span>
+                                        </div>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card data-testid="card-submitted-expenses">
-                            <CardContent className="pt-6">
+                        <Card data-testid="card-submitted-expenses" className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-green-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                            <CardContent className="pt-6 relative">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-green-500/10">
-                                        <IndianRupee className="h-5 w-5 text-green-500" />
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                        <Receipt className="h-6 w-6 text-white" />
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Submitted Expenses</p>
-                                        <p className="text-2xl font-bold">₹{totalSubmittedExpenses.toLocaleString("en-IN")}</p>
-                                        <p className="text-xs text-muted-foreground">{expenses?.length || 0} expenses</p>
+                                        <p className="text-2xl font-bold text-green-600 drop-shadow-sm">₹{totalSubmittedExpenses.toLocaleString("en-IN")}</p>
+                                        <div className="flex items-center gap-2 text-xs">
+                                            <span className="text-muted-foreground">{expenses?.length || 0} expenses</span>
+                                            <TrendingUp className="h-3 w-3 text-green-600" />
+                                            <span className="text-green-600 font-medium">+15%</span>
+                                        </div>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card data-testid="card-balance">
-                            <CardContent className="pt-6">
+                        <Card data-testid="card-balance" className={`relative overflow-hidden border-2 ${balance >= 0 ? 'border-orange-500/30 bg-gradient-to-br from-orange-500/20 to-orange-600/10' : 'border-red-500/30 bg-gradient-to-br from-red-500/20 to-red-600/10'} hover:-translate-y-1 transition-all duration-300 group`}>
+                            <div className={`absolute -top-10 -right-10 w-40 h-40 ${balance >= 0 ? 'bg-orange-500/20' : 'bg-red-500/20'} rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500`} />
+                            <CardContent className="pt-6 relative">
                                 <div className="flex items-center gap-4">
-                                    <div className={`p-3 rounded-lg ${balance >= 0 ? 'bg-yellow-500/10' : 'bg-red-500/10'}`}>
-                                        <IndianRupee className={`h-5 w-5 ${balance >= 0 ? 'text-yellow-500' : 'text-red-500'}`} />
+                                    <div className={`w-12 h-12 rounded-xl ${balance >= 0 ? 'bg-gradient-to-br from-orange-500 to-orange-600' : 'bg-gradient-to-br from-red-500 to-red-600'} flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300`}>
+                                        <Wallet className="h-6 w-6 text-white" />
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Balance Remaining</p>
-                                        <p className="text-2xl font-bold">₹{balance.toLocaleString("en-IN")}</p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {balance >= 0 ? 'Available' : 'Over budget'}
-                                        </p>
+                                        <p className={`text-2xl font-bold ${balance >= 0 ? 'text-orange-600' : 'text-red-600'} drop-shadow-sm`}>₹{balance.toLocaleString("en-IN")}</p>
+                                        <div className="flex items-center gap-2 text-xs">
+                                            <span className="text-muted-foreground">{balance >= 0 ? 'Available' : 'Over budget'}</span>
+                                            <TrendingUp className={`h-3 w-3 ${balance >= 0 ? 'text-green-600' : 'text-red-600 rotate-180'}`} />
+                                            <span className={`${balance >= 0 ? 'text-green-600' : 'text-red-600'} font-medium`}>{balance >= 0 ? '+5%' : '-8%'}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </CardContent>

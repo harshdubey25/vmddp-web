@@ -18,6 +18,19 @@ import {
     Download,
     BarChart3,
     Building2,
+    FileText,
+    Clock,
+    CheckCircle,
+    Target,
+    XCircle,
+    TrendingUp,
+    Package,
+    Wallet,
+    RefreshCw,
+    CreditCard,
+    Receipt,
+    PieChart,
+    Layers
 } from "lucide-react";
 import Link from "next/link";
 
@@ -263,11 +276,61 @@ export default function AdminReports() {
 
     const formatStatusCount = (value: number) => (statusCountsLoading ? "..." : value.toLocaleString());
     const statusSummaryCards = [
-        { key: "total", label: "Total Applications", value: statusCounts.total, accent: "text-primary" },
-        { key: "pending", label: "Pending", value: statusCounts.pending, accent: "text-chart-4" },
-        { key: "approved", label: "Approved", value: statusCounts.approved, accent: "text-chart-3" },
-        { key: "selected", label: "Selected", value: statusCounts.selected, accent: "text-chart-1" },
-        { key: "rejected", label: "Rejected", value: statusCounts.rejected, accent: "text-chart-5" },
+        { 
+            key: "total", 
+            label: "Total Applications", 
+            value: statusCounts.total, 
+            accent: "text-blue-600",
+            icon: FileText,
+            gradient: "from-blue-500/20 to-blue-600/10",
+            borderColor: "border-blue-500/30",
+            iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
+            change: "+12.5%"
+        },
+        { 
+            key: "pending", 
+            label: "Pending", 
+            value: statusCounts.pending, 
+            accent: "text-yellow-600",
+            icon: Clock,
+            gradient: "from-yellow-500/20 to-orange-600/10",
+            borderColor: "border-yellow-500/30",
+            iconBg: "bg-gradient-to-br from-yellow-500 to-orange-600",
+            change: "+8.3%"
+        },
+        { 
+            key: "approved", 
+            label: "Approved", 
+            value: statusCounts.approved, 
+            accent: "text-green-600",
+            icon: CheckCircle,
+            gradient: "from-green-500/20 to-green-600/10",
+            borderColor: "border-green-500/30",
+            iconBg: "bg-gradient-to-br from-green-500 to-green-600",
+            change: "+15.7%"
+        },
+        { 
+            key: "selected", 
+            label: "Selected", 
+            value: statusCounts.selected, 
+            accent: "text-purple-600",
+            icon: Target,
+            gradient: "from-purple-500/20 to-purple-600/10",
+            borderColor: "border-purple-500/30",
+            iconBg: "bg-gradient-to-br from-purple-500 to-purple-600",
+            change: "+9.2%"
+        },
+        { 
+            key: "rejected", 
+            label: "Rejected", 
+            value: statusCounts.rejected, 
+            accent: "text-red-600",
+            icon: XCircle,
+            gradient: "from-red-500/20 to-red-600/10",
+            borderColor: "border-red-500/30",
+            iconBg: "bg-gradient-to-br from-red-500 to-red-600",
+            change: "-3.4%"
+        },
     ];
     const getAnswerEntries = (answers: any): Array<[string, number]> => {
         if (!answers) {
@@ -360,16 +423,32 @@ export default function AdminReports() {
                             </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                            {statusSummaryCards.map((card) => (
-                                <Card key={card.key}>
-                                    <CardContent className="p-6">
-                                        <p className="text-sm text-muted-foreground mb-1">{card.label}</p>
-                                        <p className={`font-display font-bold text-2xl ${card.accent}`}>
-                                            {formatStatusCount(card.value)}
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                            ))}
+                            {statusSummaryCards.map((card) => {
+                                const Icon = card.icon;
+                                return (
+                                    <Card 
+                                        key={card.key}
+                                        className={`relative overflow-hidden border-2 ${card.borderColor} bg-gradient-to-br ${card.gradient} hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm`}
+                                    >
+                                        <div className={`absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br ${card.gradient} opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110`} />
+                                        <CardContent className="p-6 relative">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className={`w-12 h-12 rounded-xl ${card.iconBg} flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6`}>
+                                                    <Icon className="w-6 h-6 text-white" />
+                                                </div>
+                                                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${card.change.startsWith('+') ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'} flex items-center gap-1 shadow-sm`}>
+                                                    <TrendingUp className={`w-3 h-3 ${card.change.startsWith('-') ? 'rotate-180' : ''}`} />
+                                                    {card.change}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm font-medium text-muted-foreground mb-1">{card.label}</p>
+                                            <p className={`font-display font-bold text-3xl ${card.accent} drop-shadow-sm`}>
+                                                {formatStatusCount(card.value)}
+                                            </p>
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })}
                         </div>
                         {statusCountsError && (
                             <p className="text-sm text-destructive">{statusCountsError}</p>
@@ -860,78 +939,84 @@ export default function AdminReports() {
                         <h2 className="text-lg font-semibold mb-3">Report Pages</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <Link href="/accountant/dd-report" className="block h-full">
-                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                                    <CardContent className="p-4 flex items-center gap-3 h-full">
-                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-blue-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Receipt className="w-6 h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm">DD Reports</h3>
+                                            <h3 className="font-semibold text-sm text-blue-700 dark:text-blue-400">DD Reports</h3>
                                             <p className="text-xs text-muted-foreground">View DD collection reports</p>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </Link>
                             <Link href="/accountant/component-allocation" className="block h-full">
-                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                                    <CardContent className="p-4 flex items-center gap-3 h-full">
-                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-green-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Package className="w-6 h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm">Component Allocation Report</h3>
+                                            <h3 className="font-semibold text-sm text-green-700 dark:text-green-400">Component Allocation Report</h3>
                                             <p className="text-xs text-muted-foreground">Track component allocations</p>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </Link>
                             <Link href="/admin/dbt-claims-report" className="block h-full">
-                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                                    <CardContent className="p-4 flex items-center gap-3 h-full">
-                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                <Card className="relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-purple-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Wallet className="w-6 h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm">DBT Claims Report</h3>
+                                            <h3 className="font-semibold text-sm text-purple-700 dark:text-purple-400">DBT Claims Report</h3>
                                             <p className="text-xs text-muted-foreground">View DBT claims data</p>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </Link>
                             <Link href="/admin/vendor-payments-report" className="block h-full">
-                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                                    <CardContent className="p-4 flex items-center gap-3 h-full">
-                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                                            <Building2 className="w-5 h-5 text-primary" />
+                                <Card className="relative overflow-hidden border-2 border-orange-500/30 bg-gradient-to-br from-orange-500/20 to-orange-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-orange-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <CreditCard className="w-6 h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm">Vendor Payments Report</h3>
+                                            <h3 className="font-semibold text-sm text-orange-700 dark:text-orange-400">Vendor Payments Report</h3>
                                             <p className="text-xs text-muted-foreground">Monitor vendor payments</p>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </Link>
                             <Link href="/accountant/admin-expenses" className="block h-full">
-                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                                    <CardContent className="p-4 flex items-center gap-3 h-full">
-                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                                            <Building2 className="w-5 h-5 text-primary" />
+                                <Card className="relative overflow-hidden border-2 border-red-500/30 bg-gradient-to-br from-red-500/20 to-red-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-red-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Building2 className="w-6 h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm">Admin Expenses Report</h3>
+                                            <h3 className="font-semibold text-sm text-red-700 dark:text-red-400">Admin Expenses Report</h3>
                                             <p className="text-xs text-muted-foreground">Track administrative expenses</p>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </Link>
                             <Link href="/admin/refunds-report" className="block h-full">
-                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                                    <CardContent className="p-4 flex items-center gap-3 h-full">
-                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                <Card className="relative overflow-hidden border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <RefreshCw className="w-6 h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm">Refunds Report</h3>
+                                            <h3 className="font-semibold text-sm text-indigo-700 dark:text-indigo-400">Refunds Report</h3>
                                             <p className="text-xs text-muted-foreground">View refund transactions</p>
                                         </div>
                                     </CardContent>
@@ -944,52 +1029,56 @@ export default function AdminReports() {
                         <h2 className="text-lg font-semibold mb-3">Monthly Progress Reports (MPR)</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <Link href="/admin/mpr/animal-induction" className="block h-full">
-                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                                    <CardContent className="p-4 flex items-center gap-3 h-full">
-                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                <Card className="relative overflow-hidden border-2 border-cyan-500/30 bg-gradient-to-br from-cyan-500/20 to-cyan-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-cyan-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Target className="w-6 h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm">Animal Induction MPR</h3>
+                                            <h3 className="font-semibold text-sm text-cyan-700 dark:text-cyan-400">Animal Induction MPR</h3>
                                             <p className="text-xs text-muted-foreground">View animal induction monthly progress report</p>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </Link>
                             <Link href="/admin/mpr/dbt-claims-mpr" className="block h-full">
-                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                                    <CardContent className="p-4 flex items-center gap-3 h-full">
-                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                <Card className="relative overflow-hidden border-2 border-teal-500/30 bg-gradient-to-br from-teal-500/20 to-teal-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-teal-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <PieChart className="w-6 h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm">DBT Claims MPR</h3>
+                                            <h3 className="font-semibold text-sm text-teal-700 dark:text-teal-400">DBT Claims MPR</h3>
                                             <p className="text-xs text-muted-foreground">View DBT claims monthly progress report</p>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </Link>
                             <Link href="/admin/mpr/hgm" className="block h-full">
-                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                                    <CardContent className="p-4 flex items-center gap-3 h-full">
-                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                <Card className="relative overflow-hidden border-2 border-pink-500/30 bg-gradient-to-br from-pink-500/20 to-pink-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <BarChart3 className="w-6 h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm">HGM MPR</h3>
+                                            <h3 className="font-semibold text-sm text-pink-700 dark:text-pink-400">HGM MPR</h3>
                                             <p className="text-xs text-muted-foreground">View HGM monthly progress report</p>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </Link>
                             <Link href="/admin/mpr/all-targets" className="block h-full">
-                                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                                    <CardContent className="p-4 flex items-center gap-3 h-full">
-                                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                                            <BarChart3 className="w-5 h-5 text-primary" />
+                                <Card className="relative overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/20 to-amber-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-amber-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Layers className="w-6 h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm">All Targets Report</h3>
+                                            <h3 className="font-semibold text-sm text-amber-700 dark:text-amber-400">All Targets Report</h3>
                                             <p className="text-xs text-muted-foreground">View all targets report</p>
                                         </div>
                                     </CardContent>

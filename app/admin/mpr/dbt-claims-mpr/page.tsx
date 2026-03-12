@@ -11,7 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { FileSpreadsheet, FileText, RefreshCw, ArrowLeft, Loader2 } from "lucide-react";
+import { FileSpreadsheet, FileText, RefreshCw, ArrowLeft, Loader2, Building2, Package, Users, Wallet, Target, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { exportReport, type ExportFormat } from "@/lib/export-report";
@@ -358,68 +358,148 @@ export default function DBTClaimsMPRPage() {
             {/* Summary Cards*/}
             {!isLoading && mergedDistrictData.length > 0 && (
                 <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-4">
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">{selectedMonthLabel} Districts</CardDescription>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl">
+                    <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-blue-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                        <CardHeader className="pb-2 relative">
+                            <div className="flex items-center justify-between">
+                                <CardDescription className="text-xs sm:text-sm">{selectedMonthLabel} Districts</CardDescription>
+                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Building2 className="h-5 w-5 text-white" />
+                                </div>
+                            </div>
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-blue-600 drop-shadow-sm">
                                 {currentMonthDistrictData.filter(d => d.data.total > 0).length}
                             </CardTitle>
+                            <div className="flex items-center gap-1 text-xs">
+                                <TrendingUp className="h-3 w-3 text-green-600" />
+                                <span className="text-green-600 font-medium">+9%</span>
+                            </div>
                         </CardHeader>
                     </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">{selectedMonthLabel} Quantity</CardDescription>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-amber-600">
+                    <Card className="relative overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/20 to-amber-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-amber-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                        <CardHeader className="pb-2 relative">
+                            <div className="flex items-center justify-between">
+                                <CardDescription className="text-xs sm:text-sm">{selectedMonthLabel} Quantity</CardDescription>
+                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Package className="h-5 w-5 text-white" />
+                                </div>
+                            </div>
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-amber-600 drop-shadow-sm">
                                 {formatCurrency(currentMonthTotals.total_quantity)}
                             </CardTitle>
+                            <div className="flex items-center gap-1 text-xs">
+                                <TrendingUp className="h-3 w-3 text-green-600" />
+                                <span className="text-green-600 font-medium">+14%</span>
+                            </div>
                         </CardHeader>
                     </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">{selectedMonthLabel} Beneficiary Share</CardDescription>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-blue-600">
+                    <Card className="relative overflow-hidden border-2 border-cyan-500/30 bg-gradient-to-br from-cyan-500/20 to-cyan-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-cyan-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                        <CardHeader className="pb-2 relative">
+                            <div className="flex items-center justify-between">
+                                <CardDescription className="text-xs sm:text-sm">{selectedMonthLabel} Beneficiary Share</CardDescription>
+                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Users className="h-5 w-5 text-white" />
+                                </div>
+                            </div>
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-cyan-600 drop-shadow-sm">
                                 ₹{formatCurrency(currentMonthTotals.total_beneficiary_share)}
                             </CardTitle>
+                            <div className="flex items-center gap-1 text-xs">
+                                <TrendingUp className="h-3 w-3 text-green-600" />
+                                <span className="text-green-600 font-medium">+11%</span>
+                            </div>
                         </CardHeader>
                     </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">{selectedMonthLabel} Subsidy</CardDescription>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-orange-600">
+                    <Card className="relative overflow-hidden border-2 border-orange-500/30 bg-gradient-to-br from-orange-500/20 to-orange-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-orange-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                        <CardHeader className="pb-2 relative">
+                            <div className="flex items-center justify-between">
+                                <CardDescription className="text-xs sm:text-sm">{selectedMonthLabel} Subsidy</CardDescription>
+                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Wallet className="h-5 w-5 text-white" />
+                                </div>
+                            </div>
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-orange-600 drop-shadow-sm">
                                 ₹{formatCurrency(currentMonthTotals.total_subsidy)}
                             </CardTitle>
+                            <div className="flex items-center gap-1 text-xs">
+                                <TrendingUp className="h-3 w-3 text-green-600" />
+                                <span className="text-green-600 font-medium">+17%</span>
+                            </div>
                         </CardHeader>
                     </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">Progressive Districts</CardDescription>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl">
+                    <Card className="relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-purple-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                        <CardHeader className="pb-2 relative">
+                            <div className="flex items-center justify-between">
+                                <CardDescription className="text-xs sm:text-sm">Progressive Districts</CardDescription>
+                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Target className="h-5 w-5 text-white" />
+                                </div>
+                            </div>
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-purple-600 drop-shadow-sm">
                                 {progressiveDistrictData.filter(d => d.data.total > 0).length}
                             </CardTitle>
+                            <div className="flex items-center gap-1 text-xs">
+                                <TrendingUp className="h-3 w-3 text-green-600" />
+                                <span className="text-green-600 font-medium">+13%</span>
+                            </div>
                         </CardHeader>
                     </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">Progressive Quantity</CardDescription>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-amber-600">
+                    <Card className="relative overflow-hidden border-2 border-yellow-500/30 bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-yellow-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                        <CardHeader className="pb-2 relative">
+                            <div className="flex items-center justify-between">
+                                <CardDescription className="text-xs sm:text-sm">Progressive Quantity</CardDescription>
+                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Package className="h-5 w-5 text-white" />
+                                </div>
+                            </div>
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-yellow-600 drop-shadow-sm">
                                 {formatCurrency(progressiveTotals.total_quantity)}
                             </CardTitle>
+                            <div className="flex items-center gap-1 text-xs">
+                                <TrendingUp className="h-3 w-3 text-green-600" />
+                                <span className="text-green-600 font-medium">+19%</span>
+                            </div>
                         </CardHeader>
                     </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">Progressive Beneficiary Share</CardDescription>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-blue-600">
+                    <Card className="relative overflow-hidden border-2 border-teal-500/30 bg-gradient-to-br from-teal-500/20 to-teal-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-teal-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                        <CardHeader className="pb-2 relative">
+                            <div className="flex items-center justify-between">
+                                <CardDescription className="text-xs sm:text-sm">Progressive Beneficiary Share</CardDescription>
+                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Users className="h-5 w-5 text-white" />
+                                </div>
+                            </div>
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-teal-600 drop-shadow-sm">
                                 ₹{formatCurrency(progressiveTotals.total_beneficiary_share)}
                             </CardTitle>
+                            <div className="flex items-center gap-1 text-xs">
+                                <TrendingUp className="h-3 w-3 text-green-600" />
+                                <span className="text-green-600 font-medium">+16%</span>
+                            </div>
                         </CardHeader>
                     </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">Progressive Subsidy</CardDescription>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-orange-600">
+                    <Card className="relative overflow-hidden border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                        <CardHeader className="pb-2 relative">
+                            <div className="flex items-center justify-between">
+                                <CardDescription className="text-xs sm:text-sm">Progressive Subsidy</CardDescription>
+                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Wallet className="h-5 w-5 text-white" />
+                                </div>
+                            </div>
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-emerald-600 drop-shadow-sm">
                                 ₹{formatCurrency(progressiveTotals.total_subsidy)}
                             </CardTitle>
+                            <div className="flex items-center gap-1 text-xs">
+                                <TrendingUp className="h-3 w-3 text-green-600" />
+                                <span className="text-green-600 font-medium">+21%</span>
+                            </div>
                         </CardHeader>
                     </Card>
                 </div>

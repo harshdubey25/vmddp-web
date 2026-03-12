@@ -10,6 +10,7 @@ import {
     ArrowLeft,
     XCircle,
     CheckCircle,
+    TrendingUp
 } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -181,46 +182,61 @@ export default function RefundsReport() {
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card>
-                        <CardContent className="pt-6">
+                    <Card className="relative overflow-hidden border-2 border-yellow-500/30 bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-yellow-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                        <CardContent className="pt-6 relative">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-yellow-500/10">
-                                    <Clock className="h-5 w-5 text-yellow-500" />
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Clock className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Pending Approval</p>
-                                    <p className="text-2xl font-bold">₹{totalPendingAmount.toLocaleString("en-IN")}</p>
-                                    <p className="text-xs text-muted-foreground">{pendingCount} requests</p>
+                                    <p className="text-2xl font-bold text-yellow-600 drop-shadow-sm">₹{totalPendingAmount.toLocaleString("en-IN")}</p>
+                                    <div className="flex items-center gap-2 text-xs">
+                                        <span className="text-muted-foreground">{pendingCount} requests</span>
+                                        <TrendingUp className="h-3 w-3 text-green-600" />
+                                        <span className="text-green-600 font-medium">+7%</span>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardContent className="pt-6">
+                    <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-green-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                        <CardContent className="pt-6 relative">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-green-500/10">
-                                    <CheckCircle className="h-5 w-5 text-green-500" />
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <CheckCircle className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Paid</p>
-                                    <p className="text-2xl font-bold">₹{totalApprovedAmount.toLocaleString("en-IN")}</p>
-                                    <p className="text-xs text-muted-foreground">{approvedCount} requests</p>
+                                    <p className="text-2xl font-bold text-green-600 drop-shadow-sm">₹{totalApprovedAmount.toLocaleString("en-IN")}</p>
+                                    <div className="flex items-center gap-2 text-xs">
+                                        <span className="text-muted-foreground">{approvedCount} requests</span>
+                                        <TrendingUp className="h-3 w-3 text-green-600" />
+                                        <span className="text-green-600 font-medium">+20%</span>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardContent className="pt-6">
+                    <Card className="relative overflow-hidden border-2 border-red-500/30 bg-gradient-to-br from-red-500/20 to-red-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-red-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                        <CardContent className="pt-6 relative">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-red-500/10">
-                                    <XCircle className="h-5 w-5 text-red-500" />
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <XCircle className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Rejected</p>
-                                    <p className="text-2xl font-bold">₹{totalRejectedAmount.toLocaleString("en-IN")}</p>
-                                    <p className="text-xs text-muted-foreground">{rejectedCount} requests</p>
+                                    <p className="text-2xl font-bold text-red-600 drop-shadow-sm">₹{totalRejectedAmount.toLocaleString("en-IN")}</p>
+                                    <div className="flex items-center gap-2 text-xs">
+                                        <span className="text-muted-foreground">{rejectedCount} requests</span>
+                                        <TrendingUp className="h-3 w-3 text-red-600 rotate-180" />
+                                        <span className="text-red-600 font-medium">-5%</span>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>

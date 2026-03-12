@@ -60,6 +60,11 @@ export default function Header() {
                 {t("register_now")}
               </Button>
             </Link>
+            <Link href="/login" passHref>
+              <Button data-testid="button-login" size="sm" className="text-xs sm:text-sm">
+                {t("login")}
+              </Button>
+            </Link>
             <Button
               variant="ghost"
               size="icon"

@@ -21,7 +21,7 @@ import {
     Package,
     Plus,
     Settings,
-
+    TrendingUp,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -137,48 +137,63 @@ export default function AdminComponents() {
                 ) : (
                     <div className="space-y-4 sm:space-y-6 max-w-7xl">
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-                            <Card>
-                                <CardContent className="p-4 sm:p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Components</p>
-                                            <p className="font-display font-bold text-xl sm:text-2xl">{componentCount}</p>
+                            <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-blue-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                                <CardContent className="p-4 sm:p-6 relative">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                            <Package className="w-6 h-6 text-white" />
                                         </div>
-                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-chart-2/10 flex items-center justify-center">
-                                            <Package className="w-4 h-4 sm:w-5 sm:h-5 text-chart-2" />
-                                        </div>
+                                        <span className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 flex items-center gap-1 shadow-sm">
+                                            <TrendingUp className="w-3 h-3" />
+                                            +4.2%
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Total Components</p>
+                                        <p className="font-display font-bold text-2xl sm:text-3xl text-blue-600 drop-shadow-sm">{componentCount}</p>
                                     </div>
                                 </CardContent>
                             </Card>
 
-                            <Card>
-                                <CardContent className="p-4 sm:p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-xs sm:text-sm text-muted-foreground mb-1">Active Schemes</p>
-                                            <p className="font-display font-bold text-xl sm:text-2xl">
-                                                {activeComponentCount}
-                                            </p>
+                            <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                                <CardContent className="p-4 sm:p-6 relative">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                            <Settings className="w-6 h-6 text-white" />
                                         </div>
-                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-chart-3/10 flex items-center justify-center">
-                                            <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-chart-3" />
-                                        </div>
+                                        <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1 shadow-sm">
+                                            <TrendingUp className="w-3 h-3" />
+                                            +6.8%
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Active Schemes</p>
+                                        <p className="font-display font-bold text-2xl sm:text-3xl text-green-600 drop-shadow-sm">
+                                            {activeComponentCount}
+                                        </p>
                                     </div>
                                 </CardContent>
                             </Card>
 
-                            <Card>
-                                <CardContent className="p-4 sm:p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Applications</p>
-                                            <p className="font-display font-bold text-xl sm:text-2xl">
-                                                {applicationCount}
-                                            </p>
+                            <Card className="relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-purple-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                                <CardContent className="p-4 sm:p-6 relative">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                            <BarChart3 className="w-6 h-6 text-white" />
                                         </div>
-                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-chart-4/10 flex items-center justify-center">
-                                            <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-chart-4" />
-                                        </div>
+                                        <span className="text-xs font-semibold px-2 py-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 flex items-center gap-1 shadow-sm">
+                                            <TrendingUp className="w-3 h-3" />
+                                            +9.3%
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Total Applications</p>
+                                        <p className="font-display font-bold text-2xl sm:text-3xl text-purple-600 drop-shadow-sm">
+                                            {applicationCount}
+                                        </p>
                                     </div>
                                 </CardContent>
                             </Card>

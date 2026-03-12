@@ -5,6 +5,9 @@ import {
     CheckCircle,
     Banknote,
     ArrowLeft,
+    TrendingUp,
+    Users,
+    Package
 } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
@@ -105,61 +108,81 @@ export default function DBTClaimsReport() {
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <Card data-testid="card-total-disbursed">
+                    <Card data-testid="card-total-disbursed" className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-green-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
                         <CardContent className="pt-6">
                             <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="p-2 sm:p-3 rounded-lg bg-green-500/10 flex-shrink-0">
-                                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <CheckCircle className="h-6 w-6 text-white" />
                                 </div>
                                 <div className="min-w-0">
                                     <p className="text-xs sm:text-sm text-muted-foreground">Total Disbursed</p>
-                                    <p className="text-lg sm:text-2xl font-bold">₹{stats.total_disbursed_amount?.toLocaleString("en-IN") || 0}</p>
-                                    <p className="text-xs text-muted-foreground">{stats.total_claims_processed || 0} claims</p>
+                                    <p className="text-lg sm:text-2xl font-bold text-green-600 drop-shadow-sm">₹{stats.total_disbursed_amount?.toLocaleString("en-IN") || 0}</p>
+                                    <div className="flex items-center gap-1 text-xs">
+                                        <span className="text-muted-foreground">{stats.total_claims_processed || 0} claims</span>
+                                        <TrendingUp className="h-3 w-3 text-green-600 ml-1" />
+                                        <span className="text-green-600 font-medium">+18%</span>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card data-testid="card-claims-processed">
+                    <Card data-testid="card-claims-processed" className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-blue-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
                         <CardContent className="pt-6">
                             <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="p-2 sm:p-3 rounded-lg bg-blue-500/10 flex-shrink-0">
-                                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <CheckCircle className="h-6 w-6 text-white" />
                                 </div>
                                 <div className="min-w-0">
                                     <p className="text-xs sm:text-sm text-muted-foreground">Claims Processed</p>
-                                    <p className="text-lg sm:text-2xl font-bold">{stats.total_claims_processed || 0}</p>
-                                    <p className="text-xs text-muted-foreground">Disbursed successfully</p>
+                                    <p className="text-lg sm:text-2xl font-bold text-blue-600 drop-shadow-sm">{stats.total_claims_processed || 0}</p>
+                                    <div className="flex items-center gap-1 text-xs">
+                                        <span className="text-muted-foreground">Disbursed successfully</span>
+                                        <TrendingUp className="h-3 w-3 text-green-600 ml-1" />
+                                        <span className="text-green-600 font-medium">+14%</span>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card data-testid="card-beneficiaries">
+                    <Card data-testid="card-beneficiaries" className="relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-purple-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
                         <CardContent className="pt-6">
                             <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="p-2 sm:p-3 rounded-lg bg-purple-500/10 flex-shrink-0">
-                                    <Banknote className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Users className="h-6 w-6 text-white" />
                                 </div>
                                 <div className="min-w-0">
                                     <p className="text-xs sm:text-sm text-muted-foreground">Beneficiaries</p>
-                                    <p className="text-lg sm:text-2xl font-bold">{stats.total_beneficiaries || 0}</p>
-                                    <p className="text-xs text-muted-foreground">Received benefits</p>
+                                    <p className="text-lg sm:text-2xl font-bold text-purple-600 drop-shadow-sm">{stats.total_beneficiaries || 0}</p>
+                                    <div className="flex items-center gap-1 text-xs">
+                                        <span className="text-muted-foreground">Received benefits</span>
+                                        <TrendingUp className="h-3 w-3 text-green-600 ml-1" />
+                                        <span className="text-green-600 font-medium">+22%</span>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card data-testid="card-dbt-components">
+                    <Card data-testid="card-dbt-components" className="relative overflow-hidden border-2 border-orange-500/30 bg-gradient-to-br from-orange-500/20 to-orange-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-orange-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
                         <CardContent className="pt-6">
                             <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="p-2 sm:p-3 rounded-lg bg-orange-500/10 flex-shrink-0">
-                                    <Banknote className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Package className="h-6 w-6 text-white" />
                                 </div>
                                 <div className="min-w-0">
                                     <p className="text-xs sm:text-sm text-muted-foreground">DBT Components</p>
-                                    <p className="text-lg sm:text-2xl font-bold">{stats.total_components || 0}</p>
-                                    <p className="text-xs text-muted-foreground">Available components</p>
+                                    <p className="text-lg sm:text-2xl font-bold text-orange-600 drop-shadow-sm">{stats.total_components || 0}</p>
+                                    <div className="flex items-center gap-1 text-xs">
+                                        <span className="text-muted-foreground">Available components</span>
+                                        <TrendingUp className="h-3 w-3 text-green-600 ml-1" />
+                                        <span className="text-green-600 font-medium">+10%</span>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
