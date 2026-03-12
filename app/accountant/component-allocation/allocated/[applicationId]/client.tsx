@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 interface ComponentAllocationDoc {
+    insurance_vendor: string;
     name: string;
     application: string;
     component: string;
@@ -235,7 +236,7 @@ export default function ComponentAllocationDetails({
                             <div className="space-y-4">
                                 <div>
                                     <p className="text-sm text-muted-foreground">Insurance Company</p>
-                                    <p className="font-medium mt-1">{allocationDoc.insurance_company_name || "N/A"}</p>
+                                    <p className="font-medium mt-1">{allocationDoc.insurance_vendor || "N/A"}</p>
                                 </div>
 
                                 <div>
