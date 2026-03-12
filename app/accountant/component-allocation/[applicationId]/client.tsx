@@ -1010,7 +1010,7 @@ export default function AllocationForm({
                                     </h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         <div className="space-y-2">
-                                            <Label>Insurance Company </Label>
+                                            <Label>Insurance Vendor </Label>
                                             <Select
                                                 value={animalData.insuranceVendor}
                                                 onValueChange={(value) =>
@@ -1287,7 +1287,7 @@ export default function AllocationForm({
                                                     )}
                                                 </p>
                                             </div>
-                                            <div>
+                                            {/* <div>
                                                 <p className="text-xs text-muted-foreground">
                                                     Transportation Vendor Payment
                                                 </p>
@@ -1297,7 +1297,7 @@ export default function AllocationForm({
                                                         "en-IN",
                                                     )}
                                                 </p>
-                                            </div>
+                                            </div> */}
                                             <div>
                                                 <p className="text-xs text-muted-foreground">
                                                     Total Expenditure
@@ -1666,7 +1666,7 @@ export default function AllocationForm({
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="space-y-2">
+                                        {/* <div className="space-y-2">
                                             <Label>Insurance Company Name</Label>
                                             <Select
                                                 value={hgmData.insuranceCompanyName}
@@ -1698,7 +1698,7 @@ export default function AllocationForm({
                                                     </SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                        </div>
+                                        </div> */}
                                         <div className="space-y-2">
                                             <Label>Policy Number</Label>
                                             <Input
