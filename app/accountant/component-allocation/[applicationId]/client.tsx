@@ -1010,7 +1010,7 @@ export default function AllocationForm({
                                     </h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         <div className="space-y-2">
-                                            <Label>Insurance Vendor</Label>
+                                            <Label>Insurance Company </Label>
                                             <Select
                                                 value={animalData.insuranceVendor}
                                                 onValueChange={(value) =>
@@ -1032,7 +1032,7 @@ export default function AllocationForm({
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="space-y-2">
+                                        {/* <div className="space-y-2">
                                             <Label>Insurance Company Name</Label>
                                             <Select
                                                 value={animalData.insuranceCompanyName}
@@ -1064,7 +1064,7 @@ export default function AllocationForm({
                                                     </SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                        </div>
+                                        </div> */}
                                         <div className="space-y-2">
                                             <Label>Policy Number</Label>
                                             <Input
@@ -1150,7 +1150,7 @@ export default function AllocationForm({
                                 <Separator />
 
                                 {/* Transportation Section */}
-                                <div>
+                                {/* <div>
                                     <h4 className="font-semibold text-sm mb-4 flex items-center gap-2">
                                         <Truck className="h-4 w-4" />
                                         Transportation
@@ -1244,7 +1244,7 @@ export default function AllocationForm({
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> */}
 
                                 {/* Subsidy Calculation */}
                                 {animalData.animalCost && (
