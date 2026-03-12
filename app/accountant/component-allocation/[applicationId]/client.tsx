@@ -1150,13 +1150,13 @@ export default function AllocationForm({
                                 <Separator />
 
                                 {/* Transportation Section */}
-                                {/* <div>
+                                <div>
                                     <h4 className="font-semibold text-sm mb-4 flex items-center gap-2">
                                         <Truck className="h-4 w-4" />
                                         Transportation
                                     </h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        <div className="space-y-2">
+                                        {/* <div className="space-y-2">
                                             <Label>Transportation Vendor</Label>
                                             <Select
                                                 value={animalData.transportationVendor}
@@ -1178,7 +1178,7 @@ export default function AllocationForm({
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                        </div>
+                                        </div> */}
                                         <div className="space-y-2">
                                             <Label>Transport Cost (₹)</Label>
                                             <Input
@@ -1244,7 +1244,7 @@ export default function AllocationForm({
                                             </div>
                                         </div>
                                     </div>
-                                </div> */}
+                                </div>
 
                                 {/* Subsidy Calculation */}
                                 {animalData.animalCost && (
