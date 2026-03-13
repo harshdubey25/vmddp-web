@@ -22,6 +22,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
+import { parseFrappeError } from "@/lib/frappe-error-parser";
 import { Package, Plus, Loader2 } from "lucide-react";
 import {
     Table,
@@ -112,11 +113,16 @@ export default function DistrictStockManagement() {
             setQuantity("");
             setDate(new Date().toISOString().split('T')[0]);
             mutateStock();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error adding district stock:", error);
+            const { title, message } = parseFrappeError(
+                error,
+                "Error",
+                "Failed to add district stock entry. Please try again."
+            );
             toast({
-                title: "Error",
-                description: "Failed to add district stock entry. Please try again.",
+                title,
+                description: message.replace(/<[^>]+>/g, ""),
                 variant: "destructive",
             });
         }
