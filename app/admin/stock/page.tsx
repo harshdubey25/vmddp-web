@@ -67,6 +67,11 @@ export default function StockManagement() {
 
     const { createDoc, loading: isCreating } = useFrappeCreateDoc();
 
+    const selectedItemDetails = stockItems?.find((item) => item.name === selectedItem);
+    const itemRate = selectedItemDetails?.rate ?? 0;
+    const quantityNumber = parseFloat(quantity) || 0;
+    const totalAmount = itemRate * quantityNumber;
+
     const handleAddStock = async () => {
         if (!selectedItem || !quantity || !date) {
             toast({
@@ -150,7 +155,6 @@ export default function StockManagement() {
                             <TableBody>
                                 {stockEntries.map((entry) => {
                                     const itemDetails = stockItems?.find(i => i.name === entry.item);
-                                    console.log("Entry:", entry, "Item Details:", itemDetails);
                                     const rate = itemDetails?.rate || 0;
                                     const quantity = parseFloat(entry.quantity) || 0;
                                     const totalPrice = rate * quantity;
@@ -206,12 +210,25 @@ export default function StockManagement() {
                             <Label htmlFor="quantity">Quantity</Label>
                             <Input
                                 id="quantity"
-                                type="text"
+                                type="number"
+                                step="any"
                                 placeholder="Enter quantity"
                                 value={quantity}
                                 onChange={(e) => setQuantity(e.target.value)}
                             />
                         </div>
+                        {selectedItem && quantity.trim() !== "" && (
+                            <div className="rounded-lg border bg-muted/40 p-3 text-sm">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-muted-foreground">Item Price</span>
+                                    <span className="font-medium">₹{itemRate.toFixed(2)}</span>
+                                </div>
+                                <div className="mt-2 flex items-center justify-between">
+                                    <span className="text-muted-foreground">Total Amount</span>
+                                    <span className="font-semibold">₹{totalAmount.toFixed(2)}</span>
+                                </div>
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <Label htmlFor="date">Date</Label>
                             <Input
