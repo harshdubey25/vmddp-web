@@ -323,10 +323,11 @@ export default function MPRPage() {
         <div className="flex-1 overflow-auto">
             <div className="p-8 space-y-8">
                 {/* DBT Claims Section */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>DBT Claims - Target & Achievement Report</CardTitle>
-                        <CardDescription>Jun-25</CardDescription>
+                <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:shadow-xl transition-all duration-300 group backdrop-blur-sm">
+                    <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                    <CardHeader className="relative z-10">
+                        <CardTitle className="text-xl font-bold text-blue-900 dark:text-blue-100">DBT Claims - Target & Achievement Report</CardTitle>
+                        <CardDescription className="text-blue-700/80 dark:text-blue-300 font-medium">Jun-25</CardDescription>
                     </CardHeader>
                     <CardContent>
                         {error && (
@@ -425,14 +426,15 @@ export default function MPRPage() {
 
                 {/* Animal Induction Section */}
                 {animalInductionTotals && (
-                    <Card>
+                    <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-green-600/5 hover:shadow-xl transition-all duration-300 group backdrop-blur-sm">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
                         <div
-                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                            className="relative z-10 flex items-center justify-between p-4 cursor-pointer hover:bg-green-50/50 dark:hover:bg-green-900/20 transition-colors"
                             onClick={() => toggleSection('animalInduction')}
                         >
                             <div>
-                                <CardTitle>Animal Induction MPR - Total Summary</CardTitle>
-                                <CardDescription>Induction of High Genetic Merit Dairy Animals</CardDescription>
+                                <CardTitle className="text-xl font-bold text-green-900 dark:text-green-100">Animal Induction MPR - Total Summary</CardTitle>
+                                <CardDescription className="text-green-700/80 dark:text-green-300 font-medium">Induction of High Genetic Merit Dairy Animals</CardDescription>
                             </div>
                             <ChevronDown
                                 className={`w-5 h-5 text-gray-600 transition-transform flex-shrink-0 ml-2 ${
@@ -525,14 +527,15 @@ export default function MPRPage() {
 
                 {/* HGM MPR Section */}
                 {hgmTotals && (
-                    <Card>
+                    <Card className="relative overflow-hidden border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-500/10 to-indigo-600/5 hover:shadow-xl transition-all duration-300 group backdrop-blur-sm">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
                         <div
-                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                            className="relative z-10 flex items-center justify-between p-4 cursor-pointer hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 transition-colors"
                             onClick={() => toggleSection('hgm')}
                         >
                             <div>
-                                <CardTitle>HGM (Pregnant Cow) MPR - Total Summary</CardTitle>
-                                <CardDescription>Supply Of High Genetic Merit Pregnant Heifers (IVF/ETT)</CardDescription>
+                                <CardTitle className="text-xl font-bold text-indigo-900 dark:text-indigo-100">HGM (Pregnant Cow) MPR - Total Summary</CardTitle>
+                                <CardDescription className="text-indigo-700/80 dark:text-indigo-300 font-medium">Supply Of High Genetic Merit Pregnant Heifers (IVF/ETT)</CardDescription>
                             </div>
                             <ChevronDown
                                 className={`w-5 h-5 text-gray-600 transition-transform flex-shrink-0 ml-2 ${
@@ -578,10 +581,11 @@ export default function MPRPage() {
                 )}
 
                 {farmerTrainingData?.message && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Farmer Training - Target & Achievement Summary</CardTitle>
-                            <CardDescription>Training sessions completion status</CardDescription>
+                    <Card className="relative overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-amber-600/5 hover:shadow-xl transition-all duration-300 group backdrop-blur-sm">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                        <CardHeader className="relative z-10">
+                            <CardTitle className="text-xl font-bold text-amber-900 dark:text-amber-100">Farmer Training - Target & Achievement Summary</CardTitle>
+                            <CardDescription className="text-amber-700/80 dark:text-amber-300 font-medium">Training sessions completion status</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="overflow-x-auto">
@@ -624,10 +628,11 @@ export default function MPRPage() {
                 )}
 
                 {treatmentInfertileData?.message && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Treatment of Infertile Animal - Target & Achievement Summary</CardTitle>
-                            <CardDescription>Treatment applications completion status</CardDescription>
+                    <Card className="relative overflow-hidden border-2 border-rose-500/30 bg-gradient-to-br from-rose-500/10 to-rose-600/5 hover:shadow-xl transition-all duration-300 group backdrop-blur-sm">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-rose-500/20 to-rose-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                        <CardHeader className="relative z-10">
+                            <CardTitle className="text-xl font-bold text-rose-900 dark:text-rose-100">Treatment of Infertile Animal - Target & Achievement Summary</CardTitle>
+                            <CardDescription className="text-rose-700/80 dark:text-rose-300 font-medium">Treatment applications completion status</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="overflow-x-auto">

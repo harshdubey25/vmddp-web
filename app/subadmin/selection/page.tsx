@@ -42,11 +42,14 @@ import {
     Calendar,
     CheckCircle,
     Download,
+    FileCheck,
     FileSpreadsheet,
     FileText,
     MapPin,
     Package,
     Search,
+    Target,
+    TrendingUp,
     User,
 } from "lucide-react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
@@ -198,8 +201,8 @@ function mapApplication(app: any): ApplicationSelectionItem {
         Array.isArray(app.component_list)
             ? app.component_list.join(", ")
             : typeof app.component_list === "string"
-              ? app.component_list
-              : "N/A";
+                ? app.component_list
+                : "N/A";
 
     return {
         id: app.name,
@@ -528,22 +531,58 @@ export default function SubAdminSelectionPage() {
             <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 bg-muted/30">
                 <div className="space-y-4 sm:space-y-6 max-w-7xl">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-                        <Card>
-                            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6">
-                                <CardDescription className="text-xs sm:text-sm">Approved</CardDescription>
-                                <CardTitle className="text-2xl sm:text-3xl">{stats.approved}</CardTitle>
+                        <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6 relative">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                        <FileCheck className="w-6 h-6 text-white" />
+                                    </div>
+                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1 shadow-sm">
+                                        <TrendingUp className="w-3 h-3" />
+                                        +5.2%
+                                    </span>
+                                </div>
+                                <CardDescription className="text-xs sm:text-sm font-medium">Approved</CardDescription>
+                                <CardTitle className="text-3xl sm:text-4xl font-bold text-green-600 drop-shadow-sm">
+                                    {stats.approved}
+                                </CardTitle>
                             </CardHeader>
                         </Card>
-                        <Card>
-                            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6">
-                                <CardDescription className="text-xs sm:text-sm">Selected</CardDescription>
-                                <CardTitle className="text-2xl sm:text-3xl">{stats.selected}</CardTitle>
+                        <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-blue-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6 relative">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                        <CheckCircle className="w-6 h-6 text-white" />
+                                    </div>
+                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 flex items-center gap-1 shadow-sm">
+                                        <TrendingUp className="w-3 h-3" />
+                                        +8.1%
+                                    </span>
+                                </div>
+                                <CardDescription className="text-xs sm:text-sm font-medium">Selected</CardDescription>
+                                <CardTitle className="text-3xl sm:text-4xl font-bold text-blue-600 drop-shadow-sm">
+                                    {stats.selected}
+                                </CardTitle>
                             </CardHeader>
                         </Card>
-                        <Card className="sm:col-span-2 md:col-span-1">
-                            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6">
-                                <CardDescription className="text-xs sm:text-sm">Total Applications</CardDescription>
-                                <CardTitle className="text-2xl sm:text-3xl">{stats.total}</CardTitle>
+                        <Card className="sm:col-span-2 md:col-span-1 relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-purple-600/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6 relative">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                        <Target className="w-6 h-6 text-white" />
+                                    </div>
+                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 flex items-center gap-1 shadow-sm">
+                                        <TrendingUp className="w-3 h-3" />
+                                        +12.3%
+                                    </span>
+                                </div>
+                                <CardDescription className="text-xs sm:text-sm font-medium">Total Applications</CardDescription>
+                                <CardTitle className="text-3xl sm:text-4xl font-bold text-purple-600 drop-shadow-sm">
+                                    {stats.total}
+                                </CardTitle>
                             </CardHeader>
                         </Card>
                     </div>
@@ -560,8 +599,8 @@ export default function SubAdminSelectionPage() {
                                             {villageCountsLoading
                                                 ? "Loading..."
                                                 : countsPagination.total_records !== null
-                                                  ? `${countsPagination.total_records} total villages`
-                                                  : `${villages.length} villages found`}
+                                                    ? `${countsPagination.total_records} total villages`
+                                                    : `${villages.length} villages found`}
                                         </CardDescription>
                                     </div>
                                     <Select
@@ -627,20 +666,34 @@ export default function SubAdminSelectionPage() {
                                                 </AccordionTrigger>
                                                 <AccordionContent>
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
-                                                        {villageItem.components.map((component) => (
-                                                            <div key={component.component} className="p-3 border rounded-lg bg-muted/30">
-                                                                <div className="flex items-center gap-2 mb-2">
-                                                                    <Package className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                                                                    <p className="text-xs sm:text-sm font-medium truncate">{component.component}</p>
+                                                        {villageItem.components.map((component, idx) => {
+                                                            const colorClasses = [
+                                                                'bg-blue-50/80 dark:bg-blue-950/20 border-blue-200/50 hover:border-blue-300 dark:border-blue-800/50',
+                                                                'bg-purple-50/80 dark:bg-purple-950/20 border-purple-200/50 hover:border-purple-300 dark:border-purple-800/50',
+                                                                'bg-amber-50/80 dark:bg-amber-950/20 border-amber-200/50 hover:border-amber-300 dark:border-amber-800/50',
+                                                                'bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-200/50 hover:border-emerald-300 dark:border-emerald-800/50',
+                                                                'bg-rose-50/80 dark:bg-rose-950/20 border-rose-200/50 hover:border-rose-300 dark:border-rose-800/50',
+                                                                'bg-indigo-50/80 dark:bg-indigo-950/20 border-indigo-200/50 hover:border-indigo-300 dark:border-indigo-800/50',
+                                                                'bg-teal-50/80 dark:bg-teal-950/20 border-teal-200/50 hover:border-teal-300 dark:border-teal-800/50'
+                                                            ];
+                                                            const cardColor = colorClasses[idx % colorClasses.length];
+                                                            return (
+                                                                <div key={component.component} className={`p-4 border rounded-xl transition-all duration-300 hover:shadow-md ${cardColor}`}>
+                                                                    <div className="flex items-center gap-2 mb-3">
+                                                                        <div className="p-1.5 rounded-md bg-background/50 backdrop-blur-sm shadow-sm">
+                                                                            <Package className="w-4 h-4 text-foreground/80 flex-shrink-0" />
+                                                                        </div>
+                                                                        <p className="text-sm font-semibold truncate text-foreground/90">{component.component}</p>
+                                                                    </div>
+                                                                    <div className="flex items-center justify-between mb-2">
+                                                                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Count</span>
+                                                                        <span className="text-lg font-bold bg-background/60 px-2 py-0.5 rounded-md shadow-sm text-primary">
+                                                                            {component.application_count}
+                                                                        </span>
+                                                                    </div>
                                                                 </div>
-                                                                <div className="flex items-center justify-between">
-                                                                    <span className="text-xs text-muted-foreground">Count</span>
-                                                                    <span className="text-base font-semibold text-primary">
-                                                                        {component.application_count}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        ))}
+                                                            );
+                                                        })}
                                                     </div>
                                                 </AccordionContent>
                                             </AccordionItem>
@@ -786,9 +839,9 @@ export default function SubAdminSelectionPage() {
                                                                 {application.submittedDate === "Unknown"
                                                                     ? "N/A"
                                                                     : new Date(application.submittedDate).toLocaleDateString("en", {
-                                                                          month: "short",
-                                                                          day: "numeric",
-                                                                      })}
+                                                                        month: "short",
+                                                                        day: "numeric",
+                                                                    })}
                                                             </span>
                                                         </div>
                                                     </td>

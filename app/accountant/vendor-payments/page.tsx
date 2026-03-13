@@ -202,33 +202,60 @@ export default function VendorPayments() {
                             </div>
                         </div>
                     </div>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Card data-testid="card-pending-total">
-                            <CardContent className="pt-6">
+                        <Card
+                            data-testid="card-pending-total"
+                            className="relative overflow-hidden border-2 border-yellow-500/30 bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
+                        >
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+
+                            <CardContent className="pt-6 relative z-10">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-yellow-500/10">
+                                    <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
                                         <Clock className="h-5 w-5 text-yellow-600" />
                                     </div>
+
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Pending Payments</p>
-                                        <p className="text-2xl font-bold">₹{(totalPending / 100000).toFixed(2)}L</p>
-                                        <p className="text-xs text-muted-foreground">{pagination?.total_items ?? vendorPayments.length} records</p>
+                                        <p className="text-sm font-medium text-yellow-700/80 dark:text-yellow-300">
+                                            Pending Payments
+                                        </p>
+
+                                        <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100 drop-shadow-sm">
+                                            ₹{(totalPending / 100000).toFixed(2)}L
+                                        </p>
+
+                                        <p className="text-xs text-muted-foreground">
+                                            {pagination?.total_items ?? vendorPayments.length} records
+                                        </p>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card data-testid="card-beneficiaries-count">
-                            <CardContent className="pt-6">
+                        <Card
+                            data-testid="card-beneficiaries-count"
+                            className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
+                        >
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+
+                            <CardContent className="pt-6 relative z-10">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-blue-500/10">
+                                    <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
                                         <Building2 className="h-5 w-5 text-blue-600" />
                                     </div>
+
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Beneficiaries</p>
-                                        <p className="text-2xl font-bold">{vendorPayments.length}</p>
-                                        <p className="text-xs text-muted-foreground">with pending payments</p>
+                                        <p className="text-sm font-medium text-blue-700/80 dark:text-blue-300">
+                                            Beneficiaries
+                                        </p>
+
+                                        <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 drop-shadow-sm">
+                                            {vendorPayments.length}
+                                        </p>
+
+                                        <p className="text-xs text-muted-foreground">
+                                            with pending payments
+                                        </p>
                                     </div>
                                 </div>
                             </CardContent>

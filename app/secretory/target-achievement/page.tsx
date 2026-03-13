@@ -251,36 +251,42 @@ export default function TargetAchievement() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Card data-testid="card-physical-target">
-                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-                                <CardTitle className="text-sm font-medium">Physical Target</CardTitle>
-                                <Target className="h-4 w-4 text-muted-foreground" />
+                        <Card data-testid="card-physical-target" className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 relative z-10">
+                                <CardTitle className="text-sm font-semibold text-blue-700 dark:text-blue-400">Physical Target</CardTitle>
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                    <Target className="h-4 w-4 text-white" />
+                                </div>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="relative z-10">
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-24" />
                                 ) : (
                                     <>
-                                        <div className="text-2xl font-bold">
+                                        <div className="text-2xl font-bold text-blue-900 dark:text-blue-100 drop-shadow-sm">
                                             {totals.physical_target.toLocaleString()}
                                         </div>
-                                        <p className="text-xs text-muted-foreground">Total target</p>
+                                        <p className="text-xs font-medium text-blue-700/80 dark:text-blue-300 mt-1">Total physical target</p>
                                     </>
                                 )}
                             </CardContent>
                         </Card>
 
-                        <Card data-testid="card-physical-achievement-summary">
-                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-                                <CardTitle className="text-sm font-medium">Physical Achievement</CardTitle>
-                                <TrendingUp className="h-4 w-4 text-primary" />
+                        <Card data-testid="card-physical-achievement-summary" className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-green-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 relative z-10">
+                                <CardTitle className="text-sm font-semibold text-green-700 dark:text-green-400">Physical Achievement</CardTitle>
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-md transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                    <TrendingUp className="h-4 w-4 text-white" />
+                                </div>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="relative z-10">
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-24" />
                                 ) : (
                                     <>
-                                        <div className="text-2xl font-bold text-primary">
+                                        <div className="text-2xl font-bold text-green-900 dark:text-green-100 drop-shadow-sm">
                                             {totals.physical_achievement.toLocaleString()}
                                         </div>
                                         <Progress
@@ -288,9 +294,9 @@ export default function TargetAchievement() {
                                                 totals.physical_achievement,
                                                 totals.physical_target
                                             )}
-                                            className="mt-2"
+                                            className="mt-3 h-2 bg-green-500/20"
                                         />
-                                        <p className="text-xs text-muted-foreground mt-1">
+                                        <p className="text-xs font-medium text-green-700/80 dark:text-green-300 mt-2">
                                             {getPercentage(
                                                 totals.physical_achievement,
                                                 totals.physical_target
@@ -301,36 +307,42 @@ export default function TargetAchievement() {
                             </CardContent>
                         </Card>
 
-                        <Card data-testid="card-financial-target">
-                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-                                <CardTitle className="text-sm font-medium">Financial Target</CardTitle>
-                                <IndianRupee className="h-4 w-4 text-muted-foreground" />
+                        <Card data-testid="card-financial-target" className="relative overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-amber-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 relative z-10">
+                                <CardTitle className="text-sm font-semibold text-amber-700 dark:text-amber-400">Financial Target</CardTitle>
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                    <IndianRupee className="h-4 w-4 text-white" />
+                                </div>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="relative z-10">
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-24" />
                                 ) : (
                                     <>
-                                        <div className="text-2xl font-bold">
+                                        <div className="text-2xl font-bold text-amber-900 dark:text-amber-100 drop-shadow-sm">
                                             {formatCurrency(totals.financial_target)}
                                         </div>
-                                        <p className="text-xs text-muted-foreground">Total budget allocation</p>
+                                        <p className="text-xs font-medium text-amber-700/80 dark:text-amber-300 mt-1">Total budget allocation</p>
                                     </>
                                 )}
                             </CardContent>
                         </Card>
 
-                        <Card data-testid="card-financial-achievement-summary">
-                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-                                <CardTitle className="text-sm font-medium">Financial Achievement</CardTitle>
-                                <BarChart3 className="h-4 w-4 text-primary" />
+                        <Card data-testid="card-financial-achievement-summary" className="relative overflow-hidden border-2 border-rose-500/30 bg-gradient-to-br from-rose-500/10 to-rose-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-rose-500/20 to-rose-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 relative z-10">
+                                <CardTitle className="text-sm font-semibold text-rose-700 dark:text-rose-400">Financial Achievement</CardTitle>
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center shadow-md transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                    <BarChart3 className="h-4 w-4 text-white" />
+                                </div>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="relative z-10">
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-24" />
                                 ) : (
                                     <>
-                                        <div className="text-2xl font-bold text-primary">
+                                        <div className="text-2xl font-bold text-rose-900 dark:text-rose-100 drop-shadow-sm">
                                             {formatCurrency(totals.financial_achievement)}
                                         </div>
                                         <Progress
@@ -338,9 +350,9 @@ export default function TargetAchievement() {
                                                 totals.financial_achievement,
                                                 totals.financial_target
                                             )}
-                                            className="mt-2"
+                                            className="mt-3 h-2 bg-rose-500/20"
                                         />
-                                        <p className="text-xs text-muted-foreground mt-1">
+                                        <p className="text-xs font-medium text-rose-700/80 dark:text-rose-300 mt-2">
                                             {getPercentage(
                                                 totals.financial_achievement,
                                                 totals.financial_target

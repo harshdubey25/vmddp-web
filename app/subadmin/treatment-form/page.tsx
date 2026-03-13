@@ -453,22 +453,26 @@ export default function TreatmentForm() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
       <div className="flex flex-col flex-1 overflow-hidden">
-        <header className="flex items-center justify-between p-6 border-b bg-card">
-          <div className="flex items-center gap-4">
+        <header className="flex items-center justify-between p-6 border-b bg-primary/5 backdrop-blur-md flex-shrink-0 relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="flex items-center gap-4 relative z-10">
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
               onClick={() => router.push("/subadmin/treatment")}
+              className="bg-background/50 hover:bg-background border-border/50 backdrop-blur-sm"
               data-testid="button-back"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="heading-treatment-form">
-                <Stethoscope className="w-6 h-6" />
+              <h1 className="text-2xl font-bold flex items-center gap-3 text-foreground" data-testid="heading-treatment-form">
+                <div className="p-2 bg-primary/10 text-primary rounded-lg shadow-sm">
+                  <Stethoscope className="w-5 h-5" />
+                </div>
                 Treatment of Infertile Animal
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mt-1">
                 Register new application for infertility treatment
               </p>
             </div>
@@ -515,14 +519,15 @@ export default function TreatmentForm() {
             )}
             <fieldset disabled={!hasValidTarget || targetsAchieved.either}>
               {hasValidTarget && (
-                <Card className="border-primary/30 bg-primary/5">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
+                <Card className="relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm shadow-sm transition-all hover:shadow-md">
+                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
+                  <CardHeader className="pb-3 relative z-10">
+                    <CardTitle className="flex items-center gap-2 text-base font-semibold text-primary">
                       <AlertCircle className="w-5 h-5" />
                       Live Target Status
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 relative z-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Physical Target */}
                       <div className="space-y-2 p-3 bg-background rounded-lg border">

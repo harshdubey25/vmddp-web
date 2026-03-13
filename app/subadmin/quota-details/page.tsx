@@ -124,57 +124,61 @@ export default function QuotaDetails() {
                                 ) : currentQuota && (
                                     <>
                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                            <Card>
-                                                <CardContent className="pt-6">
+                                            <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                                                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                                                <CardContent className="pt-6 relative">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950/30 flex items-center justify-center">
-                                                            <Target className="w-5 h-5 text-blue-600" />
+                                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6 flex items-center justify-center">
+                                                            <Target className="w-6 h-6 text-white" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-muted-foreground">Physical Target</p>
-                                                            <p className="text-xl font-bold">{currentQuota.quota.toLocaleString()}</p>
+                                                            <p className="text-sm font-medium text-muted-foreground">Physical Target</p>
+                                                            <p className="text-2xl font-bold text-blue-700 dark:text-blue-400 drop-shadow-sm">{currentQuota.quota.toLocaleString()}</p>
                                                         </div>
                                                     </div>
                                                 </CardContent>
                                             </Card>
 
-                                            <Card>
-                                                <CardContent className="pt-6">
+                                            <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-green-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                                                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                                                <CardContent className="pt-6 relative">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-950/30 flex items-center justify-center">
-                                                            <Users className="w-5 h-5 text-green-600" />
+                                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6 flex items-center justify-center">
+                                                            <Users className="w-6 h-6 text-white" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-muted-foreground">Achieved</p>
-                                                            <p className="text-xl font-bold">{currentQuota.utilized.toLocaleString()}</p>
+                                                            <p className="text-sm font-medium text-muted-foreground">Achieved</p>
+                                                            <p className="text-2xl font-bold text-green-700 dark:text-green-400 drop-shadow-sm">{currentQuota.utilized.toLocaleString()}</p>
                                                         </div>
                                                     </div>
                                                 </CardContent>
                                             </Card>
 
-                                            <Card>
-                                                <CardContent className="pt-6">
+                                            <Card className="relative overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-amber-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                                                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                                                <CardContent className="pt-6 relative">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-950/30 flex items-center justify-center">
-                                                            <Wallet className="w-5 h-5 text-orange-600" />
+                                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6 flex items-center justify-center">
+                                                            <Wallet className="w-6 h-6 text-white" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-muted-foreground">Financial Target</p>
-                                                            <p className="text-xl font-bold">{formatBudgetInCrores(currentQuota.budget)}</p>
+                                                            <p className="text-sm font-medium text-muted-foreground">Financial Target</p>
+                                                            <p className="text-2xl font-bold text-amber-700 dark:text-amber-400 drop-shadow-sm">{formatBudgetInCrores(currentQuota.budget)}</p>
                                                         </div>
                                                     </div>
                                                 </CardContent>
                                             </Card>
 
-                                            <Card>
-                                                <CardContent className="pt-6">
+                                            <Card className="relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-purple-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                                                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                                                <CardContent className="pt-6 relative">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-950/30 flex items-center justify-center">
-                                                            <Wallet className="w-5 h-5 text-purple-600" />
+                                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6 flex items-center justify-center">
+                                                            <Wallet className="w-6 h-6 text-white" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-muted-foreground">Utilized</p>
-                                                            <p className="text-xl font-bold">{formatBudgetInCrores(currentQuota.budgetUtilized)}</p>
+                                                            <p className="text-sm font-medium text-muted-foreground">Utilized</p>
+                                                            <p className="text-2xl font-bold text-purple-700 dark:text-purple-400 drop-shadow-sm">{formatBudgetInCrores(currentQuota.budgetUtilized)}</p>
                                                         </div>
                                                     </div>
                                                 </CardContent>

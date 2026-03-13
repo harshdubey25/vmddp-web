@@ -278,18 +278,19 @@ export default function DDCollection() {
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Card data-testid="card-total-collected">
-                        <CardContent className="pt-6">
+                    <Card data-testid="card-total-collected" className="relative overflow-hidden border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-500/10 to-indigo-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                        <CardContent className="pt-6 relative z-10">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-primary/10">
-                                    <IndianRupee className="h-5 w-5 text-primary" />
+                                <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                    <IndianRupee className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-sm font-medium text-indigo-700/80 dark:text-indigo-300">
                                         Total Collected
                                     </p>
                                     <p
-                                        className="text-2xl font-bold"
+                                        className="text-2xl font-bold text-indigo-900 dark:text-indigo-100 drop-shadow-sm"
                                         data-testid="text-total-amount"
                                     >
                                         ₹
@@ -300,18 +301,19 @@ export default function DDCollection() {
                         </CardContent>
                     </Card>
 
-                    <Card data-testid="card-total-dds">
-                        <CardContent className="pt-6">
+                    <Card data-testid="card-total-dds" className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                        <CardContent className="pt-6 relative z-10">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-blue-500/10">
-                                    <FileText className="h-5 w-5 text-blue-500" />
+                                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                    <FileText className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-sm font-medium text-blue-700/80 dark:text-blue-300">
                                         Total DDs
                                     </p>
                                     <p
-                                        className="text-2xl font-bold"
+                                        className="text-2xl font-bold text-blue-900 dark:text-blue-100 drop-shadow-sm"
                                         data-testid="text-total-count"
                                     >
                                         {totalDDs}
@@ -321,18 +323,19 @@ export default function DDCollection() {
                         </CardContent>
                     </Card>
 
-                    <Card data-testid="card-pending">
-                        <CardContent className="pt-6">
+                    <Card data-testid="card-pending" className="relative overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-amber-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                        <CardContent className="pt-6 relative z-10">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-yellow-500/10">
-                                    <AlertCircle className="h-5 w-5 text-yellow-500" />
+                                <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                    <AlertCircle className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-sm font-medium text-amber-700/80 dark:text-amber-300">
                                         Pending Collection
                                     </p>
                                     <p
-                                        className="text-2xl font-bold"
+                                        className="text-2xl font-bold text-amber-900 dark:text-amber-100 drop-shadow-sm"
                                         data-testid="text-pending-count"
                                     >
                                         {pendingCount}
@@ -342,18 +345,19 @@ export default function DDCollection() {
                         </CardContent>
                     </Card>
 
-                    <Card data-testid="card-verified">
-                        <CardContent className="pt-6">
+                    <Card data-testid="card-verified" className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-green-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                        <CardContent className="pt-6 relative z-10">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-green-500/10">
-                                    <Check className="h-5 w-5 text-green-500" />
+                                <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                    <Check className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-sm font-medium text-green-700/80 dark:text-green-300">
                                         Collected
                                     </p>
                                     <p
-                                        className="text-2xl font-bold"
+                                        className="text-2xl font-bold text-green-900 dark:text-green-100 drop-shadow-sm"
                                         data-testid="text-verified-count"
                                     >
                                         {collectedDDs}
