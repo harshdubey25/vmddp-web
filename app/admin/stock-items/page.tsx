@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappeCreateDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -22,7 +22,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Package, Plus, Loader2 } from "lucide-react";
+import { Package, Plus, Loader2, Edit } from "lucide-react";
 import {
     Table,
     TableBody,
@@ -51,10 +51,13 @@ interface ItemGroup {
 
 export default function StockItemsManagement() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [itemName, setItemName] = useState<string>("");
     const [unitOfMeasure, setUnitOfMeasure] = useState<string>("");
     const [rate, setRate] = useState<string>("");
     const [itemGroup, setItemGroup] = useState<string>("");
+    const [selectedItem, setSelectedItem] = useState<StockItem | null>(null);
+    const [editRate, setEditRate] = useState<string>("");
 
     const { data: units, isLoading: loadingUnits } = useFrappeGetDocList<Unit>("Unit", {
         fields: ["name"],
@@ -74,6 +77,7 @@ export default function StockItemsManagement() {
     });
 
     const { createDoc, loading: isCreating } = useFrappeCreateDoc();
+    const { updateDoc, loading: isUpdating } = useFrappeUpdateDoc();
 
     const handleAddStockItem = async () => {
         if (!itemName || !unitOfMeasure || !rate) {
@@ -114,6 +118,45 @@ export default function StockItemsManagement() {
         }
     };
 
+    const handleOpenEditPrice = (item: StockItem) => {
+        setSelectedItem(item);
+        setEditRate(item.rate !== undefined && item.rate !== null ? String(item.rate) : "");
+        setIsEditDialogOpen(true);
+    };
+
+    const handleUpdatePrice = async () => {
+        if (!selectedItem) return;
+
+        const parsedRate = Number(editRate);
+        if (editRate.trim() === "" || Number.isNaN(parsedRate)) {
+            toast({
+                title: "Validation Error",
+                description: "Please enter a valid rate.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        try {
+            await updateDoc("Stock Item", selectedItem.name, { rate: parsedRate });
+            toast({
+                title: "Success",
+                description: "Rate updated successfully.",
+            });
+            mutateItems();
+            setIsEditDialogOpen(false);
+            setSelectedItem(null);
+            setEditRate("");
+        } catch (error) {
+            console.error("Error updating rate:", error);
+            toast({
+                title: "Error",
+                description: "Failed to update rate. Please try again.",
+                variant: "destructive",
+            });
+        }
+    };
+
     return (
         <div className="p-6 space-y-6 w-full">
             <div className="flex justify-between items-center">
@@ -148,6 +191,7 @@ export default function StockItemsManagement() {
                                     <TableHead>Unit of Measure</TableHead>
                                     <TableHead>Rate</TableHead>
                                     <TableHead>Item Group</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -157,6 +201,16 @@ export default function StockItemsManagement() {
                                         <TableCell>{item.unit_of_measure}</TableCell>
                                         <TableCell>₹{item.rate}</TableCell>
                                         <TableCell>{item.stock_item_group}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleOpenEditPrice(item)}
+                                            >
+                                                <Edit className="mr-2 h-4 w-4" />
+                                                Edit Price
+                                            </Button>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -250,6 +304,46 @@ export default function StockItemsManagement() {
                         <Button onClick={handleAddStockItem} disabled={isCreating}>
                             {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Save Item
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit Price</DialogTitle>
+                        <DialogDescription>
+                            Update the rate for {selectedItem?.item_name || "this item"}.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="edit_rate">Rate</Label>
+                            <Input
+                                id="edit_rate"
+                                type="number"
+                                step="any"
+                                placeholder="Enter rate"
+                                value={editRate}
+                                onChange={(e) => setEditRate(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setIsEditDialogOpen(false);
+                                setSelectedItem(null);
+                                setEditRate("");
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button onClick={handleUpdatePrice} disabled={isUpdating}>
+                            {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Update Price
                         </Button>
                     </DialogFooter>
                 </DialogContent>
