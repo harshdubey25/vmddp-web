@@ -59,6 +59,11 @@ export default function StockItemsManagement() {
     const [selectedItem, setSelectedItem] = useState<StockItem | null>(null);
     const [editRate, setEditRate] = useState<string>("");
 
+    // Pagination and search
+    const [page, setPage] = useState(1);
+    const [search, setSearch] = useState("");
+    const PAGE_SIZE = 10;
+
     const { data: units, isLoading: loadingUnits } = useFrappeGetDocList<Unit>("Unit", {
         fields: ["name"],
         limit: 100,
@@ -71,9 +76,13 @@ export default function StockItemsManagement() {
     });
 
     const { data: stockItems, isLoading: loadingItems, mutate: mutateItems } = useFrappeGetDocList<StockItem>("Stock Item", {
-        fields: ["name", "item_name", "unit_of_measure", "rate","stock_item_group"],
+        fields: ["name", "item_name", "unit_of_measure", "rate", "stock_item_group"],
         orderBy: { field: "creation", order: "desc" },
-        limit: 100,
+        limit: PAGE_SIZE,
+        limit_start: (page - 1) * PAGE_SIZE,
+        ...(search
+            ? { filters: [["item_name", "like", `%${search}%`]] }
+            : {}),
     });
 
     const { createDoc, loading: isCreating } = useFrappeCreateDoc();
@@ -171,6 +180,20 @@ export default function StockItemsManagement() {
                 </Button>
             </div>
 
+            {/* Search bar */}
+            <div className="flex items-center gap-4 mb-2">
+                <Input
+                    type="text"
+                    placeholder="Search by item name..."
+                    value={search}
+                    onChange={e => {
+                        setSearch(e.target.value);
+                        setPage(1);
+                    }}
+                    className="w-64"
+                />
+            </div>
+
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -184,37 +207,59 @@ export default function StockItemsManagement() {
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
                     ) : stockItems && stockItems.length > 0 ? (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Item Name</TableHead>
-                                    <TableHead>Unit of Measure</TableHead>
-                                    <TableHead>Rate</TableHead>
-                                    <TableHead>Item Group</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {stockItems.map((item) => (
-                                    <TableRow key={item.name}>
-                                        <TableCell>{item.item_name}</TableCell>
-                                        <TableCell>{item.unit_of_measure}</TableCell>
-                                        <TableCell>₹{item.rate}</TableCell>
-                                        <TableCell>{item.stock_item_group}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleOpenEditPrice(item)}
-                                            >
-                                                <Edit className="mr-2 h-4 w-4" />
-                                                Edit Price
-                                            </Button>
-                                        </TableCell>
+                        <>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Item Name</TableHead>
+                                        <TableHead>Unit of Measure</TableHead>
+                                        <TableHead>Rate</TableHead>
+                                        <TableHead>Item Group</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {stockItems.map((item) => (
+                                        <TableRow key={item.name}>
+                                            <TableCell>{item.item_name}</TableCell>
+                                            <TableCell>{item.unit_of_measure}</TableCell>
+                                            <TableCell>₹{item.rate}</TableCell>
+                                            <TableCell>{item.stock_item_group}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleOpenEditPrice(item)}
+                                                >
+                                                    <Edit className="mr-2 h-4 w-4" />
+                                                    Edit Price
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                            {/* Pagination controls */}
+                            <div className="flex justify-end items-center gap-2 mt-4">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPage(page - 1)}
+                                    disabled={page === 1 || loadingItems}
+                                >
+                                    Previous
+                                </Button>
+                                <span className="px-2 text-sm">Page {page}</span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPage(page + 1)}
+                                    disabled={stockItems.length < PAGE_SIZE || loadingItems}
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        </>
                     ) : (
                         <div className="text-center py-8 text-muted-foreground">
                             No stock items found.
