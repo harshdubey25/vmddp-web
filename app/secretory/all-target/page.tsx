@@ -248,30 +248,34 @@ export default function AllTargetsReportPage() {
             {/* Summary Cards */}
             {!isLoading && districtNames.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">Total Districts</CardDescription>
-                            <CardTitle className="text-xl sm:text-2xl">{districtNames.length}</CardTitle>
+                    <Card className="relative overflow-hidden border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-500/10 to-indigo-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                        <CardHeader className="pb-2 relative z-10">
+                            <CardDescription className="text-xs sm:text-sm font-medium text-indigo-700/80 dark:text-indigo-300">Total Districts</CardDescription>
+                            <CardTitle className="text-2xl sm:text-3xl text-indigo-900 dark:text-indigo-100 drop-shadow-sm">{districtNames.length}</CardTitle>
                         </CardHeader>
                     </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">Total Components</CardDescription>
-                            <CardTitle className="text-xl sm:text-2xl text-blue-600">{componentNames.length}</CardTitle>
+                    <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                        <CardHeader className="pb-2 relative z-10">
+                            <CardDescription className="text-xs sm:text-sm font-medium text-blue-700/80 dark:text-blue-300">Total Components</CardDescription>
+                            <CardTitle className="text-2xl sm:text-3xl text-blue-900 dark:text-blue-100 drop-shadow-sm">{componentNames.length}</CardTitle>
                         </CardHeader>
                     </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">Total Physical Target</CardDescription>
-                            <CardTitle className="text-xl sm:text-2xl text-orange-600">
+                    <Card className="relative overflow-hidden border-2 border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-orange-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-orange-500/20 to-orange-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                        <CardHeader className="pb-2 relative z-10">
+                            <CardDescription className="text-xs sm:text-sm font-medium text-orange-700/80 dark:text-orange-300">Total Physical Target</CardDescription>
+                            <CardTitle className="text-2xl sm:text-3xl text-orange-900 dark:text-orange-100 drop-shadow-sm">
                                 {targetsData.totals?.total_physical_target || 0}
                             </CardTitle>
                         </CardHeader>
                     </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription className="text-xs sm:text-sm">Total Financial Target</CardDescription>
-                            <CardTitle className="text-xl sm:text-2xl text-green-600">
+                    <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-green-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                        <CardHeader className="pb-2 relative z-10">
+                            <CardDescription className="text-xs sm:text-sm font-medium text-green-700/80 dark:text-green-300">Total Financial Target</CardDescription>
+                            <CardTitle className="text-2xl sm:text-3xl text-green-900 dark:text-green-100 drop-shadow-sm">
                                 {formatCurrency(targetsData.totals?.total_financial_target || 0)}
                             </CardTitle>
                         </CardHeader>
@@ -280,13 +284,13 @@ export default function AllTargetsReportPage() {
             )}
 
             {/* Report Card */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+            <Card className="border-t-4 border-t-blue-500 shadow-md">
+                <CardHeader className="bg-blue-50/50 dark:bg-blue-900/10 border-b">
+                    <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-300">
                         <FileText className="h-5 w-5" />
                         Physical & Financial Targets - All Components
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-blue-700/80 dark:text-blue-400">
                         District-wise breakdown of physical and financial targets for all components (Financial values in Lakhs)
                     </CardDescription>
                 </CardHeader>

@@ -111,19 +111,38 @@ export default function SecretaryDashboardStats() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {stats.map((stat, index) => {
                 const Icon = stat.icon;
+                const colors = [
+                    "from-blue-500/20 to-blue-600/10 border-blue-500/30 text-blue-600",
+                    "from-green-500/20 to-green-600/10 border-green-500/30 text-green-600",
+                    "from-amber-500/20 to-amber-600/10 border-amber-500/30 text-amber-600",
+                    "from-rose-500/20 to-rose-600/10 border-rose-500/30 text-rose-600",
+                    "from-indigo-500/20 to-indigo-600/10 border-indigo-500/30 text-indigo-600",
+                ];
+                const iconGradients = [
+                    "from-blue-500 to-blue-600",
+                    "from-green-500 to-green-600",
+                    "from-amber-500 to-amber-600",
+                    "from-rose-500 to-rose-600",
+                    "from-indigo-500 to-indigo-600",
+                ];
+                
+                const cardColor = colors[index % colors.length];
+                const iconGradient = iconGradients[index % iconGradients.length];
+
                 return (
-                    <Card key={index} data-testid={`card-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                        <CardContent className="p-3 sm:p-4 lg:p-6">
+                    <Card key={index} data-testid={`card-${stat.title.toLowerCase().replace(/\s+/g, '-')}`} className={`relative overflow-hidden border-2 bg-gradient-to-br hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm ${cardColor}`}>
+                        <div className={`absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br ${cardColor.split(' ')[0]} ${cardColor.split(' ')[1]} opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110`} />
+                        <CardContent className="p-3 sm:p-4 lg:p-6 relative">
                             <div className="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
-                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
-                                    <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.color}`} />
+                                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${iconGradient} flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6`}>
+                                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                 </div>
                             </div>
                             <div>
-                                <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-0.5 sm:mb-1">
+                                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-0.5 sm:mb-1 drop-shadow-sm">
                                     {stat.value}
                                 </h3>
-                                <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground">
+                                <p className="text-xs sm:text-sm font-medium text-foreground/80">
                                     {stat.title}
                                 </p>
                             </div>

@@ -190,45 +190,84 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                    <Card data-testid="card-total-disbursed">
-                        <CardContent className="pt-6">
+                    <Card
+                        data-testid="card-total-disbursed"
+                        className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-green-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
+                    >
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+
+                        <CardContent className="pt-6 relative z-10">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-green-500/10">
+                                <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
                                     <CheckCircle className="h-5 w-5 text-green-600" />
                                 </div>
+
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Total Disbursed</p>
-                                    <p className="text-2xl font-bold">₹{(totalDisbursed / 100000).toFixed(2)}L</p>
-                                    <p className="text-xs text-muted-foreground">{totalCheques} cheques</p>
+                                    <p className="text-sm font-medium text-green-700/80 dark:text-green-300">
+                                        Total Disbursed
+                                    </p>
+
+                                    <p className="text-2xl font-bold text-green-900 dark:text-green-100 drop-shadow-sm">
+                                        ₹{(totalDisbursed / 100000).toFixed(2)}L
+                                    </p>
+
+                                    <p className="text-xs text-muted-foreground">
+                                        {totalCheques} cheques
+                                    </p>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card data-testid="card-cheques-issued">
-                        <CardContent className="pt-6">
+                    <Card
+                        data-testid="card-cheques-issued"
+                        className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
+                    >
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+
+                        <CardContent className="pt-6 relative z-10">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-blue-500/10">
+                                <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
                                     <Receipt className="h-5 w-5 text-blue-600" />
                                 </div>
+
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Cheques Issued</p>
-                                    <p className="text-2xl font-bold">{totalCheques}</p>
-                                    <p className="text-xs text-muted-foreground">Total payments</p>
+                                    <p className="text-sm font-medium text-blue-700/80 dark:text-blue-300">
+                                        Cheques Issued
+                                    </p>
+
+                                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 drop-shadow-sm">
+                                        {totalCheques}
+                                    </p>
+
+                                    <p className="text-xs text-muted-foreground">
+                                        Total payments
+                                    </p>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card data-testid="card-vendors">
-                        <CardContent className="pt-6">
+                    <Card
+                        data-testid="card-vendors"
+                        className="relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-purple-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
+                    >
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+
+                        <CardContent className="pt-6 relative z-10">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-lg bg-purple-500/10">
+                                <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
                                     <Building2 className="h-5 w-5 text-purple-600" />
                                 </div>
+
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Vendors</p>
-                                    <p className="text-2xl font-bold">{vendors?.length}</p>
+                                    <p className="text-sm font-medium text-purple-700/80 dark:text-purple-300">
+                                        Vendors
+                                    </p>
+
+                                    <p className="text-2xl font-bold text-purple-900 dark:text-purple-100 drop-shadow-sm">
+                                        {vendors?.length}
+                                    </p>
                                 </div>
                             </div>
                         </CardContent>

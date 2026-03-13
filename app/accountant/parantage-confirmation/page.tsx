@@ -163,59 +163,74 @@ export default function Parantage() {
 
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Card data-testid="card-pending-certificates">
-                            <CardContent className="pt-6">
+                        <Card
+                            data-testid="card-pending-certificates"
+                            className="relative overflow-hidden border-2 border-gray-500/30 bg-gradient-to-br from-gray-500/10 to-gray-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
+                        >
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-gray-500/20 to-gray-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+
+                            <CardContent className="pt-6 relative z-10">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-gray-500/10">
+                                    <div className="p-3 rounded-lg bg-gray-500/10 border border-gray-500/20">
                                         <Upload className="h-5 w-5 text-gray-500" />
                                     </div>
+
                                     <div>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-sm font-medium text-gray-700/80 dark:text-gray-300">
                                             Pending Parantage
                                         </p>
-                                        <p className="text-2xl font-bold">
-                                            {
-                                                parantageStats?.message
-                                                    .certficate_pending
-                                            }
+
+                                        <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 drop-shadow-sm">
+                                            {parantageStats?.message.certficate_pending}
                                         </p>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card data-testid="card-ready-payment">
-                            <CardContent className="pt-6">
+                        <Card
+                            data-testid="card-ready-payment"
+                            className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
+                        >
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+
+                            <CardContent className="pt-6 relative z-10">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-blue-500/10">
+                                    <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
                                         <IndianRupee className="h-5 w-5 text-blue-500" />
                                     </div>
+
                                     <div>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-sm font-medium text-blue-700/80 dark:text-blue-300">
                                             Pending Approval
                                         </p>
-                                        <p className="text-2xl font-bold">
-                                            {
-                                                parantageStats?.message
-                                                    .awaiting_admin_approval
-                                            }
+
+                                        <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 drop-shadow-sm">
+                                            {parantageStats?.message.awaiting_admin_approval}
                                         </p>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card data-testid="card-completed">
-                            <CardContent className="pt-6">
+                        <Card
+                            data-testid="card-completed"
+                            className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-green-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
+                        >
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+
+                            <CardContent className="pt-6 relative z-10">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-green-500/10">
+                                    <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
                                         <Check className="h-5 w-5 text-green-500" />
                                     </div>
+
                                     <div>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-sm font-medium text-green-700/80 dark:text-green-300">
                                             Approved
                                         </p>
-                                        <p className="text-2xl font-bold">
+
+                                        <p className="text-2xl font-bold text-green-900 dark:text-green-100 drop-shadow-sm">
                                             {parantageStats?.message.approved}
                                         </p>
                                     </div>
@@ -223,17 +238,24 @@ export default function Parantage() {
                             </CardContent>
                         </Card>
 
-                        <Card data-testid="card-rejected">
-                            <CardContent className="pt-6">
+                        <Card
+                            data-testid="card-rejected"
+                            className="relative overflow-hidden border-2 border-red-500/30 bg-gradient-to-br from-red-500/10 to-red-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
+                        >
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-red-500/20 to-red-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+
+                            <CardContent className="pt-6 relative z-10">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-red-500/10">
+                                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
                                         <Clock className="h-5 w-5 text-red-500" />
                                     </div>
+
                                     <div>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-sm font-medium text-red-700/80 dark:text-red-300">
                                             Rejected
                                         </p>
-                                        <p className="text-2xl font-bold">
+
+                                        <p className="text-2xl font-bold text-red-900 dark:text-red-100 drop-shadow-sm">
                                             {parantageStats?.message?.rejected || 0}
                                         </p>
                                     </div>

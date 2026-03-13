@@ -204,52 +204,93 @@ export default function DBTClaims() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card data-testid="card-dbt-disbursed">
-                            <CardContent className="pt-6">
+                        <Card
+                            data-testid="card-dbt-disbursed"
+                            className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-green-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
+                        >
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+
+                            <CardContent className="pt-6 relative z-10">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-green-500/10">
+                                    <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
                                         <CheckCircle className="h-5 w-5 text-green-600" />
                                     </div>
+
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Total Subsidy</p>
-                                        <p className="text-2xl font-bold">₹{stats.total_subsidy_amount}</p>
-                                        <p className="text-xs text-muted-foreground">{stats.total_claims_processed} claims processed</p>
+                                        <p className="text-sm font-medium text-green-700/80 dark:text-green-300">
+                                            Total Subsidy
+                                        </p>
+
+                                        <p className="text-2xl font-bold text-green-900 dark:text-green-100 drop-shadow-sm">
+                                            ₹{stats.total_subsidy_amount}
+                                        </p>
+
+                                        <p className="text-xs text-muted-foreground">
+                                            {stats.total_claims_processed} claims processed
+                                        </p>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card data-testid="card-components-count">
-                            <CardContent className="pt-6">
+                        <Card
+                            data-testid="card-components-count"
+                            className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
+                        >
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+
+                            <CardContent className="pt-6 relative z-10">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-blue-500/10">
+                                    <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
                                         <Banknote className="h-5 w-5 text-blue-600" />
                                     </div>
+
                                     <div>
-                                        <p className="text-sm text-muted-foreground">DBT Components</p>
-                                        <p className="text-2xl font-bold">5</p>
-                                        <p className="text-xs text-muted-foreground">Available for claims</p>
+                                        <p className="text-sm font-medium text-blue-700/80 dark:text-blue-300">
+                                            DBT Components
+                                        </p>
+
+                                        <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 drop-shadow-sm">
+                                            5
+                                        </p>
+
+                                        <p className="text-xs text-muted-foreground">
+                                            Available for claims
+                                        </p>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card data-testid="card-beneficiaries-count">
-                            <CardContent className="pt-6">
+                        <Card
+                            data-testid="card-beneficiaries-count"
+                            className="relative overflow-hidden border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-500/10 to-indigo-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
+                        >
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+
+                            <CardContent className="pt-6 relative z-10">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-primary/10">
-                                        <User className="h-5 w-5 text-primary" />
+                                    <div className="p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+                                        <User className="h-5 w-5 text-indigo-600" />
                                     </div>
+
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Eligible Beneficiaries</p>
-                                        <p className="text-2xl font-bold">{stats.total_beneficiaries}</p>
-                                        <p className="text-xs text-muted-foreground">From disbursed claims</p>
+                                        <p className="text-sm font-medium text-indigo-700/80 dark:text-indigo-300">
+                                            Eligible Beneficiaries
+                                        </p>
+
+                                        <p className="text-2xl font-bold text-indigo-900 dark:text-indigo-100 drop-shadow-sm">
+                                            {stats.total_beneficiaries}
+                                        </p>
+
+                                        <p className="text-xs text-muted-foreground">
+                                            From disbursed claims
+                                        </p>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
                     </div>
-
                     <Tabs defaultValue="new-claim" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                         <TabsList>
                             <TabsTrigger value="new-claim">New Claim</TabsTrigger>
