@@ -289,7 +289,7 @@ export default function Parantage() {
                                                         <th className="text-left p-3 text-xs sm:text-sm font-medium">Beneficiary</th>
                                                         <th className="text-left p-3 text-xs sm:text-sm font-medium">District</th>
                                                         <th className="text-left p-3 text-xs sm:text-sm font-medium">Vendor</th>
-                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Paid Amount</th>
+                                                        <th className="text-left p-3 text-xs sm:text-sm font-medium">Pre Parantage Amount</th>
                                                         <th className="text-left p-3 text-xs sm:text-sm font-medium">Pending Amount</th>
                                                         <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
                                                     </tr>
