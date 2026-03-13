@@ -588,25 +588,29 @@ export default function FarmerTrainingForm() {
     return (
         <div className="flex h-screen w-full overflow-hidden bg-background">
             <div className="flex flex-col flex-1">
-                <header className="flex items-center justify-between p-6 border-b bg-card flex-shrink-0">
-                    <div className="flex items-center gap-4">
+                <header className="flex items-center justify-between p-6 border-b bg-primary/5 backdrop-blur-md flex-shrink-0 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="flex items-center gap-4 relative z-10">
                         <Button
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
                             onClick={handleCancel}
+                            className="bg-background/50 hover:bg-background border-border/50 backdrop-blur-sm"
                             data-testid="button-back"
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </Button>
                         <div>
                             <h1
-                                className="text-2xl font-bold flex items-center gap-2"
+                                className="text-2xl font-bold flex items-center gap-3 text-foreground"
                                 data-testid="text-form-title"
                             >
-                                <GraduationCap className="w-6 h-6" />
+                                <div className="p-2 bg-primary/10 text-primary rounded-lg shadow-sm">
+                                    <GraduationCap className="w-5 h-5" />
+                                </div>
                                 New Farmer Training Application
                             </h1>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-muted-foreground mt-1">
                                 Fill in the details to create a new training
                                 application
                             </p>
@@ -627,25 +631,26 @@ export default function FarmerTrainingForm() {
                                 </AlertDescription>
                             </Alert>
                         )}
-                        <Card className="border-primary/30 bg-primary/5">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="flex items-center gap-2 text-base">
+                        <Card className="relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm shadow-sm transition-all hover:shadow-md">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
+                            <CardHeader className="pb-3 relative z-10">
+                                <CardTitle className="flex items-center gap-2 text-base font-semibold text-primary">
                                     <Target className="w-5 h-5" />
                                     Target Status - Farmer Training
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
+                            <CardContent className="space-y-4 relative z-10">
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">
                                         Physical Target:{" "}
-                                        <strong className="text-foreground">
+                                        <strong className="text-foreground text-lg">
                                             {safeTargetData.physical}
                                         </strong>{" "}
                                         participants
                                     </span>
                                     <span className="text-muted-foreground">
                                         Achieved:{" "}
-                                        <strong className="text-foreground">
+                                        <strong className="text-foreground text-lg">
                                             {safeTargetData.achieved}
                                         </strong>{" "}
                                         participants
@@ -653,10 +658,10 @@ export default function FarmerTrainingForm() {
                                 </div>
                                 <Progress
                                     value={targetProgress}
-                                    className="h-3"
+                                    className="h-3 bg-primary/20"
                                 />
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="font-medium">
+                                    <span className="font-medium bg-primary/10 px-2 py-1 rounded-md text-primary">
                                         {targetProgress.toFixed(1)}% Achieved
                                     </span>
                                     <span className="text-muted-foreground">
@@ -668,11 +673,11 @@ export default function FarmerTrainingForm() {
                                     </span>
                                 </div>
                                 {wouldExceedTarget && (
-                                    <Alert variant="destructive">
+                                    <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 text-destructive mt-4">
                                         <AlertTriangle className="h-4 w-4" />
                                         <AlertDescription>
                                             Cannot exceed target! Only{" "}
-                                            {remainingTarget} participants
+                                            <strong className="font-bold">{remainingTarget}</strong> participants
                                             remaining. Please adjust the number.
                                         </AlertDescription>
                                     </Alert>

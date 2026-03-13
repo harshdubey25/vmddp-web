@@ -125,14 +125,17 @@ export default function StockManagement() {
                 </div>
             </div>
 
-            <Card>
-                <CardHeader>
+            <Card className="relative overflow-hidden border-2 border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-blue-600/5">
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl" />
+                <CardHeader className="relative">
                     <CardTitle className="flex items-center gap-2">
-                        <Package className="h-5 w-5" />
-                        Recent Stock Entries
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                            <Package className="h-5 w-5 text-white" />
+                        </div>
+                        <span className="text-blue-900 dark:text-blue-100">Recent Stock Entries</span>
                     </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="relative">
                     {loadingStock ? (
                         <div className="flex justify-center py-8">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />

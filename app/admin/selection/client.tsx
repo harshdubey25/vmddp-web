@@ -118,8 +118,8 @@ export default function AdminSelectionClient({
     interface DistrictData {
         district_id: string;
         district_name: string;
-        components: { 
-            component: string; 
+        components: {
+            component: string;
             application_count: number;
             responses?: Array<{
                 response: any;
@@ -135,7 +135,7 @@ export default function AdminSelectionClient({
     const [districtSearchQuery, setDistrictSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<"Selected" | "Approved">("Selected");
     const [showAllDistricts, setShowAllDistricts] = useState(false);
-    
+
     interface ComponentQuestionAnswers {
         [componentName: string]: {
             [question: string]: {
@@ -535,7 +535,7 @@ export default function AdminSelectionClient({
 
         setQuestionAnswersLoading(true);
         try {
-            const params = new URLSearchParams({ 
+            const params = new URLSearchParams({
                 component: 'all',
                 district: districtName,
                 status: statusFilter
@@ -550,12 +550,12 @@ export default function AdminSelectionClient({
             console.log('Question Answers API Response:', response);
             const data = response?.message?.message || response?.message || {};
             console.log('Extracted data:', data);
-            
+
             setComponentQuestionAnswers(prev => ({
                 ...prev,
                 ...data
             }));
-            
+
             setLoadedDistricts(prev => new Set([...prev, districtName]));
         } catch (error) {
             console.error('Error fetching component question answers:', error);
@@ -755,10 +755,10 @@ export default function AdminSelectionClient({
                                             ? districts.filter(d => d.district_name === districtSearchQuery)
                                             : districts;
                                         const displayDistricts = showAllDistricts ? filteredDistricts : filteredDistricts.slice(0, 6);
-                                        
+
                                         return (
-                                            <Accordion 
-                                                type="multiple" 
+                                            <Accordion
+                                                type="multiple"
                                                 className="w-full"
                                                 onValueChange={(openValues) => {
                                                     openValues.forEach(districtId => {
@@ -770,84 +770,98 @@ export default function AdminSelectionClient({
                                                 }}
                                             >
                                                 {displayDistricts.map((district) => (
-                                                <AccordionItem key={district.district_id} value={district.district_id}>
-                                                    <AccordionTrigger className="hover:no-underline py-3">
-                                                        <div className="flex items-center justify-between w-full pr-4">
-                                                            <div className="flex items-center gap-3">
-                                                                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
-                                                                <div className="text-left">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <h3 className="font-semibold text-sm sm:text-base">{district.district_name}</h3>
-                                                                        {questionAnswersLoading && !loadedDistricts.has(district.district_name) && (
-                                                                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
-                                                                        )}
+                                                    <AccordionItem key={district.district_id} value={district.district_id}>
+                                                        <AccordionTrigger className="hover:no-underline py-3">
+                                                            <div className="flex items-center justify-between w-full pr-4">
+                                                                <div className="flex items-center gap-3">
+                                                                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+                                                                    <div className="text-left">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <h3 className="font-semibold text-sm sm:text-base">{district.district_name}</h3>
+                                                                            {questionAnswersLoading && !loadedDistricts.has(district.district_name) && (
+                                                                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
+                                                                            )}
+                                                                        </div>
+                                                                        <p className="text-xs text-muted-foreground">
+                                                                            District
+                                                                        </p>
                                                                     </div>
+                                                                </div>
+                                                                <div className="text-right">
+                                                                    <p className="text-lg sm:text-xl font-semibold text-primary">
+                                                                        {district.total_selected_applications}
+                                                                    </p>
                                                                     <p className="text-xs text-muted-foreground">
-                                                                        District
+                                                                        {statusFilter === "Selected" ? "selected" : "approved"}
                                                                     </p>
                                                                 </div>
                                                             </div>
-                                                            <div className="text-right">
-                                                                <p className="text-lg sm:text-xl font-semibold text-primary">
-                                                                    {district.total_selected_applications}
-                                                                </p>
-                                                                <p className="text-xs text-muted-foreground">
-                                                                    {statusFilter === "Selected" ? "selected" : "approved"}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    </AccordionTrigger>
-                                                    <AccordionContent>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
-                                                            {COMPONENT_ORDER.map((orderName) => {
-                                                                const comp = district.components.find(c => c.component === orderName);
-                                                                if (!comp) return null;
-                                                                
-                                                                const componentQuestions = componentQuestionAnswers[comp.component] || {};
-                                                                
-                                                                return (
-                                                                    <div key={comp.component} className="p-3 border rounded-lg bg-muted/30">
-                                                                        <div className="flex items-center gap-2 mb-2">
-                                                                            <Package className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                                                                            <p className="text-xs sm:text-sm font-medium truncate">{comp.component}</p>
-                                                                        </div>
-                                                                        <div className="flex items-center justify-between mb-1">
-                                                                            <span className="text-xs text-muted-foreground">Applications</span>
-                                                                            <span className="text-base font-semibold text-primary">
-                                                                                {comp.application_count}
-                                                                            </span>
-                                                                        </div>
-                                                                        
-                                                                        {Object.keys(componentQuestions).length > 0 ? (
-                                                                            <div className="mt-2 pt-2 border-t space-y-2">
-                                                                                {questionAnswersLoading ? (
-                                                                                    <div className="text-xs text-muted-foreground text-center py-2">Loading...</div>
-                                                                                ) : (
-                                                                                    Object.entries(componentQuestions).map(([question, answers]) => (
-                                                                                        <div key={question} className="space-y-1">
-                                                                                            <p className="text-xs font-medium text-foreground">{question}</p>
-                                                                                            <div className="space-y-0.5 pl-2">
-                                                                                                {Object.entries(answers).map(([answer, count]) => (
-                                                                                                    count > 0 && (
-                                                                                                        <div key={answer} className="flex items-center justify-between">
-                                                                                                            <span className="text-xs text-muted-foreground">{answer}</span>
-                                                                                                            <span className="text-xs font-medium text-primary">{count}</span>
-                                                                                                        </div>
-                                                                                                    )
-                                                                                                ))}
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    ))
-                                                                                )}
+                                                        </AccordionTrigger>
+                                                        <AccordionContent>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+                                                                {COMPONENT_ORDER.map((orderName, idx) => {
+                                                                    const comp = district.components.find(c => c.component === orderName);
+                                                                    if (!comp) return null;
+
+                                                                    const componentQuestions = componentQuestionAnswers[comp.component] || {};
+
+                                                                    const colorClasses = [
+                                                                        'bg-blue-50/80 dark:bg-blue-950/20 border-blue-200/50 hover:border-blue-300 dark:border-blue-800/50',
+                                                                        'bg-purple-50/80 dark:bg-purple-950/20 border-purple-200/50 hover:border-purple-300 dark:border-purple-800/50',
+                                                                        'bg-amber-50/80 dark:bg-amber-950/20 border-amber-200/50 hover:border-amber-300 dark:border-amber-800/50',
+                                                                        'bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-200/50 hover:border-emerald-300 dark:border-emerald-800/50',
+                                                                        'bg-rose-50/80 dark:bg-rose-950/20 border-rose-200/50 hover:border-rose-300 dark:border-rose-800/50',
+                                                                        'bg-indigo-50/80 dark:bg-indigo-950/20 border-indigo-200/50 hover:border-indigo-300 dark:border-indigo-800/50'
+                                                                    ];
+                                                                    const cardColor = colorClasses[idx % colorClasses.length];
+
+                                                                    return (
+                                                                        <div key={comp.component} className={`p-4 border rounded-xl transition-all duration-300 hover:shadow-md ${cardColor}`}>
+                                                                            <div className="flex items-center gap-2 mb-3">
+                                                                                <div className="p-1.5 rounded-md bg-background/50 backdrop-blur-sm shadow-sm">
+                                                                                    <Package className="w-4 h-4 text-foreground/80 flex-shrink-0" />
+                                                                                </div>
+                                                                                <p className="text-sm font-semibold truncate text-foreground/90">{comp.component}</p>
                                                                             </div>
-                                                                        ) : null}
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </AccordionContent>
-                                                </AccordionItem>
-                                            ))}
+                                                                            <div className="flex items-center justify-between mb-2">
+                                                                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Applications</span>
+                                                                                <span className="text-lg font-bold bg-background/60 px-2 py-0.5 rounded-md shadow-sm">
+                                                                                    {comp.application_count}
+                                                                                </span>
+                                                                            </div>
+
+                                                                            {Object.keys(componentQuestions).length > 0 ? (
+                                                                                <div className="mt-3 pt-3 border-t border-foreground/10 space-y-3">
+                                                                                    {questionAnswersLoading ? (
+                                                                                        <div className="flex justify-center py-2">
+                                                                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-foreground/30"></div>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        Object.entries(componentQuestions).map(([question, answers]) => (
+                                                                                            <div key={question} className="space-y-1.5 bg-background/40 p-2 rounded-lg">
+                                                                                                <p className="text-xs font-semibold text-foreground/90 leading-tight">{question}</p>
+                                                                                                <div className="space-y-1 pl-1">
+                                                                                                    {Object.entries(answers).map(([answer, count]) => (
+                                                                                                        count > 0 && (
+                                                                                                            <div key={answer} className="flex items-center justify-between text-xs group">
+                                                                                                                <span className="text-muted-foreground group-hover:text-foreground transition-colors mr-2 truncate">{answer}</span>
+                                                                                                                <span className="font-semibold px-1.5 py-0.5 rounded-full bg-background shadow-sm text-foreground/80 flex-shrink-0">{count}</span>
+                                                                                                            </div>
+                                                                                                        )
+                                                                                                    ))}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        ))
+                                                                                    )}
+                                                                                </div>
+                                                                            ) : null}
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </AccordionContent>
+                                                    </AccordionItem>
+                                                ))}
                                             </Accordion>
                                         );
                                     })()}
@@ -1168,5 +1182,5 @@ export default function AdminSelectionClient({
             />
         </div>
     );
-    
+
 }
