@@ -51,16 +51,21 @@ export default function VendorPayments() {
     const getRowKey = (payment: PendingVendorPayment) =>
         `${payment.component_allocation_id}__${payment.vendor_category || 'default'}`;
 
+    // Build params, omitting falsy values so they are not sent as "undefined"
+    const pageSize = 20;
+    const apiParams: Record<string, any> = {
+        limit_start: (currentPage - 1) * pageSize,
+        limit_page_length: pageSize,
+    };
+    if (selectedVendor) apiParams.vendor_name = selectedVendor;
+    if (selectedCategory) apiParams.vendor_category = selectedCategory;
+    const trimmedSearch = debouncedSearchText.trim().replace(/\s+/g, " ");
+    if (trimmedSearch) apiParams.search_text = trimmedSearch;
+
     // Fetch pending vendor payments from API
     const { data: paymentsResponse, isLoading: loading, mutate: refetchPayments } = useFrappeGetCall<FrappeCustomApiResponse<PaginatedVendorPaymentResponse>>(
         "vmddp_app.api.v1.accountant.pending_vendor_payment_list",
-        {
-            page: currentPage,
-            page_size: 20,
-            vendor_name: selectedVendor || undefined,
-            vendor_category: selectedCategory || undefined,
-            search_text: debouncedSearchText.trim().replace(/\s+/g, " ") || undefined
-        },
+        apiParams,
         undefined,
         { revalidateOnFocus: false }
     );
@@ -278,7 +283,10 @@ export default function VendorPayments() {
                                         className="pl-9"
                                         data-testid="input-search"
                                         value={searchText}
-                                        onChange={(e) => setSearchText(e.target.value)}
+                                        onChange={(e) => {
+                                            setSearchText(e.target.value);
+                                            setCurrentPage(1);
+                                        }}
                                     />
                                 </div>
                                 <Select
