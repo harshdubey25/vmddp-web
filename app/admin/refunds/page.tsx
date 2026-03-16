@@ -16,7 +16,6 @@ import {
     ChevronRight,
     ThumbsUp,
     ThumbsDown,
-    TrendingUp,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -481,12 +480,7 @@ export default function AdminRefundsApproval() {
                                         <p className="text-xs text-muted-foreground">{pendingCount} requests</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 flex items-center gap-1 shadow-sm">
-                                        <TrendingUp className="w-3 h-3" />
-                                        +15.3%
-                                    </span>
-                                </div>
+                             
                             </CardContent>
                         </Card>
 
@@ -503,12 +497,7 @@ export default function AdminRefundsApproval() {
                                         <p className="text-xs text-muted-foreground">{approvedCount} requests</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1 shadow-sm">
-                                        <TrendingUp className="w-3 h-3" />
-                                        +8.7%
-                                    </span>
-                                </div>
+                        
                             </CardContent>
                         </Card>
 
@@ -525,12 +514,7 @@ export default function AdminRefundsApproval() {
                                         <p className="text-xs text-muted-foreground">{rejectedCount} requests</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 flex items-center gap-1 shadow-sm">
-                                        <TrendingUp className="w-3 h-3 rotate-180" />
-                                        -2.4%
-                                    </span>
-                                </div>
+        
                             </CardContent>
                         </Card>
                     </div>
