@@ -120,8 +120,7 @@ export default function DBTClaimsReport() {
                                     <p className="text-lg sm:text-2xl font-bold text-green-600 drop-shadow-sm">₹{stats.total_disbursed_amount?.toLocaleString("en-IN") || 0}</p>
                                     <div className="flex items-center gap-1 text-xs">
                                         <span className="text-muted-foreground">{stats.total_claims_processed || 0} claims</span>
-                                        <TrendingUp className="h-3 w-3 text-green-600 ml-1" />
-                                        <span className="text-green-600 font-medium">+18%</span>
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -140,8 +139,7 @@ export default function DBTClaimsReport() {
                                     <p className="text-lg sm:text-2xl font-bold text-blue-600 drop-shadow-sm">{stats.total_claims_processed || 0}</p>
                                     <div className="flex items-center gap-1 text-xs">
                                         <span className="text-muted-foreground">Disbursed successfully</span>
-                                        <TrendingUp className="h-3 w-3 text-green-600 ml-1" />
-                                        <span className="text-green-600 font-medium">+14%</span>
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -160,8 +158,7 @@ export default function DBTClaimsReport() {
                                     <p className="text-lg sm:text-2xl font-bold text-purple-600 drop-shadow-sm">{stats.total_beneficiaries || 0}</p>
                                     <div className="flex items-center gap-1 text-xs">
                                         <span className="text-muted-foreground">Received benefits</span>
-                                        <TrendingUp className="h-3 w-3 text-green-600 ml-1" />
-                                        <span className="text-green-600 font-medium">+22%</span>
+                                       
                                     </div>
                                 </div>
                             </div>
@@ -180,8 +177,7 @@ export default function DBTClaimsReport() {
                                     <p className="text-lg sm:text-2xl font-bold text-orange-600 drop-shadow-sm">{stats.total_components || 0}</p>
                                     <div className="flex items-center gap-1 text-xs">
                                         <span className="text-muted-foreground">Available components</span>
-                                        <TrendingUp className="h-3 w-3 text-green-600 ml-1" />
-                                        <span className="text-green-600 font-medium">+10%</span>
+                                        
                                     </div>
                                 </div>
                             </div>

@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { frappeBrowser } from "@/lib/frappe";
+import { useFrappePostCall } from "frappe-react-sdk";
 import { getStatusBadge } from "@/lib/status-utils";
 import ApplicationDetailsDialog from "@/components/ApplicationDetailsDialog";
 
@@ -116,6 +117,8 @@ export default function AdminSelectionClient({
     const [applications, setApplications] = useState<ApplicationSelectionItem[]>(initialApplications);
     const [selectedApplication, setSelectedApplication] = useState<ApplicationSelectionItem | null>(null);
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+
+    const { call: selectionApplication } = useFrappePostCall("vmddp_app.api.app_form.select_application");
 
     interface DistrictData {
         district_id: string;
@@ -577,9 +580,8 @@ export default function AdminSelectionClient({
         const originalAppId = app.realApplicationId;
 
         try {
-            await frappeBrowser.db().updateDoc('App Form', originalAppId, {
-                status: 'Selected',
-            });
+            // Use the proper API endpoint that handles both application and component statuses
+            await selectionApplication({ application_id: originalAppId });
 
             setApplications(prev =>
                 prev.map(application => {

@@ -349,109 +349,91 @@ export default function AnimalInductionMPRPage() {
 
             {/* Summary Cards */}
             {!isLoading && mergedDistrictData.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 print:hidden">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 print:hidden">
                     <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-blue-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 relative">
                             <div className="flex items-center justify-between">
-                                <CardDescription className="text-xs sm:text-sm">Current Month Districts</CardDescription>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Building2 className="h-5 w-5 text-white" />
+                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">Current Month Districts</CardDescription>
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                 </div>
                             </div>
                             <CardTitle className="text-xl sm:text-2xl text-blue-600 drop-shadow-sm">{currentMonthDistrictData.length}</CardTitle>
-                            <div className="flex items-center gap-1 text-xs">
-                                <TrendingUp className="h-3 w-3 text-green-600" />
-                                <span className="text-green-600 font-medium">+8%</span>
-                            </div>
+
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-cyan-500/30 bg-gradient-to-br from-cyan-500/20 to-cyan-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-cyan-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 relative">
                             <div className="flex items-center justify-between">
-                                <CardDescription className="text-xs sm:text-sm">Current Month Animals</CardDescription>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <PawPrint className="h-5 w-5 text-white" />
+                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">Current Month Animals</CardDescription>
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <PawPrint className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                 </div>
                             </div>
-                            <CardTitle className="text-xl sm:text-2xl text-cyan-600 drop-shadow-sm">
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-cyan-600 drop-shadow-sm">
                                 {currentMonthTotals.cow_count + currentMonthTotals.crossbreed_count + currentMonthTotals.buffalo_count}
                             </CardTitle>
-                            <div className="flex items-center gap-1 text-xs">
-                                <TrendingUp className="h-3 w-3 text-green-600" />
-                                <span className="text-green-600 font-medium">+12%</span>
-                            </div>
+                    
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-green-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 relative">
                             <div className="flex items-center justify-between">
-                                <CardDescription className="text-xs sm:text-sm">{selectedMonthLabel} Expenditure</CardDescription>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Wallet className="h-5 w-5 text-white" />
+                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">{selectedMonthLabel} Expenditure</CardDescription>
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                 </div>
                             </div>
-                            <CardTitle className="text-xl sm:text-2xl text-green-600 drop-shadow-sm">
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-green-600 drop-shadow-sm">
                                 ₹{formatCurrency(currentMonthTotals.total_expenditure.subsidy_share_total)}
                             </CardTitle>
-                            <div className="flex items-center gap-1 text-xs">
-                                <TrendingUp className="h-3 w-3 text-green-600" />
-                                <span className="text-green-600 font-medium">+15%</span>
-                            </div>
+                         
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-purple-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 relative">
                             <div className="flex items-center justify-between">
-                                <CardDescription className="text-xs sm:text-sm">Progressive Districts</CardDescription>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Target className="h-5 w-5 text-white" />
+                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">Progressive Districts</CardDescription>
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Target className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                 </div>
                             </div>
-                            <CardTitle className="text-xl sm:text-2xl text-purple-600 drop-shadow-sm">{progressiveDistrictData.length}</CardTitle>
-                            <div className="flex items-center gap-1 text-xs">
-                                <TrendingUp className="h-3 w-3 text-green-600" />
-                                <span className="text-green-600 font-medium">+10%</span>
-                            </div>
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-blue-600 drop-shadow-sm">{currentMonthDistrictData.length}</CardTitle>
+                         
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-pink-500/30 bg-gradient-to-br from-pink-500/20 to-pink-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 relative">
                             <div className="flex items-center justify-between">
-                                <CardDescription className="text-xs sm:text-sm">Progressive Animals</CardDescription>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <PawPrint className="h-5 w-5 text-white" />
+                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">Progressive Animals</CardDescription>
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <PawPrint className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                 </div>
                             </div>
-                            <CardTitle className="text-xl sm:text-2xl text-pink-600 drop-shadow-sm">
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-pink-600 drop-shadow-sm">
                                 {progressiveTotals.cow_count + progressiveTotals.crossbreed_count + progressiveTotals.buffalo_count}
                             </CardTitle>
-                            <div className="flex items-center gap-1 text-xs">
-                                <TrendingUp className="h-3 w-3 text-green-600" />
-                                <span className="text-green-600 font-medium">+18%</span>
-                            </div>
+                           
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 relative">
                             <div className="flex items-center justify-between">
-                                <CardDescription className="text-xs sm:text-sm">Progressive Expenditure</CardDescription>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Wallet className="h-5 w-5 text-white" />
+                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">Progressive Expenditure</CardDescription>
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                 </div>
                             </div>
-                            <CardTitle className="text-xl sm:text-2xl text-emerald-600 drop-shadow-sm">
+                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-emerald-600 drop-shadow-sm">
                                 ₹{formatCurrency(progressiveTotals.total_expenditure.subsidy_share_total)}
                             </CardTitle>
-                            <div className="flex items-center gap-1 text-xs">
-                                <TrendingUp className="h-3 w-3 text-green-600" />
-                                <span className="text-green-600 font-medium">+22%</span>
-                            </div>
+                          
                         </CardHeader>
                     </Card>
                 </div>
@@ -459,12 +441,12 @@ export default function AnimalInductionMPRPage() {
 
             {/* Report Card */}
             <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <FileText className="h-5 w-5" />
+                <CardHeader className="p-3 sm:p-4 md:p-6">
+                    <CardTitle className="flex items-center gap-2 text-base sm:text-lg md:text-xl">
+                        <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
                         Animal Induction - Financial Achievement Report
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-xs sm:text-sm">
                         District-wise breakdown of current month and progressive costs and physical achievement
                         {filters && ` • Current month: ${filters.current_month_start_date} to ${filters.current_month_end_date} • Progressive: ${filters.progressive_start_date} to ${filters.progressive_end_date}`}
                     </CardDescription>
