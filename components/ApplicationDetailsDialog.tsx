@@ -202,11 +202,6 @@ export default function ApplicationDetailsDialog({
                                     <FileText className="w-5 h-5 text-primary" />
                                     <span>Application Details</span>
                                 </div>
-                                {application?.component && (
-                                    <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 ml-2">
-                                        {application.component}
-                                    </Badge>
-                                )}
                             </DialogTitle>
 
                             <Button

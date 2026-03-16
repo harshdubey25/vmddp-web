@@ -193,8 +193,6 @@ export default function ComponentAllocation() {
                                 </div>
                                 <CardTitle className="text-xl sm:text-2xl text-blue-600 drop-shadow-sm">{allocationStats?.message?.total_applications ?? 0}</CardTitle>
                                 <div className="flex items-center gap-1 text-xs">
-                                    <TrendingUp className="h-3 w-3 text-green-600" />
-                                    <span className="text-green-600 font-medium">+12%</span>
                                 </div>
                             </CardHeader>
                         </Card>
@@ -210,8 +208,6 @@ export default function ComponentAllocation() {
                                 </div>
                                 <CardTitle className="text-xl sm:text-2xl text-yellow-600 drop-shadow-sm">{allocationStats?.message?.pending_component_allocation ?? 0}</CardTitle>
                                 <div className="flex items-center gap-1 text-xs">
-                                    <TrendingUp className="h-3 w-3 text-green-600" />
-                                    <span className="text-green-600 font-medium">+8%</span>
                                 </div>
                             </CardHeader>
                         </Card>
@@ -226,8 +222,6 @@ export default function ComponentAllocation() {
                                 </div>
                                 <CardTitle className="text-xl sm:text-2xl text-green-600 drop-shadow-sm">{allocationStats?.message?.total_component_allocated ?? 0}</CardTitle>
                                 <div className="flex items-center gap-1 text-xs">
-                                    <TrendingUp className="h-3 w-3 text-green-600" />
-                                    <span className="text-green-600 font-medium">+15%</span>
                                 </div>
                             </CardHeader>
                         </Card>
@@ -243,8 +237,6 @@ export default function ComponentAllocation() {
                                 </div>
                                 <CardTitle className="text-xl sm:text-2xl text-purple-600 drop-shadow-sm">{activeTab === "pending" ? pendingApplications.length : completedList.length}</CardTitle>
                                 <div className="flex items-center gap-1 text-xs">
-                                    <TrendingUp className="h-3 w-3 text-green-600" />
-                                    <span className="text-green-600 font-medium">+5%</span>
                                 </div>
                             </CardHeader>
                         </Card>

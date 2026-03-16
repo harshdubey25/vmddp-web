@@ -192,8 +192,6 @@ export default function AdminExpenses() {
                                         <p className="text-2xl font-bold text-blue-600 drop-shadow-sm">₹{totalTarget.toLocaleString("en-IN")}</p>
                                         <div className="flex items-center gap-2 text-xs">
                                             <span className="text-muted-foreground">{targetData?.length || 0} allocations</span>
-                                            <TrendingUp className="h-3 w-3 text-green-600" />
-                                            <span className="text-green-600 font-medium">+10%</span>
                                         </div>
                                     </div>
                                 </div>
@@ -212,8 +210,6 @@ export default function AdminExpenses() {
                                         <p className="text-2xl font-bold text-green-600 drop-shadow-sm">₹{totalSubmittedExpenses.toLocaleString("en-IN")}</p>
                                         <div className="flex items-center gap-2 text-xs">
                                             <span className="text-muted-foreground">{expenses?.length || 0} expenses</span>
-                                            <TrendingUp className="h-3 w-3 text-green-600" />
-                                            <span className="text-green-600 font-medium">+15%</span>
                                         </div>
                                     </div>
                                 </div>
@@ -232,8 +228,6 @@ export default function AdminExpenses() {
                                         <p className={`text-2xl font-bold ${balance >= 0 ? 'text-orange-600' : 'text-red-600'} drop-shadow-sm`}>₹{balance.toLocaleString("en-IN")}</p>
                                         <div className="flex items-center gap-2 text-xs">
                                             <span className="text-muted-foreground">{balance >= 0 ? 'Available' : 'Over budget'}</span>
-                                            <TrendingUp className={`h-3 w-3 ${balance >= 0 ? 'text-green-600' : 'text-red-600 rotate-180'}`} />
-                                            <span className={`${balance >= 0 ? 'text-green-600' : 'text-red-600'} font-medium`}>{balance >= 0 ? '+5%' : '-8%'}</span>
                                         </div>
                                     </div>
                                 </div>

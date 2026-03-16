@@ -60,10 +60,7 @@ export default function ReportsStats() {
                         <FileText className="w-3 h-3 sm:w-4 sm:h-4 text-chart-2" />
                     </div>
                     <p className="text-xl sm:text-2xl font-bold">{response?.message?.total_applications?.toString() ?? "0"}</p>
-                    <p className="text-xs text-chart-3 flex items-center gap-1 mt-2">
-                        <TrendingUp className="w-3 h-3" />
-                        +8.2% from last month
-                    </p>
+                
                 </CardContent>
             </Card>
 
@@ -74,7 +71,6 @@ export default function ReportsStats() {
                         <FileText className="w-3 h-3 sm:w-4 sm:h-4 text-chart-3" />
                     </div>
                     <p className="text-xl sm:text-2xl font-bold">{response?.message?.approved_applications?.toString() ?? "0"}</p>
-                    <p className="text-xs text-muted-foreground mt-2">57% approval rate</p>
                 </CardContent>
             </Card>
 
@@ -85,7 +81,6 @@ export default function ReportsStats() {
                         <FileText className="w-3 h-3 sm:w-4 sm:h-4 text-chart-4" />
                     </div>
                     <p className="text-xl sm:text-2xl font-bold">{response?.message?.pending_applications?.toString() ?? "0"}</p>
-                    <p className="text-xs text-muted-foreground mt-2">Needs review</p>
                 </CardContent>
             </Card>
 
@@ -96,7 +91,6 @@ export default function ReportsStats() {
                         <FileText className="w-3 h-3 sm:w-4 sm:h-4 text-chart-5" />
                     </div>
                     <p className="text-xl sm:text-2xl font-bold">{response?.message?.rejected_applications?.toString() ?? "0"}</p>
-                    <p className="text-xs text-muted-foreground mt-2">9.6% rejection rate</p>
                 </CardContent>
             </Card>
         </div>

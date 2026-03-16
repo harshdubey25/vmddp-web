@@ -104,10 +104,7 @@ export default function SubAdminDashboardStats() {
                                 <div className={`w-12 h-12 rounded-xl ${stat.iconBg} flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6`}>
                                     <Icon className="w-6 h-6 text-white" />
                                 </div>
-                                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${stat.change.startsWith('+') ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'} flex items-center gap-1 shadow-sm`}>
-                                    <TrendingUp className={`w-3 h-3 ${stat.change.startsWith('-') ? 'rotate-180' : ''}`} />
-                                    {stat.change}
-                                </span>
+                               
                             </div>
                             <div>
                                 <p className={`text-3xl font-bold tracking-tight mb-1 ${stat.color} drop-shadow-sm`}>{stat.value}</p>
