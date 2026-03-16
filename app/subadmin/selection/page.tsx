@@ -20,7 +20,6 @@ import { Input } from "@/components/ui/input";
 import {
     Pagination,
     PaginationContent,
-    PaginationEllipsis,
     PaginationItem,
     PaginationLink,
     PaginationNext,
@@ -41,6 +40,8 @@ import { getStatusBadge } from "@/lib/status-utils";
 import {
     Calendar,
     CheckCircle,
+    ChevronsLeft,
+    ChevronsRight,
     Download,
     FileCheck,
     FileSpreadsheet,
@@ -901,59 +902,101 @@ export default function SubAdminSelectionPage() {
                                     <p className="text-xs sm:text-sm text-muted-foreground">
                                         Showing {filteredApplications.length} of {totalItems} items • Page {currentPage} of {totalPages}
                                     </p>
-                                    <Pagination>
-                                        <PaginationContent>
-                                            <PaginationItem>
-                                                <PaginationPrevious
-                                                    href={currentPage > 1 ? getPageHref(currentPage - 1) : "#"}
-                                                    onClick={(event) => {
-                                                        if (currentPage <= 1) {
-                                                            event.preventDefault();
-                                                        }
-                                                    }}
-                                                    className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
-                                                />
-                                            </PaginationItem>
-
-                                            {(() => {
-                                                const startPage = Math.max(1, currentPage - 2);
-                                                const endPage = Math.min(totalPages, startPage + 4);
-
-                                                return Array.from({ length: endPage - startPage + 1 }, (_, index) => {
-                                                    const pageNumber = startPage + index;
-
-                                                    return (
-                                                        <PaginationItem key={pageNumber}>
-                                                            <PaginationLink
-                                                                href={getPageHref(pageNumber)}
-                                                                isActive={pageNumber === currentPage}
-                                                            >
-                                                                {pageNumber}
-                                                            </PaginationLink>
-                                                        </PaginationItem>
-                                                    );
-                                                });
-                                            })()}
-
-                                            {currentPage < totalPages - 2 && (
+                                    <div className="flex items-center gap-3">
+                                        <Pagination>
+                                            <PaginationContent>
                                                 <PaginationItem>
-                                                    <PaginationEllipsis />
+                                                    <PaginationLink
+                                                        href={getPageHref(1)}
+                                                        onClick={(event) => {
+                                                            if (currentPage <= 1) {
+                                                                event.preventDefault();
+                                                            }
+                                                        }}
+                                                        className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+                                                        aria-label="First page"
+                                                    >
+                                                        <ChevronsLeft className="h-4 w-4" />
+                                                    </PaginationLink>
                                                 </PaginationItem>
-                                            )}
+                                                <PaginationItem>
+                                                    <PaginationPrevious
+                                                        href={currentPage > 1 ? getPageHref(currentPage - 1) : "#"}
+                                                        onClick={(event) => {
+                                                            if (currentPage <= 1) {
+                                                                event.preventDefault();
+                                                            }
+                                                        }}
+                                                        className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+                                                    />
+                                                </PaginationItem>
 
-                                            <PaginationItem>
-                                                <PaginationNext
-                                                    href={currentPage < totalPages ? getPageHref(currentPage + 1) : "#"}
-                                                    onClick={(event) => {
-                                                        if (currentPage >= totalPages) {
-                                                            event.preventDefault();
+                                                {(() => {
+                                                    const startPage = Math.max(1, currentPage - 2);
+                                                    const endPage = Math.min(totalPages, startPage + 4);
+
+                                                    return Array.from({ length: endPage - startPage + 1 }, (_, index) => {
+                                                        const pageNumber = startPage + index;
+
+                                                        return (
+                                                            <PaginationItem key={pageNumber}>
+                                                                <PaginationLink
+                                                                    href={getPageHref(pageNumber)}
+                                                                    isActive={pageNumber === currentPage}
+                                                                >
+                                                                    {pageNumber}
+                                                                </PaginationLink>
+                                                            </PaginationItem>
+                                                        );
+                                                    });
+                                                })()}
+                                                <PaginationItem>
+                                                    <PaginationNext
+                                                        href={currentPage < totalPages ? getPageHref(currentPage + 1) : "#"}
+                                                        onClick={(event) => {
+                                                            if (currentPage >= totalPages) {
+                                                                event.preventDefault();
+                                                            }
+                                                        }}
+                                                        className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+                                                    />
+                                                </PaginationItem>
+                                                <PaginationItem>
+                                                    <PaginationLink
+                                                        href={getPageHref(totalPages)}
+                                                        onClick={(event) => {
+                                                            if (currentPage >= totalPages) {
+                                                                event.preventDefault();
+                                                            }
+                                                        }}
+                                                        className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+                                                        aria-label="Last page"
+                                                    >
+                                                        <ChevronsRight className="h-4 w-4" />
+                                                    </PaginationLink>
+                                                </PaginationItem>
+                                            </PaginationContent>
+                                        </Pagination>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">Go to</span>
+                                            <Input
+                                                type="number"
+                                                min={1}
+                                                max={totalPages}
+                                                placeholder="#"
+                                                className="w-14 h-8 text-xs sm:text-sm text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                onKeyDown={(event) => {
+                                                    if (event.key === "Enter") {
+                                                        const value = parseInt((event.target as HTMLInputElement).value);
+                                                        if (!isNaN(value)) {
+                                                            const page = Math.max(1, Math.min(totalPages, value));
+                                                            router.replace(getPageHref(page));
                                                         }
-                                                    }}
-                                                    className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
-                                                />
-                                            </PaginationItem>
-                                        </PaginationContent>
-                                    </Pagination>
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </CardContent>

@@ -30,6 +30,8 @@ import {
     Search,
     Download,
     CheckCircle,
+    ChevronsLeft,
+    ChevronsRight,
     MapPin,
     User,
     Package,
@@ -1099,62 +1101,99 @@ export default function AdminSelectionClient({
                                     <p className="text-xs sm:text-sm text-muted-foreground">
                                         Showing {filteredApplications.length} of {totalItems} items • Page {currentPage} of {totalPages}
                                     </p>
-                                    <Pagination>
-                                        <PaginationContent>
-                                            <PaginationItem>
-                                                <PaginationPrevious
-                                                    href={currentPage > 1 ? `?${new URLSearchParams({ ...Object.fromEntries(new URLSearchParams(window.location.search)), page: (currentPage - 1).toString() })}` : '#'}
-                                                    onClick={(e) => {
-                                                        if (currentPage <= 1) {
-                                                            e.preventDefault();
-                                                        }
-                                                    }}
-                                                    className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
-                                                />
-                                            </PaginationItem>
-
-                                            {/* Page numbers */}
-                                            {(() => {
-                                                const startPage = Math.max(1, currentPage - 2);
-                                                const endPage = Math.min(totalPages, startPage + 4);
-
-                                                return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
-                                                    const pageNum = startPage + i;
-                                                    const params = new URLSearchParams(window.location.search);
-                                                    params.set('page', pageNum.toString());
-
-                                                    return (
-                                                        <PaginationItem key={pageNum}>
-                                                            <PaginationLink
-                                                                href={`?${params.toString()}`}
-                                                                isActive={pageNum === currentPage}
-                                                            >
-                                                                {pageNum}
-                                                            </PaginationLink>
-                                                        </PaginationItem>
-                                                    );
-                                                });
-                                            })()}
-
-                                            {currentPage < totalPages - 2 && (
+                                    <div className="flex items-center gap-3">
+                                        <Pagination>
+                                            <PaginationContent>
                                                 <PaginationItem>
-                                                    <PaginationEllipsis />
+                                                    <PaginationLink
+                                                        href={`?${new URLSearchParams({ ...Object.fromEntries(new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')), page: '1' })}`}
+                                                        onClick={(e) => {
+                                                            if (currentPage <= 1) e.preventDefault();
+                                                        }}
+                                                        className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
+                                                        aria-label="First page"
+                                                    >
+                                                        <ChevronsLeft className="h-4 w-4" />
+                                                    </PaginationLink>
                                                 </PaginationItem>
-                                            )}
+                                                <PaginationItem>
+                                                    <PaginationPrevious
+                                                        href={currentPage > 1 ? `?${new URLSearchParams({ ...Object.fromEntries(new URLSearchParams(window.location.search)), page: (currentPage - 1).toString() })}` : '#'}
+                                                        onClick={(e) => {
+                                                            if (currentPage <= 1) e.preventDefault();
+                                                        }}
+                                                        className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
+                                                    />
+                                                </PaginationItem>
 
-                                            <PaginationItem>
-                                                <PaginationNext
-                                                    href={currentPage < totalPages ? `?${new URLSearchParams({ ...Object.fromEntries(new URLSearchParams(window.location.search)), page: (currentPage + 1).toString() })}` : '#'}
-                                                    onClick={(e) => {
-                                                        if (currentPage >= totalPages) {
-                                                            e.preventDefault();
+                                                {/* Page numbers */}
+                                                {(() => {
+                                                    const startPage = Math.max(1, currentPage - 2);
+                                                    const endPage = Math.min(totalPages, startPage + 4);
+
+                                                    return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
+                                                        const pageNum = startPage + i;
+                                                        const params = new URLSearchParams(window.location.search);
+                                                        params.set('page', pageNum.toString());
+
+                                                        return (
+                                                            <PaginationItem key={pageNum}>
+                                                                <PaginationLink
+                                                                    href={`?${params.toString()}`}
+                                                                    isActive={pageNum === currentPage}
+                                                                >
+                                                                    {pageNum}
+                                                                </PaginationLink>
+                                                            </PaginationItem>
+                                                        );
+                                                    });
+                                                })()}
+
+                                                <PaginationItem>
+                                                    <PaginationNext
+                                                        href={currentPage < totalPages ? `?${new URLSearchParams({ ...Object.fromEntries(new URLSearchParams(window.location.search)), page: (currentPage + 1).toString() })}` : '#'}
+                                                        onClick={(e) => {
+                                                            if (currentPage >= totalPages) e.preventDefault();
+                                                        }}
+                                                        className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}
+                                                    />
+                                                </PaginationItem>
+                                                <PaginationItem>
+                                                    <PaginationLink
+                                                        href={`?${new URLSearchParams({ ...Object.fromEntries(new URLSearchParams(window.location.search)), page: totalPages.toString() })}`}
+                                                        onClick={(e) => {
+                                                            if (currentPage >= totalPages) e.preventDefault();
+                                                        }}
+                                                        className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}
+                                                        aria-label="Last page"
+                                                    >
+                                                        <ChevronsRight className="h-4 w-4" />
+                                                    </PaginationLink>
+                                                </PaginationItem>
+                                            </PaginationContent>
+                                        </Pagination>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">Go to</span>
+                                            <Input
+                                                type="number"
+                                                min={1}
+                                                max={totalPages}
+                                                placeholder="#"
+                                                className="w-14 h-8 text-xs sm:text-sm text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        const value = parseInt((e.target as HTMLInputElement).value);
+                                                        if (!isNaN(value)) {
+                                                            const page = Math.max(1, Math.min(totalPages, value));
+                                                            const params = new URLSearchParams(window.location.search);
+                                                            params.set('page', page.toString());
+                                                            window.location.href = `?${params.toString()}`;
                                                         }
-                                                    }}
-                                                    className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}
-                                                />
-                                            </PaginationItem>
-                                        </PaginationContent>
-                                    </Pagination>
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </CardContent>
