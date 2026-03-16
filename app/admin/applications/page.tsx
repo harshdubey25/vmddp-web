@@ -1,11 +1,35 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
-import AdminApplicationsClient from "./AdminApplicationsClient";
+import { usePathname, useSearchParams } from "next/navigation";
 import { frappeBrowser } from "@/lib/frappe";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useDebounce } from "@/hooks/use-debounce";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Search, Download, Eye } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { getStatusBadge } from "@/lib/status-utils";
+import ApplicationDetailsDialog from "@/components/ApplicationDetailsDialog";
+import { useFrappeGetDocList } from "frappe-react-sdk";
+import * as XLSX from "xlsx";
 
 export interface Application {
     id: string;
@@ -50,6 +74,15 @@ export interface Application {
     };
 }
 
+interface PaginationData {
+    current_page: number;
+    page_size: number;
+    total_applications: number;
+    total_pages: number;
+    has_next_page: boolean;
+    has_previous_page: boolean;
+}
+
 type FrappeApp = {
     created_at: string;
     name: string;
@@ -80,8 +113,7 @@ async function getApplications(
     component?: string,
     startDate?: string,
     endDate?: string
-): Promise<{ applications: Application[], pagination?: any }> {
-    console.log("status:", status, "search:", search, "district:", district, "component:", component);
+): Promise<{ applications: Application[]; pagination?: PaginationData }> {
     const apiParams: any = {
         page: page.toString(),
         limit: limit.toString(),
@@ -169,37 +201,371 @@ async function getApplications(
 
 export default function Page() {
     const searchParams = useSearchParams();
+    const pathname = usePathname();
 
     const [applications, setApplications] = useState<Application[]>([]);
-    const [pagination, setPagination] = useState<any>(null);
+    const [pagination, setPagination] = useState<PaginationData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isListLoading, setIsListLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+    const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all");
+    const [districtFilter, setDistrictFilter] = useState(searchParams.get("district") || "all");
+    const [componentFilter, setComponentFilter] = useState(searchParams.get("component") || "all");
+    const [dateFrom, setDateFrom] = useState(searchParams.get("start_date") || "");
+    const [dateTo, setDateTo] = useState(searchParams.get("end_date") || "");
+    const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+    const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get("page") || "1"));
+    const [pageSize] = useState(parseInt(searchParams.get("limit") || "20"));
 
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const status = searchParams.get('status') || 'all';
-    const search = searchParams.get('search') || '';
-    const district = searchParams.get('district') || 'all';
-    const component = searchParams.get('component') || 'all';
-    const startDate = searchParams.get('start_date') || '';
-    const endDate = searchParams.get('end_date') || '';
+    const debouncedSearchQuery = useDebounce(searchQuery, 500);
+    const { toast } = useToast();
+
+    const { data: frappeDistricts, isLoading: districtsLoading } = useFrappeGetDocList("District Master", {
+        fields: ["name1"],
+        limit: 100,
+    });
+    const districts = frappeDistricts ? frappeDistricts.map((district: any) => district.name1) : [];
+
+    const { data: frappeComponents, isLoading: componentsLoading } = useFrappeGetDocList("Component", {
+        filters: [["dont_show_in_website", "=", 0]],
+        fields: ["component_name"],
+        orderBy: {
+            field: "component_name",
+            order: "asc",
+        },
+        limit: 100,
+    });
+    const components = frappeComponents ? frappeComponents.map((component: any) => component.component_name) : [];
+
+    const updateUrl = useCallback((nextPage: number) => {
+        const params = new URLSearchParams();
+
+        if (statusFilter !== "all") {
+            params.set("status", statusFilter);
+        }
+
+        if (districtFilter !== "all") {
+            params.set("district", districtFilter);
+        }
+
+        if (componentFilter !== "all") {
+            params.set("component", componentFilter);
+        }
+
+        if (debouncedSearchQuery) {
+            params.set("search", debouncedSearchQuery);
+        }
+
+        if (dateFrom) {
+            params.set("start_date", dateFrom);
+        }
+
+        if (dateTo) {
+            params.set("end_date", dateTo);
+        }
+
+        if (nextPage > 1) {
+            params.set("page", nextPage.toString());
+        }
+
+        if (pageSize !== 20) {
+            params.set("limit", pageSize.toString());
+        }
+
+        const queryString = params.toString();
+        const nextUrl = queryString ? `${pathname}?${queryString}` : pathname;
+        window.history.replaceState(null, "", nextUrl);
+    }, [componentFilter, dateFrom, dateTo, debouncedSearchQuery, districtFilter, pageSize, pathname, statusFilter]);
 
     const fetchApplications = useCallback(async () => {
-        setIsLoading(true);
+        if (isLoading) {
+            setIsLoading(true);
+        } else {
+            setIsListLoading(true);
+        }
+
         try {
             const { applications: fetchedApplications, pagination: fetchedPagination } =
-                await getApplications(page, limit, status, search, district, component, startDate, endDate);
+                await getApplications(
+                    currentPage,
+                    pageSize,
+                    statusFilter,
+                    debouncedSearchQuery,
+                    districtFilter,
+                    componentFilter,
+                    dateFrom,
+                    dateTo
+                );
             setApplications(fetchedApplications);
-            setPagination(fetchedPagination);
+            setPagination(fetchedPagination ?? null);
         } catch (error) {
             console.error("Error fetching applications:", error);
         } finally {
             setIsLoading(false);
+            setIsListLoading(false);
         }
-    }, [page, limit, status, search, district, component, startDate, endDate]);
+    }, [componentFilter, currentPage, dateFrom, dateTo, debouncedSearchQuery, districtFilter, isLoading, pageSize, statusFilter]);
 
     useEffect(() => {
         fetchApplications();
     }, [fetchApplications]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [componentFilter, dateFrom, dateTo, debouncedSearchQuery, districtFilter, statusFilter]);
+
+    useEffect(() => {
+        updateUrl(currentPage);
+    }, [currentPage, updateUrl]);
+
+    const handleViewDetails = (application: Application) => {
+        setSelectedApp(application);
+    };
+
+    const handleReview = (action: "approve" | "reject", remarks: string) => {
+        console.log(`${action} application with remarks:`, remarks);
+        setSelectedApp(null);
+    };
+
+    const handleExport = useCallback(() => {
+        if (!applications.length) {
+            toast({
+                title: "No data",
+                description: "There are no applications to export.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const headers = [
+            "Application ID",
+            "Applicant",
+            "Mobile",
+            "District",
+            "Village",
+            "Component",
+            "Tag Numbers",
+            "Status",
+            "Approver",
+            "Submitted Date",
+        ];
+
+        const rows = applications.map((application) => {
+            let tagNumbers = "N/A";
+            if (application.dairyAnimalData) {
+                const tagNumberArray = application.dairyAnimalData["Registered Dairy Animal Tag Number"] || application.dairyAnimalData["Tag Number"];
+                if (Array.isArray(tagNumberArray)) {
+                    const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== "");
+                    tagNumbers = validTags.length > 0 ? validTags.join(", ") : "N/A";
+                }
+            }
+
+            return {
+                "Application ID": application.id,
+                Applicant: application.applicantName,
+                Mobile: application.mobile || "",
+                District: application.district || "",
+                Village: application.village || "",
+                Component: application.component || "",
+                "Tag Numbers": tagNumbers,
+                Status: application.status || "",
+                Approver: application.approver || "",
+                "Submitted Date": application.submittedDate || "",
+            };
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(rows, { header: headers });
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Applications");
+
+        worksheet["!cols"] = headers.map((header) => {
+            const maxDataLength = rows.reduce((max, row) => {
+                const value = String(row[header as keyof typeof row] || "");
+                return Math.max(max, value.length);
+            }, 0);
+            return { wch: Math.max(header.length, maxDataLength, 15) + 2 };
+        });
+
+        const date = new Date().toISOString().split("T")[0];
+        const parts: string[] = [];
+        if (statusFilter !== "all") parts.push(statusFilter.replace(/\s+/g, "_"));
+        if (districtFilter !== "all") parts.push(districtFilter.replace(/\s+/g, "_"));
+        if (componentFilter !== "all") parts.push(componentFilter.replace(/\s+/g, "_"));
+        if (debouncedSearchQuery) parts.push(`q-${debouncedSearchQuery.replace(/\s+/g, "_")}`);
+        const suffix = parts.length ? `-${parts.join("-")}` : "";
+
+        XLSX.writeFile(workbook, `applications${suffix}-${date}.xlsx`);
+
+        toast({
+            title: "Export started",
+            description: `Exported ${applications.length} applications from current page.`,
+        });
+    }, [applications, componentFilter, debouncedSearchQuery, districtFilter, statusFilter, toast]);
+
+    const handleExportAll = useCallback(async () => {
+        toast({
+            title: "Export started",
+            description: "Fetching all applications with current filters...",
+        });
+
+        try {
+            const apiParams: any = {
+                export: true,
+            };
+
+            if (statusFilter && statusFilter !== "all") {
+                apiParams.status = statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1);
+            }
+
+            if (debouncedSearchQuery.trim()) {
+                apiParams.search = debouncedSearchQuery.trim();
+            }
+
+            if (districtFilter && districtFilter !== "all") {
+                apiParams.district = districtFilter;
+            }
+
+            if (componentFilter && componentFilter !== "all") {
+                apiParams.component = componentFilter;
+            }
+
+            if (dateFrom) {
+                apiParams.start_date = dateFrom;
+            }
+
+            if (dateTo) {
+                apiParams.end_date = dateTo;
+            }
+
+            const response = await frappeBrowser.call().get("vmddp_app.api.api.get_applications_summary", apiParams);
+            const allApplications = (response.message?.applications || []).map((app: any) => {
+                let applicationComponent = "N/A";
+                if (Array.isArray(app.component_list)) {
+                    applicationComponent = app.component_list.join(", ");
+                } else if (typeof app.component_list === "string") {
+                    applicationComponent = app.component_list;
+                }
+
+                return {
+                    id: app.name,
+                    applicantName: app.fullname ?? "Unknown",
+                    aadharNumber: app.aadhar_number ?? "",
+                    mobile: app.mobile_number ?? app.mobile_no ?? "",
+                    district: app.district ?? "N/A",
+                    taluka: app.taluka ?? "",
+                    village: app.village ?? "",
+                    component: applicationComponent,
+                    status: app.status ?? "",
+                    approver: app.approver ?? "",
+                    submittedDate: app.created_at ?? app.date ?? "",
+                    milk_pouring_point: app.milk_pouring_point ?? "",
+                    dairyAnimalData: app.dairy_animal_data,
+                };
+            });
+
+            if (!allApplications.length) {
+                toast({
+                    title: "No data",
+                    description: "There are no applications to export.",
+                    variant: "destructive",
+                });
+                return;
+            }
+
+            const headers = [
+                "Application ID",
+                "Applicant",
+                "Aadhar Number",
+                "Mobile",
+                "District",
+                "Taluka",
+                "Village",
+                "Component",
+                "Tag Numbers",
+                "Status",
+                "Approver",
+                "Submitted Date",
+                "Name Of Milk Pouring Point",
+            ];
+
+            const rows = allApplications.map((application: any) => {
+                let tagNumbers = "N/A";
+                if (application.dairyAnimalData) {
+                    const tagNumberArray = application.dairyAnimalData["Registered Dairy Animal Tag Number"] || application.dairyAnimalData["Tag Number"];
+                    if (Array.isArray(tagNumberArray)) {
+                        const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== "");
+                        tagNumbers = validTags.length > 0 ? validTags.join(", ") : "N/A";
+                    }
+                }
+
+                return {
+                    "Application ID": application.id,
+                    Applicant: application.applicantName,
+                    "Aadhar Number": application.aadharNumber,
+                    Mobile: application.mobile || "",
+                    District: application.district || "",
+                    Taluka: application.taluka || "",
+                    Village: application.village || "",
+                    Component: application.component || "",
+                    "Tag Numbers": tagNumbers,
+                    Status: application.status || "",
+                    Approver: application.approver || "",
+                    "Submitted Date": application.submittedDate || "",
+                    "Name Of Milk Pouring Point": application.milk_pouring_point || "",
+                };
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(rows, { header: headers });
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Applications");
+
+            worksheet["!cols"] = headers.map((header) => {
+                const maxDataLength = rows.reduce((max: number, row: any) => {
+                    const value = String(row[header as keyof typeof row] || "");
+                    return Math.max(max, value.length);
+                }, 0);
+                return { wch: Math.max(header.length, maxDataLength, 15) + 2 };
+            });
+
+            const date = new Date().toISOString().split("T")[0];
+            XLSX.writeFile(workbook, `all-applications-${date}.xlsx`);
+
+            toast({
+                title: "Export completed",
+                description: `Successfully exported ${allApplications.length} applications.`,
+            });
+        } catch (error) {
+            console.error("Export error:", error);
+            toast({
+                title: "Export failed",
+                description: "Failed to export applications. Please try again.",
+                variant: "destructive",
+            });
+        }
+    }, [componentFilter, dateFrom, dateTo, debouncedSearchQuery, districtFilter, statusFilter, toast]);
+
+    const renderLoadingRows = () => (
+        <tbody>
+            {Array.from({ length: 8 }).map((_, index) => (
+                <tr key={index} className="border-b">
+                    <td className="p-2 sm:p-4"><Skeleton className="h-4 w-24" /></td>
+                    <td className="p-2 sm:p-4"><Skeleton className="h-4 w-36" /></td>
+                    <td className="p-2 sm:p-4"><Skeleton className="h-4 w-32" /></td>
+                    <td className="p-2 sm:p-4"><Skeleton className="h-4 w-28" /></td>
+                    <td className="p-2 sm:p-4 hidden md:table-cell"><Skeleton className="h-4 w-24" /></td>
+                    <td className="p-2 sm:p-4"><Skeleton className="h-4 w-24" /></td>
+                    <td className="p-2 sm:p-4"><Skeleton className="h-4 w-24" /></td>
+                    <td className="p-2 sm:p-4 hidden lg:table-cell"><Skeleton className="h-4 w-28" /></td>
+                    <td className="p-2 sm:p-4 hidden lg:table-cell"><Skeleton className="h-4 w-32" /></td>
+                    <td className="p-2 sm:p-4 hidden xl:table-cell"><Skeleton className="h-6 w-24" /></td>
+                    <td className="p-2 sm:p-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                    <td className="p-2 sm:p-4 hidden xl:table-cell"><Skeleton className="h-4 w-24" /></td>
+                    <td className="p-2 sm:p-4 hidden sm:table-cell"><Skeleton className="h-4 w-24" /></td>
+                    <td className="p-2 sm:p-4"><Skeleton className="h-8 w-16" /></td>
+                </tr>
+            ))}
+        </tbody>
+    );
 
     if (isLoading) {
         return (
@@ -280,19 +646,328 @@ export default function Page() {
     }
 
     return (
-        <AdminApplicationsClient
-            applications={applications}
-            currentPage={page}
-            pageSize={limit}
-            initialFilters={{
-                status,
-                search,
-                district,
-                component,
-                start_date: startDate,
-                end_date: endDate
-            }}
-            paginationData={pagination}
-        />
+        <div className="flex-1 flex flex-col overflow-hidden">
+            <header className="flex h-14 sm:h-16 items-center justify-between border-b pl-12 pr-3 sm:pl-6 sm:pr-6 bg-background">
+                <div>
+                    <h1 className="font-display font-semibold text-base sm:text-xl" data-testid="text-applications-title">
+                        Applications Management
+                    </h1>
+                    <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
+                        Review and manage farmer applications
+                    </p>
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm" data-testid="button-export" onClick={handleExport}>
+                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden sm:inline">Export Page</span>
+                        <span className="sm:hidden">Page</span>
+                    </Button>
+                    <Button variant="default" className="gap-1 sm:gap-2 text-xs sm:text-sm" data-testid="button-export-all" onClick={handleExportAll}>
+                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden sm:inline">Export All</span>
+                        <span className="sm:hidden">All</span>
+                    </Button>
+                </div>
+            </header>
+            <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30 ">
+                <div className="space-y-4 sm:space-y-6 max-w-7xl">
+                    <Card>
+                        <CardHeader className="p-4 sm:p-6">
+                            <div className="flex flex-col md:flex-row gap-3 sm:gap-4 items-start md:items-center justify-between">
+                                <div>
+                                    <CardTitle className="text-base sm:text-lg">All Applications</CardTitle>
+                                    <CardDescription className="text-xs sm:text-sm">
+                                        {pagination?.total_applications} applications found
+                                    </CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search by ID or name..."
+                                        value={searchQuery}
+                                        onChange={(event) => setSearchQuery(event.target.value)}
+                                        className="pl-10"
+                                        data-testid="input-search"
+                                    />
+                                </div>
+                                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                    <SelectTrigger data-testid="select-status-filter">
+                                        <SelectValue placeholder="Filter by status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Status</SelectItem>
+                                        <SelectItem value="Pending">Pending</SelectItem>
+                                        <SelectItem value="Approved">Approved</SelectItem>
+                                        <SelectItem value="Rejected">Rejected</SelectItem>
+                                        <SelectItem value="Selected">Selected</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <Select value={districtFilter} onValueChange={setDistrictFilter}>
+                                    <SelectTrigger data-testid="select-district-filter">
+                                        <SelectValue placeholder="Filter by district" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Districts</SelectItem>
+                                        {districtsLoading ? (
+                                            <SelectItem value="loading" disabled>Loading...</SelectItem>
+                                        ) : (
+                                            districts.map((district: string) => (
+                                                <SelectItem key={district} value={district}>
+                                                    {district}
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                                <Select value={componentFilter} onValueChange={setComponentFilter}>
+                                    <SelectTrigger data-testid="select-component-filter">
+                                        <SelectValue placeholder="Filter by component" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Components</SelectItem>
+                                        {componentsLoading ? (
+                                            <SelectItem value="loading" disabled>Loading...</SelectItem>
+                                        ) : (
+                                            components.map((componentName: string) => (
+                                                <SelectItem key={componentName} value={componentName}>
+                                                    {componentName}
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                                <div className="flex gap-2 sm:col-span-2 lg:col-span-1">
+                                    <Input
+                                        type="date"
+                                        value={dateFrom}
+                                        onChange={(event) => setDateFrom(event.target.value)}
+                                        className="flex-1"
+                                        placeholder="From date"
+                                    />
+                                    <Input
+                                        type="date"
+                                        value={dateTo}
+                                        onChange={(event) => setDateTo(event.target.value)}
+                                        className="flex-1"
+                                        placeholder="To date"
+                                    />
+                                </div>
+                            </div>
+                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                    <table className="w-full">
+                                        <thead className="bg-muted sticky top-0 z-30 border-b">
+                                            <tr>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">ID</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Applicant</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Aadhar Number</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Mobile Number</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden md:table-cell">District</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Taluka</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Village</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden lg:table-cell">Milk Pouring Point</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden lg:table-cell">Component</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden xl:table-cell">Tag Numbers</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Status</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden xl:table-cell">Approver</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm hidden sm:table-cell">Date</th>
+                                                <th className="text-left p-2 sm:p-4 font-semibold text-xs sm:text-sm">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        {isListLoading ? renderLoadingRows() : (
+                                            <tbody>
+                                                {applications.map((application, index) => (
+                                                    <tr
+                                                        key={`${application.id}-${index}`}
+                                                        className="border-b hover:bg-muted/30 transition-colors cursor-pointer"
+                                                        data-testid={`application-row-${index}`}
+                                                        onClick={() => handleViewDetails(application)}
+                                                    >
+                                                        <td className="p-2 sm:p-4">
+                                                            <span className="font-mono text-xs sm:text-sm font-semibold">{application.id}</span>
+                                                        </td>
+                                                        <td className="p-2 sm:p-4">
+                                                            <div>
+                                                                <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{application.applicantName}</p>
+                                                                <p className="text-[10px] sm:text-xs text-muted-foreground">{application.mobile}</p>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-2 sm:p-4">
+                                                            <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{application.aadharNumber}</p>
+                                                        </td>
+                                                        <td className="p-2 sm:p-4">
+                                                            <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{application.mobile}</p>
+                                                        </td>
+                                                        <td className="p-2 sm:p-4 hidden md:table-cell">
+                                                            <p className="text-xs sm:text-sm">{application.district || "N/A"}</p>
+                                                        </td>
+                                                        <td className="p-2 sm:p-4">
+                                                            <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{application.taluka}</p>
+                                                        </td>
+                                                        <td className="p-2 sm:p-4">
+                                                            <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{application.village}</p>
+                                                        </td>
+                                                        <td className="p-2 sm:p-4 hidden lg:table-cell">
+                                                            <p className="text-xs sm:text-sm truncate max-w-[150px]">{application.milkPouringPoint || "N/A"}</p>
+                                                        </td>
+                                                        <td className="p-2 sm:p-4 hidden lg:table-cell">
+                                                            <p className="text-xs sm:text-sm truncate max-w-[150px]">{application.component || "N/A"}</p>
+                                                        </td>
+                                                        <td className="p-2 sm:p-4 hidden xl:table-cell">
+                                                            {(() => {
+                                                                if (!application.dairyAnimalData) {
+                                                                    return <p className="text-xs sm:text-sm text-muted-foreground">N/A</p>;
+                                                                }
+
+                                                                const tagNumberArray = application.dairyAnimalData["Registered Dairy Animal Tag Number"] || application.dairyAnimalData["Tag Number"];
+                                                                if (!Array.isArray(tagNumberArray)) {
+                                                                    return <p className="text-xs sm:text-sm text-muted-foreground">N/A</p>;
+                                                                }
+
+                                                                const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== "");
+                                                                if (validTags.length === 0) {
+                                                                    return <p className="text-xs sm:text-sm text-muted-foreground">N/A</p>;
+                                                                }
+
+                                                                return (
+                                                                    <div className="flex flex-wrap gap-1">
+                                                                        {validTags.map((tag: string, tagIndex: number) => (
+                                                                            <Badge key={tagIndex} variant="outline" className="text-xs font-mono">
+                                                                                {tag}
+                                                                            </Badge>
+                                                                        ))}
+                                                                    </div>
+                                                                );
+                                                            })()}
+                                                        </td>
+                                                        <td className="p-2 sm:p-4">{getStatusBadge(application.status)}</td>
+                                                        <td className="p-2 sm:p-4 hidden xl:table-cell">
+                                                            {application.approver ? (
+                                                                <p className="text-xs sm:text-sm truncate max-w-[120px]">{application.approver}</p>
+                                                            ) : (
+                                                                <Badge variant="secondary" className="text-xs" data-testid={`badge-approver-unassigned-${index}`}>
+                                                                    Not Assigned
+                                                                </Badge>
+                                                            )}
+                                                        </td>
+                                                        <td className="p-2 sm:p-4 hidden sm:table-cell">
+                                                            <p className="text-xs sm:text-sm">{application.submittedDate}</p>
+                                                        </td>
+                                                        <td className="p-2 sm:p-4">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={(event) => {
+                                                                    event.stopPropagation();
+                                                                    handleViewDetails(application);
+                                                                }}
+                                                                data-testid={`button-view-${index}`}
+                                                                className="text-xs sm:text-sm px-2 sm:px-3"
+                                                            >
+                                                                <Eye className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                                                                <span className="hidden sm:inline">View</span>
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        )}
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-0 pt-3 sm:pt-4">
+                                <p className="text-xs sm:text-sm text-muted-foreground">
+                                    {pagination ? (
+                                        <>
+                                            Showing {applications.length} of {pagination.total_applications} applications
+                                            (Page {pagination.current_page} of {pagination.total_pages})
+                                        </>
+                                    ) : (
+                                        <>
+                                            Showing {applications.length} items on page {currentPage}
+                                            {applications.length < pageSize && currentPage > 1 ? " (last page)" : ""}
+                                        </>
+                                    )}
+                                </p>
+                                <Pagination>
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                href="#"
+                                                onClick={(event) => {
+                                                    event.preventDefault();
+                                                    if (!(pagination?.has_previous_page ?? currentPage > 1)) {
+                                                        event.preventDefault();
+                                                        return;
+                                                    }
+
+                                                    setCurrentPage((previousPage) => Math.max(1, previousPage - 1));
+                                                }}
+                                                className={!(pagination?.has_previous_page ?? currentPage > 1) ? "pointer-events-none opacity-50" : ""}
+                                            />
+                                        </PaginationItem>
+
+                                        {(() => {
+                                            const totalPages = pagination?.total_pages ?? (applications.length === pageSize ? currentPage + 1 : currentPage);
+                                            const startPage = Math.max(1, currentPage - 2);
+                                            const endPage = Math.min(totalPages, startPage + 4);
+
+                                            return Array.from({ length: endPage - startPage + 1 }, (_, index) => {
+                                                const pageNumber = startPage + index;
+                                                return (
+                                                    <PaginationItem key={pageNumber}>
+                                                        <PaginationLink
+                                                            href="#"
+                                                            onClick={(event) => {
+                                                                event.preventDefault();
+                                                                if (pageNumber !== currentPage) {
+                                                                    setCurrentPage(pageNumber);
+                                                                }
+                                                            }}
+                                                            isActive={pageNumber === currentPage}
+                                                        >
+                                                            {pageNumber}
+                                                        </PaginationLink>
+                                                    </PaginationItem>
+                                                );
+                                            });
+                                        })()}
+
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                href="#"
+                                                onClick={(event) => {
+                                                    event.preventDefault();
+                                                    if (!(pagination?.has_next_page ?? applications.length === pageSize)) {
+                                                        event.preventDefault();
+                                                        return;
+                                                    }
+
+                                                    setCurrentPage((previousPage) => previousPage + 1);
+                                                }}
+                                                className={!(pagination?.has_next_page ?? applications.length === pageSize) ? "pointer-events-none opacity-50" : ""}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </main>
+
+            <ApplicationDetailsDialog
+                application={selectedApp}
+                isOpen={!!selectedApp}
+                onClose={() => setSelectedApp(null)}
+                onReview={handleReview}
+                showReviewActions={true}
+            />
+        </div>
     );
 }
