@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
     Accordion,
     AccordionContent,
@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import ApplicationDetailsDialog from "@/components/ApplicationDetailsDialog";
+import { useDebounce } from "@/hooks/use-debounce";
 import { useExport } from "@/hooks/use-export";
 import { useToast } from "@/hooks/use-toast";
 import { getStatusBadge } from "@/lib/status-utils";
@@ -223,19 +224,14 @@ function mapApplication(app: any): ApplicationSelectionItem {
 
 export default function SubAdminSelectionPage() {
     const { toast } = useToast();
-    const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    const currentPage = parseInt(searchParams.get("page") || "1");
-    const pageSize = parseInt(searchParams.get("limit") || "20");
-    const status = searchParams.get("status") || "all";
-    const search = searchParams.get("search") || "";
-    const village = searchParams.get("village") || "all";
-
-    const [searchQuery, setSearchQuery] = useState(search);
-    const [villageFilter, setVillageFilter] = useState(village);
-    const [applicationStatusFilter, setApplicationStatusFilter] = useState(status);
+    const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get("page") || "1"));
+    const [pageSize] = useState(parseInt(searchParams.get("limit") || "20"));
+    const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+    const [villageFilter, setVillageFilter] = useState(searchParams.get("village") || "all");
+    const [applicationStatusFilter, setApplicationStatusFilter] = useState(searchParams.get("status") || "all");
     const [selectedApplication, setSelectedApplication] = useState<ApplicationSelectionItem | null>(null);
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
     const [applications, setApplications] = useState<ApplicationSelectionItem[]>([]);
@@ -243,18 +239,16 @@ export default function SubAdminSelectionPage() {
     const [currentCountsPage, setCurrentCountsPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState<"Selected" | "Approved">("Selected");
 
-    const applicationsParams = buildApplicationsParams(
-        currentPage,
-        pageSize,
-        status,
-        search,
-        village
+    const debouncedSearchQuery = useDebounce(searchQuery, 400);
+
+    const applicationsParams = useMemo(
+        () => buildApplicationsParams(currentPage, pageSize, applicationStatusFilter, debouncedSearchQuery, villageFilter),
+        [applicationStatusFilter, currentPage, debouncedSearchQuery, pageSize, villageFilter]
     );
 
-    const villageStatusParams = buildVillageStatusParams(
-        currentCountsPage,
-        statusFilter,
-        villageSearchQuery
+    const villageStatusParams = useMemo(
+        () => buildVillageStatusParams(currentCountsPage, statusFilter, villageSearchQuery),
+        [currentCountsPage, statusFilter, villageSearchQuery]
     );
 
     const {
@@ -288,15 +282,13 @@ export default function SubAdminSelectionPage() {
     });
 
     useEffect(() => {
-        setSearchQuery(search);
-        setVillageFilter(village);
-        setApplicationStatusFilter(status);
-    }, [search, status, village]);
-
-    useEffect(() => {
         const fetchedApplications = (applicationsResponse?.message?.applications || []).map(mapApplication);
         setApplications(fetchedApplications);
     }, [applicationsResponse]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [applicationStatusFilter, debouncedSearchQuery, villageFilter]);
 
     const stats = {
         approved: statsResponse?.message?.approved_applications ?? 0,
@@ -318,32 +310,36 @@ export default function SubAdminSelectionPage() {
         total_records: villageStatusData?.pagination?.total_records || null,
     };
 
-    const isLoading = statsLoading || applicationsLoading;
+    const isInitialLoading = statsLoading || (applicationsLoading && applications.length === 0);
+    const isListLoading = applicationsLoading && applications.length > 0;
 
-    const updateFilters = (updates: Record<string, string>) => {
-        const params = new URLSearchParams(searchParams.toString());
+    useEffect(() => {
+        const params = new URLSearchParams();
 
-        Object.entries(updates).forEach(([key, value]) => {
-            if (value && value !== "all" && value !== "") {
-                params.set(key, value);
-            } else {
-                params.delete(key);
-            }
-        });
+        if (applicationStatusFilter !== "all") {
+            params.set("status", applicationStatusFilter);
+        }
 
-        if (!("page" in updates)) {
-            params.delete("page");
+        if (debouncedSearchQuery.trim()) {
+            params.set("search", debouncedSearchQuery.trim());
+        }
+
+        if (villageFilter !== "all") {
+            params.set("village", villageFilter);
+        }
+
+        if (currentPage > 1) {
+            params.set("page", currentPage.toString());
+        }
+
+        if (pageSize !== 20) {
+            params.set("limit", pageSize.toString());
         }
 
         const queryString = params.toString();
-        router.replace(queryString ? `${pathname}?${queryString}` : pathname);
-    };
-
-    const getPageHref = (page: number) => {
-        const params = new URLSearchParams(searchParams.toString());
-        params.set("page", page.toString());
-        return `${pathname}?${params.toString()}`;
-    };
+        const nextUrl = queryString ? `${pathname}?${queryString}` : pathname;
+        window.history.replaceState(null, "", nextUrl);
+    }, [applicationStatusFilter, currentPage, debouncedSearchQuery, pageSize, pathname, villageFilter]);
 
     const handleExportPage = (format: "excel" | "pdf") => {
         if (applications.length === 0) {
@@ -418,7 +414,23 @@ export default function SubAdminSelectionPage() {
         }
     };
 
-    if (isLoading) {
+    const renderLoadingRows = () => (
+        <tbody>
+            {Array.from({ length: 6 }).map((_, index) => (
+                <tr key={index} className="border-b">
+                    <td className="p-2 sm:p-3 md:p-4"><Skeleton className="h-4 w-24" /></td>
+                    <td className="p-2 sm:p-3 md:p-4"><Skeleton className="h-4 w-28" /></td>
+                    <td className="p-2 sm:p-3 md:p-4"><Skeleton className="h-4 w-40" /></td>
+                    <td className="p-2 sm:p-3 md:p-4"><Skeleton className="h-4 w-24" /></td>
+                    <td className="p-2 sm:p-3 md:p-4"><Skeleton className="h-4 w-28" /></td>
+                    <td className="p-2 sm:p-3 md:p-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                    <td className="p-2 sm:p-3 md:p-4"><Skeleton className="h-8 w-16" /></td>
+                </tr>
+            ))}
+        </tbody>
+    );
+
+    if (isInitialLoading) {
         return (
             <div className="flex-1 flex flex-col overflow-hidden">
                 <header className="flex h-14 sm:h-16 items-center justify-between border-b pl-12 pr-3 sm:pl-6 sm:pr-6 bg-background">
@@ -539,7 +551,7 @@ export default function SubAdminSelectionPage() {
                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
                                         <FileCheck className="w-6 h-6 text-white" />
                                     </div>
-                        
+
                                 </div>
                                 <CardDescription className="text-xs sm:text-sm font-medium">Approved</CardDescription>
                                 <CardTitle className="text-3xl sm:text-4xl font-bold text-green-600 drop-shadow-sm">
@@ -554,7 +566,7 @@ export default function SubAdminSelectionPage() {
                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
                                         <CheckCircle className="w-6 h-6 text-white" />
                                     </div>
-                            
+
                                 </div>
                                 <CardDescription className="text-xs sm:text-sm font-medium">Selected</CardDescription>
                                 <CardTitle className="text-3xl sm:text-4xl font-bold text-blue-600 drop-shadow-sm">
@@ -569,7 +581,7 @@ export default function SubAdminSelectionPage() {
                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
                                         <Target className="w-6 h-6 text-white" />
                                     </div>
-                                 
+
                                 </div>
                                 <CardDescription className="text-xs sm:text-sm font-medium">Total Applications</CardDescription>
                                 <CardTitle className="text-3xl sm:text-4xl font-bold text-purple-600 drop-shadow-sm">
@@ -741,16 +753,6 @@ export default function SubAdminSelectionPage() {
                                         placeholder="Search by ID or name..."
                                         value={searchQuery}
                                         onChange={(event) => setSearchQuery(event.target.value)}
-                                        onKeyDown={(event) => {
-                                            if (event.key === "Enter") {
-                                                updateFilters({ search: searchQuery });
-                                            }
-                                        }}
-                                        onBlur={() => {
-                                            if (searchQuery !== search) {
-                                                updateFilters({ search: searchQuery });
-                                            }
-                                        }}
                                         className="pl-8 sm:pl-10 text-xs sm:text-sm h-8 sm:h-10"
                                         data-testid="input-search"
                                     />
@@ -760,7 +762,6 @@ export default function SubAdminSelectionPage() {
                                     value={applicationStatusFilter}
                                     onValueChange={(value) => {
                                         setApplicationStatusFilter(value);
-                                        updateFilters({ status: value });
                                     }}
                                 >
                                     <SelectTrigger data-testid="select-status-filter" className="text-xs sm:text-sm h-8 sm:h-10">
@@ -777,7 +778,6 @@ export default function SubAdminSelectionPage() {
                                     value={villageFilter}
                                     onValueChange={(value) => {
                                         setVillageFilter(value);
-                                        updateFilters({ village: value });
                                     }}
                                 >
                                     <SelectTrigger data-testid="select-village-filter" className="text-xs sm:text-sm h-8 sm:h-10">
@@ -808,91 +808,93 @@ export default function SubAdminSelectionPage() {
                                                 <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Actions</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            {filteredApplications.map((application, index) => (
-                                                <tr
-                                                    key={`${application.id}-${index}`}
-                                                    className="border-b hover:bg-muted/30 transition-colors cursor-pointer"
-                                                    data-testid={`application-row-${index}`}
-                                                    onClick={() => {
-                                                        setSelectedApplication(application);
-                                                        setIsDetailsDialogOpen(true);
-                                                    }}
-                                                >
-                                                    <td className="p-2 sm:p-3 md:p-4">
-                                                        <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
-                                                            <Calendar className="w-3 h-3 flex-shrink-0" />
-                                                            <span className="hidden xs:inline">
-                                                                {application.submittedDate === "Unknown"
-                                                                    ? "Unknown"
-                                                                    : new Date(application.submittedDate).toLocaleDateString()}
-                                                            </span>
-                                                            <span className="xs:hidden">
-                                                                {application.submittedDate === "Unknown"
-                                                                    ? "N/A"
-                                                                    : new Date(application.submittedDate).toLocaleDateString("en", {
-                                                                        month: "short",
-                                                                        day: "numeric",
-                                                                    })}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="p-2 sm:p-3 md:p-4">
-                                                        <div className="font-mono text-xs sm:text-sm">
-                                                            <span className="font-semibold">{application.realApplicationId}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="p-2 sm:p-3 md:p-4">
-                                                        <div className="flex items-center gap-1 sm:gap-2">
-                                                            <User className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
-                                                            <div className="min-w-0">
-                                                                <p className="font-medium text-xs sm:text-sm truncate">
-                                                                    {application.applicantName}
+                                        {isListLoading ? renderLoadingRows() : (
+                                            <tbody>
+                                                {filteredApplications.map((application, index) => (
+                                                    <tr
+                                                        key={`${application.id}-${index}`}
+                                                        className="border-b hover:bg-muted/30 transition-colors cursor-pointer"
+                                                        data-testid={`application-row-${index}`}
+                                                        onClick={() => {
+                                                            setSelectedApplication(application);
+                                                            setIsDetailsDialogOpen(true);
+                                                        }}
+                                                    >
+                                                        <td className="p-2 sm:p-3 md:p-4">
+                                                            <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                                                                <Calendar className="w-3 h-3 flex-shrink-0" />
+                                                                <span className="hidden xs:inline">
+                                                                    {application.submittedDate === "Unknown"
+                                                                        ? "Unknown"
+                                                                        : new Date(application.submittedDate).toLocaleDateString()}
+                                                                </span>
+                                                                <span className="xs:hidden">
+                                                                    {application.submittedDate === "Unknown"
+                                                                        ? "N/A"
+                                                                        : new Date(application.submittedDate).toLocaleDateString("en", {
+                                                                            month: "short",
+                                                                            day: "numeric",
+                                                                        })}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-2 sm:p-3 md:p-4">
+                                                            <div className="font-mono text-xs sm:text-sm">
+                                                                <span className="font-semibold">{application.realApplicationId}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-2 sm:p-3 md:p-4">
+                                                            <div className="flex items-center gap-1 sm:gap-2">
+                                                                <User className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
+                                                                <div className="min-w-0">
+                                                                    <p className="font-medium text-xs sm:text-sm truncate">
+                                                                        {application.applicantName}
+                                                                    </p>
+                                                                    <p className="text-xs text-muted-foreground">{application.mobile}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-2 sm:p-3 md:p-4">
+                                                            <div className="flex items-center gap-1 sm:gap-2">
+                                                                <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
+                                                                <p className="text-xs sm:text-sm truncate">{application.village}</p>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-2 sm:p-3 md:p-4">
+                                                            <div className="flex items-center gap-1 sm:gap-2">
+                                                                <Package className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
+                                                                <p className="text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">
+                                                                    {application.component}
                                                                 </p>
-                                                                <p className="text-xs text-muted-foreground">{application.mobile}</p>
                                                             </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="p-2 sm:p-3 md:p-4">
-                                                        <div className="flex items-center gap-1 sm:gap-2">
-                                                            <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
-                                                            <p className="text-xs sm:text-sm truncate">{application.village}</p>
-                                                        </div>
-                                                    </td>
-                                                    <td className="p-2 sm:p-3 md:p-4">
-                                                        <div className="flex items-center gap-1 sm:gap-2">
-                                                            <Package className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
-                                                            <p className="text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">
-                                                                {application.component}
-                                                            </p>
-                                                        </div>
-                                                    </td>
-                                                    <td className="p-2 sm:p-3 md:p-4">{getStatusBadge(application.status)}</td>
-                                                    <td className="p-2 sm:p-3 md:p-4">
-                                                        {application.status === "Approved" && (
-                                                            <Button
-                                                                size="sm"
-                                                                onClick={(event) => {
-                                                                    event.stopPropagation();
-                                                                    void handleSelect(application.id);
-                                                                }}
-                                                                className="gap-1 sm:gap-2 h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3"
-                                                                data-testid={`button-select-${index}`}
-                                                            >
-                                                                <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                                <span className="hidden xs:inline">Select</span>
-                                                            </Button>
-                                                        )}
-                                                        {application.status === "Selected" && (
-                                                            <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-chart-3">
-                                                                <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                                <span className="hidden xs:inline">Selected</span>
-                                                            </div>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
+                                                        </td>
+                                                        <td className="p-2 sm:p-3 md:p-4">{getStatusBadge(application.status)}</td>
+                                                        <td className="p-2 sm:p-3 md:p-4">
+                                                            {application.status === "Approved" && (
+                                                                <Button
+                                                                    size="sm"
+                                                                    onClick={(event) => {
+                                                                        event.stopPropagation();
+                                                                        void handleSelect(application.id);
+                                                                    }}
+                                                                    className="gap-1 sm:gap-2 h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3"
+                                                                    data-testid={`button-select-${index}`}
+                                                                >
+                                                                    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                                    <span className="hidden xs:inline">Select</span>
+                                                                </Button>
+                                                            )}
+                                                            {application.status === "Selected" && (
+                                                                <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-chart-3">
+                                                                    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                                    <span className="hidden xs:inline">Selected</span>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        )}
                                     </table>
                                 </div>
                             </div>
@@ -907,11 +909,13 @@ export default function SubAdminSelectionPage() {
                                             <PaginationContent>
                                                 <PaginationItem>
                                                     <PaginationLink
-                                                        href={getPageHref(1)}
+                                                        href="#"
                                                         onClick={(event) => {
+                                                            event.preventDefault();
                                                             if (currentPage <= 1) {
-                                                                event.preventDefault();
+                                                                return;
                                                             }
+                                                            setCurrentPage(1);
                                                         }}
                                                         className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
                                                         aria-label="First page"
@@ -921,11 +925,13 @@ export default function SubAdminSelectionPage() {
                                                 </PaginationItem>
                                                 <PaginationItem>
                                                     <PaginationPrevious
-                                                        href={currentPage > 1 ? getPageHref(currentPage - 1) : "#"}
+                                                        href="#"
                                                         onClick={(event) => {
+                                                            event.preventDefault();
                                                             if (currentPage <= 1) {
-                                                                event.preventDefault();
+                                                                return;
                                                             }
+                                                            setCurrentPage((page) => Math.max(1, page - 1));
                                                         }}
                                                         className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
                                                     />
@@ -941,7 +947,13 @@ export default function SubAdminSelectionPage() {
                                                         return (
                                                             <PaginationItem key={pageNumber}>
                                                                 <PaginationLink
-                                                                    href={getPageHref(pageNumber)}
+                                                                    href="#"
+                                                                    onClick={(event) => {
+                                                                        event.preventDefault();
+                                                                        if (pageNumber !== currentPage) {
+                                                                            setCurrentPage(pageNumber);
+                                                                        }
+                                                                    }}
                                                                     isActive={pageNumber === currentPage}
                                                                 >
                                                                     {pageNumber}
@@ -952,22 +964,26 @@ export default function SubAdminSelectionPage() {
                                                 })()}
                                                 <PaginationItem>
                                                     <PaginationNext
-                                                        href={currentPage < totalPages ? getPageHref(currentPage + 1) : "#"}
+                                                        href="#"
                                                         onClick={(event) => {
+                                                            event.preventDefault();
                                                             if (currentPage >= totalPages) {
-                                                                event.preventDefault();
+                                                                return;
                                                             }
+                                                            setCurrentPage((page) => page + 1);
                                                         }}
                                                         className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
                                                     />
                                                 </PaginationItem>
                                                 <PaginationItem>
                                                     <PaginationLink
-                                                        href={getPageHref(totalPages)}
+                                                        href="#"
                                                         onClick={(event) => {
+                                                            event.preventDefault();
                                                             if (currentPage >= totalPages) {
-                                                                event.preventDefault();
+                                                                return;
                                                             }
+                                                            setCurrentPage(totalPages);
                                                         }}
                                                         className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
                                                         aria-label="Last page"
@@ -990,7 +1006,7 @@ export default function SubAdminSelectionPage() {
                                                         const value = parseInt((event.target as HTMLInputElement).value);
                                                         if (!isNaN(value)) {
                                                             const page = Math.max(1, Math.min(totalPages, value));
-                                                            router.replace(getPageHref(page));
+                                                            setCurrentPage(page);
                                                         }
                                                     }
                                                 }}

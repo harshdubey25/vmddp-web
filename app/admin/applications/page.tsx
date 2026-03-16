@@ -6,6 +6,12 @@ import { frappeBrowser } from "@/lib/frappe";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -24,12 +30,12 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Download, Eye } from "lucide-react";
+import { Search, Download, Eye, FileSpreadsheet, FileText } from "lucide-react";
+import { useExport } from "@/hooks/use-export";
 import { useToast } from "@/hooks/use-toast";
 import { getStatusBadge } from "@/lib/status-utils";
 import ApplicationDetailsDialog from "@/components/ApplicationDetailsDialog";
 import { useFrappeGetDocList } from "frappe-react-sdk";
-import * as XLSX from "xlsx";
 
 export interface Application {
     id: string;
@@ -199,6 +205,54 @@ async function getApplications(
     };
 }
 
+function buildExportParams(
+    status: string,
+    search: string,
+    district: string,
+    component: string,
+    startDate: string,
+    endDate: string
+) {
+    const params: Record<string, string> = {};
+
+    if (status !== "all") {
+        params.status = status.charAt(0).toUpperCase() + status.slice(1);
+    }
+
+    if (search.trim()) {
+        params.search = search.trim();
+    }
+
+    if (district !== "all") {
+        params.district = district;
+    }
+
+    if (component !== "all") {
+        params.component = component;
+    }
+
+    if (startDate) {
+        params.start_date = startDate;
+    }
+
+    if (endDate) {
+        params.end_date = endDate;
+    }
+
+    return params;
+}
+
+function buildExportFilename(prefix: string, status: string, search: string, district: string, component: string) {
+    const parts: string[] = [];
+
+    if (status !== "all") parts.push(status.replace(/\s+/g, "_"));
+    if (district !== "all") parts.push(district.replace(/\s+/g, "_"));
+    if (component !== "all") parts.push(component.replace(/\s+/g, "_"));
+    if (search.trim()) parts.push(`q-${search.trim().replace(/\s+/g, "_")}`);
+
+    return parts.length ? `${prefix}-${parts.join("-")}` : prefix;
+}
+
 export default function Page() {
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -219,6 +273,10 @@ export default function Page() {
 
     const debouncedSearchQuery = useDebounce(searchQuery, 500);
     const { toast } = useToast();
+    const { isExporting, handleExport: exportApplications } = useExport({
+        method: "vmddp_app.api.api.get_applications_summary_export",
+        filename: "applications",
+    });
 
     const { data: frappeDistricts, isLoading: districtsLoading } = useFrappeGetDocList("District Master", {
         fields: ["name1"],
@@ -327,7 +385,7 @@ export default function Page() {
         setSelectedApp(null);
     };
 
-    const handleExport = useCallback(() => {
+    const handleExport = useCallback((format: "excel" | "pdf") => {
         if (!applications.length) {
             toast({
                 title: "No data",
@@ -337,212 +395,33 @@ export default function Page() {
             return;
         }
 
-        const headers = [
-            "Application ID",
-            "Applicant",
-            "Mobile",
-            "District",
-            "Village",
-            "Component",
-            "Tag Numbers",
-            "Status",
-            "Approver",
-            "Submitted Date",
-        ];
-
-        const rows = applications.map((application) => {
-            let tagNumbers = "N/A";
-            if (application.dairyAnimalData) {
-                const tagNumberArray = application.dairyAnimalData["Registered Dairy Animal Tag Number"] || application.dairyAnimalData["Tag Number"];
-                if (Array.isArray(tagNumberArray)) {
-                    const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== "");
-                    tagNumbers = validTags.length > 0 ? validTags.join(", ") : "N/A";
-                }
-            }
-
-            return {
-                "Application ID": application.id,
-                Applicant: application.applicantName,
-                Mobile: application.mobile || "",
-                District: application.district || "",
-                Village: application.village || "",
-                Component: application.component || "",
-                "Tag Numbers": tagNumbers,
-                Status: application.status || "",
-                Approver: application.approver || "",
-                "Submitted Date": application.submittedDate || "",
-            };
+        void exportApplications({
+            format,
+            filename: buildExportFilename("applications-page", statusFilter, searchQuery, districtFilter, componentFilter),
+            params: {
+                ...buildExportParams(statusFilter, searchQuery, districtFilter, componentFilter, dateFrom, dateTo),
+                page: currentPage.toString(),
+                limit: pageSize.toString(),
+            },
         });
+    }, [applications.length, componentFilter, currentPage, dateFrom, dateTo, districtFilter, exportApplications, pageSize, searchQuery, statusFilter, toast]);
 
-        const worksheet = XLSX.utils.json_to_sheet(rows, { header: headers });
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Applications");
-
-        worksheet["!cols"] = headers.map((header) => {
-            const maxDataLength = rows.reduce((max, row) => {
-                const value = String(row[header as keyof typeof row] || "");
-                return Math.max(max, value.length);
-            }, 0);
-            return { wch: Math.max(header.length, maxDataLength, 15) + 2 };
-        });
-
-        const date = new Date().toISOString().split("T")[0];
-        const parts: string[] = [];
-        if (statusFilter !== "all") parts.push(statusFilter.replace(/\s+/g, "_"));
-        if (districtFilter !== "all") parts.push(districtFilter.replace(/\s+/g, "_"));
-        if (componentFilter !== "all") parts.push(componentFilter.replace(/\s+/g, "_"));
-        if (debouncedSearchQuery) parts.push(`q-${debouncedSearchQuery.replace(/\s+/g, "_")}`);
-        const suffix = parts.length ? `-${parts.join("-")}` : "";
-
-        XLSX.writeFile(workbook, `applications${suffix}-${date}.xlsx`);
-
-        toast({
-            title: "Export started",
-            description: `Exported ${applications.length} applications from current page.`,
-        });
-    }, [applications, componentFilter, debouncedSearchQuery, districtFilter, statusFilter, toast]);
-
-    const handleExportAll = useCallback(async () => {
-        toast({
-            title: "Export started",
-            description: "Fetching all applications with current filters...",
-        });
-
-        try {
-            const apiParams: any = {
-                export: true,
-            };
-
-            if (statusFilter && statusFilter !== "all") {
-                apiParams.status = statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1);
-            }
-
-            if (debouncedSearchQuery.trim()) {
-                apiParams.search = debouncedSearchQuery.trim();
-            }
-
-            if (districtFilter && districtFilter !== "all") {
-                apiParams.district = districtFilter;
-            }
-
-            if (componentFilter && componentFilter !== "all") {
-                apiParams.component = componentFilter;
-            }
-
-            if (dateFrom) {
-                apiParams.start_date = dateFrom;
-            }
-
-            if (dateTo) {
-                apiParams.end_date = dateTo;
-            }
-
-            const response = await frappeBrowser.call().get("vmddp_app.api.api.get_applications_summary", apiParams);
-            const allApplications = (response.message?.applications || []).map((app: any) => {
-                let applicationComponent = "N/A";
-                if (Array.isArray(app.component_list)) {
-                    applicationComponent = app.component_list.join(", ");
-                } else if (typeof app.component_list === "string") {
-                    applicationComponent = app.component_list;
-                }
-
-                return {
-                    id: app.name,
-                    applicantName: app.fullname ?? "Unknown",
-                    aadharNumber: app.aadhar_number ?? "",
-                    mobile: app.mobile_number ?? app.mobile_no ?? "",
-                    district: app.district ?? "N/A",
-                    taluka: app.taluka ?? "",
-                    village: app.village ?? "",
-                    component: applicationComponent,
-                    status: app.status ?? "",
-                    approver: app.approver ?? "",
-                    submittedDate: app.created_at ?? app.date ?? "",
-                    milk_pouring_point: app.milk_pouring_point ?? "",
-                    dairyAnimalData: app.dairy_animal_data,
-                };
-            });
-
-            if (!allApplications.length) {
-                toast({
-                    title: "No data",
-                    description: "There are no applications to export.",
-                    variant: "destructive",
-                });
-                return;
-            }
-
-            const headers = [
-                "Application ID",
-                "Applicant",
-                "Aadhar Number",
-                "Mobile",
-                "District",
-                "Taluka",
-                "Village",
-                "Component",
-                "Tag Numbers",
-                "Status",
-                "Approver",
-                "Submitted Date",
-                "Name Of Milk Pouring Point",
-            ];
-
-            const rows = allApplications.map((application: any) => {
-                let tagNumbers = "N/A";
-                if (application.dairyAnimalData) {
-                    const tagNumberArray = application.dairyAnimalData["Registered Dairy Animal Tag Number"] || application.dairyAnimalData["Tag Number"];
-                    if (Array.isArray(tagNumberArray)) {
-                        const validTags = tagNumberArray.filter((tag: any) => tag !== null && tag !== undefined && tag !== "");
-                        tagNumbers = validTags.length > 0 ? validTags.join(", ") : "N/A";
-                    }
-                }
-
-                return {
-                    "Application ID": application.id,
-                    Applicant: application.applicantName,
-                    "Aadhar Number": application.aadharNumber,
-                    Mobile: application.mobile || "",
-                    District: application.district || "",
-                    Taluka: application.taluka || "",
-                    Village: application.village || "",
-                    Component: application.component || "",
-                    "Tag Numbers": tagNumbers,
-                    Status: application.status || "",
-                    Approver: application.approver || "",
-                    "Submitted Date": application.submittedDate || "",
-                    "Name Of Milk Pouring Point": application.milk_pouring_point || "",
-                };
-            });
-
-            const worksheet = XLSX.utils.json_to_sheet(rows, { header: headers });
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Applications");
-
-            worksheet["!cols"] = headers.map((header) => {
-                const maxDataLength = rows.reduce((max: number, row: any) => {
-                    const value = String(row[header as keyof typeof row] || "");
-                    return Math.max(max, value.length);
-                }, 0);
-                return { wch: Math.max(header.length, maxDataLength, 15) + 2 };
-            });
-
-            const date = new Date().toISOString().split("T")[0];
-            XLSX.writeFile(workbook, `all-applications-${date}.xlsx`);
-
+    const handleExportAll = useCallback((format: "excel" | "pdf") => {
+        if (!pagination?.total_applications) {
             toast({
-                title: "Export completed",
-                description: `Successfully exported ${allApplications.length} applications.`,
-            });
-        } catch (error) {
-            console.error("Export error:", error);
-            toast({
-                title: "Export failed",
-                description: "Failed to export applications. Please try again.",
+                title: "No data",
+                description: "There are no applications to export.",
                 variant: "destructive",
             });
+            return;
         }
-    }, [componentFilter, dateFrom, dateTo, debouncedSearchQuery, districtFilter, statusFilter, toast]);
+
+        void exportApplications({
+            format,
+            filename: buildExportFilename("applications", statusFilter, searchQuery, districtFilter, componentFilter),
+            params: buildExportParams(statusFilter, searchQuery, districtFilter, componentFilter, dateFrom, dateTo),
+        });
+    }, [componentFilter, dateFrom, dateTo, districtFilter, exportApplications, pagination?.total_applications, searchQuery, statusFilter, toast]);
 
     const renderLoadingRows = () => (
         <tbody>
@@ -657,16 +536,44 @@ export default function Page() {
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm" data-testid="button-export" onClick={handleExport}>
-                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="hidden sm:inline">Export Page</span>
-                        <span className="sm:hidden">Page</span>
-                    </Button>
-                    <Button variant="default" className="gap-1 sm:gap-2 text-xs sm:text-sm" data-testid="button-export-all" onClick={handleExportAll}>
-                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="hidden sm:inline">Export All</span>
-                        <span className="sm:hidden">All</span>
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm" data-testid="button-export" disabled={isExporting}>
+                                <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <span className="hidden sm:inline">Export Page</span>
+                                <span className="sm:hidden">Page</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleExport("excel")}>
+                                <FileSpreadsheet className="w-4 h-4" />
+                                Excel
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                                <FileText className="w-4 h-4" />
+                                PDF
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="default" className="gap-1 sm:gap-2 text-xs sm:text-sm" data-testid="button-export-all" disabled={isExporting}>
+                                <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <span className="hidden sm:inline">Export All</span>
+                                <span className="sm:hidden">All</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleExportAll("excel")}>
+                                <FileSpreadsheet className="w-4 h-4" />
+                                Excel
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExportAll("pdf")}>
+                                <FileText className="w-4 h-4" />
+                                PDF
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </header>
             <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30 ">
