@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import ReportsStats from "./reportsStats";
 import ApplicationByComponent from "./applicationByComponent";
-import VillageWiseApplications from "./villageWiseApplications";
 import DetailApplicationReport from "./detailApplicationReport";
 
 export default function SubAdminReports() {
@@ -43,8 +42,6 @@ export default function SubAdminReports() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                         <ApplicationByComponent />
-
-                        <VillageWiseApplications />
                     </div>
 
                     <DetailApplicationReport />

@@ -243,18 +243,18 @@ export default function DetailApplicationReport() {
                     </div>
                 ) : (
                     <>
-                        <div className="border rounded-lg overflow-hidden">
-                            <div className="overflow-x-auto">
+                        <div className="border rounded-lg overflow-hidden flex flex-col">
+                            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-450px)]">
                                 <table className="w-full min-w-[800px]">
-                                    <thead className="bg-muted/50 border-b">
+                                    <thead className="bg-muted sticky top-0 z-30 border-b">
                                         <tr>
-                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Application ID</th>
-                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Applicant Name</th>
-                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Mobile Number</th>
-                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Village</th>
-                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Components</th>
-                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Applied Date</th>
-                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm">Status</th>
+                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-foreground text-xs sm:text-sm">Application ID</th>
+                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-foreground text-xs sm:text-sm">Applicant Name</th>
+                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-foreground text-xs sm:text-sm">Mobile Number</th>
+                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-foreground text-xs sm:text-sm">Village</th>
+                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-foreground text-xs sm:text-sm">Components</th>
+                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-foreground text-xs sm:text-sm">Applied Date</th>
+                                            <th className="text-left p-2 sm:p-3 md:p-4 font-semibold text-foreground text-xs sm:text-sm">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -262,7 +262,7 @@ export default function DetailApplicationReport() {
                                             applications.map((app, index) => (
                                                 <tr
                                                     key={app.name}
-                                                    className="border-b hover:bg-muted/30 transition-colors"
+                                                    className="border-b last:border-0 hover:bg-muted/30 transition-colors"
                                                     data-testid={`application-row-${index}`}
                                                 >
                                                     <td className="p-2 sm:p-3 md:p-4">

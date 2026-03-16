@@ -619,6 +619,7 @@ export default function ClaimForm({
                                         type="number"
                                         placeholder={quota?.max_quantity ? `Max: ${quota.remaining_quantity} units` : "Enter quantity"}
                                         value={formData.quantity}
+                                        hideSpinners
                                         onChange={(e) => handleInputChange("quantity", e.target.value)}
                                         data-testid="input-quantity"
                                     />
@@ -629,6 +630,7 @@ export default function ClaimForm({
                                         type="number"
                                         placeholder="Enter total amount"
                                         value={formData.totalAmount}
+                                        hideSpinners
                                         onChange={(e) => handleInputChange("totalAmount", e.target.value)}
                                         data-testid="input-total-amount"
                                     />
@@ -656,6 +658,7 @@ export default function ClaimForm({
                                         type="number"
                                         placeholder="Enter number of animals"
                                         value={formData.numberOfAnimalsBenefitted}
+                                        hideSpinners
                                         onChange={(e) => handleInputChange("numberOfAnimalsBenefitted", e.target.value)}
                                         data-testid="input-number-of-animals"
                                     />

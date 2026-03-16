@@ -357,30 +357,32 @@ export default function AdminReports() {
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
-            <header className="flex h-16 items-center justify-between border-b px-6 bg-background">
+            <header className="flex flex-col sm:flex-row h-auto sm:h-16 items-start sm:items-center justify-between gap-3 sm:gap-0 border-b p-4 sm:px-6 bg-background">
                 <div>
-                    <h1 className="font-display font-semibold text-xl" data-testid="text-reports-title">
+                    <h1 className="font-display font-semibold text-lg sm:text-xl" data-testid="text-reports-title">
                         Reports & Analytics
                     </h1>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                         Generate and analyze application reports
                     </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full sm:w-auto">
                     <Button
                         variant="default"
                         onClick={() => handleExportDistrictWiseReport("xlsx")}
                         data-testid="button-export-district-report"
                         disabled={isDownloadingReport}
+                        className="w-full sm:w-auto text-sm"
                     >
                         <Download className="w-4 h-4 mr-2" />
-                        {isDownloadingReport ? "Downloading..." : "District Report"}
+                        <span className="hidden sm:inline">{isDownloadingReport ? "Downloading..." : "District Report"}</span>
+                        <span className="sm:hidden">{isDownloadingReport ? "Downloading..." : "Export"}</span>
                     </Button>
                 </div>
             </header>
 
-            <main className="flex-1 overflow-auto p-6 bg-muted/30">
-                <div className="space-y-6 max-w-7xl">
+            <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 bg-muted/30">
+                <div className="space-y-4 sm:space-y-6 max-w-7xl">
                     <div className="space-y-3">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
                             <div className="space-y-2">
@@ -422,7 +424,7 @@ export default function AdminReports() {
                                 </Select>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                             {statusSummaryCards.map((card) => {
                                 const Icon = card.icon;
                                 return (
@@ -431,14 +433,14 @@ export default function AdminReports() {
                                         className={`relative overflow-hidden border-2 ${card.borderColor} bg-gradient-to-br ${card.gradient} hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm`}
                                     >
                                         <div className={`absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br ${card.gradient} opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110`} />
-                                        <CardContent className="p-6 relative">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <div className={`w-12 h-12 rounded-xl ${card.iconBg} flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6`}>
-                                                    <Icon className="w-6 h-6 text-white" />
+                                        <CardContent className="p-4 sm:p-6 relative">
+                                            <div className="flex items-center justify-between mb-2 sm:mb-3">
+                                                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${card.iconBg} flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6`}>
+                                                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                                 </div>
                                             </div>
-                                            <p className="text-sm font-medium text-muted-foreground mb-1">{card.label}</p>
-                                            <p className={`font-display font-bold text-3xl ${card.accent} drop-shadow-sm`}>
+                                            <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">{card.label}</p>
+                                            <p className={`font-display font-bold text-2xl sm:text-3xl ${card.accent} drop-shadow-sm`}>
                                                 {formatStatusCount(card.value)}
                                             </p>
                                         </CardContent>
@@ -932,18 +934,18 @@ export default function AdminReports() {
                         </CardContent>
                     </Card> */}
                     <div>
-                        <h2 className="text-lg font-semibold mb-3">Report Pages</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <h2 className="text-base sm:text-lg font-semibold mb-3">Report Pages</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             <Link href="/accountant/dd-report" className="block h-full">
                                 <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-blue-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
                                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                            <Receipt className="w-6 h-6 text-white" />
+                                    <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 h-full relative">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Receipt className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm text-blue-700 dark:text-blue-400">DD Reports</h3>
-                                            <p className="text-xs text-muted-foreground">View DD collection reports</p>
+                                            <h3 className="font-semibold text-xs sm:text-sm text-blue-700 dark:text-blue-400 truncate">DD Reports</h3>
+                                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">View DD collection reports</p>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -951,13 +953,13 @@ export default function AdminReports() {
                             <Link href="/accountant/component-allocation" className="block h-full">
                                 <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
                                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-green-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                            <Package className="w-6 h-6 text-white" />
+                                    <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 h-full relative">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Package className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm text-green-700 dark:text-green-400">Component Allocation Report</h3>
-                                            <p className="text-xs text-muted-foreground">Track component allocations</p>
+                                            <h3 className="font-semibold text-xs sm:text-sm text-green-700 dark:text-green-400 truncate">Component Allocation Report</h3>
+                                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Track component allocations</p>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -965,13 +967,13 @@ export default function AdminReports() {
                             <Link href="/admin/dbt-claims-report" className="block h-full">
                                 <Card className="relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-purple-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
                                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                            <Wallet className="w-6 h-6 text-white" />
+                                    <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 h-full relative">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Wallet className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm text-purple-700 dark:text-purple-400">DBT Claims Report</h3>
-                                            <p className="text-xs text-muted-foreground">View DBT claims data</p>
+                                            <h3 className="font-semibold text-xs sm:text-sm text-purple-700 dark:text-purple-400 truncate">DBT Claims Report</h3>
+                                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">View DBT claims data</p>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -979,13 +981,13 @@ export default function AdminReports() {
                             <Link href="/admin/vendor-payments-report" className="block h-full">
                                 <Card className="relative overflow-hidden border-2 border-orange-500/30 bg-gradient-to-br from-orange-500/20 to-orange-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
                                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-orange-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                            <CreditCard className="w-6 h-6 text-white" />
+                                    <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 h-full relative">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm text-orange-700 dark:text-orange-400">Vendor Payments Report</h3>
-                                            <p className="text-xs text-muted-foreground">Monitor vendor payments</p>
+                                            <h3 className="font-semibold text-xs sm:text-sm text-orange-700 dark:text-orange-400 truncate">Vendor Payments Report</h3>
+                                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Monitor vendor payments</p>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -993,13 +995,13 @@ export default function AdminReports() {
                             <Link href="/accountant/admin-expenses" className="block h-full">
                                 <Card className="relative overflow-hidden border-2 border-red-500/30 bg-gradient-to-br from-red-500/20 to-red-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
                                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-red-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                            <Building2 className="w-6 h-6 text-white" />
+                                    <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 h-full relative">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm text-red-700 dark:text-red-400">Admin Expenses Report</h3>
-                                            <p className="text-xs text-muted-foreground">Track administrative expenses</p>
+                                            <h3 className="font-semibold text-xs sm:text-sm text-red-700 dark:text-red-400 truncate">Admin Expenses Report</h3>
+                                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Track administrative expenses</p>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -1007,13 +1009,13 @@ export default function AdminReports() {
                             <Link href="/admin/refunds-report" className="block h-full">
                                 <Card className="relative overflow-hidden border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
                                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                            <RefreshCw className="w-6 h-6 text-white" />
+                                    <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 h-full relative">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm text-indigo-700 dark:text-indigo-400">Refunds Report</h3>
-                                            <p className="text-xs text-muted-foreground">View refund transactions</p>
+                                            <h3 className="font-semibold text-xs sm:text-sm text-indigo-700 dark:text-indigo-400 truncate">Refunds Report</h3>
+                                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">View refund transactions</p>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -1022,18 +1024,18 @@ export default function AdminReports() {
                     </div>
 
                     <div>
-                        <h2 className="text-lg font-semibold mb-3">Monthly Progress Reports (MPR)</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <h2 className="text-base sm:text-lg font-semibold mb-3">Monthly Progress Reports (MPR)</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             <Link href="/admin/mpr/animal-induction" className="block h-full">
                                 <Card className="relative overflow-hidden border-2 border-cyan-500/30 bg-gradient-to-br from-cyan-500/20 to-cyan-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
                                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-cyan-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                            <Target className="w-6 h-6 text-white" />
+                                    <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 h-full relative">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Target className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm text-cyan-700 dark:text-cyan-400">Animal Induction MPR</h3>
-                                            <p className="text-xs text-muted-foreground">View animal induction monthly progress report</p>
+                                            <h3 className="font-semibold text-xs sm:text-sm text-cyan-700 dark:text-cyan-400 truncate">Animal Induction MPR</h3>
+                                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">View animal induction monthly progress report</p>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -1041,13 +1043,13 @@ export default function AdminReports() {
                             <Link href="/admin/mpr/dbt-claims-mpr" className="block h-full">
                                 <Card className="relative overflow-hidden border-2 border-teal-500/30 bg-gradient-to-br from-teal-500/20 to-teal-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
                                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-teal-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                            <PieChart className="w-6 h-6 text-white" />
+                                    <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 h-full relative">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <PieChart className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm text-teal-700 dark:text-teal-400">DBT Claims MPR</h3>
-                                            <p className="text-xs text-muted-foreground">View DBT claims monthly progress report</p>
+                                            <h3 className="font-semibold text-xs sm:text-sm text-teal-700 dark:text-teal-400 truncate">DBT Claims MPR</h3>
+                                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">View DBT claims monthly progress report</p>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -1055,13 +1057,13 @@ export default function AdminReports() {
                             <Link href="/admin/mpr/hgm" className="block h-full">
                                 <Card className="relative overflow-hidden border-2 border-pink-500/30 bg-gradient-to-br from-pink-500/20 to-pink-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
                                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                            <BarChart3 className="w-6 h-6 text-white" />
+                                    <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 h-full relative">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm text-pink-700 dark:text-pink-400">HGM MPR</h3>
-                                            <p className="text-xs text-muted-foreground">View HGM monthly progress report</p>
+                                            <h3 className="font-semibold text-xs sm:text-sm text-pink-700 dark:text-pink-400 truncate">HGM MPR</h3>
+                                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">View HGM monthly progress report</p>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -1069,13 +1071,13 @@ export default function AdminReports() {
                             <Link href="/admin/mpr/all-targets" className="block h-full">
                                 <Card className="relative overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/20 to-amber-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
                                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-amber-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                                    <CardContent className="p-4 flex items-center gap-3 h-full relative">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                            <Layers className="w-6 h-6 text-white" />
+                                    <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 h-full relative">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-sm text-amber-700 dark:text-amber-400">All Targets Report</h3>
-                                            <p className="text-xs text-muted-foreground">View all targets report</p>
+                                            <h3 className="font-semibold text-xs sm:text-sm text-amber-700 dark:text-amber-400 truncate">All Targets Report</h3>
+                                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">View all targets report</p>
                                         </div>
                                     </CardContent>
                                 </Card>

@@ -274,25 +274,25 @@ export default function DBTClaimsMPRPage() {
     const selectedMonthLabel = months.find((month) => month.value === selectedMonth)?.label || "Current Month";
 
     return (
-        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-auto w-full">
+        <div className="flex-1 flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
-                <div className="flex items-center gap-4">
+            <header className="flex flex-col gap-3 sm:gap-4 border-b p-3 sm:p-4 md:p-6 bg-background">
+                <div className="flex items-center gap-2 sm:gap-4">
                     <Link href="/admin/reports">
-                        <Button variant="ghost" size="icon">
-                            <ArrowLeft className="h-5 w-5" />
+                        <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10">
+                            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                         </Button>
                     </Link>
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold">DBT Claims MPR</h1>
-                        <p className="text-sm sm:text-base text-muted-foreground">
+                        <h1 className="text-base sm:text-xl md:text-2xl font-bold">DBT Claims MPR</h1>
+                        <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
                             Direct Benefit Transfer Claims Monthly Progress Report
                         </p>
                     </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2">
                     <Select value={selectedComponent} onValueChange={setSelectedComponent}>
-                        <SelectTrigger className="w-[160px] sm:w-[200px]">
+                        <SelectTrigger className="w-full sm:w-[180px] md:w-[200px] text-sm">
                             <SelectValue placeholder="All Components" />
                         </SelectTrigger>
                         <SelectContent>
@@ -304,202 +304,185 @@ export default function DBTClaimsMPRPage() {
                             ))}
                         </SelectContent>
                     </Select>
-                    <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                        <SelectTrigger className="w-[120px] sm:w-[140px]">
-                            <SelectValue placeholder="Select Month" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {months.map((month) => (
-                                <SelectItem key={month.value} value={month.value}>
-                                    {month.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <Select value={selectedYear} onValueChange={setSelectedYear}>
-                        <SelectTrigger className="w-[90px] sm:w-[100px]">
-                            <SelectValue placeholder="Year" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {years.map((year) => (
-                                <SelectItem key={year.value} value={year.value}>
-                                    {year.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <Button variant="outline" size="icon" onClick={handleRefresh}>
-                        <RefreshCw className="h-4 w-4" />
-                    </Button>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button disabled={isExporting || isLoading} variant="default" size="sm" className="w-full sm:w-auto">
-                                {isExporting ? (
-                                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Exporting...</>
-                                ) : (
-                                    <><FileSpreadsheet className="h-4 w-4 mr-2" />Export</>
-                                )}
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleExport("excel")}>
-                                <FileSpreadsheet className="h-4 w-4 mr-2" />
-                                Export as Excel
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleExport("pdf")}>
-                                <FileText className="h-4 w-4 mr-2" />
-                                Export as PDF
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                            <SelectTrigger className="flex-1 sm:w-[120px] md:w-[140px] text-sm">
+                                <SelectValue placeholder="Select Month" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {months.map((month) => (
+                                    <SelectItem key={month.value} value={month.value}>
+                                        {month.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Select value={selectedYear} onValueChange={setSelectedYear}>
+                            <SelectTrigger className="w-[90px] sm:w-[100px] text-sm">
+                                <SelectValue placeholder="Year" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {years.map((year) => (
+                                    <SelectItem key={year.value} value={year.value}>
+                                        {year.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        <Button variant="outline" size="icon" onClick={handleRefresh} className="h-9">
+                            <RefreshCw className="h-4 w-4" />
+                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button disabled={isExporting || isLoading} variant="default" size="sm" className="flex-1 sm:flex-initial h-9">
+                                    {isExporting ? (
+                                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Exporting...</>
+                                    ) : (
+                                        <><FileSpreadsheet className="h-4 w-4 mr-2" />Export</>
+                                    )}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleExport("excel")}>
+                                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                    Export as Excel
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    Export as PDF
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
-            </div>
+            </header>
+
+            <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 bg-muted/30">
+                <div className="space-y-4 sm:space-y-6">
 
             {/* Summary Cards*/}
             {!isLoading && mergedDistrictData.length > 0 && (
-                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                     <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-blue-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
                             <div className="flex items-center justify-between">
-                                <CardDescription className="text-xs sm:text-sm">{selectedMonthLabel} Districts</CardDescription>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Building2 className="h-5 w-5 text-white" />
+                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">{selectedMonthLabel} Districts</CardDescription>
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                 </div>
                             </div>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-blue-600 drop-shadow-sm">
+                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-600 drop-shadow-sm">
                                 {currentMonthDistrictData.filter(d => d.data.total > 0).length}
                             </CardTitle>
-                            <div className="flex items-center gap-1 text-xs">
-                                <TrendingUp className="h-3 w-3 text-green-600" />
-                                <span className="text-green-600 font-medium">+9%</span>
-                            </div>
+                         
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/20 to-amber-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-amber-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
                             <div className="flex items-center justify-between">
-                                <CardDescription className="text-xs sm:text-sm">{selectedMonthLabel} Quantity</CardDescription>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Package className="h-5 w-5 text-white" />
+                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">{selectedMonthLabel} Quantity</CardDescription>
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Package className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                 </div>
                             </div>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-amber-600 drop-shadow-sm">
+                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-amber-600 drop-shadow-sm">
                                 {formatCurrency(currentMonthTotals.total_quantity)}
                             </CardTitle>
-                            <div className="flex items-center gap-1 text-xs">
-                                <TrendingUp className="h-3 w-3 text-green-600" />
-                                <span className="text-green-600 font-medium">+14%</span>
-                            </div>
+                           
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-cyan-500/30 bg-gradient-to-br from-cyan-500/20 to-cyan-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-cyan-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
                             <div className="flex items-center justify-between">
-                                <CardDescription className="text-xs sm:text-sm">{selectedMonthLabel} Beneficiary Share</CardDescription>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Users className="h-5 w-5 text-white" />
+                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">{selectedMonthLabel} Beneficiary Share</CardDescription>
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                 </div>
                             </div>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-cyan-600 drop-shadow-sm">
+                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-cyan-600 drop-shadow-sm">
                                 ₹{formatCurrency(currentMonthTotals.total_beneficiary_share)}
                             </CardTitle>
-                            <div className="flex items-center gap-1 text-xs">
-                                <TrendingUp className="h-3 w-3 text-green-600" />
-                                <span className="text-green-600 font-medium">+11%</span>
-                            </div>
+                          
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-orange-500/30 bg-gradient-to-br from-orange-500/20 to-orange-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-orange-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
                             <div className="flex items-center justify-between">
-                                <CardDescription className="text-xs sm:text-sm">{selectedMonthLabel} Subsidy</CardDescription>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Wallet className="h-5 w-5 text-white" />
+                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">{selectedMonthLabel} Subsidy</CardDescription>
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                 </div>
                             </div>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-orange-600 drop-shadow-sm">
+                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-orange-600 drop-shadow-sm">
                                 ₹{formatCurrency(currentMonthTotals.total_subsidy)}
                             </CardTitle>
-                            <div className="flex items-center gap-1 text-xs">
-                                <TrendingUp className="h-3 w-3 text-green-600" />
-                                <span className="text-green-600 font-medium">+17%</span>
-                            </div>
+                        
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-purple-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
                             <div className="flex items-center justify-between">
-                                <CardDescription className="text-xs sm:text-sm">Progressive Districts</CardDescription>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Target className="h-5 w-5 text-white" />
+                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">Progressive Districts</CardDescription>
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Target className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                 </div>
                             </div>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-purple-600 drop-shadow-sm">
+                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-purple-600 drop-shadow-sm">
                                 {progressiveDistrictData.filter(d => d.data.total > 0).length}
                             </CardTitle>
-                            <div className="flex items-center gap-1 text-xs">
-                                <TrendingUp className="h-3 w-3 text-green-600" />
-                                <span className="text-green-600 font-medium">+13%</span>
-                            </div>
+                        
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-yellow-500/30 bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-yellow-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
                             <div className="flex items-center justify-between">
-                                <CardDescription className="text-xs sm:text-sm">Progressive Quantity</CardDescription>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Package className="h-5 w-5 text-white" />
+                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">Progressive Quantity</CardDescription>
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Package className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                 </div>
                             </div>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-yellow-600 drop-shadow-sm">
+                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-yellow-600 drop-shadow-sm">
                                 {formatCurrency(progressiveTotals.total_quantity)}
                             </CardTitle>
-                            <div className="flex items-center gap-1 text-xs">
-                                <TrendingUp className="h-3 w-3 text-green-600" />
-                                <span className="text-green-600 font-medium">+19%</span>
-                            </div>
+                           
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-teal-500/30 bg-gradient-to-br from-teal-500/20 to-teal-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-teal-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
                             <div className="flex items-center justify-between">
-                                <CardDescription className="text-xs sm:text-sm">Progressive Beneficiary Share</CardDescription>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Users className="h-5 w-5 text-white" />
+                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">Progressive Beneficiary Share</CardDescription>
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                 </div>
                             </div>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-teal-600 drop-shadow-sm">
+                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-teal-600 drop-shadow-sm">
                                 ₹{formatCurrency(progressiveTotals.total_beneficiary_share)}
                             </CardTitle>
-                            <div className="flex items-center gap-1 text-xs">
-                                <TrendingUp className="h-3 w-3 text-green-600" />
-                                <span className="text-green-600 font-medium">+16%</span>
-                            </div>
+                          
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
                             <div className="flex items-center justify-between">
-                                <CardDescription className="text-xs sm:text-sm">Progressive Subsidy</CardDescription>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Wallet className="h-5 w-5 text-white" />
+                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">Progressive Subsidy</CardDescription>
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                 </div>
                             </div>
-                            <CardTitle className="text-lg sm:text-xl md:text-2xl text-emerald-600 drop-shadow-sm">
+                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-emerald-600 drop-shadow-sm">
                                 ₹{formatCurrency(progressiveTotals.total_subsidy)}
                             </CardTitle>
-                            <div className="flex items-center gap-1 text-xs">
-                                <TrendingUp className="h-3 w-3 text-green-600" />
-                                <span className="text-green-600 font-medium">+21%</span>
-                            </div>
+                          
                         </CardHeader>
                     </Card>
                 </div>
@@ -508,16 +491,16 @@ export default function DBTClaimsMPRPage() {
             {/* Report Card */}
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <FileText className="h-5 w-5" />
-                        DBT Claims - Financial Achievement Report
+                    <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 text-base sm:text-lg md:text-xl">
+                        <FileText className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                        <span>DBT Claims - Financial Achievement Report</span>
                         {selectedComponent !== "all" && (
-                            <span className="text-sm font-normal text-muted-foreground ml-2">
+                            <span className="text-xs sm:text-sm font-normal text-muted-foreground">
                                 ({components.find(c => c.name === selectedComponent)?.component_name || selectedComponent})
                             </span>
                         )}
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-xs sm:text-sm">
                         District-wise breakdown of current month and progressive achievement for DBT claims
                         {filters && ` • Current month: ${filters.current_month_start_date} to ${filters.current_month_end_date} • Progressive: ${filters.progressive_start_date} to ${filters.progressive_end_date}`}
                     </CardDescription>
@@ -663,7 +646,8 @@ export default function DBTClaimsMPRPage() {
                 </CardContent>
             </Card>
 
-
+                </div>
+            </main>
         </div>
     );
 }

@@ -194,8 +194,6 @@ export default function RefundsReport() {
                                     <p className="text-2xl font-bold text-yellow-600 drop-shadow-sm">₹{totalPendingAmount.toLocaleString("en-IN")}</p>
                                     <div className="flex items-center gap-2 text-xs">
                                         <span className="text-muted-foreground">{pendingCount} requests</span>
-                                        <TrendingUp className="h-3 w-3 text-green-600" />
-                                        <span className="text-green-600 font-medium">+7%</span>
                                     </div>
                                 </div>
                             </div>
@@ -214,8 +212,7 @@ export default function RefundsReport() {
                                     <p className="text-2xl font-bold text-green-600 drop-shadow-sm">₹{totalApprovedAmount.toLocaleString("en-IN")}</p>
                                     <div className="flex items-center gap-2 text-xs">
                                         <span className="text-muted-foreground">{approvedCount} requests</span>
-                                        <TrendingUp className="h-3 w-3 text-green-600" />
-                                        <span className="text-green-600 font-medium">+20%</span>
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -234,8 +231,7 @@ export default function RefundsReport() {
                                     <p className="text-2xl font-bold text-red-600 drop-shadow-sm">₹{totalRejectedAmount.toLocaleString("en-IN")}</p>
                                     <div className="flex items-center gap-2 text-xs">
                                         <span className="text-muted-foreground">{rejectedCount} requests</span>
-                                        <TrendingUp className="h-3 w-3 text-red-600 rotate-180" />
-                                        <span className="text-red-600 font-medium">-5%</span>
+                                        
                                     </div>
                                 </div>
                             </div>

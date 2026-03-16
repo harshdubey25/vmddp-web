@@ -125,6 +125,7 @@ const secretoryMenuItems: MenuItem[] = [
 export default function AdminSidebar({ userRole }: AdminSidebarProps) {
   const { logout } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   // const menuItems = userRole === "admin" ? adminMenuItems : subAdminMenuItems;
   let menuItems = [];
   let sidebarTitle = "";
@@ -150,7 +151,7 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
   const location = usePathname();
   return (
     <>
-      {/* Toggle Arrow Button - Always visible on mobile */}
+      {/* Toggle Arrow Button - Mobile */}
       <button
         className="md:hidden fixed left-0 top-3 z-50 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-2 rounded-r-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all"
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -169,17 +170,27 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
       {/* Sidebar - Desktop always visible, Mobile slide-out */}
       <div className={`
         fixed md:relative
-        h-screen w-72 sm:w-80 md:w-56 lg:w-64 flex flex-col border-r bg-gradient-to-b from-background via-background to-muted/20 shadow-2xl md:shadow-none
-        z-50 transition-transform duration-300 ease-in-out
+        h-screen flex flex-col border-r bg-gradient-to-b from-background via-background to-muted/20 shadow-2xl md:shadow-none
+        z-50 transition-all duration-300 ease-in-out
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0
+        ${isCollapsed ? 'md:w-16' : 'w-72 sm:w-80 md:w-56 lg:w-64'}
       `}>
-        <div className="flex h-16 md:h-14 lg:h-16 items-center gap-3 md:gap-2 lg:gap-3 border-b bg-gradient-to-r from-primary/10 via-primary/5 to-background px-5 md:px-4 lg:px-6 pt-1 relative overflow-hidden">
+        <div className={`flex h-16 md:h-14 lg:h-16 items-center border-b bg-gradient-to-r from-primary/10 via-primary/5 to-background relative ${isCollapsed ? 'md:justify-center md:px-2' : 'gap-3 md:gap-2 lg:gap-3 px-5 md:px-4 lg:px-6'} pt-1`}>
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-50" />
-          <div className="w-10 h-10 md:w-8 md:h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0 shadow-md relative z-10">
-            <Shield className="w-5 h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-primary-foreground" />
+          
+          {/* Desktop Toggle Button */}
+          <button
+            className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 z-10 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-1.5 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all border-2 border-background"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
+            {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+          </button>
+          
+          <div className={`rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0 shadow-md relative z-10 ${isCollapsed ? 'md:w-8 md:h-8' : 'w-10 h-10 md:w-8 md:h-8 lg:w-10 lg:h-10'}`}>
+            <Shield className={`text-primary-foreground ${isCollapsed ? 'md:w-4 md:h-4' : 'w-5 h-5 md:w-4 md:h-4 lg:w-5 lg:h-5'}`} />
           </div>
-          <div className="min-w-0 relative z-10">
+          <div className={`min-w-0 relative z-10 ${isCollapsed ? 'md:hidden' : ''}`}>
             <h2 className="font-display font-bold text-sm md:text-xs lg:text-sm truncate bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">VMDDP</h2>
             <p className="text-xs md:text-[10px] lg:text-xs text-muted-foreground font-medium truncate">
               {sidebarTitle}
@@ -187,12 +198,12 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
           </div>
         </div>
 
-        <ScrollArea className="flex-1 px-3 md:px-2 lg:px-3 py-4 md:py-3 lg:py-4">
+        <ScrollArea className={`flex-1 py-4 md:py-3 lg:py-4 ${isCollapsed ? 'md:px-2' : 'px-3 md:px-2 lg:px-3'}`}>
           <nav className="space-y-1">
             {menuItems.map((item, index) => {
               if (item.type === "separator") {
                 return (
-                  <div key={`separator-${index}`} className="my-4">
+                  <div key={`separator-${index}`} className={`my-4 ${isCollapsed ? 'md:hidden' : ''}`}>
                     <Separator className="bg-gradient-to-r from-transparent via-primary/30 to-transparent h-[2px]" />
                     {item.label && (
                       <p className="text-xs text-muted-foreground mt-3 px-3 font-bold uppercase tracking-wider">
@@ -210,27 +221,34 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
                 <Link key={item.path} href={item.path}>
                   <Button
                     variant={isActive ? "secondary" : "ghost"}
-                    className={`w-full justify-start gap-3 md:gap-2 lg:gap-3 text-sm md:text-xs lg:text-sm px-3 md:px-2 lg:px-3 h-10 md:h-9 transition-all duration-200 group relative overflow-hidden ${
+                    className={`w-full transition-all duration-200 group relative overflow-hidden ${
+                      isCollapsed ? 'md:justify-center md:px-0' : 'justify-start gap-3 md:gap-2 lg:gap-3 px-3 md:px-2 lg:px-3'
+                    } text-sm md:text-xs lg:text-sm h-10 md:h-9 ${
                       isActive 
                         ? "bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 shadow-sm font-semibold" 
                         : "hover:bg-primary/5 hover:translate-x-1"
                     }`}
                     data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
                     onClick={() => setMobileMenuOpen(false)}
+                    title={isCollapsed ? item.label : undefined}
                   >
-                    {isActive && (
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-primary/50 rounded-r-full" />
+                    {isActive && !isCollapsed && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-primary/50 rounded-r-full md:block hidden" />
                     )}
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all ${
+                    <div className={`flex items-center justify-center rounded-lg transition-all ${
+                      isCollapsed ? 'md:w-8 md:h-8' : 'w-8 h-8'
+                    } ${
                       isActive 
                         ? "bg-gradient-to-br from-primary to-primary/70 shadow-md" 
                         : "bg-muted/50 group-hover:bg-primary/10 group-hover:scale-110"
                     }`}>
-                      <Icon className={`w-4 h-4 md:w-3.5 md:h-3.5 flex-shrink-0 transition-colors ${
+                      <Icon className={`flex-shrink-0 transition-colors ${
+                        isCollapsed ? 'md:w-4 md:h-4' : 'w-4 h-4 md:w-3.5 md:h-3.5'
+                      } ${
                         isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-primary"
                       }`} />
                     </div>
-                    <span className="truncate">{item.label}</span>
+                    <span className={`truncate ${isCollapsed ? 'md:hidden' : ''}`}>{item.label}</span>
                   </Button>
                 </Link>
               );
@@ -240,20 +258,25 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
 
         <Separator className="bg-gradient-to-r from-transparent via-border to-transparent" />
 
-        <div className="p-3 md:p-2 lg:p-3 bg-gradient-to-t from-muted/20 to-transparent">
+        <div className={`bg-gradient-to-t from-muted/20 to-transparent ${isCollapsed ? 'md:p-2' : 'p-3 md:p-2 lg:p-3'}`}>
           <Button
             variant="ghost"
-            className="w-full justify-start gap-3 md:gap-2 lg:gap-3 text-sm md:text-xs lg:text-sm px-3 md:px-2 lg:px-3 h-10 md:h-9 text-destructive hover:text-destructive hover:bg-destructive/10 hover:translate-x-1 transition-all group relative overflow-hidden border border-transparent hover:border-destructive/20"
+            className={`w-full transition-all group relative overflow-hidden border border-transparent hover:border-destructive/20 ${
+              isCollapsed ? 'md:justify-center md:px-0' : 'justify-start gap-3 md:gap-2 lg:gap-3 px-3 md:px-2 lg:px-3'
+            } text-sm md:text-xs lg:text-sm h-10 md:h-9 text-destructive hover:text-destructive hover:bg-destructive/10 hover:translate-x-1`}
             data-testid="button-logout"
             onClick={() => {
               setMobileMenuOpen(false);
               logout();
             }}
+            title={isCollapsed ? "Logout" : undefined}
           >
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-destructive/10 group-hover:bg-destructive/20 group-hover:scale-110 transition-all">
-              <LogOut className="w-4 h-4 md:w-3.5 md:h-3.5 flex-shrink-0" />
+            <div className={`flex items-center justify-center rounded-lg bg-destructive/10 group-hover:bg-destructive/20 group-hover:scale-110 transition-all ${
+              isCollapsed ? 'md:w-8 md:h-8' : 'w-8 h-8'
+            }`}>
+              <LogOut className={`flex-shrink-0 ${isCollapsed ? 'md:w-4 md:h-4' : 'w-4 h-4 md:w-3.5 md:h-3.5'}`} />
             </div>
-            <span className="font-medium">Logout</span>
+            <span className={`font-medium ${isCollapsed ? 'md:hidden' : ''}`}>Logout</span>
           </Button>
         </div>
       </div>

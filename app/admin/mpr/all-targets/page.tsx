@@ -215,101 +215,86 @@ export default function AllTargetsReportPage() {
 
             {/* Summary Cards */}
             {!isLoading && districtNames.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                     <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-blue-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl group-hover:bg-blue-500/30 transition-all duration-300" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 relative">
                             <div className="flex justify-between items-start">
                                 <div className="flex-1">
-                                    <CardDescription className="text-xs sm:text-sm">Total Districts</CardDescription>
-                                    <CardTitle className="text-xl sm:text-2xl text-blue-600 drop-shadow-sm">{districtNames.length}</CardTitle>
+                                    <CardDescription className="text-[10px] sm:text-xs md:text-sm">Total Districts</CardDescription>
+                                    <CardTitle className="text-lg sm:text-xl md:text-2xl text-blue-600 drop-shadow-sm">{districtNames.length}</CardTitle>
                                 </div>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Building2 className="w-5 h-5 text-white" />
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Building2 className="h-4 w-4 sm:w-5 sm:h-5 text-white" />
                                 </div>
                             </div>
-                            <div className="flex items-center gap-1 text-xs text-blue-600 mt-1">
-                                <TrendingUp className="w-3 h-3" />
-                                <span>+8%</span>
-                            </div>
+                          
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-purple-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl group-hover:bg-purple-500/30 transition-all duration-300" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 relative">
                             <div className="flex justify-between items-start">
                                 <div className="flex-1">
-                                    <CardDescription className="text-xs sm:text-sm">Total Components</CardDescription>
-                                    <CardTitle className="text-xl sm:text-2xl text-purple-600 drop-shadow-sm">{componentNames.length}</CardTitle>
+                                    <CardDescription className="text-[10px] sm:text-xs md:text-sm">Total Components</CardDescription>
+                                    <CardTitle className="text-lg sm:text-xl md:text-2xl text-purple-600 drop-shadow-sm">{componentNames.length}</CardTitle>
                                 </div>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Package className="w-5 h-5 text-white" />
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Package className="h-4 w-4 sm:w-5 sm:h-5 text-white" />
                                 </div>
                             </div>
-                            <div className="flex items-center gap-1 text-xs text-purple-600 mt-1">
-                                <TrendingUp className="w-3 h-3" />
-                                <span>+12%</span>
-                            </div>
+                          
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-orange-500/30 bg-gradient-to-br from-orange-500/20 to-orange-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-orange-500/20 rounded-full blur-2xl group-hover:bg-orange-500/30 transition-all duration-300" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 relative">
                             <div className="flex justify-between items-start">
                                 <div className="flex-1">
-                                    <CardDescription className="text-xs sm:text-sm">Total Physical Target</CardDescription>
-                                    <CardTitle className="text-xl sm:text-2xl text-orange-600 drop-shadow-sm">
+                                    <CardDescription className="text-[10px] sm:text-xs md:text-sm">Total Physical Target</CardDescription>
+                                    <CardTitle className="text-lg sm:text-xl md:text-2xl text-orange-600 drop-shadow-sm">
                                         {targetsData.totals?.total_physical_target || 0}
                                     </CardTitle>
                                 </div>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Target className="w-5 h-5 text-white" />
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Target className="h-4 w-4 sm:w-5 sm:h-5 text-white" />
                                 </div>
                             </div>
-                            <div className="flex items-center gap-1 text-xs text-orange-600 mt-1">
-                                <TrendingUp className="w-3 h-3" />
-                                <span>+15%</span>
-                            </div>
+                          
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-green-500/20 rounded-full blur-2xl group-hover:bg-green-500/30 transition-all duration-300" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 relative">
                             <div className="flex justify-between items-start">
                                 <div className="flex-1">
-                                    <CardDescription className="text-xs sm:text-sm">Total Financial Target</CardDescription>
-                                    <CardTitle className="text-xl sm:text-2xl text-green-600 drop-shadow-sm">
+                                    <CardDescription className="text-[10px] sm:text-xs md:text-sm">Total Financial Target</CardDescription>
+                                    <CardTitle className="text-lg sm:text-xl md:text-2xl text-green-600 drop-shadow-sm">
                                         {formatCurrency(targetsData.totals?.total_financial_target || 0)}
                                     </CardTitle>
                                 </div>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Wallet className="w-5 h-5 text-white" />
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Wallet className="h-4 w-4 sm:w-5 sm:h-5 text-white" />
                                 </div>
                             </div>
-                            <div className="flex items-center gap-1 text-xs text-green-600 mt-1">
-                                <TrendingUp className="w-3 h-3" />
-                                <span>+18%</span>
-                            </div>
+                        
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 hover:-translate-y-1 transition-all duration-300 group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-2xl group-hover:bg-indigo-500/30 transition-all duration-300" />
-                        <CardHeader className="pb-2 relative">
+                        <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 relative">
                             <div className="flex justify-between items-start">
                                 <div className="flex-1">
-                                    <CardDescription className="text-xs sm:text-sm">Admin Expense Target</CardDescription>
-                                    <CardTitle className="text-xl sm:text-2xl text-indigo-600 drop-shadow-sm">
+                                    <CardDescription className="text-[10px] sm:text-xs md:text-sm">Admin Expense Target</CardDescription>
+                                    <CardTitle className="text-lg sm:text-xl md:text-2xl text-indigo-600 drop-shadow-sm">
                                         {formatCurrency(targetsData.totals?.admin_expense_target || 0)}
                                     </CardTitle>
                                 </div>
-                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Wallet className="w-5 h-5 text-white" />
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Wallet className="h-4 w-4 sm:w-5 sm:h-5 text-white" />
                                 </div>
                             </div>
-                            <div className="flex items-center gap-1 text-xs text-indigo-600 mt-1">
-                                <TrendingUp className="w-3 h-3" />
-                                <span>+10%</span>
-                            </div>
+                         
                         </CardHeader>
                     </Card>
                 </div>
@@ -317,12 +302,12 @@ export default function AllTargetsReportPage() {
 
             {/* Report Card */}
             <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <FileText className="h-5 w-5" />
+                <CardHeader className="p-3 sm:p-4 md:p-6">
+                    <CardTitle className="flex items-center gap-2 text-base sm:text-lg md:text-xl">
+                        <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
                         Physical & Financial Targets - All Components
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-xs sm:text-sm">
                         District-wise breakdown of physical and financial targets for all components
                     </CardDescription>
                 </CardHeader>
