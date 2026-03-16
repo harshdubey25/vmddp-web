@@ -144,10 +144,7 @@ export default function AdminComponents() {
                                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
                                             <Package className="w-6 h-6 text-white" />
                                         </div>
-                                        <span className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 flex items-center gap-1 shadow-sm">
-                                            <TrendingUp className="w-3 h-3" />
-                                            +4.2%
-                                        </span>
+                                      
                                     </div>
                                     <div>
                                         <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Total Components</p>
@@ -163,10 +160,7 @@ export default function AdminComponents() {
                                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
                                             <Settings className="w-6 h-6 text-white" />
                                         </div>
-                                        <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1 shadow-sm">
-                                            <TrendingUp className="w-3 h-3" />
-                                            +6.8%
-                                        </span>
+                                     
                                     </div>
                                     <div>
                                         <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Active Schemes</p>
@@ -184,10 +178,7 @@ export default function AdminComponents() {
                                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
                                             <BarChart3 className="w-6 h-6 text-white" />
                                         </div>
-                                        <span className="text-xs font-semibold px-2 py-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 flex items-center gap-1 shadow-sm">
-                                            <TrendingUp className="w-3 h-3" />
-                                            +9.3%
-                                        </span>
+                                      
                                     </div>
                                     <div>
                                         <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Total Applications</p>

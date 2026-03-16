@@ -643,10 +643,7 @@ export default function AdminSelectionClient({
                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
                                         <FileCheck className="w-6 h-6 text-white" />
                                     </div>
-                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1 shadow-sm">
-                                        <TrendingUp className="w-3 h-3" />
-                                        +5.2%
-                                    </span>
+                            
                                 </div>
                                 <CardDescription className="text-xs sm:text-sm font-medium">Approved</CardDescription>
                                 <CardTitle className="text-3xl sm:text-4xl font-bold text-green-600 drop-shadow-sm">
@@ -661,10 +658,7 @@ export default function AdminSelectionClient({
                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
                                         <CheckCircle className="w-6 h-6 text-white" />
                                     </div>
-                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 flex items-center gap-1 shadow-sm">
-                                        <TrendingUp className="w-3 h-3" />
-                                        +8.1%
-                                    </span>
+                                
                                 </div>
                                 <CardDescription className="text-xs sm:text-sm font-medium">Selected</CardDescription>
                                 <CardTitle className="text-3xl sm:text-4xl font-bold text-blue-600 drop-shadow-sm">
@@ -679,10 +673,7 @@ export default function AdminSelectionClient({
                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
                                         <Target className="w-6 h-6 text-white" />
                                     </div>
-                                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 flex items-center gap-1 shadow-sm">
-                                        <TrendingUp className="w-3 h-3" />
-                                        +12.3%
-                                    </span>
+                                
                                 </div>
                                 <CardDescription className="text-xs sm:text-sm font-medium">Total Applications</CardDescription>
                                 <CardTitle className="text-3xl sm:text-4xl font-bold text-purple-600 drop-shadow-sm">
