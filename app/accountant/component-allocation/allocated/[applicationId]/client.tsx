@@ -95,7 +95,11 @@ export default function ComponentAllocationDetails({
         );
     }
 
-    const totalCost = (allocationDoc.animal_cost || 0) + (allocationDoc.collar_cost || 0) + (allocationDoc.transportation_cost || 0);
+    const totalCost =
+        (allocationDoc.animal_cost || 0) +
+        (allocationDoc.collar_cost || 0) +
+        (allocationDoc.premium_paid || 0) +
+        (allocationDoc.transportation_cost || 0);
 
     return (
         <div className="min-h-screen bg-background w-full overflow-y-auto">
@@ -324,6 +328,10 @@ export default function ComponentAllocationDetails({
                             <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground">Collar Cost</span>
                                 <span className="font-medium">{formatCurrency(allocationDoc.collar_cost)}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Premium Paid</span>
+                                <span className="font-medium">{formatCurrency(allocationDoc.premium_paid)}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground">Transportation Cost</span>
