@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react"
-import { useFrappeGetDocList, useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { useAuth } from "@/context/AuthContext";
 import {
     Package,
@@ -19,7 +19,8 @@ import {
     Clock,
     CheckCircle,
     Eye,
-    TrendingUp
+    TrendingUp,
+    Ban,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useExport } from "@/hooks/use-export";
@@ -32,6 +33,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { UserRole } from "@/enums/roles";
+import CancelDDDialog, { DDDocDetails, PendingApplicationForDDCancel } from "@/app/accountant/component-allocation/CancelDDDialog";
 
 const getComponentIcon = (component: string) => {
     if (component === "Animal Induction") return <Tag className="h-5 w-5" />;
@@ -65,6 +67,8 @@ export default function ComponentAllocation() {
     const [componentFilter, setComponentFilter] = useState("all")
     const [pendingPage, setPendingPage] = useState(1)
     const [completedPage, setCompletedPage] = useState(1)
+    const [showCancelDDDialog, setShowCancelDDDialog] = useState(false)
+    const [selectedPendingApplication, setSelectedPendingApplication] = useState<PendingApplicationForDDCancel | null>(null)
 
     const { toast } = useToast();
 
@@ -78,7 +82,7 @@ export default function ComponentAllocation() {
         fields: ['name'],
         filters: [['name', 'in', ['HGM (Pregnant cow)', 'Animal Induction']]],
     })
-    const { data: ddCompletedApplications } = useFrappeGetCall<DDCompletedApplication>('vmddp_app.api.v1.accountant.get_pending_component_allocation_list', {
+    const { data: ddCompletedApplications, mutate: mutatePendingApplications } = useFrappeGetCall<DDCompletedApplication>('vmddp_app.api.v1.accountant.get_pending_component_allocation_list', {
         district: districtFilter === 'all' ? null : districtFilter,
         search_text: aadharFilter.length === 0 ? null : aadharFilter,
         component: componentFilter === 'all' ? null : componentFilter,
@@ -101,11 +105,25 @@ export default function ComponentAllocation() {
             total_applications: number;
         }
     }>('vmddp_app.api.v1.accountant.get_component_allocation_stats')
+    const { call: cancelDoc } = useFrappePostCall("frappe.client.cancel");
     const { user } = useAuth()
     const isAccountant = user?.roles?.includes(UserRole.VMDDP_ACCOUNTANT);
     const pendingApplications = ddCompletedApplications?.message?.data ?? []
-
     const completedList = completedAllocations?.message?.data ?? [];
+
+    const { data: ddDetailsList, isLoading: loadingDDDetails } = useFrappeGetDocList<DDDocDetails>("DD", {
+        fields: ["name", "application", "component", "item", "dd_number", "dd_date", "amount", "source_bank_name", "branch_name"],
+        filters: selectedPendingApplication
+            ? [
+                ["application", "=", selectedPendingApplication.name],
+                ["dd_number", "=", selectedPendingApplication.dd_number],
+            ]
+            : [["name", "=", "__none__"]],
+        limit: 1,
+        orderBy: { field: "creation", order: "desc" },
+    });
+
+    const selectedDD = ddDetailsList?.[0] || null;
 
     const handleFilterChange = () => {
         setPendingPage(1);
@@ -144,6 +162,48 @@ export default function ComponentAllocation() {
         if (districtFilter !== "all") params.district = districtFilter;
 
         exportData({ params, format });
+    };
+
+    const handleOpenCancelDialog = (application: ComponentAllocationItem) => {
+        setSelectedPendingApplication(application);
+        setShowCancelDDDialog(true);
+    };
+
+    const handleCancelDD = async () => {
+        if (!selectedPendingApplication) {
+            return;
+        }
+
+        if (!selectedDD?.name) {
+            toast({
+                title: "DD not found",
+                description: "Unable to find the DD document for this application.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        try {
+            await cancelDoc({
+                doctype: "DD",
+                name: selectedDD.name,
+            });
+
+            toast({
+                title: "DD Cancelled",
+                description: `DD ${selectedDD.dd_number} has been cancelled successfully.`,
+            });
+
+            setShowCancelDDDialog(false);
+            setSelectedPendingApplication(null);
+            mutatePendingApplications();
+        } catch (error: any) {
+            toast({
+                title: "Cancellation Failed",
+                description: error?.message || "Failed to cancel DD.",
+                variant: "destructive",
+            });
+        }
     };
 
     return (
@@ -363,16 +423,27 @@ export default function ComponentAllocation() {
                                                             </td>
                                                             {isAccountant && (
                                                                 <td className="p-3 text-xs sm:text-sm border">
-                                                                    <Link href={`/accountant/component-allocation/${encodeURIComponent(app.name)}`}>
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        <Link href={`/accountant/component-allocation/${encodeURIComponent(app.name)}`}>
+                                                                            <Button
+                                                                                size="sm"
+                                                                                variant="outline"
+                                                                                data-testid={`button-allocate-${app.name}`}
+                                                                            >
+                                                                                <ChevronRight className="h-4 w-4 mr-1" />
+                                                                                Allocate
+                                                                            </Button>
+                                                                        </Link>
                                                                         <Button
                                                                             size="sm"
-                                                                            variant="outline"
-                                                                            data-testid={`button-allocate-${app.name}`}
+                                                                            variant="destructive"
+                                                                            onClick={() => handleOpenCancelDialog(app)}
+                                                                            data-testid={`button-cancel-dd-${app.name}`}
                                                                         >
-                                                                            <ChevronRight className="h-4 w-4 mr-1" />
-                                                                            Allocate
+                                                                            <Ban className="h-4 w-4 mr-1" />
+                                                                            Cancel DD
                                                                         </Button>
-                                                                    </Link>
+                                                                    </div>
                                                                 </td>
                                                             )}
                                                         </tr>
@@ -514,6 +585,19 @@ export default function ComponentAllocation() {
                     </Card>
                 </div>
             </div>
+            <CancelDDDialog
+                open={showCancelDDDialog}
+                onOpenChange={(open) => {
+                    setShowCancelDDDialog(open);
+                    if (!open) {
+                        setSelectedPendingApplication(null);
+                    }
+                }}
+                selectedPendingApplication={selectedPendingApplication}
+                selectedDD={selectedDD}
+                loadingDDDetails={loadingDDDetails}
+                onCancelDD={handleCancelDD}
+            />
         </div>
     );
 

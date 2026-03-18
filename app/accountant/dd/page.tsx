@@ -70,6 +70,13 @@ export default function DDCollection() {
         village: "",
     });
 
+    const [cancelledFilters, setCancelledFilters] = useState({
+        aadhaar: "",
+        district: "",
+        taluka: "",
+        village: "",
+    });
+
     // Pagination states
     const initialApprovedPage = Number(
         searchParams.get("approvedPage") || searchParams.get("page") || 1,
@@ -77,8 +84,12 @@ export default function DDCollection() {
     const initialSelectedPage = Number(
         searchParams.get("collectedPage") || searchParams.get("page") || 1,
     );
+    const initialCancelledPage = Number(
+        searchParams.get("cancelledPage") || searchParams.get("page") || 1,
+    );
     const [approvedPage, setApprovedPage] = useState(initialApprovedPage);
     const [selectedPage, setSelectedPage] = useState(initialSelectedPage);
+    const [cancelledPage, setCancelledPage] = useState(initialCancelledPage);
     const [approvedTotal, setApprovedTotal] = useState(0);
     const pageSize = 20;
 
@@ -87,6 +98,10 @@ export default function DDCollection() {
     const debouncedCollectedDistrict = useDebounce(collectedFilters.district, 500);
     const debouncedCollectedTaluka = useDebounce(collectedFilters.taluka, 500);
     const debouncedCollectedVillage = useDebounce(collectedFilters.village, 500);
+    const debouncedCancelledAadhaar = useDebounce(cancelledFilters.aadhaar, 500);
+    const debouncedCancelledDistrict = useDebounce(cancelledFilters.district, 500);
+    const debouncedCancelledTaluka = useDebounce(cancelledFilters.taluka, 500);
+    const debouncedCancelledVillage = useDebounce(cancelledFilters.village, 500);
 
     const {
         data: statsData,
@@ -109,6 +124,21 @@ export default function DDCollection() {
 
     const ddCompletedApplications = completedDDResponse?.message?.data || [];
     const selectedPagination = completedDDResponse?.message?.pagination || null;
+
+    const { data: cancelledDDResponse, isLoading: cancelledDDLoading } = useFrappeGetCall(
+        "vmddp_app.api.v1.accountant.get_cancelled_dd_list",
+        {
+            limit_start: (cancelledPage - 1) * pageSize,
+            limit_page_length: pageSize,
+            search_text: debouncedCancelledAadhaar || undefined,
+            district: debouncedCancelledDistrict || undefined,
+            taluka: debouncedCancelledTaluka || undefined,
+            village: debouncedCancelledVillage || undefined,
+        },
+    );
+
+    const cancelledDDApplications = cancelledDDResponse?.message?.data || [];
+    const cancelledPagination = cancelledDDResponse?.message?.pagination || null;
     // Fetch approved applications
     const fetchselectedApplications = async () => {
         setLoading(true);
@@ -177,13 +207,19 @@ export default function DDCollection() {
                 params.delete("collectedPage");
             }
 
+            if (cancelledPage && cancelledPage > 1) {
+                params.set("cancelledPage", String(cancelledPage));
+            } else {
+                params.delete("cancelledPage");
+            }
+
             const query = params.toString();
             // Use replace to avoid adding history entries on every change
             router.replace(query ? `?${query}` : `/accountant/dd`);
         } catch (err) {
             console.error("Error syncing page params to URL", err);
         }
-    }, [approvedPage, selectedPage, activeTab]);
+    }, [approvedPage, selectedPage, cancelledPage, activeTab]);
 
     const handleSelectApplication = (app: DDApplication) => {
         router.push(
@@ -216,6 +252,16 @@ export default function DDCollection() {
     }) => {
         setSelectedPage(1); // Reset to first page on filter change
         setCollectedFilters(filters);
+    };
+
+    const handleCancelledFilterChange = (filters: {
+        aadhaar: string;
+        district: string;
+        taluka: string;
+        village: string;
+    }) => {
+        setCancelledPage(1);
+        setCancelledFilters(filters);
     };
 
     const getFullName = (app: DDApplication) => {
@@ -324,7 +370,7 @@ export default function DDCollection() {
                     </Card>
 
                     <Card data-testid="card-pending" className="relative overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-amber-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
-                         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
                         <CardContent className="pt-6 relative z-10">
                             <div className="flex items-center gap-4">
                                 <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
@@ -374,7 +420,7 @@ export default function DDCollection() {
                     onValueChange={handleTabChange}
                     className="w-full"
                 >
-                    <TabsList className="grid w-full grid-cols-2 max-w-md">
+                    <TabsList className="grid w-full grid-cols-3 max-w-2xl">
                         <TabsTrigger
                             value="approved"
                             className="flex items-center gap-2"
@@ -390,6 +436,14 @@ export default function DDCollection() {
                         >
                             <FileText className="h-4 w-4" />
                             Collected DDs
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="cancelled"
+                            className="flex items-center gap-2"
+                            data-testid="tab-cancelled"
+                        >
+                            <X className="h-4 w-4" />
+                            Cancelled DDs
                         </TabsTrigger>
                     </TabsList>
 
@@ -816,6 +870,162 @@ export default function DDCollection() {
                                                         disabled={
                                                             !selectedPagination?.has_next_page
                                                         }
+                                                    >
+                                                        Next
+                                                        <ChevronRight className="h-4 w-4 ml-1" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="cancelled" className="space-y-4">
+                        <DDFilters
+                            onFilterChange={handleCancelledFilterChange}
+                            initialFilters={cancelledFilters}
+                        />
+
+                        <Card data-testid="card-cancelled-dd-list">
+                            <CardHeader className="pb-4">
+                                <div>
+                                    <CardTitle>Cancelled DDs</CardTitle>
+                                    <CardDescription>
+                                        {cancelledDDApplications.length} cancelled demand drafts
+                                    </CardDescription>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                {cancelledDDLoading ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        Loading...
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="border rounded-lg overflow-hidden flex flex-col">
+                                            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                                <table className="w-full min-w-[900px]">
+                                                    <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                        <tr>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Application ID
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Beneficiary
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Location
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Component
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Amount
+                                                            </th>
+                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                Status
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {cancelledDDApplications.map(
+                                                            (app: DDApplication) => (
+                                                                <tr
+                                                                    key={app.name}
+                                                                    data-testid={`row-cancelled-dd-${app.name}`}
+                                                                    className="border-b hover:bg-muted/30"
+                                                                >
+                                                                    <td className="p-3 text-xs sm:text-sm font-medium">
+                                                                        {app.name}
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div>
+                                                                            <p className="font-medium">
+                                                                                {getFullName(app)}
+                                                                            </p>
+                                                                            <p className="text-xs text-muted-foreground">
+                                                                                {app.aadhar_number}
+                                                                            </p>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <div className="flex flex-wrap gap-1">
+                                                                            {app.district && (
+                                                                                <Badge variant="outline" className="text-xs">
+                                                                                    {app.district}
+                                                                                </Badge>
+                                                                            )}
+                                                                            {app.taluka && (
+                                                                                <Badge variant="outline" className="text-xs">
+                                                                                    {app.taluka}
+                                                                                </Badge>
+                                                                            )}
+                                                                            {app.village && (
+                                                                                <Badge variant="outline" className="text-xs">
+                                                                                    {app.village}
+                                                                                </Badge>
+                                                                            )}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <Badge variant="outline">
+                                                                            {app.component_name}
+                                                                        </Badge>
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm font-medium">
+                                                                        ₹{(app.amount || 0).toLocaleString("en-IN")}
+                                                                    </td>
+                                                                    <td className="p-3 text-xs sm:text-sm">
+                                                                        <Badge className="bg-red-500/10 text-red-500 border-red-500/20">
+                                                                            {app.component_status}
+                                                                        </Badge>
+                                                                    </td>
+                                                                </tr>
+                                                            ),
+                                                        )}
+                                                        {cancelledDDApplications.length === 0 && (
+                                                            <tr>
+                                                                <td
+                                                                    colSpan={6}
+                                                                    className="text-center py-8 text-xs sm:text-sm text-muted-foreground"
+                                                                >
+                                                                    {cancelledFilters.aadhaar ||
+                                                                        cancelledFilters.district ||
+                                                                        cancelledFilters.taluka ||
+                                                                        cancelledFilters.village
+                                                                        ? "No cancelled DDs found matching the selected filters"
+                                                                        : "No cancelled DD entries found"}
+                                                                </td>
+                                                            </tr>
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        {cancelledDDApplications.length > 0 && (
+                                            <div className="flex items-center justify-between mt-4">
+                                                <div className="text-sm text-muted-foreground">
+                                                    Page {cancelledPagination?.current_page ?? cancelledPage} of {cancelledPagination?.total_pages ?? 1} • {cancelledPagination?.total_items ?? cancelledDDApplications.length} total items
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setCancelledPage((p) => Math.max(1, p - 1))}
+                                                        disabled={!cancelledPagination?.has_previous_page}
+                                                    >
+                                                        <ChevronLeft className="h-4 w-4 mr-1" />
+                                                        Previous
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setCancelledPage((p) => p + 1)}
+                                                        disabled={!cancelledPagination?.has_next_page}
                                                     >
                                                         Next
                                                         <ChevronRight className="h-4 w-4 ml-1" />
