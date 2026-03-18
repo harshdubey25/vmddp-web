@@ -15,10 +15,14 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 
-enum DDComponents {
-    HGM = "HGM (Pregnant cow)",
-    ANIMAL_INDUCTION = "Animal Induction",
-}
+type ComponentItemResponse = {
+    message?: {
+        data?: Array<{
+            item_name: string;
+            item_label: string;
+        }>;
+    };
+};
 
 export default function DDCollectionForm({
     applicationId
@@ -40,6 +44,15 @@ export default function DDCollectionForm({
 
     const application = applicationResponse?.message?.[0];
     console.log("Fetched Application:", application);
+
+    const { data: componentItemsResponse, isLoading: loadingComponentItems } = useFrappeGetCall<ComponentItemResponse>(
+        (application?.component_name ? "vmddp_app.api.components.get_items_by_component" : null) as string,
+        application?.component_name ? { component: application.component_name } : undefined,
+        undefined,
+        { revalidateOnFocus: false }
+    );
+
+    const animalOptions = componentItemsResponse?.message?.data || [];
 
     const { call: submitDD, loading: isSubmitting, error: submitError } = useFrappePostCall(
         "vmddp_app.api.v1.accountant.submit_dd_application"
@@ -356,27 +369,20 @@ export default function DDCollectionForm({
                                     value={ddFormData.animalType}
                                     onValueChange={(value) => setDdFormData({ ...ddFormData, animalType: value })}
                                 >
-                                    <SelectTrigger id="animalType" data-testid="select-animal-type">
-                                        <SelectValue placeholder="Select animal type" />
+                                    <SelectTrigger id="animalType" data-testid="select-animal-type" disabled={loadingComponentItems || animalOptions.length === 0}>
+                                        <SelectValue placeholder={loadingComponentItems ? "Loading animal types..." : "Select animal type"} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {application?.component_name.toLowerCase() === DDComponents.ANIMAL_INDUCTION.toLowerCase() ? (
-                                            <>
-                                                <SelectItem value="Desi Cow">Desi Cow</SelectItem>
-                                                <SelectItem value="CrossBreed">CrossBreed</SelectItem>
-                                                <SelectItem value="Buffalo">Buffalo</SelectItem>
-                                            </>
-                                        ) : application?.component_name.toLowerCase() === DDComponents.HGM.toLowerCase() ? (
-                                            <>
-                                                <SelectItem value="Cow">Cow</SelectItem>
-                                                <SelectItem value="Buffalo">Buffalo</SelectItem>
-                                            </>
+                                        {animalOptions.length > 0 ? (
+                                            animalOptions.map((item) => (
+                                                <SelectItem key={item.item_name} value={item.item_name}>
+                                                    {item.item_label || item.item_name}
+                                                </SelectItem>
+                                            ))
                                         ) : (
-                                            <>
-                                                <SelectItem value="Desi Cow">Desi Cow</SelectItem>
-                                                <SelectItem value="CrossBreed">CrossBreed</SelectItem>
-                                                <SelectItem value="Buffalo">Buffalo</SelectItem>
-                                            </>
+                                            <SelectItem value="__no_items__" disabled>
+                                                {loadingComponentItems ? "Loading animal types..." : "No animal types available"}
+                                            </SelectItem>
                                         )}
                                     </SelectContent>
                                 </Select>

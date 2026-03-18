@@ -18,6 +18,15 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Components } from "@/constants";
 
+type ComponentItemResponse = {
+    message?: {
+        data?: Array<{
+            item_name: string;
+            item_label: string;
+        }>;
+    };
+};
+
 type AppFormResponse = FrappeCustomApiResponse<{
     name: string;
     first_name: string;
@@ -110,12 +119,6 @@ type HGMData = {
     chequeAmount: string;
     chequeDate: string;
 };
-
-
-
-const animalTypes = ["Crossbreed", "Desi Cow", "Buffalo"];
-const hgmAnimalTypes = ["Cow", "Buffalo"];
-
 export const VENDOR_CATEGORIES = {
     ANIMAL: "Animal",
     COLLAR: "Collar",
@@ -148,7 +151,6 @@ export default function AllocationForm({
     const router = useRouter();
     const { upload, isCompleted, loading, error: fileUploadError, progress, reset } = useFrappeFileUpload()
     const { data, isLoading, error } = useFrappeGetCall<AppFormResponse>('vmddp_app.api.v1.accountant.get_application_data_and_dd_amount', { application_id: applicationId })
-    console.log("overall data:", data);
 
     const { createDoc, loading: createLoading } = useFrappeCreateDoc<ComponentAllocationCreate>();
     const { createDoc: createInsuranceDoc, loading: creatingInsurance } = useFrappeCreateDoc<{ insurance_company_name: string }>();
@@ -186,11 +188,19 @@ export default function AllocationForm({
         data?.message?.component ? `vendors_${data.message.component}_${VENDOR_CATEGORIES.TRANSPORTATION}` : null
     );
 
+    const { data: componentItemsResponse, isLoading: loadingComponentItems } = useFrappeGetCall<ComponentItemResponse>(
+        (data?.message?.component ? 'vmddp_app.api.components.get_items_by_component' : null) as string,
+        data?.message?.component ? { component: data.message.component } : undefined,
+        undefined,
+        { revalidateOnFocus: false }
+    );
+
     const { call: updateComponentStatus } = useFrappePostCall<void>('vmddp_app.api.v1.accountant.update_component_status');
     const filteredVendors = animalVendorsData?.message?.data ?? [];
     const collarVendors = collarVendorsData?.message?.data ?? [];
     const insuranceVendors = insuranceVendorsData?.message?.data ?? [];
     const transportVendors = transportVendorsData?.message?.data ?? [];
+    const animalTypeOptions = componentItemsResponse?.message?.data ?? [];
     const { toast } = useToast();
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -820,15 +830,21 @@ export default function AllocationForm({
                                                     setAnimalData({ ...animalData, animalType: value })
                                                 }
                                             >
-                                                <SelectTrigger data-testid="select-animal-type">
-                                                    <SelectValue placeholder="Select type" />
+                                                <SelectTrigger data-testid="select-animal-type" disabled={loadingComponentItems || animalTypeOptions.length === 0}>
+                                                    <SelectValue placeholder={loadingComponentItems ? "Loading animal types..." : "Select type"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {animalTypes.map((type) => (
-                                                        <SelectItem key={type} value={type}>
-                                                            {type}
+                                                    {animalTypeOptions.length > 0 ? (
+                                                        animalTypeOptions.map((item) => (
+                                                            <SelectItem key={item.item_name} value={item.item_name}>
+                                                                {item.item_label || item.item_name}
+                                                            </SelectItem>
+                                                        ))
+                                                    ) : (
+                                                        <SelectItem value="__no_items__" disabled>
+                                                            {loadingComponentItems ? "Loading animal types..." : "No animal types available"}
                                                         </SelectItem>
-                                                    ))}
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -1454,15 +1470,21 @@ export default function AllocationForm({
                                                     setHgmData({ ...hgmData, animalType: value })
                                                 }
                                             >
-                                                <SelectTrigger data-testid="select-hgm-animal-type">
-                                                    <SelectValue placeholder="Cow / Buffalo" />
+                                                <SelectTrigger data-testid="select-hgm-animal-type" disabled={loadingComponentItems || animalTypeOptions.length === 0}>
+                                                    <SelectValue placeholder={loadingComponentItems ? "Loading animal types..." : "Select type"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {hgmAnimalTypes.map((type) => (
-                                                        <SelectItem key={type} value={type}>
-                                                            {type}
+                                                    {animalTypeOptions.length > 0 ? (
+                                                        animalTypeOptions.map((item) => (
+                                                            <SelectItem key={item.item_name} value={item.item_name}>
+                                                                {item.item_label || item.item_name}
+                                                            </SelectItem>
+                                                        ))
+                                                    ) : (
+                                                        <SelectItem value="__no_items__" disabled>
+                                                            {loadingComponentItems ? "Loading animal types..." : "No animal types available"}
                                                         </SelectItem>
-                                                    ))}
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         </div>
