@@ -21,14 +21,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { useFrappeGetCall, useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
 import { PendingVendorPayment, FrappeCustomApiResponse, PaginatedVendorPaymentResponse } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/use-debounce";
+import ParantagePendingPayments from "@/components/ParantagePendingPayments";
 
 export default function VendorPayments() {
     const { toast } = useToast();
+    const [activeTab, setActiveTab] = useState("vendor");
     const [openPaymentDialog, setOpenPaymentDialog] = useState(false)
     const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([])
     const [selectedVendor, setSelectedVendor] = useState<string | null>(null)
@@ -207,291 +210,302 @@ export default function VendorPayments() {
                             </div>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Card
-                            data-testid="card-pending-total"
-                            className="relative overflow-hidden border-2 border-yellow-500/30 bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
-                        >
-                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                        <TabsList className="grid w-full max-w-xl grid-cols-2">
+                            <TabsTrigger value="vendor" data-testid="tab-vendor-payments">Vendor Payments</TabsTrigger>
+                            <TabsTrigger value="parantage" data-testid="tab-parantage-payments">Parantage Confirmation</TabsTrigger>
+                        </TabsList>
 
-                            <CardContent className="pt-6 relative z-10">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-                                        <Clock className="h-5 w-5 text-yellow-600" />
-                                    </div>
-
-                                    <div>
-                                        <p className="text-sm font-medium text-yellow-700/80 dark:text-yellow-300">
-                                            Pending Payments
-                                        </p>
-
-                                        <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100 drop-shadow-sm">
-                                            ₹{(totalPending / 100000).toFixed(2)}L
-                                        </p>
-
-                                        <p className="text-xs text-muted-foreground">
-                                            {pagination?.total_items ?? vendorPayments.length} records
-                                        </p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card
-                            data-testid="card-beneficiaries-count"
-                            className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
-                        >
-                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
-
-                            <CardContent className="pt-6 relative z-10">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                                        <Building2 className="h-5 w-5 text-blue-600" />
-                                    </div>
-
-                                    <div>
-                                        <p className="text-sm font-medium text-blue-700/80 dark:text-blue-300">
-                                            Beneficiaries
-                                        </p>
-
-                                        <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 drop-shadow-sm">
-                                            {vendorPayments.length}
-                                        </p>
-
-                                        <p className="text-xs text-muted-foreground">
-                                            with pending payments
-                                        </p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <Card data-testid="card-filters">
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <Filter className="h-4 w-4" />
-                                Filters
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex flex-wrap gap-4 items-center">
-                                <div className="w-56 relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Search beneficiary, vendor..."
-                                        className="pl-9"
-                                        data-testid="input-search"
-                                        value={searchText}
-                                        onChange={(e) => {
-                                            setSearchText(e.target.value);
-                                            setCurrentPage(1);
-                                        }}
-                                    />
-                                </div>
-                                <Select
-                                    value={selectedVendor || "all"}
-                                    onValueChange={(value) => {
-                                        setSelectedVendor(value === "all" ? null : value);
-                                        setSelectedRowKeys([]); // Clear selection when vendor changes
-                                        setCurrentPage(1); // Reset page on filter change
-                                    }}
+                        <TabsContent value="vendor" className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <Card
+                                    data-testid="card-pending-total"
+                                    className="relative overflow-hidden border-2 border-yellow-500/30 bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
                                 >
-                                    <SelectTrigger className="w-44" data-testid="select-vendor">
-                                        <SelectValue placeholder="Vendor" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All Vendors</SelectItem>
-                                        {vendors?.map((v) => (
-                                            <SelectItem key={v.name} value={v.name}>{v.vendor_name || v.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <Select
-                                    value={selectedCategory || "all"}
-                                    onValueChange={(value) => {
-                                        setSelectedCategory(value === "all" ? null : value);
-                                        setSelectedRowKeys([]);
-                                        setCurrentPage(1);
-                                    }}
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+
+                                    <CardContent className="pt-6 relative z-10">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                                                <Clock className="h-5 w-5 text-yellow-600" />
+                                            </div>
+
+                                            <div>
+                                                <p className="text-sm font-medium text-yellow-700/80 dark:text-yellow-300">
+                                                    Pending Payments
+                                                </p>
+
+                                                <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100 drop-shadow-sm">
+                                                    ₹{(totalPending / 100000).toFixed(2)}L
+                                                </p>
+
+                                                <p className="text-xs text-muted-foreground">
+                                                    {pagination?.total_items ?? vendorPayments.length} records
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                <Card
+                                    data-testid="card-beneficiaries-count"
+                                    className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm"
                                 >
-                                    <SelectTrigger className="w-44" data-testid="select-category">
-                                        <SelectValue placeholder="Category" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All Categories</SelectItem>
-                                        {vendorCategories?.map((c) => (
-                                            <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+
+                                    <CardContent className="pt-6 relative z-10">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                                                <Building2 className="h-5 w-5 text-blue-600" />
+                                            </div>
+
+                                            <div>
+                                                <p className="text-sm font-medium text-blue-700/80 dark:text-blue-300">
+                                                    Beneficiaries
+                                                </p>
+
+                                                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 drop-shadow-sm">
+                                                    {vendorPayments.length}
+                                                </p>
+
+                                                <p className="text-xs text-muted-foreground">
+                                                    with pending payments
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             </div>
-                        </CardContent>
-                    </Card>
 
-                    {/* Selection Summary Card - visible when payments are selected */}
-                    {selectedRowKeys.length > 0 && (
-                        <Card className="border-primary" data-testid="card-selection-summary">
-                            <CardContent className="pt-4">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-2 rounded-lg bg-primary/10">
-                                            <CreditCard className="h-5 w-5 text-primary" />
+                            <Card data-testid="card-filters">
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base flex items-center gap-2">
+                                        <Filter className="h-4 w-4" />
+                                        Filters
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex flex-wrap gap-4 items-center">
+                                        <div className="w-56 relative">
+                                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                placeholder="Search beneficiary, vendor..."
+                                                className="pl-9"
+                                                data-testid="input-search"
+                                                value={searchText}
+                                                onChange={(e) => {
+                                                    setSearchText(e.target.value);
+                                                    setCurrentPage(1);
+                                                }}
+                                            />
                                         </div>
-                                        <div>
-                                            <p className="font-medium">{selectedRowKeys.length} payment(s) selected</p>
-                                            <p className="text-sm text-muted-foreground">
-                                                Vendor: {selectedVendorName} | Total: ₹{selectedTotal.toLocaleString("en-IN")}
-                                            </p>
-                                        </div>
+                                        <Select
+                                            value={selectedVendor || "all"}
+                                            onValueChange={(value) => {
+                                                setSelectedVendor(value === "all" ? null : value);
+                                                setSelectedRowKeys([]);
+                                                setCurrentPage(1);
+                                            }}
+                                        >
+                                            <SelectTrigger className="w-44" data-testid="select-vendor">
+                                                <SelectValue placeholder="Vendor" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Vendors</SelectItem>
+                                                {vendors?.map((v) => (
+                                                    <SelectItem key={v.name} value={v.name}>{v.vendor_name || v.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <Select
+                                            value={selectedCategory || "all"}
+                                            onValueChange={(value) => {
+                                                setSelectedCategory(value === "all" ? null : value);
+                                                setSelectedRowKeys([]);
+                                                setCurrentPage(1);
+                                            }}
+                                        >
+                                            <SelectTrigger className="w-44" data-testid="select-category">
+                                                <SelectValue placeholder="Category" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Categories</SelectItem>
+                                                {vendorCategories?.map((c) => (
+                                                    <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <Button variant="outline" data-testid="button-clear-selection" onClick={() => setSelectedRowKeys([])}>
-                                            Clear Selection
-                                        </Button>
-                                        <Button data-testid="button-issue-cheque" onClick={handleOpenDialog}>
-                                            <Check className="h-4 w-4 mr-2" />
-                                            Issue Cheque
-                                        </Button>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
+                                </CardContent>
+                            </Card>
 
-                    <Card data-testid="card-payments-table">
-                        <CardHeader>
-                            <CardTitle>Pending Vendor Payments</CardTitle>
-                            <CardDescription>
-                                Select multiple payments for the same vendor to issue a single cheque
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {loading ? (
-                                <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                                </div>
-                            ) : vendorPayments.length > 0 ? (
-                                <>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead className="w-12">
-                                                    <Check data-testid="checkbox-select-all" />
-                                                </TableHead>
-                                                <TableHead>Beneficiary</TableHead>
-                                                <TableHead>Component</TableHead>
-                                                <TableHead>Animal</TableHead>
-                                                <TableHead>Vendor</TableHead>
-                                                <TableHead>Category</TableHead>
-                                                <TableHead className="text-right">Amount to Pay</TableHead>
-                                                <TableHead>Date</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {vendorPayments.map((payment) => {
-                                                const rowKey = getRowKey(payment);
-                                                const isSelected = selectedRowKeys.includes(rowKey);
-
-                                                const categoryColors: Record<string, string> = {
-                                                    Animal: "bg-blue-500/10 text-blue-700 border-blue-500/20",
-                                                    Collar: "bg-purple-500/10 text-purple-700 border-purple-500/20",
-                                                    Insurance: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-                                                    Transportation: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-                                                };
-
-                                                return (
-                                                    <TableRow
-                                                        key={rowKey}
-                                                        className={isSelected ? "bg-primary/5" : ""}
-                                                        data-testid={`row-payment-${rowKey}`}
-                                                    >
-                                                        <TableCell>
-                                                            <Checkbox
-                                                                checked={isSelected}
-                                                                disabled={!isSelected && !canSelectPayment(payment)}
-                                                                onCheckedChange={(checked) => handleTogglePayment(rowKey, !!checked)}
-                                                                data-testid={`checkbox-${rowKey}`}
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div>
-                                                                <p className="font-medium">{payment.beneficiary_name}</p>
-                                                                <p className="text-xs text-muted-foreground">{payment.aadhar_number}</p>
-                                                                <p className="text-xs text-muted-foreground">{payment.district}, {payment.taluka}</p>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="space-y-1">
-                                                                <p className="text-sm font-medium">{payment.component_name}</p>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div>
-                                                                <p className="font-medium">{payment.type_of_animal}</p>
-                                                                <p className="text-xs text-muted-foreground">Tag: {payment.tag_number}</p>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div>
-                                                                <p className="font-medium">{payment.vendor_name}</p>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Badge variant="outline" className={categoryColors[payment.vendor_category] || ""}>
-                                                                {payment.vendor_category}
-                                                            </Badge>
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                            <span className="font-bold text-green-600">
-                                                                ₹{payment.amount_to_pay.toLocaleString("en-IN")}
-                                                            </span>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <p className="text-sm">{payment.date_of_purchase}</p>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                );
-                                            })}
-                                        </TableBody>
-                                    </Table>
-
-                                    {/* Pagination Controls */}
-                                    {pagination && pagination.total_pages > 1 && (
-                                        <div className="flex items-center justify-between pt-4 border-t">
-                                            <p className="text-sm text-muted-foreground">
-                                                Page {pagination.current_page} of {pagination.total_pages} ({pagination.total_items} total)
-                                            </p>
+                            {selectedRowKeys.length > 0 && (
+                                <Card className="border-primary" data-testid="card-selection-summary">
+                                    <CardContent className="pt-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-2 rounded-lg bg-primary/10">
+                                                    <CreditCard className="h-5 w-5 text-primary" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium">{selectedRowKeys.length} payment(s) selected</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Vendor: {selectedVendorName} | Total: ₹{selectedTotal.toLocaleString("en-IN")}
+                                                    </p>
+                                                </div>
+                                            </div>
                                             <div className="flex gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    disabled={!pagination.has_previous_page}
-                                                    onClick={() => setCurrentPage((p) => p - 1)}
-                                                    data-testid="button-prev-page"
-                                                >
-                                                    <ChevronLeft className="h-4 w-4 mr-1" />
-                                                    Previous
+                                                <Button variant="outline" data-testid="button-clear-selection" onClick={() => setSelectedRowKeys([])}>
+                                                    Clear Selection
                                                 </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    disabled={!pagination.has_next_page}
-                                                    onClick={() => setCurrentPage((p) => p + 1)}
-                                                    data-testid="button-next-page"
-                                                >
-                                                    Next
-                                                    <ChevronRight className="h-4 w-4 ml-1" />
+                                                <Button data-testid="button-issue-cheque" onClick={handleOpenDialog}>
+                                                    <Check className="h-4 w-4 mr-2" />
+                                                    Issue Cheque
                                                 </Button>
                                             </div>
                                         </div>
-                                    )}
-                                </>
-                            ) : (
-                                <p className="text-center text-muted-foreground py-8">No pending vendor payments found</p>
+                                    </CardContent>
+                                </Card>
                             )}
-                        </CardContent>
-                    </Card>
+
+                            <Card data-testid="card-payments-table">
+                                <CardHeader>
+                                    <CardTitle>Pending Vendor Payments</CardTitle>
+                                    <CardDescription>
+                                        Select multiple payments for the same vendor to issue a single cheque
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {loading ? (
+                                        <div className="flex items-center justify-center py-8">
+                                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                                        </div>
+                                    ) : vendorPayments.length > 0 ? (
+                                        <>
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead className="w-12">
+                                                            <Check data-testid="checkbox-select-all" />
+                                                        </TableHead>
+                                                        <TableHead>Beneficiary</TableHead>
+                                                        <TableHead>Component</TableHead>
+                                                        <TableHead>Animal</TableHead>
+                                                        <TableHead>Vendor</TableHead>
+                                                        <TableHead>Category</TableHead>
+                                                        <TableHead className="text-right">Amount to Pay</TableHead>
+                                                        <TableHead>Date</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {vendorPayments.map((payment) => {
+                                                        const rowKey = getRowKey(payment);
+                                                        const isSelected = selectedRowKeys.includes(rowKey);
+
+                                                        const categoryColors: Record<string, string> = {
+                                                            Animal: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+                                                            Collar: "bg-purple-500/10 text-purple-700 border-purple-500/20",
+                                                            Insurance: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+                                                            Transportation: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+                                                        };
+
+                                                        return (
+                                                            <TableRow
+                                                                key={rowKey}
+                                                                className={isSelected ? "bg-primary/5" : ""}
+                                                                data-testid={`row-payment-${rowKey}`}
+                                                            >
+                                                                <TableCell>
+                                                                    <Checkbox
+                                                                        checked={isSelected}
+                                                                        disabled={!isSelected && !canSelectPayment(payment)}
+                                                                        onCheckedChange={(checked) => handleTogglePayment(rowKey, !!checked)}
+                                                                        data-testid={`checkbox-${rowKey}`}
+                                                                    />
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div>
+                                                                        <p className="font-medium">{payment.beneficiary_name}</p>
+                                                                        <p className="text-xs text-muted-foreground">{payment.aadhar_number}</p>
+                                                                        <p className="text-xs text-muted-foreground">{payment.district}, {payment.taluka}</p>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div className="space-y-1">
+                                                                        <p className="text-sm font-medium">{payment.component_name}</p>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div>
+                                                                        <p className="font-medium">{payment.type_of_animal}</p>
+                                                                        <p className="text-xs text-muted-foreground">Tag: {payment.tag_number}</p>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div>
+                                                                        <p className="font-medium">{payment.vendor_name}</p>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Badge variant="outline" className={categoryColors[payment.vendor_category] || ""}>
+                                                                        {payment.vendor_category}
+                                                                    </Badge>
+                                                                </TableCell>
+                                                                <TableCell className="text-right">
+                                                                    <span className="font-bold text-green-600">
+                                                                        ₹{payment.amount_to_pay.toLocaleString("en-IN")}
+                                                                    </span>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <p className="text-sm">{payment.date_of_purchase}</p>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        );
+                                                    })}
+                                                </TableBody>
+                                            </Table>
+
+                                            {pagination && pagination.total_pages > 1 && (
+                                                <div className="flex items-center justify-between pt-4 border-t">
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Page {pagination.current_page} of {pagination.total_pages} ({pagination.total_items} total)
+                                                    </p>
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            disabled={!pagination.has_previous_page}
+                                                            onClick={() => setCurrentPage((p) => p - 1)}
+                                                            data-testid="button-prev-page"
+                                                        >
+                                                            <ChevronLeft className="h-4 w-4 mr-1" />
+                                                            Previous
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            disabled={!pagination.has_next_page}
+                                                            onClick={() => setCurrentPage((p) => p + 1)}
+                                                            data-testid="button-next-page"
+                                                        >
+                                                            Next
+                                                            <ChevronRight className="h-4 w-4 ml-1" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <p className="text-center text-muted-foreground py-8">No pending vendor payments found</p>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+
+                        <TabsContent value="parantage">
+                            <ParantagePendingPayments />
+                        </TabsContent>
+                    </Tabs>
                 </div>
             </div>
 

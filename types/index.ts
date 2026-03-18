@@ -195,3 +195,34 @@ export interface PaginatedVendorPaymentResponse {
     data: PendingVendorPayment[];
     pagination: PaginationData;
 }
+
+export interface ParantageConfirmationEntry {
+    parantage_confirmation_id?: string;
+    calf_born?: string;
+    calf_date_of_birth?: string;
+    certficate?: string;
+    certified_by_agency?: string;
+    agency_name?: string;
+    parantage_status?: string;
+    reason?: string | null;
+    application_id: string;
+    first_name: string;
+    mid_name: string;
+    last_name: string;
+    aadhar_number: string;
+    district: string;
+    taluka: string;
+    village: string;
+    vendor: string;
+    vendor_name: string;
+    component_allocation_id: string;
+    component: string;
+    type_of_animal: string;
+    animal_cost: number;
+    sum_assured: number;
+    premium_paid: number;
+    transportation_cost: number;
+    is_paid?: number;
+    paid_payment: number;
+    pending_amount: number;
+}
