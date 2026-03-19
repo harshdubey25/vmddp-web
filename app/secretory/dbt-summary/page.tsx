@@ -3,14 +3,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useFrappeGetCall } from 'frappe-react-sdk';
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import {
     Card,
     CardContent,
     CardDescription,
@@ -21,18 +13,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, ChevronDown } from 'lucide-react';
 import { FrappeCustomApiResponse } from '@/types';
-
-interface ComponentAchievement {
-    component: string;
-    component_name: string;
-    total_quantity: number;
-    total_animals_benefitted: number;
-    total_amount: number;
-    total_subsidy: number;
-    total_land_covered?: number;
-    total_applications: number;
-    total_claims: number;
-}
 
 interface ReportData {
     component: string;
@@ -82,10 +62,12 @@ interface ComponentSummary {
     balance_financial: number;
 }
 
-interface AnimalInductionTotals {
+
+
+interface AnimalInductionDistrictData {
     cow_count: number;
-    buffalo_count: number;
     crossbreed_count: number;
+    buffalo_count: number;
     animal_cost: CostBreakdown;
     collar_cost: CostBreakdown;
     premium_paid: CostBreakdown;
@@ -97,36 +79,78 @@ interface AnimalInductionTotals {
 
 interface AnimalInductionMPRResponse {
     message: {
-        [key: string]: any;
-        total_cows?: number;
-        total_buffaloes?: number;
+        progressive: {
+            [districtName: string]: AnimalInductionDistrictData | number;
+            total_cows: number;
+            total_buffaloes: number;
+            total_crossbreed: number;
+        };
+        current_month: {
+            [districtName: string]: AnimalInductionDistrictData | number;
+            total_cows: number;
+            total_buffaloes: number;
+            total_crossbreed: number;
+        };
+        filters: {
+            month: number;
+            year: number;
+            financial_year_start: string;
+            progressive_start_date: string;
+            progressive_end_date: string;
+            current_month_start_date: string;
+            current_month_end_date: string;
+        };
     };
 }
 
 interface HGMDistrictData {
     cow_count: number;
     buffalo_count: number;
-    crossbreed_count?: number;
     beneficiary_share: number;
     subsidy: number;
     total: number;
+    financial_target: number;
+    physical_target: number;
+    financial_achievement: number;
+    physical_achievement: number;
+    financial_balance: number;
+    physical_balance: number;
 }
 
 interface HGMTotals {
     total_cows: number;
     total_buffaloes: number;
-    total_crossbreeds?: number;
     total_beneficiary_share: number;
     total_subsidy: number;
     grand_total: number;
+    total_financial_target: number;
+    total_physical_target: number;
+    total_financial_achievement: number;
+    total_physical_achievement: number;
+    total_financial_balance: number;
+    total_physical_balance: number;
+}
+
+interface HGMSection {
+    districts: {
+        [districtName: string]: HGMDistrictData;
+    };
+    totals: HGMTotals;
 }
 
 interface HGMMPRResponse {
     message: {
-        districts: {
-            [districtName: string]: HGMDistrictData;
+        progressive: HGMSection;
+        current_month: HGMSection;
+        filters: {
+            month: number;
+            year: number;
+            financial_year_start: string;
+            progressive_start_date: string;
+            progressive_end_date: string;
+            current_month_start_date: string;
+            current_month_end_date: string;
         };
-        totals: HGMTotals;
     };
 }
 
@@ -151,6 +175,7 @@ export default function MPRPage() {
         undefined,
         { revalidateOnFocus: false }
     );
+    console.table(animalInductionData?.message);
 
     const { data: hgmData, isLoading: hgmLoading } = useFrappeGetCall<HGMMPRResponse>(
         'vmddp_app.api.v1.accountant.hgm_mpr',
@@ -177,10 +202,10 @@ export default function MPRPage() {
     );
 
     const animalInductionTotals = useMemo(() => {
-        if (!animalInductionData?.message) {
+        if (!animalInductionData?.message?.progressive) {
             return null;
         }
-        const data = animalInductionData.message;
+        const data = animalInductionData.message.progressive;
         const result = {
             cow_count: 0,
             buffalo_count: 0,
@@ -195,7 +220,7 @@ export default function MPRPage() {
         };
 
         Object.entries(data).forEach(([key, value]: [string, any]) => {
-            if (key !== 'total_cows' && key !== 'total_buffaloes' && typeof value === 'object' && value !== null) {
+            if (key !== 'total_cows' && key !== 'total_buffaloes' && key !== 'total_crossbreed' && typeof value === 'object' && value !== null) {
                 result.cow_count += value.cow_count || 0;
                 result.buffalo_count += value.buffalo_count || 0;
                 result.crossbreed_count += value.crossbreed_count || 0;
@@ -224,7 +249,7 @@ export default function MPRPage() {
         return result;
     }, [animalInductionData]);
 
-    const hgmTotals = hgmData?.message?.totals || null;
+    const hgmTotals = hgmData?.message?.progressive?.totals || null;
 
     useEffect(() => {
         if (apiData?.message) {

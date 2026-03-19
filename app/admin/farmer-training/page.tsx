@@ -209,6 +209,21 @@ export default function FarmerTraining() {
                       data-testid="input-search"
                     />
                   </div>
+                  <Select value={statusFilter} onValueChange={(value) => {
+                    setStatusFilter(value);
+                    setCurrentPage(1);
+                  }}>
+                    <SelectTrigger data-testid="select-status-filter">
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="0">Draft</SelectItem>
+                      <SelectItem value="1">Submitted</SelectItem>
+                      <SelectItem value="2">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <p className="text-sm text-muted-foreground">

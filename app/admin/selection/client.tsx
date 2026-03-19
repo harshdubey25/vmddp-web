@@ -832,7 +832,9 @@ export default function AdminSelectionClient({
                                                                                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-foreground/30"></div>
                                                                                         </div>
                                                                                     ) : (
-                                                                                        Object.entries(componentQuestions).map(([question, answers]) => (
+                                                                                        Object.entries(componentQuestions)
+                                                                                            .filter(([question]) => question !== "Quantity") 
+                                                                                            .map(([question, answers]) => (
                                                                                             <div key={question} className="space-y-1.5 bg-background/40 p-2 rounded-lg">
                                                                                                 <p className="text-xs font-semibold text-foreground/90 leading-tight">{question}</p>
                                                                                                 <div className="space-y-1 pl-1">
