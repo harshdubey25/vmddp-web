@@ -237,7 +237,7 @@ export default function StockItemsManagement() {
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            onClick={() => handleOpenEditPrice(item)}
+                                                            onClick={() => handleOpenEditItem(item)}
                                                         >
                                                             <Edit className="mr-2 h-4 w-4" />
                                                             Edit Price
