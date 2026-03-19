@@ -87,7 +87,7 @@ export default function ParantagePendingPayments() {
     const selectedEntries = entries.filter((entry) => selectedRowKeys.includes(getRowKey(entry)));
     const selectedTotal = selectedEntries.reduce((sum, entry) => sum + (entry.pending_amount || 0), 0);
     const firstSelectedVendor = selectedEntries[0]?.vendor || null;
-    const selectedVendorId = selectedEntries[0]?.vendor || "";
+    const selectedVendorId = selectedEntries[0]?.vendor_name || "";
     const selectedVendorName = selectedEntries[0]?.vendor_name || selectedEntries[0]?.vendor || "-";
 
     const resetForm = () => {
