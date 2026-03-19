@@ -296,6 +296,7 @@ export default function DDCollection() {
 
     const totalDDs = statsData?.message.total_applications || 0;
     const collectedDDs = statsData?.message.total_dd_completed || 0;
+    const cancelledDDs = statsData?.message.cancelled_dd || 0;
     return (
         <div className=" bg-background w-full overflow-y-scroll">
             <div className="p-6 space-y-6 ">
@@ -323,7 +324,7 @@ export default function DDCollection() {
                 </div>
 
                 {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
                     <Card data-testid="card-total-collected" className="relative overflow-hidden border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-500/10 to-indigo-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
                         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
                         <CardContent className="pt-6 relative z-10">
@@ -407,6 +408,28 @@ export default function DDCollection() {
                                         data-testid="text-verified-count"
                                     >
                                         {collectedDDs}
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card data-testid="card-cancelled-dds" className="relative overflow-hidden border-2 border-red-500/30 bg-gradient-to-br from-red-500/10 to-red-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-red-500/20 to-red-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                        <CardContent className="pt-6 relative z-10">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-xl bg-gradient-to-br from-red-500 to-red-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                    <X className="h-5 w-5 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-red-700/80 dark:text-red-300">
+                                        Cancelled DDs
+                                    </p>
+                                    <p
+                                        className="text-2xl font-bold text-red-900 dark:text-red-100 drop-shadow-sm"
+                                        data-testid="text-cancelled-count"
+                                    >
+                                        {cancelledDDs}
                                     </p>
                                 </div>
                             </div>
