@@ -4,6 +4,7 @@ import { useState, useMemo, Fragment } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
     Select,
     SelectContent,
@@ -11,7 +12,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { FileSpreadsheet, FileText, RefreshCw, ArrowLeft, Loader2, Target, Wallet, TrendingUp } from "lucide-react";
+import { FileSpreadsheet, FileText, RefreshCw, ArrowLeft, Loader2, Target, Wallet, Maximize2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { exportReport, type ExportFormat } from "@/lib/export-report";
@@ -121,6 +122,7 @@ export default function HGMMPRPage() {
     const [selectedMonth, setSelectedMonth] = useState<string>(String(currentDate.getMonth() + 1));
     const [selectedYear, setSelectedYear] = useState<string>(String(currentDate.getFullYear()));
     const [isExporting, setIsExporting] = useState(false);
+    const [isTableFullscreen, setIsTableFullscreen] = useState(false);
 
     // Fetch HGM MPR data
     const { data: apiResponse, isLoading, mutate } = useFrappeGetCall<HGMMPRResponse>(
@@ -239,6 +241,132 @@ export default function HGMMPRPage() {
 
     const selectedMonthLabel = months.find((month) => month.value === selectedMonth)?.label || "Current Month";
 
+    const renderReportTable = (containerClassName: string) => (
+        <div className="border rounded-lg overflow-hidden flex flex-col">
+            <div className={containerClassName}>
+                <table className="w-full text-xs">
+                    <thead className="bg-muted sticky top-0 z-30">
+                        <tr className="bg-muted/50">
+                            <th rowSpan={3} className="border text-center font-bold sticky left-0 bg-muted/50 z-30 min-w-[50px] p-2">
+                                Sr. No.
+                            </th>
+                            <th rowSpan={3} className="border text-center font-bold sticky left-[50px] bg-muted/50 z-30 min-w-[120px] p-2">
+                                Name of District
+                            </th>
+                            <th rowSpan={3} className="border text-center font-bold min-w-[70px] p-2">
+
+                            </th>
+                            <th colSpan={11} className="border text-center font-bold bg-blue-50 p-2">
+                                Supply Of High Genetic Merit Pregnant Heifers (IVF/ETT)
+                            </th>
+                        </tr>
+                        <tr className="bg-muted/30">
+                            <th rowSpan={2} className="border text-center font-bold min-w-[80px] bg-blue-100 p-2">
+                                Physical Target
+                            </th>
+                            <th colSpan={2} className="border text-center font-bold min-w-[140px] bg-yellow-50 p-2">
+                                Physical Achievement
+                            </th>
+                            <th rowSpan={2} className="border text-center font-bold min-w-[80px] bg-orange-100 p-2">
+                                Physical Balance
+                            </th>
+                            <th rowSpan={2} className="border text-center font-bold min-w-[80px] bg-blue-100 p-2">
+                                Financial Target
+                            </th>
+                            <th colSpan={3} className="border text-center font-bold min-w-[240px] bg-green-50 p-2">
+                                Financial Achievement
+                            </th>
+                            <th rowSpan={2} className="border text-center font-bold bg-orange-100 min-w-[100px] p-2">
+                                Financial Balance
+                            </th>
+                        </tr>
+                        <tr className="bg-muted/20">
+                            <th className="border text-center text-[9px] min-w-[70px] bg-yellow-50 p-2">
+                                No. of Cow
+                            </th>
+                            <th className="border text-center text-[9px] min-w-[70px] bg-yellow-50 p-2">
+                                No. of Buffalo
+                            </th>
+                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-2">
+                                Beneficiary Share (Rs.)
+                            </th>
+                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-2">
+                                Subsidy (Rs.)
+                            </th>
+                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-2">
+                                Total (Rs.)
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {mergedDistrictData.map(({ name, currentMonth, progressive }, index) => (
+                            <Fragment key={name}>
+                                <tr className="hover:bg-muted/30">
+                                    <td rowSpan={2} className="border text-center font-medium sticky left-0 bg-background z-10 p-2">
+                                        {index + 1}
+                                    </td>
+                                    <td rowSpan={2} className="border font-medium sticky left-[50px] bg-background z-10 p-2">
+                                        {name}
+                                    </td>
+                                    <td className="border text-center text-[10px] p-2">Current Month</td>
+                                    <td className="border text-center bg-blue-50 p-2">N/A</td>
+                                    <td className="border text-center bg-yellow-50/50 p-2">{currentMonth.cow_count || 0}</td>
+                                    <td className="border text-center bg-yellow-50/50 p-2">{currentMonth.buffalo_count || 0}</td>
+                                    <td className="border text-center bg-orange-50/50 font-semibold p-2">{currentMonth.physical_balance || 0}</td>
+                                    <td className="border text-right bg-blue-50 p-2">N/A</td>
+                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(currentMonth.beneficiary_share || 0)}</td>
+                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(currentMonth.subsidy || 0)}</td>
+                                    <td className="border text-right font-bold bg-green-50/50 p-2">{formatCurrency(currentMonth.total || 0)}</td>
+                                    <td className="border text-right bg-orange-50/50 font-semibold p-2">{formatCurrency(currentMonth.financial_balance || 0)}</td>
+                                </tr>
+                                <tr className="hover:bg-muted/30 bg-muted/10">
+                                    <td className="border text-center text-[10px] p-2">Progressive</td>
+                                    <td className="border text-center bg-blue-50 p-2">{progressive.physical_target || 0}</td>
+                                    <td className="border text-center bg-yellow-50/50 p-2">{progressive.cow_count || 0}</td>
+                                    <td className="border text-center bg-yellow-50/50 p-2">{progressive.buffalo_count || 0}</td>
+                                    <td className="border text-center bg-orange-50/50 font-semibold p-2">{progressive.physical_balance || 0}</td>
+                                    <td className="border text-right bg-blue-50 p-2">{formatCurrency(progressive.financial_target || 0)}</td>
+                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(progressive.beneficiary_share || 0)}</td>
+                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(progressive.subsidy || 0)}</td>
+                                    <td className="border text-right font-bold bg-green-50/50 p-2">{formatCurrency(progressive.total || 0)}</td>
+                                    <td className="border text-right bg-orange-50/50 font-semibold p-2">{formatCurrency(progressive.financial_balance || 0)}</td>
+                                </tr>
+                            </Fragment>
+                        ))}
+                    </tbody>
+                    <tfoot>
+                        <tr className="bg-muted font-bold">
+                            <td rowSpan={2} className="border text-center sticky left-0 bg-muted z-10 p-2" colSpan={1}></td>
+                            <td rowSpan={2} className="border sticky left-[50px] bg-muted z-10 p-2">TOTAL</td>
+                            <td className="border p-2">Current Month</td>
+                            <td className="border text-center bg-blue-100 p-2">N/A</td>
+                            <td className="border text-center bg-yellow-100 p-2">{currentMonthTotals.total_cows}</td>
+                            <td className="border text-center bg-yellow-100 p-2">{currentMonthTotals.total_buffaloes}</td>
+                            <td className="border text-center bg-orange-100 font-bold p-2">{currentMonthTotals.total_physical_balance}</td>
+                            <td className="border text-right bg-blue-100 p-2">N/A</td>
+                            <td className="border text-right bg-green-100 p-2">{formatCurrency(currentMonthTotals.total_beneficiary_share)}</td>
+                            <td className="border text-right bg-green-100 p-2">{formatCurrency(currentMonthTotals.total_subsidy)}</td>
+                            <td className="border text-right bg-green-100 p-2">{formatCurrency(currentMonthTotals.grand_total)}</td>
+                            <td className="border text-right bg-orange-100 font-bold p-2">{formatCurrency(currentMonthTotals.total_financial_balance)}</td>
+                        </tr>
+                        <tr className="bg-muted font-bold">
+                            <td className="border p-2">Progressive</td>
+                            <td className="border text-center bg-blue-100 p-2">{progressiveTotals.total_physical_target}</td>
+                            <td className="border text-center bg-yellow-100 p-2">{progressiveTotals.total_cows}</td>
+                            <td className="border text-center bg-yellow-100 p-2">{progressiveTotals.total_buffaloes}</td>
+                            <td className="border text-center bg-orange-100 font-bold p-2">{progressiveTotals.total_physical_balance}</td>
+                            <td className="border text-right bg-blue-100 p-2">{formatCurrency(progressiveTotals.total_financial_target)}</td>
+                            <td className="border text-right bg-green-100 p-2">{formatCurrency(progressiveTotals.total_beneficiary_share)}</td>
+                            <td className="border text-right bg-green-100 p-2">{formatCurrency(progressiveTotals.total_subsidy)}</td>
+                            <td className="border text-right bg-green-100 p-2">{formatCurrency(progressiveTotals.grand_total)}</td>
+                            <td className="border text-right bg-orange-100 font-bold p-2">{formatCurrency(progressiveTotals.total_financial_balance)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    );
+
     return (
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-auto w-full">
             {/* Header */}
@@ -323,7 +451,7 @@ export default function HGMMPRPage() {
                             <CardTitle className="text-lg sm:text-xl md:text-2xl text-blue-600 drop-shadow-sm">
                                 {currentMonthTotals.total_physical_achievement}
                             </CardTitle>
-                          
+
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:-translate-y-1 transition-all duration-300 group">
@@ -338,7 +466,7 @@ export default function HGMMPRPage() {
                             <CardTitle className="text-lg sm:text-xl md:text-2xl text-green-600 drop-shadow-sm">
                                 ₹{formatCurrency(currentMonthTotals.total_financial_achievement)}
                             </CardTitle>
-                          
+
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-purple-600/10 hover:-translate-y-1 transition-all duration-300 group">
@@ -353,7 +481,7 @@ export default function HGMMPRPage() {
                             <CardTitle className="text-lg sm:text-xl md:text-2xl text-purple-600 drop-shadow-sm">
                                 {progressiveTotals.total_physical_achievement}
                             </CardTitle>
-                          
+
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 hover:-translate-y-1 transition-all duration-300 group">
@@ -368,7 +496,7 @@ export default function HGMMPRPage() {
                             <CardTitle className="text-lg sm:text-xl md:text-2xl text-emerald-600 drop-shadow-sm">
                                 ₹{formatCurrency(progressiveTotals.total_financial_achievement)}
                             </CardTitle>
-                          
+
                         </CardHeader>
                     </Card>
                 </div>
@@ -377,14 +505,28 @@ export default function HGMMPRPage() {
             {/* Report Card */}
             <Card>
                 <CardHeader className="p-3 sm:p-4 md:p-6">
-                    <CardTitle className="flex items-center gap-2 text-base sm:text-lg md:text-xl">
-                        <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
-                        HGM (Pregnant Cow) - Financial Achievement Report
-                    </CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">
-                        District-wise breakdown of current month and progressive physical and financial achievement
-                        {filters && ` • Current month: ${filters.current_month_start_date} to ${filters.current_month_end_date} • Progressive: ${filters.progressive_start_date} to ${filters.progressive_end_date}`}
-                    </CardDescription>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="space-y-1">
+                            <CardTitle className="flex items-center gap-2 text-base sm:text-lg md:text-xl">
+                                <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
+                                HGM (Pregnant Cow) - Financial Achievement Report
+                            </CardTitle>
+                            <CardDescription className="text-xs sm:text-sm">
+                                District-wise breakdown of current month and progressive physical and financial achievement
+                                {filters && ` • Current month: ${filters.current_month_start_date} to ${filters.current_month_end_date} • Progressive: ${filters.progressive_start_date} to ${filters.progressive_end_date}`}
+                            </CardDescription>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full sm:w-auto"
+                            onClick={() => setIsTableFullscreen(true)}
+                            disabled={isLoading || mergedDistrictData.length === 0}
+                        >
+                            <Maximize2 className="h-4 w-4 sm:mr-2" />
+                            <span>Full Screen</span>
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     {isLoading ? (
@@ -398,163 +540,29 @@ export default function HGMMPRPage() {
                             <p>No data available for the selected period.</p>
                         </div>
                     ) : (
-                        <div className="border rounded-lg overflow-hidden flex flex-col">
-                            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
-                                <table className="w-full text-xs">
-                                    <thead className="bg-muted sticky top-0 z-30">
-                                        {/* First header row - Main categories */}
-                                        <tr className="bg-muted/50">
-                                            <th rowSpan={3} className="border text-center font-bold sticky left-0 bg-muted/50 z-30 min-w-[50px] p-2">
-                                                Sr. No.
-                                            </th>
-                                            <th rowSpan={3} className="border text-center font-bold sticky left-[50px] bg-muted/50 z-30 min-w-[120px] p-2">
-                                                Name of District
-                                            </th>
-                                            <th rowSpan={3} className="border text-center font-bold min-w-[70px] p-2">
-
-                                            </th>
-                                            <th colSpan={11} className="border text-center font-bold bg-blue-50 p-2">
-                                                Supply Of High Genetic Merit Pregnant Heifers (IVF/ETT)
-                                            </th>
-                                        </tr>
-                                        {/* Second header row - Sub categories */}
-                                        <tr className="bg-muted/30">
-                                            <th rowSpan={2} className="border text-center font-bold min-w-[80px] bg-blue-100 p-2">
-                                                Physical Target
-                                            </th>
-                                            <th colSpan={2} className="border text-center font-bold min-w-[140px] bg-yellow-50 p-2">
-                                                Physical Achievement
-                                            </th>
-                                            <th rowSpan={2} className="border text-center font-bold min-w-[80px] bg-orange-100 p-2">
-                                                Physical Balance
-                                            </th>
-                                            <th rowSpan={2} className="border text-center font-bold min-w-[80px] bg-blue-100 p-2">
-                                                Financial Target
-                                            </th>
-                                            <th colSpan={3} className="border text-center font-bold min-w-[240px] bg-green-50 p-2">
-                                                Financial Achievement
-                                            </th>
-                                            <th rowSpan={2} className="border text-center font-bold bg-orange-100 min-w-[100px] p-2">
-                                                Financial Balance
-                                            </th>
-                                        </tr>
-                                        {/* Third header row - Detail columns */}
-                                        <tr className="bg-muted/20">
-                                            {/* Physical Achievement */}
-                                            <th className="border text-center text-[9px] min-w-[70px] bg-yellow-50 p-2">
-                                                No. of Cow
-                                            </th>
-                                            <th className="border text-center text-[9px] min-w-[70px] bg-yellow-50 p-2">
-                                                No. of Buffalo
-                                            </th>
-                                            {/* Financial Achievement */}
-                                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-2">
-                                                Beneficiary Share (Rs.)
-                                            </th>
-                                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-2">
-                                                Subsidy (Rs.)
-                                            </th>
-                                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-2">
-                                                Total (Rs.)
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {mergedDistrictData.map(({ name, currentMonth, progressive }, index) => (
-                                            <Fragment key={name}>
-                                                {/* Current Month Row */}
-                                                <tr className="hover:bg-muted/30">
-                                                    <td rowSpan={2} className="border text-center font-medium sticky left-0 bg-background z-10 p-2">
-                                                        {index + 1}
-                                                    </td>
-                                                    <td rowSpan={2} className="border font-medium sticky left-[50px] bg-background z-10 p-2">
-                                                        {name}
-                                                    </td>
-                                                    <td className="border text-center text-[10px] p-2">Current Month</td>
-                                                    {/* Physical Target */}
-                                                    <td className="border text-center bg-blue-50 p-2">N/A</td>
-                                                    {/* Physical Achievement */}
-                                                    <td className="border text-center bg-yellow-50/50 p-2">{currentMonth.cow_count || 0}</td>
-                                                    <td className="border text-center bg-yellow-50/50 p-2">{currentMonth.buffalo_count || 0}</td>
-                                                    {/* Physical Balance */}
-                                                    <td className="border text-center bg-orange-50/50 font-semibold p-2">{currentMonth.physical_balance || 0}</td>
-                                                    {/* Financial Target */}
-                                                    <td className="border text-right bg-blue-50 p-2">N/A</td>
-                                                    {/* Financial Achievement */}
-                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(currentMonth.beneficiary_share || 0)}</td>
-                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(currentMonth.subsidy || 0)}</td>
-                                                    <td className="border text-right font-bold bg-green-50/50 p-2">{formatCurrency(currentMonth.total || 0)}</td>
-                                                    {/* Financial Balance */}
-                                                    <td className="border text-right bg-orange-50/50 font-semibold p-2">{formatCurrency(currentMonth.financial_balance || 0)}</td>
-                                                </tr>
-                                                {/* Progress Row */}
-                                                <tr className="hover:bg-muted/30 bg-muted/10">
-                                                    <td className="border text-center text-[10px] p-2">Progressive</td>
-                                                    {/* Physical Target */}
-                                                    <td className="border text-center bg-blue-50 p-2">{progressive.physical_target || 0}</td>
-                                                    {/* Physical Achievement */}
-                                                    <td className="border text-center bg-yellow-50/50 p-2">{progressive.cow_count || 0}</td>
-                                                    <td className="border text-center bg-yellow-50/50 p-2">{progressive.buffalo_count || 0}</td>
-                                                    {/* Physical Balance */}
-                                                    <td className="border text-center bg-orange-50/50 font-semibold p-2">{progressive.physical_balance || 0}</td>
-                                                    {/* Financial Target */}
-                                                    <td className="border text-right bg-blue-50 p-2">{formatCurrency(progressive.financial_target || 0)}</td>
-                                                    {/* Financial Achievement */}
-                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(progressive.beneficiary_share || 0)}</td>
-                                                    <td className="border text-right bg-green-50/50 p-2">{formatCurrency(progressive.subsidy || 0)}</td>
-                                                    <td className="border text-right font-bold bg-green-50/50 p-2">{formatCurrency(progressive.total || 0)}</td>
-                                                    {/* Financial Balance */}
-                                                    <td className="border text-right bg-orange-50/50 font-semibold p-2">{formatCurrency(progressive.financial_balance || 0)}</td>
-                                                </tr>
-                                            </Fragment>
-                                        ))}
-                                    </tbody>
-                                    <tfoot>
-                                        <tr className="bg-muted font-bold">
-                                            <td rowSpan={2} className="border text-center sticky left-0 bg-muted z-10 p-2" colSpan={1}></td>
-                                            <td rowSpan={2} className="border sticky left-[50px] bg-muted z-10 p-2">TOTAL</td>
-                                            <td className="border p-2">Current Month</td>
-                                            {/* Physical Target */}
-                                            <td className="border text-center bg-blue-100 p-2">N/A</td>
-                                            {/* Physical Achievement */}
-                                            <td className="border text-center bg-yellow-100 p-2">{currentMonthTotals.total_cows}</td>
-                                            <td className="border text-center bg-yellow-100 p-2">{currentMonthTotals.total_buffaloes}</td>
-                                            {/* Physical Balance */}
-                                            <td className="border text-center bg-orange-100 font-bold p-2">{currentMonthTotals.total_physical_balance}</td>
-                                            {/* Financial Target */}
-                                            <td className="border text-right bg-blue-100 p-2">N/A</td>
-                                            {/* Financial Achievement */}
-                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(currentMonthTotals.total_beneficiary_share)}</td>
-                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(currentMonthTotals.total_subsidy)}</td>
-                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(currentMonthTotals.grand_total)}</td>
-                                            {/* Financial Balance */}
-                                            <td className="border text-right bg-orange-100 font-bold p-2">{formatCurrency(currentMonthTotals.total_financial_balance)}</td>
-                                        </tr>
-                                        <tr className="bg-muted font-bold">
-                                            <td className="border p-2">Progressive</td>
-                                            {/* Physical Target */}
-                                            <td className="border text-center bg-blue-100 p-2">{progressiveTotals.total_physical_target}</td>
-                                            {/* Physical Achievement */}
-                                            <td className="border text-center bg-yellow-100 p-2">{progressiveTotals.total_cows}</td>
-                                            <td className="border text-center bg-yellow-100 p-2">{progressiveTotals.total_buffaloes}</td>
-                                            {/* Physical Balance */}
-                                            <td className="border text-center bg-orange-100 font-bold p-2">{progressiveTotals.total_physical_balance}</td>
-                                            {/* Financial Target */}
-                                            <td className="border text-right bg-blue-100 p-2">{formatCurrency(progressiveTotals.total_financial_target)}</td>
-                                            {/* Financial Achievement */}
-                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(progressiveTotals.total_beneficiary_share)}</td>
-                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(progressiveTotals.total_subsidy)}</td>
-                                            <td className="border text-right bg-green-100 p-2">{formatCurrency(progressiveTotals.grand_total)}</td>
-                                            {/* Financial Balance */}
-                                            <td className="border text-right bg-orange-100 font-bold p-2">{formatCurrency(progressiveTotals.total_financial_balance)}</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
+                        renderReportTable("overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]")
                     )}
                 </CardContent>
             </Card>
+
+            <Dialog open={isTableFullscreen} onOpenChange={setIsTableFullscreen}>
+                <DialogContent className="h-[96vh] w-[98vw] max-w-none overflow-hidden p-0">
+                    <div className="flex h-full flex-col overflow-hidden">
+                        <DialogHeader className="border-b px-4 py-4 pr-12 sm:px-6">
+                            <DialogTitle className="text-base sm:text-lg md:text-xl">
+                                HGM (Pregnant Cow) - Financial Achievement Report
+                            </DialogTitle>
+                            <DialogDescription className="text-xs sm:text-sm">
+                                Full screen view for the district-wise HGM MPR table.
+                                {filters && ` Current month: ${filters.current_month_start_date} to ${filters.current_month_end_date} • Progressive: ${filters.progressive_start_date} to ${filters.progressive_end_date}`}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex-1 overflow-hidden p-4 sm:p-6">
+                            {renderReportTable("h-full overflow-x-auto overflow-y-auto")}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
 
         </div>

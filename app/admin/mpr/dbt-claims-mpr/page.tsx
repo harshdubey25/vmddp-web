@@ -4,6 +4,7 @@ import { useState, useMemo, Fragment } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
     Select,
     SelectContent,
@@ -11,7 +12,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { FileSpreadsheet, FileText, RefreshCw, ArrowLeft, Loader2, Building2, Package, Users, Wallet, Target, TrendingUp } from "lucide-react";
+import { FileSpreadsheet, FileText, RefreshCw, ArrowLeft, Loader2, Building2, Package, Users, Wallet, Target, Maximize2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { exportReport, type ExportFormat } from "@/lib/export-report";
@@ -136,6 +137,7 @@ export default function DBTClaimsMPRPage() {
     const [selectedYear, setSelectedYear] = useState<string>(String(currentDate.getFullYear()));
     const [selectedComponent, setSelectedComponent] = useState<string>("Fertility Feed");
     const [isExporting, setIsExporting] = useState(false);
+    const [isTableFullscreen, setIsTableFullscreen] = useState(false);
 
     // Fetch components (for_component_allocation: false)
     const { data: componentsData } = useFrappeGetDocList<Component>("Component", {
@@ -272,6 +274,114 @@ export default function DBTClaimsMPRPage() {
     ];
 
     const selectedMonthLabel = months.find((month) => month.value === selectedMonth)?.label || "Current Month";
+    const selectedComponentLabel = selectedComponent !== "all"
+        ? (components.find(c => c.name === selectedComponent)?.component_name || selectedComponent)
+        : "All Components";
+
+    const renderReportTable = (containerClassName: string) => (
+        <div className="border rounded-lg overflow-hidden flex flex-col">
+            <div className={containerClassName}>
+                <table className="w-full min-w-[700px] text-[11px] sm:text-xs md:text-sm">
+                    <thead className="bg-muted sticky top-0 z-30">
+                        <tr className="bg-muted/50">
+                            <th rowSpan={3} className="border text-center font-bold sticky left-0 bg-muted/50 z-20 min-w-[50px] p-1 sm:p-2">
+                                Sr. No.
+                            </th>
+                            <th rowSpan={3} className="border text-center font-bold sticky left-[50px] bg-muted/50 z-20 min-w-[120px] p-1 sm:p-2">
+                                Name of District
+                            </th>
+                            <th rowSpan={3} className="border text-center font-bold min-w-[70px] p-1 sm:p-2">
+
+                            </th>
+                            <th colSpan={6} className="border text-center font-bold bg-blue-50 p-1 sm:p-2">
+                                DBT Claims - {selectedComponentLabel}
+                            </th>
+                        </tr>
+                        <tr className="bg-muted/30">
+                            <th colSpan={1} className="border text-center font-bold min-w-[100px] bg-yellow-50 p-1 sm:p-2">
+                                Physical Achievement
+                            </th>
+                            <th colSpan={3} className="border text-center font-bold min-w-[240px] bg-green-50 p-1 sm:p-2">
+                                Financial Achievement
+                            </th>
+                            <th rowSpan={2} className="border text-center font-bold bg-purple-100 min-w-[100px] p-1 sm:p-2">
+                                Physical Balance
+                            </th>
+                            <th rowSpan={2} className="border text-center font-bold bg-orange-100 min-w-[100px] p-1 sm:p-2">
+                                Financial Balance
+                            </th>
+                        </tr>
+                        <tr className="bg-muted/20">
+                            <th className="border text-center text-[9px] min-w-[80px] bg-yellow-50 p-1 sm:p-2">
+                                Quantity (No.)
+                            </th>
+                            <th className="border text-center text-[9px] min-w-[100px] bg-green-50 p-1 sm:p-2">
+                                Beneficiary Share (Rs.)
+                            </th>
+                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-1 sm:p-2">
+                                Subsidy (Rs.)
+                            </th>
+                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-1 sm:p-2">
+                                Total (Rs.)
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {mergedDistrictData.map(({ name, currentMonth, progressive }, index) => (
+                            <Fragment key={name}>
+                                <tr className="hover:bg-muted/30">
+                                    <td rowSpan={2} className="border text-center font-medium sticky left-0 bg-background z-10 p-1 sm:p-2">
+                                        {index + 1}
+                                    </td>
+                                    <td rowSpan={2} className="border font-medium sticky left-[50px] bg-background z-10 p-1 sm:p-2">
+                                        {name}
+                                    </td>
+                                    <td className="border text-center text-[10px] p-1 sm:p-2">Current Month</td>
+                                    <td className="border text-center bg-yellow-50/50 p-1 sm:p-2">{currentMonth.quantity || 0}</td>
+                                    <td className="border text-right bg-green-50/50 p-1 sm:p-2">{formatCurrency(currentMonth.beneficiary_share || 0)}</td>
+                                    <td className="border text-right bg-green-50/50 p-1 sm:p-2">{formatCurrency(currentMonth.subsidy || 0)}</td>
+                                    <td className="border text-right font-bold bg-green-50/50 p-1 sm:p-2">{formatCurrency(currentMonth.total || 0)}</td>
+                                    <td className="border text-right bg-purple-50/50 font-semibold p-1 sm:p-2">{formatCurrency(currentMonth.physical_balance || 0)}</td>
+                                    <td className="border text-right bg-orange-50/50 font-semibold p-1 sm:p-2">{formatCurrency(currentMonth.financial_balance || 0)}</td>
+                                </tr>
+                                <tr className="hover:bg-muted/30 bg-muted/10">
+                                    <td className="border text-center text-[10px] p-1 sm:p-2">Progressive</td>
+                                    <td className="border text-center bg-yellow-50/50 p-1 sm:p-2">{progressive.quantity || 0}</td>
+                                    <td className="border text-right bg-green-50/50 p-1 sm:p-2">{formatCurrency(progressive.beneficiary_share || 0)}</td>
+                                    <td className="border text-right bg-green-50/50 p-1 sm:p-2">{formatCurrency(progressive.subsidy || 0)}</td>
+                                    <td className="border text-right font-bold bg-green-50/50 p-1 sm:p-2">{formatCurrency(progressive.total || 0)}</td>
+                                    <td className="border text-right bg-purple-50/50 font-semibold p-1 sm:p-2">{formatCurrency(progressive.physical_balance || 0)}</td>
+                                    <td className="border text-right bg-orange-50/50 font-semibold p-1 sm:p-2">{formatCurrency(progressive.financial_balance || 0)}</td>
+                                </tr>
+                            </Fragment>
+                        ))}
+                    </tbody>
+                    <tfoot>
+                        <tr className="bg-muted font-bold">
+                            <td rowSpan={2} className="border text-center sticky left-0 bg-muted z-10 p-1 sm:p-2" colSpan={1}></td>
+                            <td rowSpan={2} className="border sticky left-[50px] bg-muted z-10 p-1 sm:p-2">TOTAL</td>
+                            <td className="border p-1 sm:p-2">Current Month</td>
+                            <td className="border text-center bg-yellow-100 p-1 sm:p-2">{currentMonthTotals.total_quantity}</td>
+                            <td className="border text-right bg-green-100 p-1 sm:p-2">{formatCurrency(currentMonthTotals.total_beneficiary_share)}</td>
+                            <td className="border text-right bg-green-100 p-1 sm:p-2">{formatCurrency(currentMonthTotals.total_subsidy)}</td>
+                            <td className="border text-right bg-green-100 p-1 sm:p-2">{formatCurrency(currentMonthTotals.grand_total)}</td>
+                            <td className="border text-right bg-purple-100 font-bold p-1 sm:p-2">{formatCurrency(currentMonthTotals.total_physical_balance)}</td>
+                            <td className="border text-right bg-orange-100 font-bold p-1 sm:p-2">{formatCurrency(currentMonthTotals.total_financial_balance)}</td>
+                        </tr>
+                        <tr className="bg-muted font-bold">
+                            <td className="border p-1 sm:p-2">Progressive</td>
+                            <td className="border text-center bg-yellow-100 p-1 sm:p-2">{progressiveTotals.total_quantity}</td>
+                            <td className="border text-right bg-green-100 p-1 sm:p-2">{formatCurrency(progressiveTotals.total_beneficiary_share)}</td>
+                            <td className="border text-right bg-green-100 p-1 sm:p-2">{formatCurrency(progressiveTotals.total_subsidy)}</td>
+                            <td className="border text-right bg-green-100 p-1 sm:p-2">{formatCurrency(progressiveTotals.grand_total)}</td>
+                            <td className="border text-right bg-purple-100 font-bold p-1 sm:p-2">{formatCurrency(progressiveTotals.total_physical_balance)}</td>
+                            <td className="border text-right bg-orange-100 font-bold p-1 sm:p-2">{formatCurrency(progressiveTotals.total_financial_balance)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    );
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -362,289 +472,198 @@ export default function DBTClaimsMPRPage() {
             <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 bg-muted/30">
                 <div className="space-y-4 sm:space-y-6">
 
-            {/* Summary Cards*/}
-            {!isLoading && mergedDistrictData.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-blue-600/10 hover:-translate-y-1 transition-all duration-300 group">
-                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
-                            <div className="flex items-center justify-between">
-                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">{selectedMonthLabel} Districts</CardDescription>
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                                </div>
-                            </div>
-                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-600 drop-shadow-sm">
-                                {currentMonthDistrictData.filter(d => d.data.total > 0).length}
-                            </CardTitle>
-                         
-                        </CardHeader>
-                    </Card>
-                    <Card className="relative overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/20 to-amber-600/10 hover:-translate-y-1 transition-all duration-300 group">
-                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-amber-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
-                            <div className="flex items-center justify-between">
-                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">{selectedMonthLabel} Quantity</CardDescription>
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Package className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                                </div>
-                            </div>
-                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-amber-600 drop-shadow-sm">
-                                {formatCurrency(currentMonthTotals.total_quantity)}
-                            </CardTitle>
-                           
-                        </CardHeader>
-                    </Card>
-                    <Card className="relative overflow-hidden border-2 border-cyan-500/30 bg-gradient-to-br from-cyan-500/20 to-cyan-600/10 hover:-translate-y-1 transition-all duration-300 group">
-                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-cyan-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
-                            <div className="flex items-center justify-between">
-                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">{selectedMonthLabel} Beneficiary Share</CardDescription>
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                                </div>
-                            </div>
-                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-cyan-600 drop-shadow-sm">
-                                ₹{formatCurrency(currentMonthTotals.total_beneficiary_share)}
-                            </CardTitle>
-                          
-                        </CardHeader>
-                    </Card>
-                    <Card className="relative overflow-hidden border-2 border-orange-500/30 bg-gradient-to-br from-orange-500/20 to-orange-600/10 hover:-translate-y-1 transition-all duration-300 group">
-                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-orange-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
-                            <div className="flex items-center justify-between">
-                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">{selectedMonthLabel} Subsidy</CardDescription>
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                                </div>
-                            </div>
-                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-orange-600 drop-shadow-sm">
-                                ₹{formatCurrency(currentMonthTotals.total_subsidy)}
-                            </CardTitle>
-                        
-                        </CardHeader>
-                    </Card>
-                    <Card className="relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-purple-600/10 hover:-translate-y-1 transition-all duration-300 group">
-                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
-                            <div className="flex items-center justify-between">
-                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">Progressive Districts</CardDescription>
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Target className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                                </div>
-                            </div>
-                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-purple-600 drop-shadow-sm">
-                                {progressiveDistrictData.filter(d => d.data.total > 0).length}
-                            </CardTitle>
-                        
-                        </CardHeader>
-                    </Card>
-                    <Card className="relative overflow-hidden border-2 border-yellow-500/30 bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 hover:-translate-y-1 transition-all duration-300 group">
-                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-yellow-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
-                            <div className="flex items-center justify-between">
-                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">Progressive Quantity</CardDescription>
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Package className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                                </div>
-                            </div>
-                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-yellow-600 drop-shadow-sm">
-                                {formatCurrency(progressiveTotals.total_quantity)}
-                            </CardTitle>
-                           
-                        </CardHeader>
-                    </Card>
-                    <Card className="relative overflow-hidden border-2 border-teal-500/30 bg-gradient-to-br from-teal-500/20 to-teal-600/10 hover:-translate-y-1 transition-all duration-300 group">
-                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-teal-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
-                            <div className="flex items-center justify-between">
-                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">Progressive Beneficiary Share</CardDescription>
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                                </div>
-                            </div>
-                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-teal-600 drop-shadow-sm">
-                                ₹{formatCurrency(progressiveTotals.total_beneficiary_share)}
-                            </CardTitle>
-                          
-                        </CardHeader>
-                    </Card>
-                    <Card className="relative overflow-hidden border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 hover:-translate-y-1 transition-all duration-300 group">
-                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
-                            <div className="flex items-center justify-between">
-                                <CardDescription className="text-[10px] sm:text-xs md:text-sm">Progressive Subsidy</CardDescription>
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                                </div>
-                            </div>
-                            <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-emerald-600 drop-shadow-sm">
-                                ₹{formatCurrency(progressiveTotals.total_subsidy)}
-                            </CardTitle>
-                          
-                        </CardHeader>
-                    </Card>
-                </div>
-            )}
+                    {/* Summary Cards*/}
+                    {!isLoading && mergedDistrictData.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                            <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-blue-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
+                                    <div className="flex items-center justify-between">
+                                        <CardDescription className="text-[10px] sm:text-xs md:text-sm">{selectedMonthLabel} Districts</CardDescription>
+                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                                        </div>
+                                    </div>
+                                    <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-600 drop-shadow-sm">
+                                        {currentMonthDistrictData.filter(d => d.data.total > 0).length}
+                                    </CardTitle>
 
-            {/* Report Card */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 text-base sm:text-lg md:text-xl">
-                        <FileText className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-                        <span>DBT Claims - Financial Achievement Report</span>
-                        {selectedComponent !== "all" && (
-                            <span className="text-xs sm:text-sm font-normal text-muted-foreground">
-                                ({components.find(c => c.name === selectedComponent)?.component_name || selectedComponent})
-                            </span>
-                        )}
-                    </CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">
-                        District-wise breakdown of current month and progressive achievement for DBT claims
-                        {filters && ` • Current month: ${filters.current_month_start_date} to ${filters.current_month_end_date} • Progressive: ${filters.progressive_start_date} to ${filters.progressive_end_date}`}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
-                        <div className="space-y-4">
-                            <Skeleton className="h-8 w-full" />
-                            <Skeleton className="h-64 w-full" />
-                        </div>
-                    ) : mergedDistrictData.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">
-                            <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                            <p>No data available for the selected period.</p>
-                        </div>
-                    ) : (
-                        <div className="border rounded-lg overflow-hidden flex flex-col">
-                            <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 max-h-[calc(100vh-400px)]">
-                                <table className="w-full min-w-[700px] text-[11px] sm:text-xs md:text-sm">
-                                    <thead className="bg-muted sticky top-0 z-30">
-                                        {/* First header row - Main categories */}
-                                        <tr className="bg-muted/50">
-                                            <th rowSpan={3} className="border text-center font-bold sticky left-0 bg-muted/50 z-20 min-w-[50px] p-1 sm:p-2">
-                                                Sr. No.
-                                            </th>
-                                            <th rowSpan={3} className="border text-center font-bold sticky left-[50px] bg-muted/50 z-20 min-w-[120px] p-1 sm:p-2">
-                                                Name of District
-                                            </th>
-                                            <th rowSpan={3} className="border text-center font-bold min-w-[70px] p-1 sm:p-2">
+                                </CardHeader>
+                            </Card>
+                            <Card className="relative overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/20 to-amber-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-amber-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
+                                    <div className="flex items-center justify-between">
+                                        <CardDescription className="text-[10px] sm:text-xs md:text-sm">{selectedMonthLabel} Quantity</CardDescription>
+                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Package className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                                        </div>
+                                    </div>
+                                    <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-amber-600 drop-shadow-sm">
+                                        {formatCurrency(currentMonthTotals.total_quantity)}
+                                    </CardTitle>
 
-                                            </th>
-                                            <th colSpan={6} className="border text-center font-bold bg-blue-50 p-1 sm:p-2">
-                                                DBT Claims - {selectedComponent !== "all" ? (components.find(c => c.name === selectedComponent)?.component_name || selectedComponent) : "All Components"}
-                                            </th>
-                                        </tr>
-                                        {/* Second header row - Sub categories */}
-                                        <tr className="bg-muted/30">
-                                            <th colSpan={1} className="border text-center font-bold min-w-[100px] bg-yellow-50 p-1 sm:p-2">
-                                                Physical Achievement
-                                            </th>
-                                            <th colSpan={3} className="border text-center font-bold min-w-[240px] bg-green-50 p-1 sm:p-2">
-                                                Financial Achievement
-                                            </th>
-                                            <th rowSpan={2} className="border text-center font-bold bg-purple-100 min-w-[100px] p-1 sm:p-2">
-                                                Physical Balance
-                                            </th>
-                                            <th rowSpan={2} className="border text-center font-bold bg-orange-100 min-w-[100px] p-1 sm:p-2">
-                                                Financial Balance
-                                            </th>
-                                        </tr>
-                                        {/* Third header row - Detail columns */}
-                                        <tr className="bg-muted/20">
-                                            {/* Physical Achievement */}
-                                            <th className="border text-center text-[9px] min-w-[80px] bg-yellow-50 p-1 sm:p-2">
-                                                Quantity (No.)
-                                            </th>
-                                            {/* Financial Achievement */}
-                                            <th className="border text-center text-[9px] min-w-[100px] bg-green-50 p-1 sm:p-2">
-                                                Beneficiary Share (Rs.)
-                                            </th>
-                                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-1 sm:p-2">
-                                                Subsidy (Rs.)
-                                            </th>
-                                            <th className="border text-center text-[9px] min-w-[80px] bg-green-50 p-1 sm:p-2">
-                                                Total (Rs.)
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {mergedDistrictData.map(({ name, currentMonth, progressive }, index) => (
-                                            <Fragment key={name}>
-                                                {/* Current Month Row */}
-                                                <tr className="hover:bg-muted/30">
-                                                    <td rowSpan={2} className="border text-center font-medium sticky left-0 bg-background z-10 p-1 sm:p-2">
-                                                        {index + 1}
-                                                    </td>
-                                                    <td rowSpan={2} className="border font-medium sticky left-[50px] bg-background z-10 p-1 sm:p-2">
-                                                        {name}
-                                                    </td>
-                                                    <td className="border text-center text-[10px] p-1 sm:p-2">Current Month</td>
-                                                    {/* Physical Achievement */}
-                                                    <td className="border text-center bg-yellow-50/50 p-1 sm:p-2">{currentMonth.quantity || 0}</td>
-                                                    {/* Financial Achievement */}
-                                                    <td className="border text-right bg-green-50/50 p-1 sm:p-2">{formatCurrency(currentMonth.beneficiary_share || 0)}</td>
-                                                    <td className="border text-right bg-green-50/50 p-1 sm:p-2">{formatCurrency(currentMonth.subsidy || 0)}</td>
-                                                    <td className="border text-right font-bold bg-green-50/50 p-1 sm:p-2">{formatCurrency(currentMonth.total || 0)}</td>
-                                                    {/* Physical Balance */}
-                                                    <td className="border text-right bg-purple-50/50 font-semibold p-1 sm:p-2">{formatCurrency(currentMonth.physical_balance || 0)}</td>
-                                                    {/* Financial Balance */}
-                                                    <td className="border text-right bg-orange-50/50 font-semibold p-1 sm:p-2">{formatCurrency(currentMonth.financial_balance || 0)}</td>
-                                                </tr>
-                                                {/* Progress Row */}
-                                                <tr className="hover:bg-muted/30 bg-muted/10">
-                                                    <td className="border text-center text-[10px] p-1 sm:p-2">Progressive</td>
-                                                    {/* Physical Achievement */}
-                                                    <td className="border text-center bg-yellow-50/50 p-1 sm:p-2">{progressive.quantity || 0}</td>
-                                                    {/* Financial Achievement */}
-                                                    <td className="border text-right bg-green-50/50 p-1 sm:p-2">{formatCurrency(progressive.beneficiary_share || 0)}</td>
-                                                    <td className="border text-right bg-green-50/50 p-1 sm:p-2">{formatCurrency(progressive.subsidy || 0)}</td>
-                                                    <td className="border text-right font-bold bg-green-50/50 p-1 sm:p-2">{formatCurrency(progressive.total || 0)}</td>
-                                                    {/* Physical Balance */}
-                                                    <td className="border text-right bg-purple-50/50 font-semibold p-1 sm:p-2">{formatCurrency(progressive.physical_balance || 0)}</td>
-                                                    {/* Financial Balance */}
-                                                    <td className="border text-right bg-orange-50/50 font-semibold p-1 sm:p-2">{formatCurrency(progressive.financial_balance || 0)}</td>
-                                                </tr>
-                                            </Fragment>
-                                        ))}
-                                    </tbody>
-                                    <tfoot>
-                                        <tr className="bg-muted font-bold">
-                                            <td rowSpan={2} className="border text-center sticky left-0 bg-muted z-10 p-1 sm:p-2" colSpan={1}></td>
-                                            <td rowSpan={2} className="border sticky left-[50px] bg-muted z-10 p-1 sm:p-2">TOTAL</td>
-                                            <td className="border p-1 sm:p-2">Current Month</td>
-                                            {/* Physical Achievement */}
-                                            <td className="border text-center bg-yellow-100 p-1 sm:p-2">{currentMonthTotals.total_quantity}</td>
-                                            {/* Financial Achievement */}
-                                            <td className="border text-right bg-green-100 p-1 sm:p-2">{formatCurrency(currentMonthTotals.total_beneficiary_share)}</td>
-                                            <td className="border text-right bg-green-100 p-1 sm:p-2">{formatCurrency(currentMonthTotals.total_subsidy)}</td>
-                                            <td className="border text-right bg-green-100 p-1 sm:p-2">{formatCurrency(currentMonthTotals.grand_total)}</td>
-                                            {/* Physical Balance */}
-                                            <td className="border text-right bg-purple-100 font-bold p-1 sm:p-2">{formatCurrency(currentMonthTotals.total_physical_balance)}</td>
-                                            {/* Financial Balance */}
-                                            <td className="border text-right bg-orange-100 font-bold p-1 sm:p-2">{formatCurrency(currentMonthTotals.total_financial_balance)}</td>
-                                        </tr>
-                                        <tr className="bg-muted font-bold">
-                                            <td className="border p-1 sm:p-2">Progressive</td>
-                                            {/* Physical Achievement */}
-                                            <td className="border text-center bg-yellow-100 p-1 sm:p-2">{progressiveTotals.total_quantity}</td>
-                                            {/* Financial Achievement */}
-                                            <td className="border text-right bg-green-100 p-1 sm:p-2">{formatCurrency(progressiveTotals.total_beneficiary_share)}</td>
-                                            <td className="border text-right bg-green-100 p-1 sm:p-2">{formatCurrency(progressiveTotals.total_subsidy)}</td>
-                                            <td className="border text-right bg-green-100 p-1 sm:p-2">{formatCurrency(progressiveTotals.grand_total)}</td>
-                                            {/* Physical Balance */}
-                                            <td className="border text-right bg-purple-100 font-bold p-1 sm:p-2">{formatCurrency(progressiveTotals.total_physical_balance)}</td>
-                                            {/* Financial Balance */}
-                                            <td className="border text-right bg-orange-100 font-bold p-1 sm:p-2">{formatCurrency(progressiveTotals.total_financial_balance)}</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
+                                </CardHeader>
+                            </Card>
+                            <Card className="relative overflow-hidden border-2 border-cyan-500/30 bg-gradient-to-br from-cyan-500/20 to-cyan-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-cyan-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
+                                    <div className="flex items-center justify-between">
+                                        <CardDescription className="text-[10px] sm:text-xs md:text-sm">{selectedMonthLabel} Beneficiary Share</CardDescription>
+                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Users className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                                        </div>
+                                    </div>
+                                    <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-cyan-600 drop-shadow-sm">
+                                        ₹{formatCurrency(currentMonthTotals.total_beneficiary_share)}
+                                    </CardTitle>
+
+                                </CardHeader>
+                            </Card>
+                            <Card className="relative overflow-hidden border-2 border-orange-500/30 bg-gradient-to-br from-orange-500/20 to-orange-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-orange-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
+                                    <div className="flex items-center justify-between">
+                                        <CardDescription className="text-[10px] sm:text-xs md:text-sm">{selectedMonthLabel} Subsidy</CardDescription>
+                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                                        </div>
+                                    </div>
+                                    <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-orange-600 drop-shadow-sm">
+                                        ₹{formatCurrency(currentMonthTotals.total_subsidy)}
+                                    </CardTitle>
+
+                                </CardHeader>
+                            </Card>
+                            <Card className="relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-purple-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
+                                    <div className="flex items-center justify-between">
+                                        <CardDescription className="text-[10px] sm:text-xs md:text-sm">Progressive Districts</CardDescription>
+                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Target className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                                        </div>
+                                    </div>
+                                    <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-purple-600 drop-shadow-sm">
+                                        {progressiveDistrictData.filter(d => d.data.total > 0).length}
+                                    </CardTitle>
+
+                                </CardHeader>
+                            </Card>
+                            <Card className="relative overflow-hidden border-2 border-yellow-500/30 bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-yellow-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
+                                    <div className="flex items-center justify-between">
+                                        <CardDescription className="text-[10px] sm:text-xs md:text-sm">Progressive Quantity</CardDescription>
+                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Package className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                                        </div>
+                                    </div>
+                                    <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-yellow-600 drop-shadow-sm">
+                                        {formatCurrency(progressiveTotals.total_quantity)}
+                                    </CardTitle>
+
+                                </CardHeader>
+                            </Card>
+                            <Card className="relative overflow-hidden border-2 border-teal-500/30 bg-gradient-to-br from-teal-500/20 to-teal-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-teal-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
+                                    <div className="flex items-center justify-between">
+                                        <CardDescription className="text-[10px] sm:text-xs md:text-sm">Progressive Beneficiary Share</CardDescription>
+                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Users className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                                        </div>
+                                    </div>
+                                    <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-teal-600 drop-shadow-sm">
+                                        ₹{formatCurrency(progressiveTotals.total_beneficiary_share)}
+                                    </CardTitle>
+
+                                </CardHeader>
+                            </Card>
+                            <Card className="relative overflow-hidden border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                <CardHeader className="pb-2 p-3 sm:p-4 md:p-6 relative">
+                                    <div className="flex items-center justify-between">
+                                        <CardDescription className="text-[10px] sm:text-xs md:text-sm">Progressive Subsidy</CardDescription>
+                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                                        </div>
+                                    </div>
+                                    <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-emerald-600 drop-shadow-sm">
+                                        ₹{formatCurrency(progressiveTotals.total_subsidy)}
+                                    </CardTitle>
+
+                                </CardHeader>
+                            </Card>
                         </div>
                     )}
-                </CardContent>
-            </Card>
+
+                    {/* Report Card */}
+                    <Card>
+                        <CardHeader>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="space-y-1">
+                                    <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 text-base sm:text-lg md:text-xl">
+                                        <FileText className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                                        <span>DBT Claims - Financial Achievement Report</span>
+                                        {selectedComponent !== "all" && (
+                                            <span className="text-xs sm:text-sm font-normal text-muted-foreground">
+                                                ({selectedComponentLabel})
+                                            </span>
+                                        )}
+                                    </CardTitle>
+                                    <CardDescription className="text-xs sm:text-sm">
+                                        District-wise breakdown of current month and progressive achievement for DBT claims
+                                        {filters && ` • Current month: ${filters.current_month_start_date} to ${filters.current_month_end_date} • Progressive: ${filters.progressive_start_date} to ${filters.progressive_end_date}`}
+                                    </CardDescription>
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full sm:w-auto"
+                                    onClick={() => setIsTableFullscreen(true)}
+                                    disabled={isLoading || mergedDistrictData.length === 0}
+                                >
+                                    <Maximize2 className="h-4 w-4 sm:mr-2" />
+                                    <span>Full Screen</span>
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {isLoading ? (
+                                <div className="space-y-4">
+                                    <Skeleton className="h-8 w-full" />
+                                    <Skeleton className="h-64 w-full" />
+                                </div>
+                            ) : mergedDistrictData.length === 0 ? (
+                                <div className="text-center py-12 text-muted-foreground">
+                                    <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                    <p>No data available for the selected period.</p>
+                                </div>
+                            ) : (
+                                renderReportTable("w-full overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 max-h-[calc(100vh-400px)]")
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <Dialog open={isTableFullscreen} onOpenChange={setIsTableFullscreen}>
+                        <DialogContent className="h-[96vh] w-[98vw] max-w-none overflow-hidden p-0">
+                            <div className="flex h-full flex-col overflow-hidden">
+                                <DialogHeader className="border-b px-4 py-4 pr-12 sm:px-6">
+                                    <DialogTitle className="text-base sm:text-lg md:text-xl">
+                                        DBT Claims - Financial Achievement Report
+                                    </DialogTitle>
+                                    <DialogDescription className="text-xs sm:text-sm">
+                                        Full screen view for the district-wise DBT claims MPR table.
+                                        {filters && ` Current month: ${filters.current_month_start_date} to ${filters.current_month_end_date} • Progressive: ${filters.progressive_start_date} to ${filters.progressive_end_date}`}
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="flex-1 overflow-hidden p-4 sm:p-6">
+                                    {renderReportTable("h-full w-full overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100")}
+                                </div>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
 
                 </div>
             </main>
