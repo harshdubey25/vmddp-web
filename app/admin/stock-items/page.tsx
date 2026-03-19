@@ -58,6 +58,7 @@ export default function StockItemsManagement() {
     const [itemGroup, setItemGroup] = useState<string>("");
     const [selectedItem, setSelectedItem] = useState<StockItem | null>(null);
     const [editRate, setEditRate] = useState<string>("");
+    const [editUnitOfMeasure, setEditUnitOfMeasure] = useState<string>("");
 
     // Pagination and search
     const [page, setPage] = useState(1);
@@ -127,40 +128,45 @@ export default function StockItemsManagement() {
         }
     };
 
-    const handleOpenEditPrice = (item: StockItem) => {
+    const handleOpenEditItem = (item: StockItem) => {
         setSelectedItem(item);
         setEditRate(item.rate !== undefined && item.rate !== null ? String(item.rate) : "");
+        setEditUnitOfMeasure(item.unit_of_measure || "");
         setIsEditDialogOpen(true);
     };
 
-    const handleUpdatePrice = async () => {
+    const handleUpdateItem = async () => {
         if (!selectedItem) return;
 
         const parsedRate = Number(editRate);
-        if (editRate.trim() === "" || Number.isNaN(parsedRate)) {
+        if (!editUnitOfMeasure || editRate.trim() === "" || Number.isNaN(parsedRate)) {
             toast({
                 title: "Validation Error",
-                description: "Please enter a valid rate.",
+                description: "Please select a unit of measure and enter a valid rate.",
                 variant: "destructive",
             });
             return;
         }
 
         try {
-            await updateDoc("Stock Item", selectedItem.name, { rate: parsedRate });
+            await updateDoc("Stock Item", selectedItem.name, {
+                rate: parsedRate,
+                unit_of_measure: editUnitOfMeasure,
+            });
             toast({
                 title: "Success",
-                description: "Rate updated successfully.",
+                description: "Stock item updated successfully.",
             });
             mutateItems();
             setIsEditDialogOpen(false);
             setSelectedItem(null);
             setEditRate("");
+            setEditUnitOfMeasure("");
         } catch (error) {
-            console.error("Error updating rate:", error);
+            console.error("Error updating stock item:", error);
             toast({
                 title: "Error",
-                description: "Failed to update rate. Please try again.",
+                description: "Failed to update stock item. Please try again.",
                 variant: "destructive",
             });
         }
@@ -229,10 +235,10 @@ export default function StockItemsManagement() {
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    onClick={() => handleOpenEditPrice(item)}
+                                                    onClick={() => handleOpenEditItem(item)}
                                                 >
                                                     <Edit className="mr-2 h-4 w-4" />
-                                                    Edit Price
+                                                    Edit Item
                                                 </Button>
                                             </TableCell>
                                         </TableRow>
@@ -357,12 +363,31 @@ export default function StockItemsManagement() {
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Edit Price</DialogTitle>
+                        <DialogTitle>Edit Stock Item</DialogTitle>
                         <DialogDescription>
-                            Update the rate for {selectedItem?.item_name || "this item"}.
+                            Update the unit of measure and rate for {selectedItem?.item_name || "this item"}.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="edit_unit_of_measure">Unit of Measure</Label>
+                            <Select
+                                value={editUnitOfMeasure}
+                                onValueChange={setEditUnitOfMeasure}
+                                disabled={loadingUnits}
+                            >
+                                <SelectTrigger id="edit_unit_of_measure">
+                                    <SelectValue placeholder="Select a unit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {units?.map((unit) => (
+                                        <SelectItem key={unit.name} value={unit.name}>
+                                            {unit.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                         <div className="space-y-2">
                             <Label htmlFor="edit_rate">Rate</Label>
                             <Input
@@ -382,13 +407,14 @@ export default function StockItemsManagement() {
                                 setIsEditDialogOpen(false);
                                 setSelectedItem(null);
                                 setEditRate("");
+                                setEditUnitOfMeasure("");
                             }}
                         >
                             Cancel
                         </Button>
-                        <Button onClick={handleUpdatePrice} disabled={isUpdating}>
+                        <Button onClick={handleUpdateItem} disabled={isUpdating}>
                             {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Update Price
+                            Update Item
                         </Button>
                     </DialogFooter>
                 </DialogContent>
