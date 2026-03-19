@@ -423,11 +423,11 @@ export default function DDCollection() {
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-red-700/80 dark:text-red-300">
-                                        Cancelled DDs
+                                        Returned DDs
                                     </p>
                                     <p
                                         className="text-2xl font-bold text-red-900 dark:text-red-100 drop-shadow-sm"
-                                        data-testid="text-cancelled-count"
+                                        data-testid="text-returned-count"
                                     >
                                         {cancelledDDs}
                                     </p>
@@ -466,7 +466,7 @@ export default function DDCollection() {
                             data-testid="tab-cancelled"
                         >
                             <X className="h-4 w-4" />
-                            Cancelled DDs
+                            Returned DDs
                         </TabsTrigger>
                     </TabsList>
 
@@ -915,9 +915,9 @@ export default function DDCollection() {
                         <Card data-testid="card-cancelled-dd-list">
                             <CardHeader className="pb-4">
                                 <div>
-                                    <CardTitle>Cancelled DDs</CardTitle>
+                                    <CardTitle>Returned DDs</CardTitle>
                                     <CardDescription>
-                                        {cancelledDDApplications.length} cancelled demand drafts
+                                        {cancelledDDApplications.length} returned demand drafts
                                     </CardDescription>
                                 </div>
                             </CardHeader>
@@ -1019,8 +1019,8 @@ export default function DDCollection() {
                                                                         cancelledFilters.district ||
                                                                         cancelledFilters.taluka ||
                                                                         cancelledFilters.village
-                                                                        ? "No cancelled DDs found matching the selected filters"
-                                                                        : "No cancelled DD entries found"}
+                                                                        ? "No Returned DDs found matching the selected filters"
+                                                                        : "No Returned DD entries found"}
                                                                 </td>
                                                             </tr>
                                                         )}
