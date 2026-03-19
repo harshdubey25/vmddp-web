@@ -22,15 +22,15 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Package, Plus, Loader2, Edit } from "lucide-react";
+import { Package, Plus, Loader2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface StockItem {
     name: string;
@@ -208,56 +208,81 @@ export default function StockItemsManagement() {
                         </div>
                     ) : stockItems && stockItems.length > 0 ? (
                         <>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Item Name</TableHead>
-                                        <TableHead>Unit of Measure</TableHead>
-                                        <TableHead>Rate</TableHead>
-                                        <TableHead>Item Group</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {stockItems.map((item) => (
-                                        <TableRow key={item.name}>
-                                            <TableCell>{item.item_name}</TableCell>
-                                            <TableCell>{item.unit_of_measure}</TableCell>
-                                            <TableCell>₹{item.rate}</TableCell>
-                                            <TableCell>{item.stock_item_group}</TableCell>
-                                            <TableCell className="text-right">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleOpenEditPrice(item)}
-                                                >
-                                                    <Edit className="mr-2 h-4 w-4" />
-                                                    Edit Price
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                            <div className="border rounded-lg overflow-hidden">
+                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                    <table className="w-full">
+                                        <thead className="sticky top-0 z-10 bg-muted border-b">
+                                            <tr>
+                                                <th className="text-left p-3 text-sm font-medium">Item Name</th>
+                                                <th className="text-left p-3 text-sm font-medium">Unit of Measure</th>
+                                                <th className="text-left p-3 text-sm font-medium">Rate</th>
+                                                <th className="text-left p-3 text-sm font-medium">Item Group</th>
+                                                <th className="text-right p-3 text-sm font-medium">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {stockItems.map((item) => (
+                                                <tr key={item.name} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                                                    <td className="p-3 text-sm">{item.item_name}</td>
+                                                    <td className="p-3 text-sm">{item.unit_of_measure}</td>
+                                                    <td className="p-3 text-sm">₹{item.rate}</td>
+                                                    <td className="p-3 text-sm">{item.stock_item_group}</td>
+                                                    <td className="p-3 text-sm text-right">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleOpenEditPrice(item)}
+                                                        >
+                                                            <Edit className="mr-2 h-4 w-4" />
+                                                            Edit Price
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                             {/* Pagination controls */}
-                            <div className="flex justify-end items-center gap-2 mt-4">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setPage(page - 1)}
-                                    disabled={page === 1 || loadingItems}
-                                >
-                                    Previous
-                                </Button>
-                                <span className="px-2 text-sm">Page {page}</span>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setPage(page + 1)}
-                                    disabled={stockItems.length < PAGE_SIZE || loadingItems}
-                                >
-                                    Next
-                                </Button>
+                            <div className="flex items-center justify-between mt-4 mb-8">
+                                <p className="text-sm text-muted-foreground">
+                                    Page {page} • Showing {stockItems.length} items
+                                </p>
+                                <Pagination>
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    if (page > 1) setPage(page - 1);
+                                                }}
+                                                className={page === 1 || loadingItems ? "pointer-events-none opacity-50" : ""}
+                                            >
+                                                <ChevronLeft className="h-4 w-4 mr-1" />
+                                                Previous
+                                            </PaginationPrevious>
+                                        </PaginationItem>
+                                        <PaginationItem>
+                                            <PaginationLink href="#" className="pointer-events-none">
+                                                {page}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    if (stockItems.length >= PAGE_SIZE) setPage(page + 1);
+                                                }}
+                                                className={stockItems.length < PAGE_SIZE || loadingItems ? "pointer-events-none opacity-50" : ""}
+                                            >
+                                                Next
+                                                <ChevronRight className="h-4 w-4 ml-1" />
+                                            </PaginationNext>
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
                             </div>
                         </>
                     ) : (

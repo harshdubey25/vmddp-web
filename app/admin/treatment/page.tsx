@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 import {
@@ -74,6 +75,7 @@ export default function TreatmentPage() {
   const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
@@ -136,7 +138,8 @@ export default function TreatmentPage() {
       app.applicantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.village.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.aadharNumber?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    const matchesStatus = statusFilter === "all" || app.docstatus.toString() === statusFilter;
+    return matchesSearch && matchesStatus;
   });
 
   const totalRecords = filteredApplications.length;
@@ -254,6 +257,20 @@ export default function TreatmentPage() {
                       data-testid="input-search"
                     />
                   </div>
+                  <Select value={statusFilter} onValueChange={(value) => {
+                    setStatusFilter(value);
+                    setCurrentPage(1);
+                  }}>
+                    <SelectTrigger data-testid="select-status-filter">
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="0">Draft</SelectItem>
+                      <SelectItem value="1">Submitted</SelectItem>
+                      <SelectItem value="2">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {isLoading ? (

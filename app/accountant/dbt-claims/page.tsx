@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappeGetDocList, useFrappeGetDocCount } from "frappe-react-sdk";
 import { Component, DBTClaim } from "@/types";
 import DisbursedClaimsTable from "@/components/DisbursedClaimsTable";
 import { exportReport, type ExportFormat } from "@/lib/export-report";
@@ -119,6 +119,13 @@ export default function DBTClaims() {
         `dbt_completed_list_stats`
     );
     const disbursedClaims = disbursedClaimsResponse?.message || [];
+    
+    // Get count of all disbursed claims
+    const { data: disbursedClaimsCount } = useFrappeGetDocCount(
+        "DBT Claims",
+        [["docstatus", "=", 1]]
+    );
+    
     const { data: dbtStats } = useFrappeGetCall<{ message: { total_subsidy_amount: number, applications_count: number, claims_count: number } }>(
         "vmddp_app.api.v1.accountant.dbt_stats",
         {
@@ -226,7 +233,7 @@ export default function DBTClaims() {
                                         </p>
 
                                         <p className="text-xs text-muted-foreground">
-                                            {stats.total_claims_processed} claims processed
+                                            {disbursedClaimsCount || 0} claims processed
                                         </p>
                                     </div>
                                 </div>
@@ -294,7 +301,7 @@ export default function DBTClaims() {
                     <Tabs defaultValue="new-claim" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                         <TabsList>
                             <TabsTrigger value="new-claim">New Claim</TabsTrigger>
-                            <TabsTrigger value="history">Disbursed History ({disbursedClaims?.length || 0})</TabsTrigger>
+                            <TabsTrigger value="history">Disbursed History ({disbursedClaimsCount || 0})</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="new-claim">

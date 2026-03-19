@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFrappeGetDocList, useFrappeAuth, useFrappeGetDoc } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -67,6 +67,7 @@ export default function TreatmentPage() {
   const router = useRouter();
   const { currentUser } = useFrappeAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const { toast } = useToast();
@@ -131,7 +132,8 @@ export default function TreatmentPage() {
       app.applicantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.village.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.aadharNumber?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    const matchesStatus = statusFilter === "all" || app.docstatus.toString() === statusFilter;
+    return matchesSearch && matchesStatus;
   });
 
 
@@ -250,6 +252,17 @@ export default function TreatmentPage() {
                       data-testid="input-search"
                     />
                   </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger data-testid="select-status-filter">
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="0">Draft</SelectItem>
+                      <SelectItem value="1">Submitted</SelectItem>
+                      <SelectItem value="2">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {isLoading ? (
