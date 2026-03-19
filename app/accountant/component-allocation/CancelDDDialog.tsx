@@ -1,10 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Ban, CreditCard, Loader2, User } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export interface PendingApplicationForDDCancel {
     name: string;
@@ -42,7 +45,7 @@ interface CancelDDDialogProps {
     selectedPendingApplication: PendingApplicationForDDCancel | null;
     selectedDD: DDDocDetails | null;
     loadingDDDetails: boolean;
-    onCancelDD: () => void;
+    onCancelDD: (remarks: string) => void;
 }
 
 export default function CancelDDDialog({
@@ -53,9 +56,17 @@ export default function CancelDDDialog({
     loadingDDDetails,
     onCancelDD,
 }: CancelDDDialogProps) {
+    const [remarks, setRemarks] = useState("");
+
+    useEffect(() => {
+        if (!open) {
+            setRemarks("");
+        }
+    }, [open]);
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-2xl">
+            <DialogContent className="w-[min(96vw,1100px)] max-w-none max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Cancel DD</DialogTitle>
                     <DialogDescription>
@@ -64,7 +75,7 @@ export default function CancelDDDialog({
                 </DialogHeader>
 
                 {selectedPendingApplication ? (
-                    <div className="space-y-6 py-2">
+                    <div className="space-y-4 py-2">
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <Card>
                                 <CardHeader className="pb-3">
@@ -153,8 +164,21 @@ export default function CancelDDDialog({
                             </Card>
                         </div>
 
-                        <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
-                            Cancelling the DD will cancel the submitted DD .
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+                            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+                                Cancelling the DD will cancel the submitted DD .
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="cancel-dd-remarks">Remarks</Label>
+                                <Textarea
+                                    id="cancel-dd-remarks"
+                                    placeholder="Enter remarks for DD cancellation..."
+                                    value={remarks}
+                                    onChange={(event) => setRemarks(event.target.value)}
+                                    rows={3}
+                                />
+                            </div>
                         </div>
                     </div>
                 ) : null}
@@ -165,7 +189,7 @@ export default function CancelDDDialog({
                     </Button>
                     <Button
                         variant="destructive"
-                        onClick={onCancelDD}
+                        onClick={() => onCancelDD(remarks.trim())}
                         disabled={loadingDDDetails || !selectedDD?.name}
                         data-testid="button-confirm-cancel-dd"
                     >

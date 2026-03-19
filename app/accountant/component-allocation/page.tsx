@@ -106,6 +106,7 @@ export default function ComponentAllocation() {
         }
     }>('vmddp_app.api.v1.accountant.get_component_allocation_stats')
     const { call: cancelDoc } = useFrappePostCall("frappe.client.cancel");
+    const { call: setDocValue } = useFrappePostCall("frappe.client.set_value");
     const { user } = useAuth()
     const isAccountant = user?.roles?.includes(UserRole.VMDDP_ACCOUNTANT);
     const pendingApplications = ddCompletedApplications?.message?.data ?? []
@@ -169,7 +170,7 @@ export default function ComponentAllocation() {
         setShowCancelDDDialog(true);
     };
 
-    const handleCancelDD = async () => {
+    const handleCancelDD = async (remarks: string) => {
         if (!selectedPendingApplication) {
             return;
         }
@@ -184,6 +185,13 @@ export default function ComponentAllocation() {
         }
 
         try {
+            await setDocValue({
+                doctype: "DD",
+                name: selectedDD.name,
+                fieldname: "remarks",
+                value: remarks,
+            });
+
             await cancelDoc({
                 doctype: "DD",
                 name: selectedDD.name,
