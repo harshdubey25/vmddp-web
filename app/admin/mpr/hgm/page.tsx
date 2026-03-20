@@ -242,9 +242,9 @@ export default function HGMMPRPage() {
     const selectedMonthLabel = months.find((month) => month.value === selectedMonth)?.label || "Current Month";
 
     const renderReportTable = (containerClassName: string) => (
-        <div className="border rounded-lg overflow-hidden flex flex-col">
+        <div className="border rounded-lg overflow-hidden flex min-h-0 min-w-0 flex-col">
             <div className={containerClassName}>
-                <table className="w-full text-xs">
+                <table className="min-w-[1100px] w-full text-xs">
                     <thead className="bg-muted sticky top-0 z-30">
                         <tr className="bg-muted/50">
                             <th rowSpan={3} className="border text-center font-bold sticky left-0 bg-muted/50 z-30 min-w-[50px] p-2">
@@ -256,22 +256,16 @@ export default function HGMMPRPage() {
                             <th rowSpan={3} className="border text-center font-bold min-w-[70px] p-2">
 
                             </th>
-                            <th colSpan={11} className="border text-center font-bold bg-blue-50 p-2">
+                            <th colSpan={7} className="border text-center font-bold bg-blue-50 p-2">
                                 Supply Of High Genetic Merit Pregnant Heifers (IVF/ETT)
                             </th>
                         </tr>
                         <tr className="bg-muted/30">
-                            <th rowSpan={2} className="border text-center font-bold min-w-[80px] bg-blue-100 p-2">
-                                Physical Target
-                            </th>
                             <th colSpan={2} className="border text-center font-bold min-w-[140px] bg-yellow-50 p-2">
                                 Physical Achievement
                             </th>
                             <th rowSpan={2} className="border text-center font-bold min-w-[80px] bg-orange-100 p-2">
                                 Physical Balance
-                            </th>
-                            <th rowSpan={2} className="border text-center font-bold min-w-[80px] bg-blue-100 p-2">
-                                Financial Target
                             </th>
                             <th colSpan={3} className="border text-center font-bold min-w-[240px] bg-green-50 p-2">
                                 Financial Achievement
@@ -309,11 +303,9 @@ export default function HGMMPRPage() {
                                         {name}
                                     </td>
                                     <td className="border text-center text-[10px] p-2">Current Month</td>
-                                    <td className="border text-center bg-blue-50 p-2">N/A</td>
                                     <td className="border text-center bg-yellow-50/50 p-2">{currentMonth.cow_count || 0}</td>
                                     <td className="border text-center bg-yellow-50/50 p-2">{currentMonth.buffalo_count || 0}</td>
                                     <td className="border text-center bg-orange-50/50 font-semibold p-2">{currentMonth.physical_balance || 0}</td>
-                                    <td className="border text-right bg-blue-50 p-2">N/A</td>
                                     <td className="border text-right bg-green-50/50 p-2">{formatCurrency(currentMonth.beneficiary_share || 0)}</td>
                                     <td className="border text-right bg-green-50/50 p-2">{formatCurrency(currentMonth.subsidy || 0)}</td>
                                     <td className="border text-right font-bold bg-green-50/50 p-2">{formatCurrency(currentMonth.total || 0)}</td>
@@ -321,11 +313,9 @@ export default function HGMMPRPage() {
                                 </tr>
                                 <tr className="hover:bg-muted/30 bg-muted/10">
                                     <td className="border text-center text-[10px] p-2">Progressive</td>
-                                    <td className="border text-center bg-blue-50 p-2">{progressive.physical_target || 0}</td>
                                     <td className="border text-center bg-yellow-50/50 p-2">{progressive.cow_count || 0}</td>
                                     <td className="border text-center bg-yellow-50/50 p-2">{progressive.buffalo_count || 0}</td>
                                     <td className="border text-center bg-orange-50/50 font-semibold p-2">{progressive.physical_balance || 0}</td>
-                                    <td className="border text-right bg-blue-50 p-2">{formatCurrency(progressive.financial_target || 0)}</td>
                                     <td className="border text-right bg-green-50/50 p-2">{formatCurrency(progressive.beneficiary_share || 0)}</td>
                                     <td className="border text-right bg-green-50/50 p-2">{formatCurrency(progressive.subsidy || 0)}</td>
                                     <td className="border text-right font-bold bg-green-50/50 p-2">{formatCurrency(progressive.total || 0)}</td>
@@ -339,11 +329,9 @@ export default function HGMMPRPage() {
                             <td rowSpan={2} className="border text-center sticky left-0 bg-muted z-10 p-2" colSpan={1}></td>
                             <td rowSpan={2} className="border sticky left-[50px] bg-muted z-10 p-2">TOTAL</td>
                             <td className="border p-2">Current Month</td>
-                            <td className="border text-center bg-blue-100 p-2">N/A</td>
                             <td className="border text-center bg-yellow-100 p-2">{currentMonthTotals.total_cows}</td>
                             <td className="border text-center bg-yellow-100 p-2">{currentMonthTotals.total_buffaloes}</td>
                             <td className="border text-center bg-orange-100 font-bold p-2">{currentMonthTotals.total_physical_balance}</td>
-                            <td className="border text-right bg-blue-100 p-2">N/A</td>
                             <td className="border text-right bg-green-100 p-2">{formatCurrency(currentMonthTotals.total_beneficiary_share)}</td>
                             <td className="border text-right bg-green-100 p-2">{formatCurrency(currentMonthTotals.total_subsidy)}</td>
                             <td className="border text-right bg-green-100 p-2">{formatCurrency(currentMonthTotals.grand_total)}</td>
@@ -351,11 +339,9 @@ export default function HGMMPRPage() {
                         </tr>
                         <tr className="bg-muted font-bold">
                             <td className="border p-2">Progressive</td>
-                            <td className="border text-center bg-blue-100 p-2">{progressiveTotals.total_physical_target}</td>
                             <td className="border text-center bg-yellow-100 p-2">{progressiveTotals.total_cows}</td>
                             <td className="border text-center bg-yellow-100 p-2">{progressiveTotals.total_buffaloes}</td>
                             <td className="border text-center bg-orange-100 font-bold p-2">{progressiveTotals.total_physical_balance}</td>
-                            <td className="border text-right bg-blue-100 p-2">{formatCurrency(progressiveTotals.total_financial_target)}</td>
                             <td className="border text-right bg-green-100 p-2">{formatCurrency(progressiveTotals.total_beneficiary_share)}</td>
                             <td className="border text-right bg-green-100 p-2">{formatCurrency(progressiveTotals.total_subsidy)}</td>
                             <td className="border text-right bg-green-100 p-2">{formatCurrency(progressiveTotals.grand_total)}</td>
@@ -540,14 +526,14 @@ export default function HGMMPRPage() {
                             <p>No data available for the selected period.</p>
                         </div>
                     ) : (
-                        renderReportTable("overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]")
+                        renderReportTable("min-w-0 overflow-x-scroll overflow-y-scroll max-h-[calc(100vh-400px)]")
                     )}
                 </CardContent>
             </Card>
 
             <Dialog open={isTableFullscreen} onOpenChange={setIsTableFullscreen}>
                 <DialogContent className="h-[96vh] w-[98vw] max-w-none overflow-hidden p-0">
-                    <div className="flex h-full flex-col overflow-hidden">
+                    <div className="flex h-full min-h-0 flex-col overflow-hidden">
                         <DialogHeader className="border-b px-4 py-4 pr-12 sm:px-6">
                             <DialogTitle className="text-base sm:text-lg md:text-xl">
                                 HGM (Pregnant Cow) - Financial Achievement Report
@@ -557,8 +543,8 @@ export default function HGMMPRPage() {
                                 {filters && ` Current month: ${filters.current_month_start_date} to ${filters.current_month_end_date} • Progressive: ${filters.progressive_start_date} to ${filters.progressive_end_date}`}
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="flex-1 overflow-hidden p-4 sm:p-6">
-                            {renderReportTable("h-full overflow-x-auto overflow-y-auto")}
+                        <div className="flex-1 min-h-0 overflow-hidden p-4 sm:p-6">
+                            {renderReportTable("h-full min-h-0 min-w-0 overflow-x-scroll overflow-y-scroll")}
                         </div>
                     </div>
                 </DialogContent>
