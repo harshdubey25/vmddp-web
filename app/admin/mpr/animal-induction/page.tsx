@@ -282,9 +282,9 @@ export default function AnimalInductionMPRPage() {
     const selectedMonthLabel = months.find((month) => month.value === selectedMonth)?.label || "Current Month";
 
     const renderReportTable = (containerClassName: string) => (
-        <div className="border rounded-lg overflow-hidden flex flex-col">
+        <div className="border rounded-lg overflow-hidden flex min-h-0 min-w-0 flex-col">
             <div className={containerClassName}>
-                <table className="w-full text-xs">
+                <table className="min-w-[1900px] w-full text-xs">
                     <thead className="bg-muted sticky top-0 z-30">
                         <tr className="bg-muted/50">
                             <th rowSpan={4} className="border text-center font-bold sticky left-0 bg-muted z-30 min-w-[50px] p-2">
@@ -700,14 +700,14 @@ export default function AnimalInductionMPRPage() {
                             <p>No data available for the selected period.</p>
                         </div>
                     ) : (
-                        renderReportTable("overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]")
+                        renderReportTable("min-w-0 overflow-x-scroll overflow-y-scroll max-h-[calc(100vh-400px)]")
                     )}
                 </CardContent>
             </Card>
 
             <Dialog open={isTableFullscreen} onOpenChange={setIsTableFullscreen}>
                 <DialogContent className="h-[96vh] w-[98vw] max-w-none overflow-hidden p-0">
-                    <div className="flex h-full flex-col overflow-hidden">
+                    <div className="flex h-full min-h-0 flex-col overflow-hidden">
                         <DialogHeader className="border-b px-4 py-4 pr-12 sm:px-6">
                             <DialogTitle className="text-base sm:text-lg md:text-xl">
                                 Animal Induction - Financial Achievement Report
@@ -717,8 +717,8 @@ export default function AnimalInductionMPRPage() {
                                 {filters && ` Current month: ${filters.current_month_start_date} to ${filters.current_month_end_date} • Progressive: ${filters.progressive_start_date} to ${filters.progressive_end_date}`}
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="flex-1 overflow-hidden p-4 sm:p-6">
-                            {renderReportTable("h-full overflow-x-auto overflow-y-auto")}
+                        <div className="flex-1 min-h-0 overflow-hidden p-4 sm:p-6">
+                            {renderReportTable("h-full min-h-0 min-w-0 overflow-x-scroll overflow-y-scroll")}
                         </div>
                     </div>
                 </DialogContent>
