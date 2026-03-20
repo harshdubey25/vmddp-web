@@ -1,5 +1,6 @@
 
 export interface MedicineEntry {
+    unit:string;
     id: string;
     date: Date | undefined;
     medicineName: string;

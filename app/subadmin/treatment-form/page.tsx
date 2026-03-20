@@ -13,7 +13,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Stethoscope, ClipboardList, Save, CalendarIcon, MapPin, Pill, Plus, Trash2, X, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -135,6 +134,7 @@ export default function TreatmentForm() {
 
   const addMedicine = () => {
     const newMedicine: MedicineEntry = {
+      unit: "",
       id: `med-${Date.now()}`,
       date: undefined,
       medicineName: "",
@@ -151,12 +151,29 @@ export default function TreatmentForm() {
     }));
   };
 
+  const getMedicineRate = (medicineName: string): number => {
+    const med = medicineData?.find((m: any) => m.name === medicineName);
+    return med?.rate ? parseFloat(med.rate) : 0;
+  };
+
   const updateMedicine = (id: string, field: keyof MedicineEntry, value: any) => {
     setFormData((prev) => ({
       ...prev,
-      medicines: prev.medicines.map((m) =>
-        m.id === id ? { ...m, [field]: value } : m
-      ),
+      medicines: prev.medicines.map((m) => {
+        if (m.id !== id) return m;
+        const updated = { ...m, [field]: value };
+        // Auto-set unit and calculate price when dose or medicine changes
+        if (field === "medicineName") {
+          const selectedMed = medicineData?.find((md: any) => md.name === value);
+          updated.unit = selectedMed?.unit_of_measure || "";
+        }
+        if (field === "dose" || field === "medicineName") {
+          const dose = parseFloat(field === "dose" ? value : updated.dose) || 0;
+          const rate = getMedicineRate(field === "medicineName" ? value : updated.medicineName);
+          updated.price = dose > 0 && rate > 0 ? (dose * rate).toFixed(2) : updated.price;
+        }
+        return updated;
+      }),
     }));
   };
 
@@ -1030,10 +1047,25 @@ export default function TreatmentForm() {
                             <div className="space-y-2">
                               <Label>Dose</Label>
                               <Input
-                                placeholder="e.g., 10mg, 5ml"
+                                type="number"
+                                placeholder="e.g., 10, 5"
+                                inputMode="decimal"
+                                min="0"
                                 value={medicine.dose || ""}
-                                onChange={(e) => updateMedicine(medicine.id, "dose", e.target.value)}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/[^0-9.]/g, '');
+                                  updateMedicine(medicine.id, "dose", value);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (['e', 'E', '+', '-'].includes(e.key)) e.preventDefault();
+                                }}
                               />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Medicine Unit</Label>
+                              <div className="flex items-center h-10 px-3 rounded-md border bg-muted text-sm">
+                                {medicine.unit || "—"}
+                              </div>
                             </div>
                             <div className="space-y-2">
                               <Label>Schedule</Label>
@@ -1067,6 +1099,19 @@ export default function TreatmentForm() {
                                 value={medicine.expiryDate ? format(medicine.expiryDate, "yyyy-MM-dd") : ""}
                                 onChange={(e) => updateMedicine(medicine.id, "expiryDate", e.target.value ? new Date(e.target.value) : undefined)}
                               />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Calculated Price (₹)</Label>
+                              <div className="flex items-center h-10 px-3 rounded-md border bg-muted text-sm">
+                                {(() => {
+                                  const dose = parseFloat(medicine.dose) || 0;
+                                  const rate = getMedicineRate(medicine.medicineName);
+                                  const calculated = dose * rate;
+                                  return calculated > 0
+                                    ? `₹${calculated.toFixed(2)} (${dose} × ₹${rate.toFixed(2)})`
+                                    : "—";
+                                })()}
+                              </div>
                             </div>
                             <div className="space-y-2">
                               <Label>Price (₹)</Label>
