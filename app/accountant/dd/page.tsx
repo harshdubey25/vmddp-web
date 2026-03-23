@@ -129,6 +129,7 @@ export default function DDCollection() {
             district: debouncedCollectedDistrict || undefined,
             taluka: debouncedCollectedTaluka || undefined,
             village: debouncedCollectedVillage || undefined,
+            docstatus: 1
         },
     );
 
@@ -136,7 +137,7 @@ export default function DDCollection() {
     const selectedPagination = completedDDResponse?.message?.pagination || null;
 
     const { data: cancelledDDResponse, isLoading: cancelledDDLoading } = useFrappeGetCall(
-        "vmddp_app.api.v1.accountant.get_cancelled_dd_list",
+        "vmddp_app.api.v1.accountant.get_completed_dd_list",
         {
             limit_start: (cancelledPage - 1) * pageSize,
             limit_page_length: pageSize,
@@ -144,6 +145,7 @@ export default function DDCollection() {
             district: debouncedCancelledDistrict || undefined,
             taluka: debouncedCancelledTaluka || undefined,
             village: debouncedCancelledVillage || undefined,
+            docstatus: 2
         },
     );
 

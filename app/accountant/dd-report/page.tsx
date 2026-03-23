@@ -35,20 +35,21 @@ export default function DDReportPage() {
     const [componentFilter, setComponentFilter] = useState("all");
     const [animalFilter, setAnimalFilter] = useState("all");
     const [districtFilter, setDistrictFilter] = useState("all");
+    const [docstatusFilter, setDocstatusFilter] = useState("all");
 
     const animalOptions: { value: string; label: string }[] =
         componentFilter === "Animal Induction"
             ? [
-                  { value: "Desi Cow", label: "Desi Cow" },
-                  { value: "CrossBreed", label: "CrossBreed" },
-                  { value: "Buffalo", label: "Buffalo" },
-              ]
+                { value: "Desi Cow", label: "Desi Cow" },
+                { value: "CrossBreed", label: "CrossBreed" },
+                { value: "Buffalo", label: "Buffalo" },
+            ]
             : componentFilter === "HGM (Pregnant cow)"
-            ? [
-                  { value: "Buffalo", label: "Buffalo" },
-                  { value: "Cow", label: "Cow" },
-              ]
-            : [];
+                ? [
+                    { value: "Buffalo", label: "Buffalo" },
+                    { value: "Cow", label: "Cow" },
+                ]
+                : [];
 
     // Initialize page from URL params
     const initialPage = Number(searchParams.get("page") || 1);
@@ -73,6 +74,7 @@ export default function DDReportPage() {
             component: componentFilter !== "all" ? componentFilter : undefined,
             item: animalFilter !== "all" ? animalFilter : undefined,
             district: districtFilter !== "all" ? districtFilter : undefined,
+            docstatus: docstatusFilter !== "all" ? Number(docstatusFilter) : undefined,
         },
     );
 
@@ -114,6 +116,7 @@ export default function DDReportPage() {
             if (componentFilter !== "all") params.component = componentFilter;
             if (animalFilter !== "all") params.item = animalFilter;
             if (districtFilter !== "all") params.district = districtFilter;
+            if (docstatusFilter !== "all") params.docstatus = docstatusFilter;
 
             await exportReport({
                 method: "vmddp_app.api.v1.accountant.export_completed_dd_list",
@@ -238,27 +241,27 @@ export default function DDReportPage() {
                                     </Select>
 
                                     {(componentFilter === "Animal Induction" || componentFilter === "HGM (Pregnant cow)") && (
-                                    <Select
-                                        value={animalFilter}
-                                        onValueChange={(value) => {
-                                            setAnimalFilter(value);
-                                            setCurrentPage(1);
-                                        }}
-                                    >
-                                        <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
-                                            <SelectValue placeholder="Filter by animal" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">
-                                                All Animals
-                                            </SelectItem>
-                                            {animalOptions.map((opt) => (
-                                                <SelectItem key={opt.value} value={opt.value}>
-                                                    {opt.label}
+                                        <Select
+                                            value={animalFilter}
+                                            onValueChange={(value) => {
+                                                setAnimalFilter(value);
+                                                setCurrentPage(1);
+                                            }}
+                                        >
+                                            <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
+                                                <SelectValue placeholder="Filter by animal" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">
+                                                    All Animals
                                                 </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                                {animalOptions.map((opt) => (
+                                                    <SelectItem key={opt.value} value={opt.value}>
+                                                        {opt.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     )}
 
                                     <Select
@@ -280,6 +283,23 @@ export default function DDReportPage() {
                                                     {d.name}
                                                 </SelectItem>
                                             ))}
+                                        </SelectContent>
+                                    </Select>
+
+                                    <Select
+                                        value={docstatusFilter}
+                                        onValueChange={(value) => {
+                                            setDocstatusFilter(value);
+                                            setCurrentPage(1);
+                                        }}
+                                    >
+                                        <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
+                                            <SelectValue placeholder="Filter by DD status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Status</SelectItem>
+                                            <SelectItem value="1">Submitted DD</SelectItem>
+                                            <SelectItem value="2">Returned DD</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -315,6 +335,9 @@ export default function DDReportPage() {
                                                 </th>
                                                 <th className="text-left p-3 text-xs sm:text-sm font-medium">
                                                     District
+                                                </th>
+                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                    Status
                                                 </th>
                                             </tr>
                                         </thead>
@@ -353,13 +376,16 @@ export default function DDReportPage() {
                                                             <td className="p-3">
                                                                 <Skeleton className="h-5 w-full" />
                                                             </td>
+                                                            <td className="p-3">
+                                                                <Skeleton className="h-5 w-16" />
+                                                            </td>
                                                         </tr>
                                                     ),
                                                 )
                                             ) : reports.length === 0 ? (
                                                 <tr>
                                                     <td
-                                                        colSpan={9}
+                                                        colSpan={10}
                                                         className="text-center py-8 text-sm text-muted-foreground"
                                                     >
                                                         No reports found
@@ -426,6 +452,23 @@ export default function DDReportPage() {
                                                                 {report.district ||
                                                                     "N/A"}
                                                             </div>
+                                                        </td>
+                                                        <td className="p-3 text-xs sm:text-sm">
+                                                            <Badge
+                                                                variant="outline"
+                                                                className={`text-xs ${report.docstatus === 2
+                                                                    ? "border-red-400 text-red-600 bg-red-50"
+                                                                    : report.docstatus === 1
+                                                                        ? "border-green-400 text-green-600 bg-green-50"
+                                                                        : "border-yellow-400 text-yellow-600 bg-yellow-50"
+                                                                    }`}
+                                                            >
+                                                                {report.docstatus === 2
+                                                                    ? "Returned"
+                                                                    : report.docstatus === 1
+                                                                        ? "Submitted"
+                                                                        : "Draft"}
+                                                            </Badge>
                                                         </td>
                                                     </tr>
                                                 ))
