@@ -309,9 +309,9 @@ export default function AllTargetsReportPage() {
                         <div className="border rounded-lg overflow-hidden flex flex-col">
                             <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
                                 <table className="w-full min-w-[1200px] text-xs">
-                                    <thead>
+                                    <thead className="sticky top-0 z-30 bg-muted">
                                         {/* Component names header row */}
-                                        <tr className="bg-muted sticky top-0 z-30 border-b">
+                                        <tr className="bg-muted border-b">
                                             <th rowSpan={2} className="border text-center font-bold sticky left-0 bg-muted z-30 min-w-[50px] align-middle p-2">
                                                 Sr. No.
                                             </th>
@@ -328,7 +328,7 @@ export default function AllTargetsReportPage() {
                                             </th>
                                         </tr>
                                         {/* Physical/Financial sub-header row */}
-                                        <tr className="bg-muted sticky top-[48px] z-30 border-b">
+                                        <tr className="bg-muted border-b">
                                             {componentNames.map((name) => (
                                                 <Fragment key={`${name}-header`}>
                                                     <th className="border text-center font-semibold min-w-[80px] bg-orange-50 p-2">
@@ -353,10 +353,10 @@ export default function AllTargetsReportPage() {
                                             const financialData = targetsData.financial_target?.[districtName];
                                             return (
                                                 <tr key={districtName} className="border-b hover:bg-muted/30 transition-colors">
-                                                    <td className="border text-center font-medium sticky left-0 bg-background z-10 p-2">
+                                                    <td className="border text-center font-medium sticky left-0 bg-background z-20 p-2">
                                                         {index + 1}
                                                     </td>
-                                                    <td className="border font-medium sticky left-[50px] bg-background z-10 p-2">
+                                                    <td className="border font-medium sticky left-[50px] bg-background z-20 p-2">
                                                         {districtName}
                                                     </td>
                                                     {componentNames.map((compName) => {
@@ -385,8 +385,8 @@ export default function AllTargetsReportPage() {
                                     </tbody>
                                     <tfoot>
                                         <tr className="bg-muted font-bold border-t">
-                                            <td className="border text-center sticky left-0 bg-muted z-10 p-2"></td>
-                                            <td className="border sticky left-[50px] bg-muted z-10 p-2">TOTAL</td>
+                                            <td className="border text-center sticky left-0 bg-muted z-20 p-2"></td>
+                                            <td className="border sticky left-[50px] bg-muted z-20 p-2">TOTAL</td>
                                             {componentNames.map((compName) => (
                                                 <Fragment key={`${compName}-total`}>
                                                     <td className="border text-right bg-orange-100 p-2">
