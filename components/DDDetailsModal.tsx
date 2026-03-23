@@ -1,7 +1,6 @@
 "use client";
 
-import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
-import {
+import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk"; import {
     Dialog,
     DialogContent,
     DialogHeader,
@@ -113,7 +112,6 @@ export default function DDDetailsModal({ appName, open, onOpenChange }: DDDetail
         limit: 1,
         orderBy: { field: "creation", order: "desc" },
     });
-
     const dd: DDDoc | undefined = ddList?.[0];
 
     const isLoading = loadingApp || loadingDD;
@@ -142,12 +140,29 @@ export default function DDDetailsModal({ appName, open, onOpenChange }: DDDetail
     };
 
     const baseUrl = process.env.NEXT_PUBLIC_FRAPPE_BASE_URL || "";
-    const ddImageUrl = dd?.dd_image
-        ? dd.dd_image.startsWith("http")
-            ? dd.dd_image
-            : `${baseUrl}${dd.dd_image}`
-        : null;
 
+    // Build the proxied image URL — private S3 files need auth, so route through the Next.js API proxy
+    const ddImageUrl = (() => {
+        const raw = dd?.dd_image;
+        if (!raw) return null;
+        // If already an absolute S3/CDN URL with a key, proxy it via generate_file
+        if (raw.startsWith("http")) {
+            try {
+                const u = new URL(raw);
+                const key = u.searchParams.get("key");
+                const fileName = u.pathname.split("/").pop() || "file";
+                if (key) {
+                    return `/api/method/frappe_s3_attachment.controller.generate_file?key=${encodeURIComponent(key)}&file_name=${encodeURIComponent(fileName)}`;
+                }
+            } catch {
+                // fall through to relative path handling
+            }
+            return raw;
+        }
+        // Relative Frappe path — proxy through Next.js so the bearer token is attached
+        const fileName = raw.split("/").pop() || "file";
+        return `/api/method/frappe_s3_attachment.controller.generate_file?key=${encodeURIComponent(raw.replace(/^\//, ""))}&file_name=${encodeURIComponent(fileName)}`;
+    })();
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

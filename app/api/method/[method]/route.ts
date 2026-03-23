@@ -35,6 +35,19 @@ export async function GET(
       );
     }
 
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      // Binary or non-JSON response (e.g. file download) — stream it back as-is
+      return new NextResponse(response.body, {
+        status: response.status,
+        headers: {
+          "Content-Type": contentType,
+          "Content-Disposition": response.headers.get("content-disposition") || "",
+          "Cache-Control": "private, max-age=3600",
+        },
+      });
+    }
+
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
