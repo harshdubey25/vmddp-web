@@ -137,7 +137,7 @@ export default function DDDetailsModal({ appName, open, onOpenChange }: DDDetail
         if (docstatus === 1)
             return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Submitted</Badge>;
         if (docstatus === 2)
-            return <Badge className="bg-red-500/10 text-red-600 border-red-500/20">Cancelled</Badge>;
+            return <Badge className="bg-red-500/10 text-red-600 border-red-500/20">DD Returned</Badge>;
         return <Badge variant="outline">Draft</Badge>;
     };
 

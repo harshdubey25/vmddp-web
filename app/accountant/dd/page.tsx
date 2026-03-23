@@ -1031,7 +1031,7 @@ export default function DDCollection() {
                                                                         </td>
                                                                         <td className="p-3 text-xs sm:text-sm">
                                                                             <Badge className="bg-red-500/10 text-red-500 border-red-500/20">
-                                                                                {app.component_status}
+                                                                                {app.component_status == "DD Rejected" ? "DD Returned" : app.component_status}
                                                                             </Badge>
                                                                         </td>
                                                                         <td className="p-3 text-xs sm:text-sm">
