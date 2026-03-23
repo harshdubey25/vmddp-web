@@ -12,7 +12,7 @@ export default function SubAdminLayout({
     const sidebarRole = getUserRole(user?.roles);
 
     return (
-        <div className="flex h-screen overflow-hidden">
+        <div className="flex min-h-screen">
             <AdminSidebar userRole={sidebarRole} />
             {children}
         </div>
