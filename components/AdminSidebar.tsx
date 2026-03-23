@@ -1,6 +1,5 @@
 "use client"
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
 
@@ -169,7 +168,7 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
 
       {/* Sidebar - Desktop always visible, Mobile slide-out */}
       <div className={`
-        fixed md:relative
+        fixed md:sticky md:top-0
         h-screen flex flex-col border-r bg-gradient-to-b from-background via-background to-muted/20 shadow-2xl md:shadow-none
         z-50 transition-all duration-300 ease-in-out
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -198,7 +197,7 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
           </div>
         </div>
 
-        <ScrollArea className={`flex-1 py-4 md:py-3 lg:py-4 ${isCollapsed ? 'md:px-2' : 'px-3 md:px-2 lg:px-3'}`}>
+        <div className={`flex-1 min-h-0 overflow-y-auto py-4 md:py-3 lg:py-4 ${isCollapsed ? 'md:px-2' : 'px-3 md:px-2 lg:px-3'}`}>
           <nav className="space-y-1">
             {menuItems.map((item, index) => {
               if (item.type === "separator") {
@@ -254,7 +253,7 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
               );
             })}
           </nav>
-        </ScrollArea>
+        </div>
 
         <Separator className="bg-gradient-to-r from-transparent via-border to-transparent" />
 
