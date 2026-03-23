@@ -717,7 +717,7 @@ export default function AnimalInductionMPRPage() {
                                 {filters && ` Current month: ${filters.current_month_start_date} to ${filters.current_month_end_date} • Progressive: ${filters.progressive_start_date} to ${filters.progressive_end_date}`}
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="flex-1 min-h-0 overflow-hidden p-4 sm:p-6">
+                        <div className="flex-1 min-h-0 overflow-scroll p-4 sm:p-6">
                             {renderReportTable("h-full min-h-0 min-w-0 overflow-x-scroll overflow-y-scroll")}
                         </div>
                     </div>

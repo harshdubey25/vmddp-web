@@ -4,11 +4,12 @@ import { useMemo, useState, Fragment } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileSpreadsheet, FileText, RefreshCw, ArrowLeft, Loader2, Building2, Package, Target, Wallet, TrendingUp } from "lucide-react";
+import { FileSpreadsheet, FileText, RefreshCw, ArrowLeft, Loader2, Building2, Package, Target, Wallet, TrendingUp, Maximize2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { exportReport, type ExportFormat } from "@/lib/export-report";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Link from "next/link";
 
 // Type definitions for all_targets API response
@@ -39,6 +40,7 @@ interface AllTargetsResponse {
 export default function AllTargetsReportPage() {
     const { toast } = useToast();
     const [isExporting, setIsExporting] = useState(false);
+    const [isTableFullscreen, setIsTableFullscreen] = useState(false);
 
     // Fetch all targets data
     const { data: apiResponse, isLoading, mutate } = useFrappeGetCall<AllTargetsResponse>(
@@ -168,6 +170,137 @@ export default function AllTargetsReportPage() {
         });
     };
 
+    const renderReportTable = (containerClassName: string) => (
+        <div className="border rounded-lg overflow-hidden flex flex-col">
+            <div className={containerClassName}>
+                <table className="w-full min-w-[900px] text-xs">
+                    <thead className="bg-muted sticky top-0 z-30">
+                        {/* Component names header row */}
+                        <tr className="bg-muted/50">
+                            <th rowSpan={2} className="border text-center font-bold sticky left-0 bg-muted/50 z-30 min-w-[50px] align-middle p-2">
+                                Sr. No.
+                            </th>
+                            <th rowSpan={2} className="border text-center font-bold sticky left-[50px] bg-muted/50 z-30 min-w-[120px] align-middle p-2">
+                                Name of District
+                            </th>
+                            {componentNames.map((name) => (
+                                <th key={name} colSpan={2} className="border text-center font-bold min-w-[160px] bg-blue-50 p-2">
+                                    {name}
+                                </th>
+                            ))}
+                            <th colSpan={2} className="border text-center font-bold min-w-[160px] bg-green-100 p-2">
+                                TOTAL
+                            </th>
+                        </tr>
+                        {/* Physical/Financial sub-header row */}
+                        <tr className="bg-muted/30">
+                            {componentNames.map((name) => (
+                                <Fragment key={`${name}-header`}>
+                                    <th className="border text-center font-semibold min-w-[80px] bg-orange-50 p-2">
+                                        Physical
+                                    </th>
+                                    <th className="border text-center font-semibold min-w-[80px] bg-blue-50 p-2">
+                                        Financial (₹)
+                                    </th>
+                                </Fragment>
+                            ))}
+                            <th className="border text-center font-semibold min-w-[80px] bg-orange-100 p-2">
+                                Physical
+                            </th>
+                            <th className="border text-center font-semibold min-w-[80px] bg-green-100 p-2">
+                                Financial (₹)
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {districtNames.map((districtName, index) => {
+                            const physicalData = targetsData.physical_target?.[districtName];
+                            const financialData = targetsData.financial_target?.[districtName];
+                            return (
+                                <tr key={districtName} className="hover:bg-muted/30">
+                                    <td className="border text-center font-medium sticky left-0 bg-background z-10 p-2">
+                                        {index + 1}
+                                    </td>
+                                    <td className="border font-medium sticky left-[50px] bg-background z-10 p-2">
+                                        {districtName}
+                                    </td>
+                                    {componentNames.map((compName) => {
+                                        const physicalValue = physicalData?.components?.[compName] || 0;
+                                        const financialValue = financialData?.components?.[compName] || 0;
+                                        return (
+                                            <Fragment key={`${districtName}-${compName}`}>
+                                                <td className="border text-right bg-orange-50/30 p-2">
+                                                    {physicalValue}
+                                                </td>
+                                                <td className="border text-right p-2">
+                                                    {formatCurrency(financialValue)}
+                                                </td>
+                                            </Fragment>
+                                        );
+                                    })}
+                                    <td className="border text-right font-bold bg-orange-50 p-2">
+                                        {physicalData?.total || 0}
+                                    </td>
+                                    <td className="border text-right font-bold bg-green-50 p-2">
+                                        {formatCurrency(financialData?.total || 0)}
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                    <tfoot>
+                        <tr className="bg-muted font-bold">
+                            <td className="border text-center sticky left-0 bg-muted z-10 p-2"></td>
+                            <td className="border sticky left-[50px] bg-muted z-10 p-2">TOTAL</td>
+                            {componentNames.map((compName) => (
+                                <Fragment key={`${compName}-total`}>
+                                    <td className="border text-right bg-orange-100 p-2">
+                                        {componentTotals[compName]?.physical || 0}
+                                    </td>
+                                    <td className="border text-right p-2">
+                                        {formatCurrency(componentTotals[compName]?.financial || 0)}
+                                    </td>
+                                </Fragment>
+                            ))}
+                            <td className="border text-right bg-orange-100 p-2">
+                                {targetsData.totals?.total_physical_target || 0}
+                            </td>
+                            <td className="border text-right bg-green-100 p-2">
+                                {formatCurrency(targetsData.totals?.total_financial_target || 0)}
+                            </td>
+                        </tr>
+                        <tr className="bg-purple-50 font-bold">
+                            <td className="border text-center sticky left-0 bg-purple-50 z-10 p-2"></td>
+                            <td className="border sticky left-[50px] bg-purple-50 z-10 p-2">Admin Expense Target</td>
+                            {componentNames.map((compName) => (
+                                <Fragment key={`${compName}-admin`}>
+                                    <td className="border text-right p-2" colSpan={2}></td>
+                                </Fragment>
+                            ))}
+                            <td className="border text-right p-2"></td>
+                            <td className="border text-right bg-purple-100 p-2">
+                                {formatCurrency(targetsData.totals?.admin_expense_target || 0)}
+                            </td>
+                        </tr>
+                        <tr className="bg-green-50 font-bold text-sm">
+                            <td className="border text-center sticky left-0 bg-green-50 z-10 p-2"></td>
+                            <td className="border sticky left-[50px] bg-green-50 z-10 p-2">GRAND TOTAL (Financial)</td>
+                            {componentNames.map((compName) => (
+                                <Fragment key={`${compName}-grand`}>
+                                    <td className="border text-right p-2" colSpan={2}></td>
+                                </Fragment>
+                            ))}
+                            <td className="border text-right p-2"></td>
+                            <td className="border text-right bg-green-200 p-2">
+                                {formatCurrency((targetsData.totals?.total_financial_target || 0) + (targetsData.totals?.admin_expense_target || 0))}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    );
+
     return (
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-auto w-full">
             {/* Header */}
@@ -228,7 +361,7 @@ export default function AllTargetsReportPage() {
                                     <Building2 className="h-4 w-4 sm:w-5 sm:h-5 text-white" />
                                 </div>
                             </div>
-                          
+
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-purple-600/10 hover:-translate-y-1 transition-all duration-300 group">
@@ -243,7 +376,7 @@ export default function AllTargetsReportPage() {
                                     <Package className="h-4 w-4 sm:w-5 sm:h-5 text-white" />
                                 </div>
                             </div>
-                          
+
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-orange-500/30 bg-gradient-to-br from-orange-500/20 to-orange-600/10 hover:-translate-y-1 transition-all duration-300 group">
@@ -260,7 +393,7 @@ export default function AllTargetsReportPage() {
                                     <Target className="h-4 w-4 sm:w-5 sm:h-5 text-white" />
                                 </div>
                             </div>
-                          
+
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:-translate-y-1 transition-all duration-300 group">
@@ -277,7 +410,7 @@ export default function AllTargetsReportPage() {
                                     <Wallet className="h-4 w-4 sm:w-5 sm:h-5 text-white" />
                                 </div>
                             </div>
-                        
+
                         </CardHeader>
                     </Card>
                     <Card className="relative overflow-hidden border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 hover:-translate-y-1 transition-all duration-300 group">
@@ -294,7 +427,7 @@ export default function AllTargetsReportPage() {
                                     <Wallet className="h-4 w-4 sm:w-5 sm:h-5 text-white" />
                                 </div>
                             </div>
-                         
+
                         </CardHeader>
                     </Card>
                 </div>
@@ -303,13 +436,27 @@ export default function AllTargetsReportPage() {
             {/* Report Card */}
             <Card>
                 <CardHeader className="p-3 sm:p-4 md:p-6">
-                    <CardTitle className="flex items-center gap-2 text-base sm:text-lg md:text-xl">
-                        <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
-                        Physical & Financial Targets - All Components
-                    </CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">
-                        District-wise breakdown of physical and financial targets for all components
-                    </CardDescription>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="space-y-1">
+                            <CardTitle className="flex items-center gap-2 text-base sm:text-lg md:text-xl">
+                                <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
+                                Physical & Financial Targets - All Components
+                            </CardTitle>
+                            <CardDescription className="text-xs sm:text-sm">
+                                District-wise breakdown of physical and financial targets for all components
+                            </CardDescription>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full sm:w-auto"
+                            onClick={() => setIsTableFullscreen(true)}
+                            disabled={isLoading || districtNames.length === 0}
+                        >
+                            <Maximize2 className="h-4 w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Fullscreen</span>
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     {isLoading ? (
@@ -323,137 +470,26 @@ export default function AllTargetsReportPage() {
                             <p>No target data available.</p>
                         </div>
                     ) : (
-                        <div className="border rounded-lg overflow-hidden flex flex-col">
-                            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
-                                <table className="w-full min-w-[900px] text-xs">
-                                    <thead className="bg-muted sticky top-0 z-30">
-                                        {/* Component names header row */}
-                                        <tr className="bg-muted/50">
-                                            <th rowSpan={2} className="border text-center font-bold sticky left-0 bg-muted/50 z-30 min-w-[50px] align-middle p-2">
-                                                Sr. No.
-                                            </th>
-                                            <th rowSpan={2} className="border text-center font-bold sticky left-[50px] bg-muted/50 z-30 min-w-[120px] align-middle p-2">
-                                                Name of District
-                                            </th>
-                                            {componentNames.map((name) => (
-                                                <th key={name} colSpan={2} className="border text-center font-bold min-w-[160px] bg-blue-50 p-2">
-                                                    {name}
-                                                </th>
-                                            ))}
-                                            <th colSpan={2} className="border text-center font-bold min-w-[160px] bg-green-100 p-2">
-                                                TOTAL
-                                            </th>
-                                        </tr>
-                                        {/* Physical/Financial sub-header row */}
-                                        <tr className="bg-muted/30">
-                                            {componentNames.map((name) => (
-                                                <Fragment key={`${name}-header`}>
-                                                    <th className="border text-center font-semibold min-w-[80px] bg-orange-50 p-2">
-                                                        Physical
-                                                    </th>
-                                                    <th className="border text-center font-semibold min-w-[80px] bg-blue-50 p-2">
-                                                        Financial (₹)
-                                                    </th>
-                                                </Fragment>
-                                            ))}
-                                            <th className="border text-center font-semibold min-w-[80px] bg-orange-100 p-2">
-                                                Physical
-                                            </th>
-                                            <th className="border text-center font-semibold min-w-[80px] bg-green-100 p-2">
-                                                Financial (₹)
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {districtNames.map((districtName, index) => {
-                                            const physicalData = targetsData.physical_target?.[districtName];
-                                            const financialData = targetsData.financial_target?.[districtName];
-                                            return (
-                                                <tr key={districtName} className="hover:bg-muted/30">
-                                                    <td className="border text-center font-medium sticky left-0 bg-background z-10 p-2">
-                                                        {index + 1}
-                                                    </td>
-                                                    <td className="border font-medium sticky left-[50px] bg-background z-10 p-2">
-                                                        {districtName}
-                                                    </td>
-                                                    {componentNames.map((compName) => {
-                                                        const physicalValue = physicalData?.components?.[compName] || 0;
-                                                        const financialValue = financialData?.components?.[compName] || 0;
-                                                        return (
-                                                            <Fragment key={`${districtName}-${compName}`}>
-                                                                <td className="border text-right bg-orange-50/30 p-2">
-                                                                    {physicalValue}
-                                                                </td>
-                                                                <td className="border text-right p-2">
-                                                                    {formatCurrency(financialValue)}
-                                                                </td>
-                                                            </Fragment>
-                                                        );
-                                                    })}
-                                                    <td className="border text-right font-bold bg-orange-50 p-2">
-                                                        {physicalData?.total || 0}
-                                                    </td>
-                                                    <td className="border text-right font-bold bg-green-50 p-2">
-                                                        {formatCurrency(financialData?.total || 0)}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                    <tfoot>
-                                        <tr className="bg-muted font-bold">
-                                            <td className="border text-center sticky left-0 bg-muted z-10 p-2"></td>
-                                            <td className="border sticky left-[50px] bg-muted z-10 p-2">TOTAL</td>
-                                            {componentNames.map((compName) => (
-                                                <Fragment key={`${compName}-total`}>
-                                                    <td className="border text-right bg-orange-100 p-2">
-                                                        {componentTotals[compName]?.physical || 0}
-                                                    </td>
-                                                    <td className="border text-right p-2">
-                                                        {formatCurrency(componentTotals[compName]?.financial || 0)}
-                                                    </td>
-                                                </Fragment>
-                                            ))}
-                                            <td className="border text-right bg-orange-100 p-2">
-                                                {targetsData.totals?.total_physical_target || 0}
-                                            </td>
-                                            <td className="border text-right bg-green-100 p-2">
-                                                {formatCurrency(targetsData.totals?.total_financial_target || 0)}
-                                            </td>
-                                        </tr>
-                                        <tr className="bg-purple-50 font-bold">
-                                            <td className="border text-center sticky left-0 bg-purple-50 z-10 p-2"></td>
-                                            <td className="border sticky left-[50px] bg-purple-50 z-10 p-2">Admin Expense Target</td>
-                                            {componentNames.map((compName) => (
-                                                <Fragment key={`${compName}-admin`}>
-                                                    <td className="border text-right p-2" colSpan={2}></td>
-                                                </Fragment>
-                                            ))}
-                                            <td className="border text-right p-2"></td>
-                                            <td className="border text-right bg-purple-100 p-2">
-                                                {formatCurrency(targetsData.totals?.admin_expense_target || 0)}
-                                            </td>
-                                        </tr>
-                                        <tr className="bg-green-50 font-bold text-sm">
-                                            <td className="border text-center sticky left-0 bg-green-50 z-10 p-2"></td>
-                                            <td className="border sticky left-[50px] bg-green-50 z-10 p-2">GRAND TOTAL (Financial)</td>
-                                            {componentNames.map((compName) => (
-                                                <Fragment key={`${compName}-grand`}>
-                                                    <td className="border text-right p-2" colSpan={2}></td>
-                                                </Fragment>
-                                            ))}
-                                            <td className="border text-right p-2"></td>
-                                            <td className="border text-right bg-green-200 p-2">
-                                                {formatCurrency((targetsData.totals?.total_financial_target || 0) + (targetsData.totals?.admin_expense_target || 0))}
-                                            </td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
+                        renderReportTable("overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]")
                     )}
                 </CardContent>
             </Card>
+
+            <Dialog open={isTableFullscreen} onOpenChange={setIsTableFullscreen}>
+                <DialogContent className="h-[96vh] w-[98vw] max-w-none overflow-hidden p-0">
+                    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+                        <DialogHeader className="border-b px-4 py-4 pr-12 sm:px-6">
+                            <DialogTitle className="flex items-center gap-2">
+                                <FileText className="h-5 w-5" />
+                                Physical & Financial Targets - All Components
+                            </DialogTitle>
+                        </DialogHeader>
+                        <div className="flex-1 min-h-0 overflow-scroll p-4 sm:p-6">
+                            {renderReportTable("overflow-x-auto overflow-y-auto h-full")}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
 
         </div>

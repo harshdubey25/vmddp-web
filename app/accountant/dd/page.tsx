@@ -27,6 +27,7 @@ import { frappeBrowser } from "@/lib/frappe";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import DDFilters from "@/components/DDFilters";
 import { useDebounce } from "@/hooks/use-debounce";
+import DDDetailsModal from "@/components/DDDetailsModal";
 
 interface DDApplication {
     name: string;
@@ -92,6 +93,15 @@ export default function DDCollection() {
     const [cancelledPage, setCancelledPage] = useState(initialCancelledPage);
     const [approvedTotal, setApprovedTotal] = useState(0);
     const pageSize = 20;
+
+    // DD Details Modal state
+    const [modalAppName, setModalAppName] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const openDDModal = (appName: string) => {
+        setModalAppName(appName);
+        setIsModalOpen(true);
+    };
 
     // Debounce collected filters for the hook
     const debouncedCollectedAadhaar = useDebounce(collectedFilters.aadhaar, 500);
@@ -298,497 +308,273 @@ export default function DDCollection() {
     const collectedDDs = statsData?.message.total_dd_completed || 0;
     const cancelledDDs = statsData?.message.cancelled_dd || 0;
     return (
-        <div className=" bg-background w-full overflow-y-scroll">
-            <div className="p-6 space-y-6 ">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        {/* <Link href="/accountant/dashboard">
+        <>
+            <div className=" bg-background w-full overflow-y-scroll">
+                <div className="p-6 space-y-6 ">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            {/* <Link href="/accountant/dashboard">
                             <Button variant="ghost" size="icon" data-testid="button-back">
                                 <ArrowLeft className="h-5 w-5" />
                             </Button>
                         </Link> */}
-                        <div>
-                            <h1
-                                className="text-2xl font-display font-bold"
-                                data-testid="text-page-title"
-                            >
-                                DD Collection
-                            </h1>
-                            <p className="text-muted-foreground">
-                                Collect Demand Drafts from approved
-                                beneficiaries
-                            </p>
+                            <div>
+                                <h1
+                                    className="text-2xl font-display font-bold"
+                                    data-testid="text-page-title"
+                                >
+                                    DD Collection
+                                </h1>
+                                <p className="text-muted-foreground">
+                                    Collect Demand Drafts from approved
+                                    beneficiaries
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
-                    <Card data-testid="card-total-collected" className="relative overflow-hidden border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-500/10 to-indigo-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
-                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
-                        <CardContent className="pt-6 relative z-10">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
-                                    <IndianRupee className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-indigo-700/80 dark:text-indigo-300">
-                                        Total Collected
-                                    </p>
-                                    <p
-                                        className="text-2xl font-bold text-indigo-900 dark:text-indigo-100 drop-shadow-sm"
-                                        data-testid="text-total-amount"
-                                    >
-                                        ₹
-                                        {totalCollected.toLocaleString("en-IN")}
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card data-testid="card-total-dds" className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
-                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
-                        <CardContent className="pt-6 relative z-10">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
-                                    <FileText className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-blue-700/80 dark:text-blue-300">
-                                        Total DDs
-                                    </p>
-                                    <p
-                                        className="text-2xl font-bold text-blue-900 dark:text-blue-100 drop-shadow-sm"
-                                        data-testid="text-total-count"
-                                    >
-                                        {totalDDs}
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card data-testid="card-pending" className="relative overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-amber-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
-                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
-                        <CardContent className="pt-6 relative z-10">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
-                                    <AlertCircle className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-amber-700/80 dark:text-amber-300">
-                                        Pending Collection
-                                    </p>
-                                    <p
-                                        className="text-2xl font-bold text-amber-900 dark:text-amber-100 drop-shadow-sm"
-                                        data-testid="text-pending-count"
-                                    >
-                                        {pendingCount}
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card data-testid="card-verified" className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-green-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
-                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
-                        <CardContent className="pt-6 relative z-10">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
-                                    <Check className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-green-700/80 dark:text-green-300">
-                                        Collected
-                                    </p>
-                                    <p
-                                        className="text-2xl font-bold text-green-900 dark:text-green-100 drop-shadow-sm"
-                                        data-testid="text-verified-count"
-                                    >
-                                        {collectedDDs}
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card data-testid="card-cancelled-dds" className="relative overflow-hidden border-2 border-red-500/30 bg-gradient-to-br from-red-500/10 to-red-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
-                        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-red-500/20 to-red-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
-                        <CardContent className="pt-6 relative z-10">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-xl bg-gradient-to-br from-red-500 to-red-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
-                                    <X className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-red-700/80 dark:text-red-300">
-                                        Returned DDs
-                                    </p>
-                                    <p
-                                        className="text-2xl font-bold text-red-900 dark:text-red-100 drop-shadow-sm"
-                                        data-testid="text-returned-count"
-                                    >
-                                        {cancelledDDs}
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Tabs Section */}
-                <Tabs
-                    value={activeTab}
-                    onValueChange={handleTabChange}
-                    className="w-full"
-                >
-                    <TabsList className="grid w-full grid-cols-3 max-w-2xl">
-                        <TabsTrigger
-                            value="approved"
-                            className="flex items-center gap-2"
-                            data-testid="tab-approved"
-                        >
-                            <ClipboardList className="h-4 w-4" />
-                            Selected Applications
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="collected"
-                            className="flex items-center gap-2"
-                            data-testid="tab-collected"
-                        >
-                            <FileText className="h-4 w-4" />
-                            Collected DDs
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="cancelled"
-                            className="flex items-center gap-2"
-                            data-testid="tab-cancelled"
-                        >
-                            <X className="h-4 w-4" />
-                            Returned DDs
-                        </TabsTrigger>
-                    </TabsList>
-
-                    {/* Tab 1:  Applications */}
-                    <TabsContent value="approved" className="space-y-4">
-                        {/* Filters Section */}
-                        <DDFilters
-                            onFilterChange={handleApprovedFilterChange}
-                            initialFilters={approvedFilters}
-                        />
-
-                        <Card data-testid="card-approved-search">
-                            <CardHeader className="pb-4">
-                                <div>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <ClipboardList className="h-5 w-5" />
-                                        Selected Applications Awaiting DD
-                                        Collection
-                                    </CardTitle>
-                                    <CardDescription>
-                                        {selectedApplications.length} selected
-                                        applications pending DD collection
-                                    </CardDescription>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                {loading ? (
-                                    <div className="text-center py-8 text-muted-foreground">
-                                        Loading...
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+                        <Card data-testid="card-total-collected" className="relative overflow-hidden border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-500/10 to-indigo-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardContent className="pt-6 relative z-10">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                        <IndianRupee className="h-5 w-5 text-white" />
                                     </div>
-                                ) : (
-                                    <>
-                                        <div className="border rounded-lg overflow-hidden flex flex-col">
-                                            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
-                                                <table className="w-full min-w-[900px]">
-                                                    <thead className="bg-muted sticky top-0 z-30 border-b">
-                                                        <tr>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Application ID
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Beneficiary
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Location
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Component
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Status
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                DD Amount
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Action
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {selectedApplications.map(
-                                                            (app) => (
-                                                                <tr
-                                                                    key={app.name}
-                                                                    data-testid={`row-approved-${app.name}`}
-                                                                    className="border-b hover:bg-muted/30"
-                                                                >
-                                                                    <td className="p-3 text-xs sm:text-sm font-medium">
-                                                                        {app.name}
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm">
-                                                                        <div>
-                                                                            <p className="font-medium">
-                                                                                {getFullName(
-                                                                                    app,
-                                                                                )}
-                                                                            </p>
-                                                                            <p className="text-xs text-muted-foreground">
-                                                                                {
-                                                                                    app.aadhar_number
-                                                                                }
-                                                                            </p>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm">
-                                                                        <div className="flex flex-wrap gap-1">
-                                                                            {app.district && (<Badge
-                                                                                variant="outline"
-                                                                                className="text-xs"
-                                                                            >
-                                                                                {
-                                                                                    app.district
-                                                                                }
-                                                                            </Badge>)}
+                                    <div>
+                                        <p className="text-sm font-medium text-indigo-700/80 dark:text-indigo-300">
+                                            Total Collected
+                                        </p>
+                                        <p
+                                            className="text-2xl font-bold text-indigo-900 dark:text-indigo-100 drop-shadow-sm"
+                                            data-testid="text-total-amount"
+                                        >
+                                            ₹
+                                            {totalCollected.toLocaleString("en-IN")}
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                                                                            {app.taluka && (<Badge
-                                                                                variant="outline"
-                                                                                className="text-xs"
-                                                                            >
-                                                                                {
-                                                                                    app.taluka
-                                                                                }
-                                                                            </Badge>)}
-                                                                            {app.village &&
-                                                                                <Badge
+                        <Card data-testid="card-total-dds" className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardContent className="pt-6 relative z-10">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                        <FileText className="h-5 w-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-blue-700/80 dark:text-blue-300">
+                                            Total DDs
+                                        </p>
+                                        <p
+                                            className="text-2xl font-bold text-blue-900 dark:text-blue-100 drop-shadow-sm"
+                                            data-testid="text-total-count"
+                                        >
+                                            {totalDDs}
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card data-testid="card-pending" className="relative overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-amber-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardContent className="pt-6 relative z-10">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                        <AlertCircle className="h-5 w-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-amber-700/80 dark:text-amber-300">
+                                            Pending Collection
+                                        </p>
+                                        <p
+                                            className="text-2xl font-bold text-amber-900 dark:text-amber-100 drop-shadow-sm"
+                                            data-testid="text-pending-count"
+                                        >
+                                            {pendingCount}
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card data-testid="card-verified" className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-green-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardContent className="pt-6 relative z-10">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                        <Check className="h-5 w-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-green-700/80 dark:text-green-300">
+                                            Collected
+                                        </p>
+                                        <p
+                                            className="text-2xl font-bold text-green-900 dark:text-green-100 drop-shadow-sm"
+                                            data-testid="text-verified-count"
+                                        >
+                                            {collectedDDs}
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card data-testid="card-cancelled-dds" className="relative overflow-hidden border-2 border-red-500/30 bg-gradient-to-br from-red-500/10 to-red-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-red-500/20 to-red-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
+                            <CardContent className="pt-6 relative z-10">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 rounded-xl bg-gradient-to-br from-red-500 to-red-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                        <X className="h-5 w-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-red-700/80 dark:text-red-300">
+                                            Returned DDs
+                                        </p>
+                                        <p
+                                            className="text-2xl font-bold text-red-900 dark:text-red-100 drop-shadow-sm"
+                                            data-testid="text-returned-count"
+                                        >
+                                            {cancelledDDs}
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Tabs Section */}
+                    <Tabs
+                        value={activeTab}
+                        onValueChange={handleTabChange}
+                        className="w-full"
+                    >
+                        <TabsList className="grid w-full grid-cols-3 max-w-2xl">
+                            <TabsTrigger
+                                value="approved"
+                                className="flex items-center gap-2"
+                                data-testid="tab-approved"
+                            >
+                                <ClipboardList className="h-4 w-4" />
+                                Selected Applications
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="collected"
+                                className="flex items-center gap-2"
+                                data-testid="tab-collected"
+                            >
+                                <FileText className="h-4 w-4" />
+                                Collected DDs
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="cancelled"
+                                className="flex items-center gap-2"
+                                data-testid="tab-cancelled"
+                            >
+                                <X className="h-4 w-4" />
+                                Returned DDs
+                            </TabsTrigger>
+                        </TabsList>
+
+                        {/* Tab 1:  Applications */}
+                        <TabsContent value="approved" className="space-y-4">
+                            {/* Filters Section */}
+                            <DDFilters
+                                onFilterChange={handleApprovedFilterChange}
+                                initialFilters={approvedFilters}
+                            />
+
+                            <Card data-testid="card-approved-search">
+                                <CardHeader className="pb-4">
+                                    <div>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <ClipboardList className="h-5 w-5" />
+                                            Selected Applications Awaiting DD
+                                            Collection
+                                        </CardTitle>
+                                        <CardDescription>
+                                            {selectedApplications.length} selected
+                                            applications pending DD collection
+                                        </CardDescription>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    {loading ? (
+                                        <div className="text-center py-8 text-muted-foreground">
+                                            Loading...
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                                    <table className="w-full min-w-[900px]">
+                                                        <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                            <tr>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Application ID
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Beneficiary
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Location
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Component
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Status
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    DD Amount
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Action
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {selectedApplications.map(
+                                                                (app) => (
+                                                                    <tr
+                                                                        key={app.name}
+                                                                        data-testid={`row-approved-${app.name}`}
+                                                                        className="border-b hover:bg-muted/30"
+                                                                    >
+                                                                        <td className="p-3 text-xs sm:text-sm font-medium">
+                                                                            {app.name}
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm">
+                                                                            <div>
+                                                                                <p className="font-medium">
+                                                                                    {getFullName(
+                                                                                        app,
+                                                                                    )}
+                                                                                </p>
+                                                                                <p className="text-xs text-muted-foreground">
+                                                                                    {
+                                                                                        app.aadhar_number
+                                                                                    }
+                                                                                </p>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm">
+                                                                            <div className="flex flex-wrap gap-1">
+                                                                                {app.district && (<Badge
                                                                                     variant="outline"
                                                                                     className="text-xs"
                                                                                 >
                                                                                     {
-                                                                                        app.village
+                                                                                        app.district
                                                                                     }
-                                                                                </Badge>
-                                                                            }
+                                                                                </Badge>)}
 
-                                                                        </div>
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm">
-                                                                        <Badge variant="outline">
-                                                                            {
-                                                                                app.component_name
-                                                                            }
-                                                                        </Badge>
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm">
-                                                                        {getStatusBadge(
-                                                                            app.component_status,
-                                                                        )}
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm font-semibold text-primary">
-                                                                        ₹
-                                                                        {(
-                                                                            app.amount ||
-                                                                            0
-                                                                        ).toLocaleString(
-                                                                            "en-IN",
-                                                                        )}
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm">
-                                                                        <Button
-                                                                            size="sm"
-                                                                            onClick={() =>
-                                                                                handleSelectApplication(
-                                                                                    app,
-                                                                                )
-                                                                            }
-                                                                            data-testid={`button-collect-${app.name}`}
-                                                                        >
-                                                                            <CreditCard className="h-4 w-4 mr-1" />
-                                                                            Collect
-                                                                            DD
-                                                                        </Button>
-                                                                    </td>
-                                                                </tr>
-                                                            ),
-                                                        )}
-                                                        {selectedApplications.length ===
-                                                            0 && (
-                                                                <tr>
-                                                                    <td
-                                                                        colSpan={7}
-                                                                        className="text-center py-8 text-xs sm:text-sm text-muted-foreground"
-                                                                    >
-                                                                        {approvedFilters.aadhaar ||
-                                                                            approvedFilters.district ||
-                                                                            approvedFilters.taluka ||
-                                                                            approvedFilters.village
-                                                                            ? "No applications found matching the selected filters"
-                                                                            : "No approved applications pending DD collection"}
-                                                                    </td>
-                                                                </tr>
-                                                            )}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-
-                                        {/* Pagination for Approved */}
-                                        {selectedApplications.length > 0 && (
-                                            <div className="flex items-center justify-between mt-4">
-                                                <div className="text-sm text-muted-foreground">
-                                                    Page {approvedPage} •{" "}
-                                                    {
-                                                        selectedApplications.length
-                                                    }{" "}
-                                                    items
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            setApprovedPage(
-                                                                (p) =>
-                                                                    Math.max(
-                                                                        1,
-                                                                        p - 1,
-                                                                    ),
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            approvedPage === 1
-                                                        }
-                                                    >
-                                                        <ChevronLeft className="h-4 w-4 mr-1" />
-                                                        Previous
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            setApprovedPage(
-                                                                (p) => p + 1,
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            selectedApplications.length <
-                                                            pageSize
-                                                        }
-                                                    >
-                                                        Next
-                                                        <ChevronRight className="h-4 w-4 ml-1" />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-
-                    {/* Tab 2: Collected DDs */}
-                    <TabsContent value="collected" className="space-y-4">
-                        {/* Filters Section */}
-                        <DDFilters
-                            onFilterChange={handleCollectedFilterChange}
-                            initialFilters={collectedFilters}
-                        />
-
-                        <Card data-testid="card-dd-list">
-                            <CardHeader className="pb-4">
-                                <div>
-                                    <CardTitle>Collected DDs</CardTitle>
-                                    <CardDescription>
-                                        {ddCompletedApplications.length}{" "}
-                                        collected demand drafts (Selected
-                                        applications)
-                                    </CardDescription>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                {completedDDLoading ? (
-                                    <div className="text-center py-8 text-muted-foreground">
-                                        Loading...
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className="border rounded-lg overflow-hidden flex flex-col">
-                                            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
-                                                <table className="w-full min-w-[900px]">
-                                                    <thead className="bg-muted sticky top-0 z-30 border-b">
-                                                        <tr>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Application ID
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Beneficiary
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Location
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Component
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Amount
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Status
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {ddCompletedApplications.map(
-                                                            (app: DDApplication) => (
-                                                                <tr
-                                                                    key={app.name}
-                                                                    data-testid={`row-dd-${app.name}`}
-                                                                    className="border-b hover:bg-muted/30"
-                                                                >
-                                                                    <td className="p-3 text-xs sm:text-sm font-medium">
-                                                                        {app.name}
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm">
-                                                                        <div>
-                                                                            <p className="font-medium">
-                                                                                {getFullName(
-                                                                                    app,
-                                                                                )}
-                                                                            </p>
-                                                                            <p className="text-xs text-muted-foreground">
-                                                                                {
-                                                                                    app.aadhar_number
-                                                                                }
-                                                                            </p>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm">
-                                                                        <div className="flex flex-wrap gap-1">
-
-                                                                            {app.district && (<Badge
-                                                                                variant="outline"
-                                                                                className="text-xs"
-                                                                            >
-                                                                                {
-                                                                                    app.district
-                                                                                }
-                                                                            </Badge>)}
-
-                                                                            {app.taluka && (
-                                                                                <Badge
+                                                                                {app.taluka && (<Badge
                                                                                     variant="outline"
                                                                                     className="text-xs"
                                                                                 >
@@ -796,273 +582,538 @@ export default function DDCollection() {
                                                                                         app.taluka
                                                                                     }
                                                                                 </Badge>)}
+                                                                                {app.village &&
+                                                                                    <Badge
+                                                                                        variant="outline"
+                                                                                        className="text-xs"
+                                                                                    >
+                                                                                        {
+                                                                                            app.village
+                                                                                        }
+                                                                                    </Badge>
+                                                                                }
 
-                                                                            {app.village && (
-                                                                                <Badge
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm">
+                                                                            <Badge variant="outline">
+                                                                                {
+                                                                                    app.component_name
+                                                                                }
+                                                                            </Badge>
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm">
+                                                                            {getStatusBadge(
+                                                                                app.component_status,
+                                                                            )}
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm font-semibold text-primary">
+                                                                            ₹
+                                                                            {(
+                                                                                app.amount ||
+                                                                                0
+                                                                            ).toLocaleString(
+                                                                                "en-IN",
+                                                                            )}
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm">
+                                                                            <Button
+                                                                                size="sm"
+                                                                                onClick={() =>
+                                                                                    handleSelectApplication(
+                                                                                        app,
+                                                                                    )
+                                                                                }
+                                                                                data-testid={`button-collect-${app.name}`}
+                                                                            >
+                                                                                <CreditCard className="h-4 w-4 mr-1" />
+                                                                                Collect
+                                                                                DD
+                                                                            </Button>
+                                                                        </td>
+                                                                    </tr>
+                                                                ),
+                                                            )}
+                                                            {selectedApplications.length ===
+                                                                0 && (
+                                                                    <tr>
+                                                                        <td
+                                                                            colSpan={7}
+                                                                            className="text-center py-8 text-xs sm:text-sm text-muted-foreground"
+                                                                        >
+                                                                            {approvedFilters.aadhaar ||
+                                                                                approvedFilters.district ||
+                                                                                approvedFilters.taluka ||
+                                                                                approvedFilters.village
+                                                                                ? "No applications found matching the selected filters"
+                                                                                : "No approved applications pending DD collection"}
+                                                                        </td>
+                                                                    </tr>
+                                                                )}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            {/* Pagination for Approved */}
+                                            {selectedApplications.length > 0 && (
+                                                <div className="flex items-center justify-between mt-4">
+                                                    <div className="text-sm text-muted-foreground">
+                                                        Page {approvedPage} •{" "}
+                                                        {
+                                                            selectedApplications.length
+                                                        }{" "}
+                                                        items
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                setApprovedPage(
+                                                                    (p) =>
+                                                                        Math.max(
+                                                                            1,
+                                                                            p - 1,
+                                                                        ),
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                approvedPage === 1
+                                                            }
+                                                        >
+                                                            <ChevronLeft className="h-4 w-4 mr-1" />
+                                                            Previous
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                setApprovedPage(
+                                                                    (p) => p + 1,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                selectedApplications.length <
+                                                                pageSize
+                                                            }
+                                                        >
+                                                            Next
+                                                            <ChevronRight className="h-4 w-4 ml-1" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+
+                        {/* Tab 2: Collected DDs */}
+                        <TabsContent value="collected" className="space-y-4">
+                            {/* Filters Section */}
+                            <DDFilters
+                                onFilterChange={handleCollectedFilterChange}
+                                initialFilters={collectedFilters}
+                            />
+
+                            <Card data-testid="card-dd-list">
+                                <CardHeader className="pb-4">
+                                    <div>
+                                        <CardTitle>Collected DDs</CardTitle>
+                                        <CardDescription>
+                                            {ddCompletedApplications.length}{" "}
+                                            collected demand drafts (Selected
+                                            applications)
+                                        </CardDescription>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    {completedDDLoading ? (
+                                        <div className="text-center py-8 text-muted-foreground">
+                                            Loading...
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                                    <table className="w-full min-w-[900px]">
+                                                        <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                            <tr>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Application ID
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Beneficiary
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Location
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Component
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Amount
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Status
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Action
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {ddCompletedApplications.map(
+                                                                (app: DDApplication) => (
+                                                                    <tr
+                                                                        key={app.name}
+                                                                        data-testid={`row-dd-${app.name}`}
+                                                                        className="border-b hover:bg-muted/30"
+                                                                    >
+                                                                        <td className="p-3 text-xs sm:text-sm font-medium">
+                                                                            {app.name}
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm">
+                                                                            <div>
+                                                                                <p className="font-medium">
+                                                                                    {getFullName(
+                                                                                        app,
+                                                                                    )}
+                                                                                </p>
+                                                                                <p className="text-xs text-muted-foreground">
+                                                                                    {
+                                                                                        app.aadhar_number
+                                                                                    }
+                                                                                </p>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm">
+                                                                            <div className="flex flex-wrap gap-1">
+
+                                                                                {app.district && (<Badge
                                                                                     variant="outline"
                                                                                     className="text-xs"
                                                                                 >
                                                                                     {
-                                                                                        app.village
+                                                                                        app.district
                                                                                     }
-                                                                                </Badge>
+                                                                                </Badge>)}
+
+                                                                                {app.taluka && (
+                                                                                    <Badge
+                                                                                        variant="outline"
+                                                                                        className="text-xs"
+                                                                                    >
+                                                                                        {
+                                                                                            app.taluka
+                                                                                        }
+                                                                                    </Badge>)}
+
+                                                                                {app.village && (
+                                                                                    <Badge
+                                                                                        variant="outline"
+                                                                                        className="text-xs"
+                                                                                    >
+                                                                                        {
+                                                                                            app.village
+                                                                                        }
+                                                                                    </Badge>
+                                                                                )}
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm">
+                                                                            <Badge variant="outline">
+                                                                                {
+                                                                                    app.component_name
+                                                                                }
+                                                                            </Badge>
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm font-medium">
+                                                                            ₹
+                                                                            {(
+                                                                                app.amount ||
+                                                                                0
+                                                                            ).toLocaleString(
+                                                                                "en-IN",
                                                                             )}
-                                                                        </div>
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm">
-                                                                        <Badge variant="outline">
-                                                                            {
-                                                                                app.component_name
-                                                                            }
-                                                                        </Badge>
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm font-medium">
-                                                                        ₹
-                                                                        {(
-                                                                            app.amount ||
-                                                                            0
-                                                                        ).toLocaleString(
-                                                                            "en-IN",
-                                                                        )}
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm">
-                                                                        {getStatusBadge(
-                                                                            app.component_status,
-                                                                        )}
-                                                                    </td>
-                                                                </tr>
-                                                            ),
-                                                        )}
-                                                        {ddCompletedApplications.length ===
-                                                            0 && (
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm">
+                                                                            {getStatusBadge(
+                                                                                app.component_status,
+                                                                            )}
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm">
+                                                                            <Button
+                                                                                size="sm"
+                                                                                variant="outline"
+                                                                                onClick={() => openDDModal(app.name)}
+                                                                                data-testid={`button-view-dd-${app.name}`}
+                                                                            >
+                                                                                <FileText className="h-3 w-3 mr-1" />
+                                                                                View
+                                                                            </Button>
+                                                                        </td>
+                                                                    </tr>
+                                                                ),
+                                                            )}
+                                                            {ddCompletedApplications.length ===
+                                                                0 && (
+                                                                    <tr>
+                                                                        <td
+                                                                            colSpan={7}
+                                                                            className="text-center py-8 text-xs sm:text-sm text-muted-foreground"
+                                                                        >
+                                                                            {collectedFilters.aadhaar ||
+                                                                                collectedFilters.district ||
+                                                                                collectedFilters.taluka ||
+                                                                                collectedFilters.village
+                                                                                ? "No collected DDs found matching the selected filters"
+                                                                                : "No collected DD entries found"}
+                                                                        </td>
+                                                                    </tr>
+                                                                )}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            {/* Pagination for Selected */}
+                                            {ddCompletedApplications.length > 0 && (
+                                                <div className="flex items-center justify-between mt-4">
+                                                    <div className="text-sm text-muted-foreground">
+                                                        Page {selectedPagination?.current_page ?? selectedPage} of {selectedPagination?.total_pages ?? 1} •{" "}
+                                                        {selectedPagination?.total_items ?? ddCompletedApplications.length}{" "}
+                                                        total items
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                setSelectedPage(
+                                                                    (p) =>
+                                                                        Math.max(
+                                                                            1,
+                                                                            p - 1,
+                                                                        ),
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !selectedPagination?.has_previous_page
+                                                            }
+                                                        >
+                                                            <ChevronLeft className="h-4 w-4 mr-1" />
+                                                            Previous
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                setSelectedPage(
+                                                                    (p) => p + 1,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !selectedPagination?.has_next_page
+                                                            }
+                                                        >
+                                                            Next
+                                                            <ChevronRight className="h-4 w-4 ml-1" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+
+                        <TabsContent value="cancelled" className="space-y-4">
+                            <DDFilters
+                                onFilterChange={handleCancelledFilterChange}
+                                initialFilters={cancelledFilters}
+                            />
+
+                            <Card data-testid="card-cancelled-dd-list">
+                                <CardHeader className="pb-4">
+                                    <div>
+                                        <CardTitle>Returned DDs</CardTitle>
+                                        <CardDescription>
+                                            {cancelledDDApplications.length} returned demand drafts
+                                        </CardDescription>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    {cancelledDDLoading ? (
+                                        <div className="text-center py-8 text-muted-foreground">
+                                            Loading...
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                                    <table className="w-full min-w-[900px]">
+                                                        <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                            <tr>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Application ID
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Beneficiary
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Location
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Component
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Amount
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Status
+                                                                </th>
+                                                                <th className="text-left p-3 text-xs sm:text-sm font-medium">
+                                                                    Action
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {cancelledDDApplications.map(
+                                                                (app: DDApplication) => (
+                                                                    <tr
+                                                                        key={app.name}
+                                                                        data-testid={`row-cancelled-dd-${app.name}`}
+                                                                        className="border-b hover:bg-muted/30"
+                                                                    >
+                                                                        <td className="p-3 text-xs sm:text-sm font-medium">
+                                                                            {app.name}
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm">
+                                                                            <div>
+                                                                                <p className="font-medium">
+                                                                                    {getFullName(app)}
+                                                                                </p>
+                                                                                <p className="text-xs text-muted-foreground">
+                                                                                    {app.aadhar_number}
+                                                                                </p>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm">
+                                                                            <div className="flex flex-wrap gap-1">
+                                                                                {app.district && (
+                                                                                    <Badge variant="outline" className="text-xs">
+                                                                                        {app.district}
+                                                                                    </Badge>
+                                                                                )}
+                                                                                {app.taluka && (
+                                                                                    <Badge variant="outline" className="text-xs">
+                                                                                        {app.taluka}
+                                                                                    </Badge>
+                                                                                )}
+                                                                                {app.village && (
+                                                                                    <Badge variant="outline" className="text-xs">
+                                                                                        {app.village}
+                                                                                    </Badge>
+                                                                                )}
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm">
+                                                                            <Badge variant="outline">
+                                                                                {app.component_name}
+                                                                            </Badge>
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm font-medium">
+                                                                            ₹{(app.amount || 0).toLocaleString("en-IN")}
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm">
+                                                                            <Badge className="bg-red-500/10 text-red-500 border-red-500/20">
+                                                                                {app.component_status == "DD Rejected" ? "DD Returned" : app.component_status}
+                                                                            </Badge>
+                                                                        </td>
+                                                                        <td className="p-3 text-xs sm:text-sm">
+                                                                            <Button
+                                                                                size="sm"
+                                                                                variant="outline"
+                                                                                onClick={() => openDDModal(app.name)}
+                                                                                data-testid={`button-view-cancelled-dd-${app.name}`}
+                                                                            >
+                                                                                <FileText className="h-3 w-3 mr-1" />
+                                                                                View
+                                                                            </Button>
+                                                                        </td>
+                                                                    </tr>
+                                                                ),
+                                                            )}
+                                                            {cancelledDDApplications.length === 0 && (
                                                                 <tr>
                                                                     <td
-                                                                        colSpan={6}
+                                                                        colSpan={7}
                                                                         className="text-center py-8 text-xs sm:text-sm text-muted-foreground"
                                                                     >
-                                                                        {collectedFilters.aadhaar ||
-                                                                            collectedFilters.district ||
-                                                                            collectedFilters.taluka ||
-                                                                            collectedFilters.village
-                                                                            ? "No collected DDs found matching the selected filters"
-                                                                            : "No collected DD entries found"}
+                                                                        {cancelledFilters.aadhaar ||
+                                                                            cancelledFilters.district ||
+                                                                            cancelledFilters.taluka ||
+                                                                            cancelledFilters.village
+                                                                            ? "No Returned DDs found matching the selected filters"
+                                                                            : "No Returned DD entries found"}
                                                                     </td>
                                                                 </tr>
                                                             )}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-
-                                        {/* Pagination for Selected */}
-                                        {ddCompletedApplications.length > 0 && (
-                                            <div className="flex items-center justify-between mt-4">
-                                                <div className="text-sm text-muted-foreground">
-                                                    Page {selectedPagination?.current_page ?? selectedPage} of {selectedPagination?.total_pages ?? 1} •{" "}
-                                                    {selectedPagination?.total_items ?? ddCompletedApplications.length}{" "}
-                                                    total items
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            setSelectedPage(
-                                                                (p) =>
-                                                                    Math.max(
-                                                                        1,
-                                                                        p - 1,
-                                                                    ),
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            !selectedPagination?.has_previous_page
-                                                        }
-                                                    >
-                                                        <ChevronLeft className="h-4 w-4 mr-1" />
-                                                        Previous
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            setSelectedPage(
-                                                                (p) => p + 1,
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            !selectedPagination?.has_next_page
-                                                        }
-                                                    >
-                                                        Next
-                                                        <ChevronRight className="h-4 w-4 ml-1" />
-                                                    </Button>
+                                                        </tbody>
+                                                    </table>
                                                 </div>
                                             </div>
-                                        )}
-                                    </>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
 
-                    <TabsContent value="cancelled" className="space-y-4">
-                        <DDFilters
-                            onFilterChange={handleCancelledFilterChange}
-                            initialFilters={cancelledFilters}
-                        />
-
-                        <Card data-testid="card-cancelled-dd-list">
-                            <CardHeader className="pb-4">
-                                <div>
-                                    <CardTitle>Returned DDs</CardTitle>
-                                    <CardDescription>
-                                        {cancelledDDApplications.length} returned demand drafts
-                                    </CardDescription>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                {cancelledDDLoading ? (
-                                    <div className="text-center py-8 text-muted-foreground">
-                                        Loading...
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className="border rounded-lg overflow-hidden flex flex-col">
-                                            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
-                                                <table className="w-full min-w-[900px]">
-                                                    <thead className="bg-muted sticky top-0 z-30 border-b">
-                                                        <tr>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Application ID
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Beneficiary
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Location
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Component
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Amount
-                                                            </th>
-                                                            <th className="text-left p-3 text-xs sm:text-sm font-medium">
-                                                                Status
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {cancelledDDApplications.map(
-                                                            (app: DDApplication) => (
-                                                                <tr
-                                                                    key={app.name}
-                                                                    data-testid={`row-cancelled-dd-${app.name}`}
-                                                                    className="border-b hover:bg-muted/30"
-                                                                >
-                                                                    <td className="p-3 text-xs sm:text-sm font-medium">
-                                                                        {app.name}
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm">
-                                                                        <div>
-                                                                            <p className="font-medium">
-                                                                                {getFullName(app)}
-                                                                            </p>
-                                                                            <p className="text-xs text-muted-foreground">
-                                                                                {app.aadhar_number}
-                                                                            </p>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm">
-                                                                        <div className="flex flex-wrap gap-1">
-                                                                            {app.district && (
-                                                                                <Badge variant="outline" className="text-xs">
-                                                                                    {app.district}
-                                                                                </Badge>
-                                                                            )}
-                                                                            {app.taluka && (
-                                                                                <Badge variant="outline" className="text-xs">
-                                                                                    {app.taluka}
-                                                                                </Badge>
-                                                                            )}
-                                                                            {app.village && (
-                                                                                <Badge variant="outline" className="text-xs">
-                                                                                    {app.village}
-                                                                                </Badge>
-                                                                            )}
-                                                                        </div>
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm">
-                                                                        <Badge variant="outline">
-                                                                            {app.component_name}
-                                                                        </Badge>
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm font-medium">
-                                                                        ₹{(app.amount || 0).toLocaleString("en-IN")}
-                                                                    </td>
-                                                                    <td className="p-3 text-xs sm:text-sm">
-                                                                        <Badge className="bg-red-500/10 text-red-500 border-red-500/20">
-                                                                            {app.component_status}
-                                                                        </Badge>
-                                                                    </td>
-                                                                </tr>
-                                                            ),
-                                                        )}
-                                                        {cancelledDDApplications.length === 0 && (
-                                                            <tr>
-                                                                <td
-                                                                    colSpan={6}
-                                                                    className="text-center py-8 text-xs sm:text-sm text-muted-foreground"
-                                                                >
-                                                                    {cancelledFilters.aadhaar ||
-                                                                        cancelledFilters.district ||
-                                                                        cancelledFilters.taluka ||
-                                                                        cancelledFilters.village
-                                                                        ? "No Returned DDs found matching the selected filters"
-                                                                        : "No Returned DD entries found"}
-                                                                </td>
-                                                            </tr>
-                                                        )}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-
-                                        {cancelledDDApplications.length > 0 && (
-                                            <div className="flex items-center justify-between mt-4">
-                                                <div className="text-sm text-muted-foreground">
-                                                    Page {cancelledPagination?.current_page ?? cancelledPage} of {cancelledPagination?.total_pages ?? 1} • {cancelledPagination?.total_items ?? cancelledDDApplications.length} total items
+                                            {cancelledDDApplications.length > 0 && (
+                                                <div className="flex items-center justify-between mt-4">
+                                                    <div className="text-sm text-muted-foreground">
+                                                        Page {cancelledPagination?.current_page ?? cancelledPage} of {cancelledPagination?.total_pages ?? 1} • {cancelledPagination?.total_items ?? cancelledDDApplications.length} total items
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setCancelledPage((p) => Math.max(1, p - 1))}
+                                                            disabled={!cancelledPagination?.has_previous_page}
+                                                        >
+                                                            <ChevronLeft className="h-4 w-4 mr-1" />
+                                                            Previous
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setCancelledPage((p) => p + 1)}
+                                                            disabled={!cancelledPagination?.has_next_page}
+                                                        >
+                                                            Next
+                                                            <ChevronRight className="h-4 w-4 ml-1" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setCancelledPage((p) => Math.max(1, p - 1))}
-                                                        disabled={!cancelledPagination?.has_previous_page}
-                                                    >
-                                                        <ChevronLeft className="h-4 w-4 mr-1" />
-                                                        Previous
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setCancelledPage((p) => p + 1)}
-                                                        disabled={!cancelledPagination?.has_next_page}
-                                                    >
-                                                        Next
-                                                        <ChevronRight className="h-4 w-4 ml-1" />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                </Tabs>
+                                            )}
+                                        </>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    </Tabs>
+                </div>
             </div>
-        </div>
+
+            {/* DD Details Modal */}
+            <DDDetailsModal
+                appName={modalAppName}
+                open={isModalOpen}
+                onOpenChange={(open) => {
+                    setIsModalOpen(open);
+                    if (!open) setModalAppName(null);
+                }}
+            />
+        </>
     );
+
 }
