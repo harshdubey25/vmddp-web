@@ -648,7 +648,7 @@ export default function DBTClaimsMPRPage() {
 
                     <Dialog open={isTableFullscreen} onOpenChange={setIsTableFullscreen}>
                         <DialogContent className="h-[96vh] w-[98vw] max-w-none overflow-hidden p-0">
-                            <div className="flex h-full flex-col overflow-hidden">
+                            <div className="flex h-full flex-col overflow-scroll">
                                 <DialogHeader className="border-b px-4 py-4 pr-12 sm:px-6">
                                     <DialogTitle className="text-base sm:text-lg md:text-xl">
                                         DBT Claims - Financial Achievement Report
@@ -658,7 +658,7 @@ export default function DBTClaimsMPRPage() {
                                         {filters && ` Current month: ${filters.current_month_start_date} to ${filters.current_month_end_date} • Progressive: ${filters.progressive_start_date} to ${filters.progressive_end_date}`}
                                     </DialogDescription>
                                 </DialogHeader>
-                                <div className="flex-1 overflow-hidden p-4 sm:p-6">
+                                <div className="flex-1 overflow-scroll p-4 sm:p-6">
                                     {renderReportTable("h-full w-full overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100")}
                                 </div>
                             </div>
