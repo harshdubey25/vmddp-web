@@ -281,8 +281,8 @@ export default function AnimalInductionMPRPage() {
 
     const selectedMonthLabel = months.find((month) => month.value === selectedMonth)?.label || "Current Month";
 
-    const renderReportTable = (containerClassName: string) => (
-        <div className="border rounded-lg overflow-hidden flex min-h-0 min-w-0 flex-col">
+    const renderReportTable = (containerClassName: string, wrapperClassName: string = "") => (
+        <div className={`border rounded-lg overflow-hidden flex min-h-0 min-w-0 flex-col ${wrapperClassName}`}>
             <div className={containerClassName}>
                 <table className="min-w-[1900px] w-full text-xs">
                     <thead className="bg-muted sticky top-0 z-30">
@@ -293,7 +293,7 @@ export default function AnimalInductionMPRPage() {
                             <th rowSpan={4} className="border text-center font-bold sticky left-[50px] bg-muted z-30 min-w-[120px] p-2">
                                 Name of District
                             </th>
-                            <th rowSpan={4} className="border text-center font-bold min-w-[70px] p-2">
+                            <th rowSpan={4} className="border text-center font-bold sticky left-[170px] bg-muted z-30 min-w-[70px] p-2">
 
                             </th>
                             <th colSpan={19} className="border text-center font-bold bg-blue-50 p-2">
@@ -395,7 +395,7 @@ export default function AnimalInductionMPRPage() {
                                     <td rowSpan={2} className="border font-medium sticky left-[50px] bg-background z-10 p-2">
                                         {name}
                                     </td>
-                                    <td className="border text-center text-[10px] p-2">Current Month</td>
+                                    <td className="border text-center text-[10px] font-medium sticky left-[170px] bg-background z-10 p-2">Current Month</td>
                                     <td className="border text-center bg-yellow-50 p-2">{currentMonth.cow_count || 0}</td>
                                     <td className="border text-center bg-yellow-50 p-2">{currentMonth.crossbreed_count || 0}</td>
                                     <td className="border text-center bg-yellow-50 p-2">{currentMonth.buffalo_count || 0}</td>
@@ -419,7 +419,7 @@ export default function AnimalInductionMPRPage() {
                                     </td>
                                 </tr>
                                 <tr className="hover:bg-muted/30 bg-muted/10">
-                                    <td className="border text-center text-[10px] p-2">Progressive</td>
+                                    <td className="border text-center text-[10px] font-medium sticky left-[170px] bg-muted z-10 p-2">Progressive</td>
                                     <td className="border text-center bg-yellow-50/50 p-2">{progressive.cow_count || 0}</td>
                                     <td className="border text-center bg-yellow-50/50 p-2">{progressive.crossbreed_count || 0}</td>
                                     <td className="border text-center bg-yellow-50/50 p-2">{progressive.buffalo_count || 0}</td>
@@ -449,7 +449,7 @@ export default function AnimalInductionMPRPage() {
                         <tr className="bg-muted font-bold">
                             <td rowSpan={2} className="border text-center sticky left-0 bg-muted z-10 p-2" colSpan={1}></td>
                             <td rowSpan={2} className="border sticky left-[50px] bg-muted z-10 p-2">TOTAL</td>
-                            <td className="border p-2">Current Month</td>
+                            <td className="border font-bold sticky left-[170px] bg-muted z-10 p-2">Current Month</td>
                             <td className="border text-center bg-yellow-100 p-2">{currentMonthTotals.cow_count}</td>
                             <td className="border text-center bg-yellow-100 p-2">{currentMonthTotals.crossbreed_count || 0}</td>
                             <td className="border text-center bg-yellow-100 p-2">{currentMonthTotals.buffalo_count}</td>
@@ -473,7 +473,7 @@ export default function AnimalInductionMPRPage() {
                             </td>
                         </tr>
                         <tr className="bg-muted font-bold">
-                            <td className="border p-2">Progressive</td>
+                            <td className="border font-bold sticky left-[170px] bg-muted z-10 p-2">Progressive</td>
                             <td className="border text-center bg-yellow-100 p-2">{progressiveTotals.cow_count}</td>
                             <td className="border text-center bg-yellow-100 p-2">{progressiveTotals.crossbreed_count || 0}</td>
                             <td className="border text-center bg-yellow-100 p-2">{progressiveTotals.buffalo_count}</td>
@@ -708,17 +708,17 @@ export default function AnimalInductionMPRPage() {
             <Dialog open={isTableFullscreen} onOpenChange={setIsTableFullscreen}>
                 <DialogContent className="h-[96vh] w-[98vw] max-w-none overflow-hidden p-0">
                     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-                        <DialogHeader className="border-b px-4 py-4 pr-12 sm:px-6">
-                            <DialogTitle className="text-base sm:text-lg md:text-xl">
+                        <DialogHeader className="border-b px-3 py-3 pr-12 sm:px-6 sm:py-4 shrink-0">
+                            <DialogTitle className="text-sm sm:text-base md:text-lg">
                                 Animal Induction - Financial Achievement Report
                             </DialogTitle>
-                            <DialogDescription className="text-xs sm:text-sm">
+                            <DialogDescription className="text-[10px] sm:text-xs line-clamp-2">
                                 Full screen view for the district-wise MPR table.
                                 {filters && ` Current month: ${filters.current_month_start_date} to ${filters.current_month_end_date} • Progressive: ${filters.progressive_start_date} to ${filters.progressive_end_date}`}
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="flex-1 min-h-0 overflow-scroll p-4 sm:p-6">
-                            {renderReportTable("h-full min-h-0 min-w-0 overflow-x-scroll overflow-y-scroll")}
+                        <div className="flex-1 min-h-0 overflow-hidden p-2 sm:p-4">
+                            {renderReportTable("min-h-0 overflow-x-auto overflow-y-auto", "h-full")}
                         </div>
                     </div>
                 </DialogContent>

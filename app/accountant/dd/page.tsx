@@ -337,24 +337,23 @@ export default function DDCollection() {
                     </div>
 
                     {/* Summary Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 xl:gap-4">
                         <Card data-testid="card-total-collected" className="relative overflow-hidden border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-500/10 to-indigo-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
                             <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
-                            <CardContent className="pt-6 relative z-10">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
-                                        <IndianRupee className="h-5 w-5 text-white" />
+                            <CardContent className="pt-4 pb-4 px-4 relative z-10">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 shrink-0 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                        <IndianRupee className="h-4 w-4 text-white" />
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-indigo-700/80 dark:text-indigo-300">
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-medium text-indigo-700/80 dark:text-indigo-300 truncate">
                                             Total Collected
                                         </p>
                                         <p
-                                            className="text-2xl font-bold text-indigo-900 dark:text-indigo-100 drop-shadow-sm"
+                                            className="text-base sm:text-lg xl:text-xl font-bold text-indigo-900 dark:text-indigo-100 drop-shadow-sm truncate"
                                             data-testid="text-total-amount"
                                         >
-                                            ₹
-                                            {totalCollected.toLocaleString("en-IN")}
+                                            ₹{totalCollected.toLocaleString("en-IN")}
                                         </p>
                                     </div>
                                 </div>
@@ -363,17 +362,17 @@ export default function DDCollection() {
 
                         <Card data-testid="card-total-dds" className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
                             <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
-                            <CardContent className="pt-6 relative z-10">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
-                                        <FileText className="h-5 w-5 text-white" />
+                            <CardContent className="pt-4 pb-4 px-4 relative z-10">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 shrink-0 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                        <FileText className="h-4 w-4 text-white" />
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-blue-700/80 dark:text-blue-300">
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-medium text-blue-700/80 dark:text-blue-300 truncate">
                                             Total DDs
                                         </p>
                                         <p
-                                            className="text-2xl font-bold text-blue-900 dark:text-blue-100 drop-shadow-sm"
+                                            className="text-base sm:text-lg xl:text-xl font-bold text-blue-900 dark:text-blue-100 drop-shadow-sm truncate"
                                             data-testid="text-total-count"
                                         >
                                             {totalDDs}
@@ -385,17 +384,17 @@ export default function DDCollection() {
 
                         <Card data-testid="card-pending" className="relative overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-amber-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
                             <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
-                            <CardContent className="pt-6 relative z-10">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
-                                        <AlertCircle className="h-5 w-5 text-white" />
+                            <CardContent className="pt-4 pb-4 px-4 relative z-10">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 shrink-0 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                        <AlertCircle className="h-4 w-4 text-white" />
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-amber-700/80 dark:text-amber-300">
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-medium text-amber-700/80 dark:text-amber-300 truncate">
                                             Pending Collection
                                         </p>
                                         <p
-                                            className="text-2xl font-bold text-amber-900 dark:text-amber-100 drop-shadow-sm"
+                                            className="text-base sm:text-lg xl:text-xl font-bold text-amber-900 dark:text-amber-100 drop-shadow-sm truncate"
                                             data-testid="text-pending-count"
                                         >
                                             {pendingCount}
@@ -407,17 +406,17 @@ export default function DDCollection() {
 
                         <Card data-testid="card-verified" className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-green-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
                             <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
-                            <CardContent className="pt-6 relative z-10">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
-                                        <Check className="h-5 w-5 text-white" />
+                            <CardContent className="pt-4 pb-4 px-4 relative z-10">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 shrink-0 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                        <Check className="h-4 w-4 text-white" />
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-green-700/80 dark:text-green-300">
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-medium text-green-700/80 dark:text-green-300 truncate">
                                             Collected
                                         </p>
                                         <p
-                                            className="text-2xl font-bold text-green-900 dark:text-green-100 drop-shadow-sm"
+                                            className="text-base sm:text-lg xl:text-xl font-bold text-green-900 dark:text-green-100 drop-shadow-sm truncate"
                                             data-testid="text-verified-count"
                                         >
                                             {collectedDDs}
@@ -429,17 +428,17 @@ export default function DDCollection() {
 
                         <Card data-testid="card-cancelled-dds" className="relative overflow-hidden border-2 border-red-500/30 bg-gradient-to-br from-red-500/10 to-red-600/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm">
                             <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-red-500/20 to-red-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
-                            <CardContent className="pt-6 relative z-10">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-xl bg-gradient-to-br from-red-500 to-red-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
-                                        <X className="h-5 w-5 text-white" />
+                            <CardContent className="pt-4 pb-4 px-4 relative z-10">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 shrink-0 rounded-xl bg-gradient-to-br from-red-500 to-red-600 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                        <X className="h-4 w-4 text-white" />
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-red-700/80 dark:text-red-300">
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-medium text-red-700/80 dark:text-red-300 truncate">
                                             Returned DDs
                                         </p>
                                         <p
-                                            className="text-2xl font-bold text-red-900 dark:text-red-100 drop-shadow-sm"
+                                            className="text-base sm:text-lg xl:text-xl font-bold text-red-900 dark:text-red-100 drop-shadow-sm truncate"
                                             data-testid="text-returned-count"
                                         >
                                             {cancelledDDs}
