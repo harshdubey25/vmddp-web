@@ -247,13 +247,13 @@ export default function HGMMPRPage() {
                 <table className="min-w-[1100px] w-full text-xs">
                     <thead className="bg-muted sticky top-0 z-30">
                         <tr className="bg-muted/50">
-                            <th rowSpan={3} className="border text-center font-bold sticky left-0 bg-muted/50 z-30 min-w-[50px] p-2">
+                            <th rowSpan={3} className="border text-center font-bold sticky left-0 bg-muted z-30 min-w-[50px] p-2">
                                 Sr. No.
                             </th>
-                            <th rowSpan={3} className="border text-center font-bold sticky left-[50px] bg-muted/50 z-30 min-w-[120px] p-2">
+                            <th rowSpan={3} className="border text-center font-bold sticky left-[50px] bg-muted z-30 min-w-[120px] p-2">
                                 Name of District
                             </th>
-                            <th rowSpan={3} className="border text-center font-bold min-w-[70px] p-2">
+                            <th rowSpan={3} className="border text-center font-bold sticky left-[170px] bg-muted z-30 min-w-[70px] p-2">
 
                             </th>
                             <th colSpan={7} className="border text-center font-bold bg-blue-50 p-2">
@@ -302,7 +302,7 @@ export default function HGMMPRPage() {
                                     <td rowSpan={2} className="border font-medium sticky left-[50px] bg-background z-10 p-2">
                                         {name}
                                     </td>
-                                    <td className="border text-center text-[10px] p-2">Current Month</td>
+                                    <td className="border text-center text-[10px] font-medium sticky left-[170px] bg-background z-10 p-2">Current Month</td>
                                     <td className="border text-center bg-yellow-50/50 p-2">{currentMonth.cow_count || 0}</td>
                                     <td className="border text-center bg-yellow-50/50 p-2">{currentMonth.buffalo_count || 0}</td>
                                     <td className="border text-center bg-orange-50/50 font-semibold p-2">{currentMonth.physical_balance || 0}</td>
@@ -312,7 +312,7 @@ export default function HGMMPRPage() {
                                     <td className="border text-right bg-orange-50/50 font-semibold p-2">{formatCurrency(currentMonth.financial_balance || 0)}</td>
                                 </tr>
                                 <tr className="hover:bg-muted/30 bg-muted/10">
-                                    <td className="border text-center text-[10px] p-2">Progressive</td>
+                                    <td className="border text-center text-[10px] font-medium sticky left-[170px] bg-muted z-10 p-2">Progressive</td>
                                     <td className="border text-center bg-yellow-50/50 p-2">{progressive.cow_count || 0}</td>
                                     <td className="border text-center bg-yellow-50/50 p-2">{progressive.buffalo_count || 0}</td>
                                     <td className="border text-center bg-orange-50/50 font-semibold p-2">{progressive.physical_balance || 0}</td>
@@ -328,7 +328,7 @@ export default function HGMMPRPage() {
                         <tr className="bg-muted font-bold">
                             <td rowSpan={2} className="border text-center sticky left-0 bg-muted z-10 p-2" colSpan={1}></td>
                             <td rowSpan={2} className="border sticky left-[50px] bg-muted z-10 p-2">TOTAL</td>
-                            <td className="border p-2">Current Month</td>
+                            <td className="border font-bold sticky left-[170px] bg-muted z-10 p-2">Current Month</td>
                             <td className="border text-center bg-yellow-100 p-2">{currentMonthTotals.total_cows}</td>
                             <td className="border text-center bg-yellow-100 p-2">{currentMonthTotals.total_buffaloes}</td>
                             <td className="border text-center bg-orange-100 font-bold p-2">{currentMonthTotals.total_physical_balance}</td>
@@ -338,7 +338,7 @@ export default function HGMMPRPage() {
                             <td className="border text-right bg-orange-100 font-bold p-2">{formatCurrency(currentMonthTotals.total_financial_balance)}</td>
                         </tr>
                         <tr className="bg-muted font-bold">
-                            <td className="border p-2">Progressive</td>
+                            <td className="border font-bold sticky left-[170px] bg-muted z-10 p-2">Progressive</td>
                             <td className="border text-center bg-yellow-100 p-2">{progressiveTotals.total_cows}</td>
                             <td className="border text-center bg-yellow-100 p-2">{progressiveTotals.total_buffaloes}</td>
                             <td className="border text-center bg-orange-100 font-bold p-2">{progressiveTotals.total_physical_balance}</td>

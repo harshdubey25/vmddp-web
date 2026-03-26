@@ -382,22 +382,24 @@ export default function VendorPayments() {
                                         </div>
                                     ) : vendorPayments.length > 0 ? (
                                         <>
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead className="w-12">
+                                            <div className="border rounded-lg overflow-hidden flex flex-col">
+                                            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                            <table className="w-full caption-bottom text-sm">
+                                                <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                    <tr>
+                                                        <th className="h-12 px-4 text-left align-middle font-medium w-12">
                                                             <Check data-testid="checkbox-select-all" />
-                                                        </TableHead>
-                                                        <TableHead>Beneficiary</TableHead>
-                                                        <TableHead>Component</TableHead>
-                                                        <TableHead>Animal</TableHead>
-                                                        <TableHead>Vendor</TableHead>
-                                                        <TableHead>Category</TableHead>
-                                                        <TableHead className="text-right">Amount to Pay</TableHead>
-                                                        <TableHead>Date</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
+                                                        </th>
+                                                        <th className="h-12 px-4 text-left align-middle font-medium min-w-[140px]">Beneficiary</th>
+                                                        <th className="h-12 px-4 text-left align-middle font-medium min-w-[100px]">Component</th>
+                                                        <th className="h-12 px-4 text-left align-middle font-medium min-w-[100px]">Animal</th>
+                                                        <th className="h-12 px-4 text-left align-middle font-medium min-w-[100px]">Vendor</th>
+                                                        <th className="h-12 px-4 text-left align-middle font-medium min-w-[80px]">Category</th>
+                                                        <th className="h-12 px-4 text-right align-middle font-medium min-w-[100px] whitespace-nowrap">Amount to Pay</th>
+                                                        <th className="h-12 px-4 text-left align-middle font-medium min-w-[80px] whitespace-nowrap">Date</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="[&_tr:last-child]:border-0">
                                                     {vendorPayments.map((payment) => {
                                                         const rowKey = getRowKey(payment);
                                                         const isSelected = selectedRowKeys.includes(rowKey);
@@ -410,60 +412,62 @@ export default function VendorPayments() {
                                                         };
 
                                                         return (
-                                                            <TableRow
+                                                            <tr
                                                                 key={rowKey}
-                                                                className={isSelected ? "bg-primary/5" : ""}
+                                                                className={`border-b transition-colors hover:bg-muted/50 ${isSelected ? "bg-primary/5" : ""}`}
                                                                 data-testid={`row-payment-${rowKey}`}
                                                             >
-                                                                <TableCell>
+                                                                <td className="p-4 align-middle">
                                                                     <Checkbox
                                                                         checked={isSelected}
                                                                         disabled={!isSelected && !canSelectPayment(payment)}
                                                                         onCheckedChange={(checked) => handleTogglePayment(rowKey, !!checked)}
                                                                         data-testid={`checkbox-${rowKey}`}
                                                                     />
-                                                                </TableCell>
-                                                                <TableCell>
+                                                                </td>
+                                                                <td className="p-4 align-middle">
                                                                     <div>
                                                                         <p className="font-medium">{payment.beneficiary_name}</p>
                                                                         <p className="text-xs text-muted-foreground">{payment.aadhar_number}</p>
                                                                         <p className="text-xs text-muted-foreground">{payment.district}, {payment.taluka}</p>
                                                                     </div>
-                                                                </TableCell>
-                                                                <TableCell>
+                                                                </td>
+                                                                <td className="p-4 align-middle">
                                                                     <div className="space-y-1">
                                                                         <p className="text-sm font-medium">{payment.component_name}</p>
                                                                     </div>
-                                                                </TableCell>
-                                                                <TableCell>
+                                                                </td>
+                                                                <td className="p-4 align-middle">
                                                                     <div>
                                                                         <p className="font-medium">{payment.type_of_animal}</p>
                                                                         <p className="text-xs text-muted-foreground">Tag: {payment.tag_number}</p>
                                                                     </div>
-                                                                </TableCell>
-                                                                <TableCell>
+                                                                </td>
+                                                                <td className="p-4 align-middle">
                                                                     <div>
                                                                         <p className="font-medium">{payment.vendor_name}</p>
                                                                     </div>
-                                                                </TableCell>
-                                                                <TableCell>
+                                                                </td>
+                                                                <td className="p-4 align-middle">
                                                                     <Badge variant="outline" className={categoryColors[payment.vendor_category] || ""}>
                                                                         {payment.vendor_category}
                                                                     </Badge>
-                                                                </TableCell>
-                                                                <TableCell className="text-right">
+                                                                </td>
+                                                                <td className="p-4 align-middle text-right">
                                                                     <span className="font-bold text-green-600">
                                                                         ₹{payment.amount_to_pay.toLocaleString("en-IN")}
                                                                     </span>
-                                                                </TableCell>
-                                                                <TableCell>
+                                                                </td>
+                                                                <td className="p-4 align-middle">
                                                                     <p className="text-sm">{payment.date_of_purchase}</p>
-                                                                </TableCell>
-                                                            </TableRow>
+                                                                </td>
+                                                            </tr>
                                                         );
                                                     })}
-                                                </TableBody>
-                                            </Table>
+                                                </tbody>
+                                            </table>
+                                            </div>
+                                            </div>
 
                                             {pagination && pagination.total_pages > 1 && (
                                                 <div className="flex items-center justify-between pt-4 border-t">
