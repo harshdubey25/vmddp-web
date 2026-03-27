@@ -48,6 +48,14 @@ export default function TreatmentForm() {
     dpoData?.district ? undefined : null
   );
 
+  const { data: remainingStockData } = useFrappeGetCall<{ message: number }>(
+    "vmddp_app.api.v1.stock.get_remaining_treatment_of_infertile_animal_stock_quantity",
+    assignedDistrict ? { district: assignedDistrict } : undefined,
+    assignedDistrict ? undefined : null
+  );
+
+  const remainingStockQuantity = remainingStockData?.message ?? null;
+
   const [formData, setFormData] = useState<TreatmentFormData>({
     firstName: "",
     middleName: "",
@@ -320,6 +328,12 @@ export default function TreatmentForm() {
     return `₹${(amount / 10000000).toFixed(2)}Cr`;
   };
 
+  const totalDoseInForm = formData.medicines.reduce((sum, med) => {
+    return sum + (parseFloat(med.dose) || 0);
+  }, 0);
+
+  const wouldExceedStock = remainingStockQuantity !== null && totalDoseInForm > remainingStockQuantity;
+
   const handleSubmit = async () => {
     if (isProcessing || isSubmitting || compressingImages) {
       return;
@@ -342,6 +356,15 @@ export default function TreatmentForm() {
       toast({
         title: "Target Achieved",
         description: `The ${messages.join(" and ")} has been achieved. Cannot submit new applications.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (wouldExceedStock) {
+      toast({
+        title: "Stock Exceeded",
+        description: `The number of books and certificates assigned for this application exceeds the items assigned in the stock for this district. Total dose: ${totalDoseInForm}, Remaining stock: ${remainingStockQuantity}.`,
         variant: "destructive",
       });
       return;
@@ -1001,6 +1024,14 @@ export default function TreatmentForm() {
                     </div>
                   ) : (
                     <div className="space-y-4">
+                      {wouldExceedStock && (
+                        <Alert variant="destructive">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription>
+                            The total medicine dose ({totalDoseInForm}) for this application exceeds the items assigned in the stock for this district. Remaining stock: <strong>{remainingStockQuantity}</strong>.
+                          </AlertDescription>
+                        </Alert>
+                      )}
                       {formData.medicines.map((medicine, index) => (
                         <div
                           key={medicine.id}
@@ -1148,10 +1179,10 @@ export default function TreatmentForm() {
                 onClick={handleSubmit}
                 className="gap-2"
                 data-testid="button-submit-bottom"
-                disabled={!hasValidTarget || isSubmitting || isProcessing || targetsAchieved.either || targetMetrics.wouldExceedFinancial || compressingImages}
+                disabled={!hasValidTarget || isSubmitting || isProcessing || targetsAchieved.either || targetMetrics.wouldExceedFinancial || wouldExceedStock || compressingImages}
               >
                 <Save className="w-4 h-4" />
-                {compressingImages ? "Compressing Images..." : (isSubmitting || isProcessing) ? "Submitting..." : !hasValidTarget ? "No Target Allocated" : targetsAchieved.either ? "Target Achieved" : targetMetrics.wouldExceedFinancial ? "Would Exceed Budget" : "Submit Application"}
+                {compressingImages ? "Compressing Images..." : (isSubmitting || isProcessing) ? "Submitting..." : !hasValidTarget ? "No Target Allocated" : targetsAchieved.either ? "Target Achieved" : targetMetrics.wouldExceedFinancial ? "Would Exceed Budget" : wouldExceedStock ? "Stock Exceeded" : "Submit Application"}
               </Button>
             </div>
           </div>
