@@ -7,6 +7,7 @@ import {
     useFrappeGetDocList,
     useFrappeAuth,
     useFrappeGetDoc,
+    useFrappeGetCall,
 } from "frappe-react-sdk";
 import {
     validateAndCompressImages,
@@ -126,6 +127,14 @@ export default function FarmerTrainingForm() {
             0,
         ) || 0;
 
+    const { data: remainingStockData } = useFrappeGetCall<{ message: number }>(
+        "vmddp_app.api.v1.stock.get_remaining_farmer_training_stock_quantity",
+        assignedDistrict ? { district: assignedDistrict } : undefined,
+        assignedDistrict ? undefined : { revalidateOnFocus: false, revalidateOnReconnect: false },
+    );
+
+    const remainingStockQuantity = remainingStockData?.message ?? null;
+
     const hasValidTarget = trainingTarget && trainingTarget.length > 0 && physicalTarget > 0 && financialTarget > 0;
 
     const targetData = {
@@ -214,6 +223,7 @@ export default function FarmerTrainingForm() {
             : 0;
     const currentParticipants = parseInt(formData.numberOfParticipants) || 0;
     const wouldExceedTarget = mounted && currentParticipants > remainingTarget;
+    const wouldExceedStock = mounted && remainingStockQuantity !== null && currentParticipants > remainingStockQuantity;
 
     const expectedBudget = currentParticipants * EXPENSE_PER_HEAD;
 
@@ -483,6 +493,15 @@ export default function FarmerTrainingForm() {
             return;
         }
 
+        if (wouldExceedStock) {
+            toast({
+                title: "Stock Exceeded",
+                description: `The number of books and certificates assigned for this application exceeds the items assigned in the stock for this district. Remaining stock: ${remainingStockQuantity}.`,
+                variant: "destructive",
+            });
+            return;
+        }
+
         if (exceedsTotal) {
             toast({
                 title: "Budget Exceeded",
@@ -679,6 +698,15 @@ export default function FarmerTrainingForm() {
                                             Cannot exceed target! Only{" "}
                                             <strong className="font-bold">{remainingTarget}</strong> participants
                                             remaining. Please adjust the number.
+                                        </AlertDescription>
+                                    </Alert>
+                                )}
+                                {wouldExceedStock && (
+                                    <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 text-destructive mt-4">
+                                        <AlertTriangle className="h-4 w-4" />
+                                        <AlertDescription>
+                                            The number of books and certificates assigned for this application exceeds the items assigned in the stock for this district. Remaining stock:{" "}
+                                            <strong className="font-bold">{remainingStockQuantity}</strong>.
                                         </AlertDescription>
                                     </Alert>
                                 )}
@@ -1177,6 +1205,7 @@ export default function FarmerTrainingForm() {
                                 disabled={
                                     !hasValidTarget ||
                                     wouldExceedTarget ||
+                                    wouldExceedStock ||
                                     exceedsTotal ||
                                     isSubmitting ||
                                     isProcessing ||
