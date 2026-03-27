@@ -10,6 +10,16 @@ const stockReportPages = [
         title: "District Allocation Summary",
         description: "View district-wise admin, allocated, and balance stock.",
     },
+    {
+        href: "/admin/stock-report/farmer-training-stock-consumption",
+        title: "Books & Certificates Consumption",
+        description: "District-wise farmer training stock consumption report.",
+    },
+    {
+        href: "/admin/stock-report/treatment-stock-consumption",
+        title: "Treatment of Infertile Animals — Medicine Consumption",
+        description: "District-wise medicine / stock item consumption report.",
+    },
 ];
 
 export default function StockReport() {

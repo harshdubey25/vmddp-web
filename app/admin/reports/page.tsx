@@ -276,10 +276,10 @@ export default function AdminReports() {
 
     const formatStatusCount = (value: number) => (statusCountsLoading ? "..." : value.toLocaleString());
     const statusSummaryCards = [
-        { 
-            key: "total", 
-            label: "Total Applications", 
-            value: statusCounts.total, 
+        {
+            key: "total",
+            label: "Total Applications",
+            value: statusCounts.total,
             accent: "text-blue-600",
             icon: FileText,
             gradient: "from-blue-500/20 to-blue-600/10",
@@ -287,10 +287,10 @@ export default function AdminReports() {
             iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
             change: "+12.5%"
         },
-        { 
-            key: "pending", 
-            label: "Pending", 
-            value: statusCounts.pending, 
+        {
+            key: "pending",
+            label: "Pending",
+            value: statusCounts.pending,
             accent: "text-yellow-600",
             icon: Clock,
             gradient: "from-yellow-500/20 to-orange-600/10",
@@ -298,10 +298,10 @@ export default function AdminReports() {
             iconBg: "bg-gradient-to-br from-yellow-500 to-orange-600",
             change: "+8.3%"
         },
-        { 
-            key: "approved", 
-            label: "Approved", 
-            value: statusCounts.approved, 
+        {
+            key: "approved",
+            label: "Approved",
+            value: statusCounts.approved,
             accent: "text-green-600",
             icon: CheckCircle,
             gradient: "from-green-500/20 to-green-600/10",
@@ -309,10 +309,10 @@ export default function AdminReports() {
             iconBg: "bg-gradient-to-br from-green-500 to-green-600",
             change: "+15.7%"
         },
-        { 
-            key: "selected", 
-            label: "Selected", 
-            value: statusCounts.selected, 
+        {
+            key: "selected",
+            label: "Selected",
+            value: statusCounts.selected,
             accent: "text-purple-600",
             icon: Target,
             gradient: "from-purple-500/20 to-purple-600/10",
@@ -320,10 +320,10 @@ export default function AdminReports() {
             iconBg: "bg-gradient-to-br from-purple-500 to-purple-600",
             change: "+9.2%"
         },
-        { 
-            key: "rejected", 
-            label: "Rejected", 
-            value: statusCounts.rejected, 
+        {
+            key: "rejected",
+            label: "Rejected",
+            value: statusCounts.rejected,
             accent: "text-red-600",
             icon: XCircle,
             gradient: "from-red-500/20 to-red-600/10",
@@ -428,7 +428,7 @@ export default function AdminReports() {
                             {statusSummaryCards.map((card) => {
                                 const Icon = card.icon;
                                 return (
-                                    <Card 
+                                    <Card
                                         key={card.key}
                                         className={`relative overflow-hidden border-2 ${card.borderColor} bg-gradient-to-br ${card.gradient} hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group backdrop-blur-sm`}
                                     >
