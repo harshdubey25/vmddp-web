@@ -71,6 +71,7 @@ export default function DDCollection() {
         district: "",
         taluka: "",
         village: "",
+        application_id: "",
     });
 
     const [cancelledFilters, setCancelledFilters] = useState({
@@ -78,6 +79,7 @@ export default function DDCollection() {
         district: "",
         taluka: "",
         village: "",
+        application_id: "",
     });
 
     // Pagination states
@@ -110,10 +112,12 @@ export default function DDCollection() {
     const debouncedCollectedDistrict = useDebounce(collectedFilters.district, 500);
     const debouncedCollectedTaluka = useDebounce(collectedFilters.taluka, 500);
     const debouncedCollectedVillage = useDebounce(collectedFilters.village, 500);
+    const debouncedCollectedApplicationId = useDebounce(collectedFilters.application_id, 500);
     const debouncedCancelledAadhaar = useDebounce(cancelledFilters.aadhaar, 500);
     const debouncedCancelledDistrict = useDebounce(cancelledFilters.district, 500);
     const debouncedCancelledTaluka = useDebounce(cancelledFilters.taluka, 500);
     const debouncedCancelledVillage = useDebounce(cancelledFilters.village, 500);
+    const debouncedCancelledApplicationId = useDebounce(cancelledFilters.application_id, 500);
 
     const {
         data: statsData,
@@ -131,6 +135,7 @@ export default function DDCollection() {
             district: debouncedCollectedDistrict || undefined,
             taluka: debouncedCollectedTaluka || undefined,
             village: debouncedCollectedVillage || undefined,
+            application_id: debouncedCollectedApplicationId || undefined,
             docstatus: 1
         },
     );
@@ -147,6 +152,7 @@ export default function DDCollection() {
             district: debouncedCancelledDistrict || undefined,
             taluka: debouncedCancelledTaluka || undefined,
             village: debouncedCancelledVillage || undefined,
+            application_id: debouncedCancelledApplicationId || undefined,
             docstatus: 2
         },
     );
@@ -276,9 +282,14 @@ export default function DDCollection() {
         district: string;
         taluka: string;
         village: string;
+        application_id?: string;
     }) => {
         setSelectedPage(1); // Reset to first page on filter change
-        setCollectedFilters(filters);
+        setCollectedFilters({
+            ...collectedFilters,
+            ...filters,
+            application_id: filters.application_id ?? collectedFilters.application_id,
+        });
     };
 
     const handleCancelledFilterChange = (filters: {
@@ -286,9 +297,14 @@ export default function DDCollection() {
         district: string;
         taluka: string;
         village: string;
+        application_id?: string;
     }) => {
         setCancelledPage(1);
-        setCancelledFilters(filters);
+        setCancelledFilters({
+            ...cancelledFilters,
+            ...filters,
+            application_id: filters.application_id ?? cancelledFilters.application_id,
+        });
     };
 
     const getFullName = (app: DDApplication) => {
@@ -734,6 +750,8 @@ export default function DDCollection() {
                             <DDFilters
                                 onFilterChange={handleCollectedFilterChange}
                                 initialFilters={collectedFilters}
+                                showApplicationIdFilter
+                                aadhaarIsGlobalSearch
                             />
 
                             <Card data-testid="card-dd-list">
@@ -953,6 +971,8 @@ export default function DDCollection() {
                             <DDFilters
                                 onFilterChange={handleCancelledFilterChange}
                                 initialFilters={cancelledFilters}
+                                showApplicationIdFilter
+                                aadhaarIsGlobalSearch
                             />
 
                             <Card data-testid="card-cancelled-dd-list">

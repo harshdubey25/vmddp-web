@@ -34,9 +34,10 @@ interface DDFiltersProps {
     };
     showApplicationIdFilter?: boolean;
     showSearchFilter?: boolean;
+    aadhaarIsGlobalSearch?: boolean;
 }
 
-export default function DDFilters({ onFilterChange, initialFilters = {}, showApplicationIdFilter = false, showSearchFilter = false }: DDFiltersProps) {
+export default function DDFilters({ onFilterChange, initialFilters = {}, showApplicationIdFilter = false, showSearchFilter = false, aadhaarIsGlobalSearch = false }: DDFiltersProps) {
     const [aadhaar, setAadhaar] = useState(initialFilters.aadhaar || "");
     const [district, setDistrict] = useState(initialFilters.district || "");
     const [taluka, setTaluka] = useState(initialFilters.taluka || "");
@@ -145,15 +146,17 @@ export default function DDFilters({ onFilterChange, initialFilters = {}, showApp
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 {/* Aadhaar Number */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="aadhaar-filter">Aadhaar Number</Label>
+                                    <Label htmlFor="aadhaar-filter">{aadhaarIsGlobalSearch ? "Search (Aadhaar / Name)" : "Aadhaar Number"}</Label>
                                     <div className="relative">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             id="aadhaar-filter"
-                                            placeholder="Enter 12-digit Aadhaar"
+                                            placeholder={aadhaarIsGlobalSearch ? "Search by Aadhaar, Name..." : "Enter 12-digit Aadhaar"}
                                             value={aadhaar}
                                             onChange={(e) =>
-                                                setAadhaar(e.target.value.replace(/\D/g, "").slice(0, 12))
+                                                aadhaarIsGlobalSearch
+                                                    ? setAadhaar(e.target.value)
+                                                    : setAadhaar(e.target.value.replace(/\D/g, "").slice(0, 12))
                                             }
                                             onKeyDown={handleKeyPress}
                                             className="pl-9"
