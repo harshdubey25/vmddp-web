@@ -21,20 +21,28 @@ interface DDFiltersProps {
         district: string;
         taluka: string;
         village: string;
+        application_id?: string;
+        search?: string;
     }) => void;
     initialFilters?: {
         aadhaar?: string;
         district?: string;
         taluka?: string;
         village?: string;
+        application_id?: string;
+        search?: string;
     };
+    showApplicationIdFilter?: boolean;
+    showSearchFilter?: boolean;
 }
 
-export default function DDFilters({ onFilterChange, initialFilters = {} }: DDFiltersProps) {
+export default function DDFilters({ onFilterChange, initialFilters = {}, showApplicationIdFilter = false, showSearchFilter = false }: DDFiltersProps) {
     const [aadhaar, setAadhaar] = useState(initialFilters.aadhaar || "");
     const [district, setDistrict] = useState(initialFilters.district || "");
     const [taluka, setTaluka] = useState(initialFilters.taluka || "");
     const [village, setVillage] = useState(initialFilters.village || "");
+    const [applicationId, setApplicationId] = useState(initialFilters.application_id || "");
+    const [searchText, setSearchText] = useState(initialFilters.search || "");
     const [showFilters, setShowFilters] = useState(true);
 
     // Fetch districts
@@ -71,7 +79,7 @@ export default function DDFilters({ onFilterChange, initialFilters = {} }: DDFil
         }
     });
 
-    const hasActiveFilters = aadhaar || district || taluka || village;
+    const hasActiveFilters = aadhaar || district || taluka || village || applicationId || searchText;
 
     // Reset dependent dropdowns when parent changes
     useEffect(() => {
@@ -88,7 +96,7 @@ export default function DDFilters({ onFilterChange, initialFilters = {} }: DDFil
     }, [taluka]);
 
     const handleSearch = () => {
-        onFilterChange({ aadhaar, district, taluka, village });
+        onFilterChange({ aadhaar, district, taluka, village, application_id: applicationId, search: searchText });
     };
 
     const handleClear = () => {
@@ -96,7 +104,9 @@ export default function DDFilters({ onFilterChange, initialFilters = {} }: DDFil
         setDistrict("");
         setTaluka("");
         setVillage("");
-        onFilterChange({ aadhaar: "", district: "", taluka: "", village: "" });
+        setApplicationId("");
+        setSearchText("");
+        onFilterChange({ aadhaar: "", district: "", taluka: "", village: "", application_id: "", search: "" });
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -116,7 +126,7 @@ export default function DDFilters({ onFilterChange, initialFilters = {} }: DDFil
                             <h3 className="font-semibold">Filters</h3>
                             {hasActiveFilters && (
                                 <span className="text-xs text-muted-foreground">
-                                    ({Object.values({ aadhaar, district, taluka, village }).filter(Boolean).length} active)
+                                    ({Object.values({ aadhaar, district, taluka, village, ...(showApplicationIdFilter ? { applicationId } : {}), ...(showSearchFilter ? { searchText } : {}) }).filter(Boolean).length} active)
                                 </span>
                             )}
                         </div>
@@ -202,6 +212,40 @@ export default function DDFilters({ onFilterChange, initialFilters = {} }: DDFil
                                         </SelectContent>
                                     </Select>
                                 </div>
+
+                                {/* Application ID */}
+                                {showApplicationIdFilter && (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="application-id-filter">Application ID</Label>
+                                        <Input
+                                            id="application-id-filter"
+                                            placeholder="Enter Application ID"
+                                            value={applicationId}
+                                            onChange={(e) => setApplicationId(e.target.value)}
+                                            onKeyDown={handleKeyPress}
+                                            data-testid="input-application-id-filter"
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Search */}
+                                {showSearchFilter && (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="search-filter">Search</Label>
+                                        <div className="relative">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                id="search-filter"
+                                                placeholder="Search by name, etc."
+                                                value={searchText}
+                                                onChange={(e) => setSearchText(e.target.value)}
+                                                onKeyDown={handleKeyPress}
+                                                className="pl-9"
+                                                data-testid="input-search-filter"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Action buttons */}

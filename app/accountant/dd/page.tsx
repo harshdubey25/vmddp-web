@@ -61,6 +61,8 @@ export default function DDCollection() {
         district: "",
         taluka: "",
         village: "",
+        application_id: "",
+        search: "",
     });
 
     // Filter states for Collected DDs tab
@@ -174,6 +176,12 @@ export default function DDCollection() {
             if (approvedFilters.village && approvedFilters.village.trim()) {
                 params.Village = approvedFilters.village.trim();
             }
+            if (approvedFilters.application_id && approvedFilters.application_id.trim()) {
+                params.application_id = approvedFilters.application_id.trim();
+            }
+            if (approvedFilters.search && approvedFilters.search.trim()) {
+                params.search_text = approvedFilters.search.trim();
+            }
 
             const response = await frappeBrowser
                 .call()
@@ -251,9 +259,16 @@ export default function DDCollection() {
         district: string;
         taluka: string;
         village: string;
+        application_id?: string;
+        search?: string;
     }) => {
         setApprovedPage(1); // Reset to first page on filter change
-        setApprovedFilters(filters);
+        setApprovedFilters({
+            ...approvedFilters,
+            ...filters,
+            application_id: filters.application_id ?? approvedFilters.application_id,
+            search: filters.search ?? approvedFilters.search,
+        });
     };
 
     const handleCollectedFilterChange = (filters: {
@@ -488,6 +503,8 @@ export default function DDCollection() {
                             <DDFilters
                                 onFilterChange={handleApprovedFilterChange}
                                 initialFilters={approvedFilters}
+                                showApplicationIdFilter
+                                showSearchFilter
                             />
 
                             <Card data-testid="card-approved-search">
