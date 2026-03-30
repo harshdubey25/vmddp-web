@@ -47,6 +47,7 @@ interface PendingRefund {
     transportation_cost: number;
     refund_amount: number;
     eligible_subsidy: number;
+    beneficiary_share: number;
     account_holder_name?: string;
     bank_name?: string;
     account_number?: string;
@@ -743,9 +744,14 @@ export default function Refunds() {
                                     <span>₹{currentRefund.dd_amount.toLocaleString("en-IN")}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Beneficiary Share</span>
+                                    <span className="text-green-600">₹{currentRefund.beneficiary_share.toLocaleString("en-IN")}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Eligible Subsidy</span>
                                     <span className="text-green-600">₹{currentRefund.eligible_subsidy.toLocaleString("en-IN")}</span>
                                 </div>
+
                                 <div className="border-t pt-2 mt-2 flex justify-between font-medium">
                                     <span>Refund Amount</span>
                                     <span className="text-primary">₹{currentRefund.refund_amount.toLocaleString("en-IN")}</span>
