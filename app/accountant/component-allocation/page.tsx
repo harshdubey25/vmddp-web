@@ -1,5 +1,6 @@
 "use client"
 import { useState } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { useFrappeGetDocList, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -61,10 +62,12 @@ interface DDCompletedApplication {
 const PAGE_SIZE = 20;
 
 export default function ComponentAllocation() {
-    const [activeTab, setActiveTab] = useState("pending");
-    const [districtFilter, setDistrictFilter] = useState("all")
-    const [aadharFilter, setAadharFilter] = useState("")
-    const [componentFilter, setComponentFilter] = useState("all")
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const [activeTab, setActiveTab] = useState(searchParams.get("tab") === "completed" ? "completed" : "pending");
+    const [districtFilter, setDistrictFilter] = useState(searchParams.get("district") || "all")
+    const [aadharFilter, setAadharFilter] = useState(searchParams.get("aadhaar") || "")
+    const [componentFilter, setComponentFilter] = useState(searchParams.get("component") || "all")
     const [pendingPage, setPendingPage] = useState(1)
     const [completedPage, setCompletedPage] = useState(1)
     const [showCancelDDDialog, setShowCancelDDDialog] = useState(false)
@@ -126,6 +129,23 @@ export default function ComponentAllocation() {
 
     const selectedDD = ddDetailsList?.[0] || null;
 
+    const updateSearchParams = (updates: Record<string, string>) => {
+        const params = new URLSearchParams(searchParams.toString());
+        for (const [key, value] of Object.entries(updates)) {
+            if (value && value !== "all" && value !== "") {
+                params.set(key, value);
+            } else {
+                params.delete(key);
+            }
+        }
+        router.replace(`?${params.toString()}`, { scroll: false });
+    };
+
+    const handleTabChange = (value: string) => {
+        setActiveTab(value);
+        updateSearchParams({ tab: value });
+    };
+
     const handleFilterChange = () => {
         setPendingPage(1);
         setCompletedPage(1);
@@ -133,11 +153,13 @@ export default function ComponentAllocation() {
 
     const handleDistrictFilterChange = (value: string) => {
         setDistrictFilter(value);
+        updateSearchParams({ district: value });
         handleFilterChange();
     };
 
     const handleComponentFilterChange = (value: string) => {
         setComponentFilter(value);
+        updateSearchParams({ component: value });
         handleFilterChange();
     };
 
@@ -151,7 +173,9 @@ export default function ComponentAllocation() {
     };
 
     const handleAadharFilterChange = (value: string) => {
-        setAadharFilter(value.replace(/\D/g, ""));
+        const cleaned = value.replace(/\D/g, "");
+        setAadharFilter(cleaned);
+        updateSearchParams({ aadhaar: cleaned });
         handleFilterChange();
     };
 
@@ -320,7 +344,7 @@ export default function ComponentAllocation() {
                             <CardDescription>View and manage component allocations by status</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Tabs value={activeTab} onValueChange={setActiveTab}>
+                            <Tabs value={activeTab} onValueChange={handleTabChange}>
                                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                                     <TabsList>
                                         <TabsTrigger value="pending" data-testid="tab-pending">
