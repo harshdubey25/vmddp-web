@@ -29,6 +29,7 @@ import { useState } from "react";
 
 interface AdminSidebarProps {
   userRole: "admin" | "subadmin" | "accountant" | "secretory";
+  hideRole?: boolean;
 }
 
 type MenuItem = {
@@ -128,7 +129,7 @@ const secretoryMenuItems: MenuItem[] = [
 ]
 // { icon: LayoutDashboard, label: "Dashboard", path: "/accountant" },
 // { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },;
-export default function AdminSidebar({ userRole }: AdminSidebarProps) {
+export default function AdminSidebar({ userRole, hideRole = false }: AdminSidebarProps) {
   const { logout } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -198,9 +199,11 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
           </div>
           <div className={`min-w-0 relative z-10 ${isCollapsed ? 'md:hidden' : ''}`}>
             <h2 className="font-display font-bold text-sm md:text-xs lg:text-sm truncate bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">VMDDP</h2>
-            <p className="text-xs md:text-[10px] lg:text-xs text-muted-foreground font-medium truncate">
-              {sidebarTitle}
-            </p>
+            {!hideRole && (
+              <p className="text-xs md:text-[10px] lg:text-xs text-muted-foreground font-medium truncate">
+                {sidebarTitle}
+              </p>
+            )}
           </div>
         </div>
 
