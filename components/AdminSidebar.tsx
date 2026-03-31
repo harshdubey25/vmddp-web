@@ -123,6 +123,8 @@ const secretoryMenuItems: MenuItem[] = [
   { icon: TargetIcon, label: "Target and Achievement", path: "/secretory/target-achievement" },
   { icon: FileCheck, label: "DBT Summary", path: "/secretory/dbt-summary" },
   { icon: FileText, label: "All Target Report", path: "/secretory/all-target" },
+  { type: "separator", label: "LiveStock Tracking" },
+  { icon: MapPin, label: "Track Animal", path: "https://connectedcow.everse.ai/auth/login" },
 ]
 // { icon: LayoutDashboard, label: "Dashboard", path: "/accountant" },
 // { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },;
