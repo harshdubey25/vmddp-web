@@ -20,7 +20,8 @@ import {
   FileCheck,
   Building2,
   RefreshCcw,
-  Target
+  Target,
+  MapPin
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -64,7 +65,9 @@ const adminMenuItems: MenuItem[] = [
   { icon: BarChart3, label: "Stock Report", path: "/admin/stock-report" },
   { type: "separator", label: "Target Based Allocation" },
   { icon: GraduationCap, label: "Farmer Training", path: "/admin/farmer-training" },
-  { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/admin/treatment" }
+  { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/admin/treatment" },
+  { type: "separator", label: "LiveStock Tracking" },
+  { icon: MapPin, label: "Track Animal", path: "https://connectedcow.everse.ai/auth/login" },
 ];
 // { icon: Settings, label: "Settings", path: "/admin/settings" }
 const subAdminMenuItems: MenuItem[] = [
@@ -76,7 +79,9 @@ const subAdminMenuItems: MenuItem[] = [
   { icon: FileText, label: "Reports", path: "/subadmin/reports" },
   { type: "separator", label: "Target Based Allocation" },
   { icon: GraduationCap, label: "Farmer Training", path: "/subadmin/farmer-training" },
-  { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/subadmin/treatment" }
+  { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/subadmin/treatment" },
+  { type: "separator", label: "LiveStock Tracking" },
+  { icon: MapPin, label: "Track Animal", path: "https://connectedcow.everse.ai/auth/login" },
 ]
 const accountantMenuItems: MenuItem[] = [
   { icon: Target, label: "Target", path: "/accountant/target-achievement" },
@@ -177,7 +182,7 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
       `}>
         <div className={`flex h-16 md:h-14 lg:h-16 items-center border-b bg-gradient-to-r from-primary/10 via-primary/5 to-background relative ${isCollapsed ? 'md:justify-center md:px-2' : 'gap-3 md:gap-2 lg:gap-3 px-5 md:px-4 lg:px-6'} pt-1`}>
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-50" />
-          
+
           {/* Desktop Toggle Button */}
           <button
             className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 z-10 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-1.5 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all border-2 border-background"
@@ -185,7 +190,7 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
           >
             {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
           </button>
-          
+
           <div className={`rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0 shadow-md relative z-10 ${isCollapsed ? 'md:w-8 md:h-8' : 'w-10 h-10 md:w-8 md:h-8 lg:w-10 lg:h-10'}`}>
             <Shield className={`text-primary-foreground ${isCollapsed ? 'md:w-4 md:h-4' : 'w-5 h-5 md:w-4 md:h-4 lg:w-5 lg:h-5'}`} />
           </div>
@@ -214,41 +219,44 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
               }
 
               const Icon = item.icon;
-              const isActive = location === item.path;
+              const isExternal = item.path.startsWith("http");
+              const isActive = !isExternal && location === item.path;
 
-              return (
-                <Link key={item.path} href={item.path}>
-                  <Button
-                    variant={isActive ? "secondary" : "ghost"}
-                    className={`w-full transition-all duration-200 group relative overflow-hidden ${
-                      isCollapsed ? 'md:justify-center md:px-0' : 'justify-start gap-3 md:gap-2 lg:gap-3 px-3 md:px-2 lg:px-3'
-                    } text-sm md:text-xs lg:text-sm h-10 md:h-9 ${
-                      isActive 
-                        ? "bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 shadow-sm font-semibold" 
-                        : "hover:bg-primary/5 hover:translate-x-1"
+              const buttonContent = (
+                <Button
+                  variant={isActive ? "secondary" : "ghost"}
+                  className={`w-full transition-all duration-200 group relative overflow-hidden ${isCollapsed ? 'md:justify-center md:px-0' : 'justify-start gap-3 md:gap-2 lg:gap-3 px-3 md:px-2 lg:px-3'
+                    } text-sm md:text-xs lg:text-sm h-10 md:h-9 ${isActive
+                      ? "bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 shadow-sm font-semibold"
+                      : "hover:bg-primary/5 hover:translate-x-1"
                     }`}
-                    data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                    title={isCollapsed ? item.label : undefined}
-                  >
-                    {isActive && !isCollapsed && (
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-primary/50 rounded-r-full md:block hidden" />
-                    )}
-                    <div className={`flex items-center justify-center rounded-lg transition-all ${
-                      isCollapsed ? 'md:w-8 md:h-8' : 'w-8 h-8'
-                    } ${
-                      isActive 
-                        ? "bg-gradient-to-br from-primary to-primary/70 shadow-md" 
-                        : "bg-muted/50 group-hover:bg-primary/10 group-hover:scale-110"
+                  data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  title={isCollapsed ? item.label : undefined}
+                >
+                  {isActive && !isCollapsed && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-primary/50 rounded-r-full md:block hidden" />
+                  )}
+                  <div className={`flex items-center justify-center rounded-lg transition-all ${isCollapsed ? 'md:w-8 md:h-8' : 'w-8 h-8'
+                    } ${isActive
+                      ? "bg-gradient-to-br from-primary to-primary/70 shadow-md"
+                      : "bg-muted/50 group-hover:bg-primary/10 group-hover:scale-110"
                     }`}>
-                      <Icon className={`flex-shrink-0 transition-colors ${
-                        isCollapsed ? 'md:w-4 md:h-4' : 'w-4 h-4 md:w-3.5 md:h-3.5'
-                      } ${
-                        isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-primary"
+                    <Icon className={`flex-shrink-0 transition-colors ${isCollapsed ? 'md:w-4 md:h-4' : 'w-4 h-4 md:w-3.5 md:h-3.5'
+                      } ${isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-primary"
                       }`} />
-                    </div>
-                    <span className={`truncate ${isCollapsed ? 'md:hidden' : ''}`}>{item.label}</span>
-                  </Button>
+                  </div>
+                  <span className={`truncate ${isCollapsed ? 'md:hidden' : ''}`}>{item.label}</span>
+                </Button>
+              );
+
+              return isExternal ? (
+                <a key={item.path} href={item.path} target="_blank" rel="noopener noreferrer">
+                  {buttonContent}
+                </a>
+              ) : (
+                <Link key={item.path} href={item.path}>
+                  {buttonContent}
                 </Link>
               );
             })}
@@ -260,9 +268,8 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
         <div className={`bg-gradient-to-t from-muted/20 to-transparent ${isCollapsed ? 'md:p-2' : 'p-3 md:p-2 lg:p-3'}`}>
           <Button
             variant="ghost"
-            className={`w-full transition-all group relative overflow-hidden border border-transparent hover:border-destructive/20 ${
-              isCollapsed ? 'md:justify-center md:px-0' : 'justify-start gap-3 md:gap-2 lg:gap-3 px-3 md:px-2 lg:px-3'
-            } text-sm md:text-xs lg:text-sm h-10 md:h-9 text-destructive hover:text-destructive hover:bg-destructive/10 hover:translate-x-1`}
+            className={`w-full transition-all group relative overflow-hidden border border-transparent hover:border-destructive/20 ${isCollapsed ? 'md:justify-center md:px-0' : 'justify-start gap-3 md:gap-2 lg:gap-3 px-3 md:px-2 lg:px-3'
+              } text-sm md:text-xs lg:text-sm h-10 md:h-9 text-destructive hover:text-destructive hover:bg-destructive/10 hover:translate-x-1`}
             data-testid="button-logout"
             onClick={() => {
               setMobileMenuOpen(false);
@@ -270,9 +277,8 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
             }}
             title={isCollapsed ? "Logout" : undefined}
           >
-            <div className={`flex items-center justify-center rounded-lg bg-destructive/10 group-hover:bg-destructive/20 group-hover:scale-110 transition-all ${
-              isCollapsed ? 'md:w-8 md:h-8' : 'w-8 h-8'
-            }`}>
+            <div className={`flex items-center justify-center rounded-lg bg-destructive/10 group-hover:bg-destructive/20 group-hover:scale-110 transition-all ${isCollapsed ? 'md:w-8 md:h-8' : 'w-8 h-8'
+              }`}>
               <LogOut className={`flex-shrink-0 ${isCollapsed ? 'md:w-4 md:h-4' : 'w-4 h-4 md:w-3.5 md:h-3.5'}`} />
             </div>
             <span className={`font-medium ${isCollapsed ? 'md:hidden' : ''}`}>Logout</span>
