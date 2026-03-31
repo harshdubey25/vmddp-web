@@ -68,7 +68,7 @@ const adminMenuItems: MenuItem[] = [
   { icon: GraduationCap, label: "Farmer Training", path: "/admin/farmer-training" },
   { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/admin/treatment" },
   { type: "separator", label: "LiveStock Tracking" },
-  { icon: MapPin, label: "Track Animal", path: "https://connectedcow.everse.ai/auth/login" },
+  { icon: MapPin, label: "Track Animal", path: "https://platform.vetcare.solutions/auth/login" },
 ];
 // { icon: Settings, label: "Settings", path: "/admin/settings" }
 const subAdminMenuItems: MenuItem[] = [
@@ -82,7 +82,7 @@ const subAdminMenuItems: MenuItem[] = [
   { icon: GraduationCap, label: "Farmer Training", path: "/subadmin/farmer-training" },
   { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/subadmin/treatment" },
   { type: "separator", label: "LiveStock Tracking" },
-  { icon: MapPin, label: "Track Animal", path: "https://connectedcow.everse.ai/auth/login" },
+  { icon: MapPin, label: "Track Animal", path: "https://platform.vetcare.solutions/auth/login" },
 ]
 const accountantMenuItems: MenuItem[] = [
   { icon: Target, label: "Target", path: "/accountant/target-achievement" },
@@ -125,7 +125,7 @@ const secretoryMenuItems: MenuItem[] = [
   { icon: FileCheck, label: "DBT Summary", path: "/secretory/dbt-summary" },
   { icon: FileText, label: "All Target Report", path: "/secretory/all-target" },
   { type: "separator", label: "LiveStock Tracking" },
-  { icon: MapPin, label: "Track Animal", path: "https://connectedcow.everse.ai/auth/login" },
+  { icon: MapPin, label: "Track Animal", path: "https://platform.vetcare.solutions/auth/login" },
 ]
 // { icon: LayoutDashboard, label: "Dashboard", path: "/accountant" },
 // { icon: BarChart3, label: "Reports", path: "/subadmin/reports" },;
