@@ -13,7 +13,7 @@ export default function SecretoryLayout({
 
     return (
         <div className="flex min-h-screen">
-            <AdminSidebar userRole={sidebarRole} />
+            <AdminSidebar userRole={sidebarRole} hideRole={true} />
             {children}
         </div>
     );
