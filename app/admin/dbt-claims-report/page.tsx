@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+import { useRef } from "react";
 import {
     Download,
     CheckCircle,
@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { DBTClaim } from "@/types";
 import DisbursedClaimsTable from "@/components/DisbursedClaimsTable";
-import * as XLSX from "xlsx";
+import { useExport } from "@/hooks/use-export";
+import { type ExportFormat } from "@/lib/export-report";
 
 export default function DBTClaimsReport() {
     // Fetch disbursed claims for stats only
@@ -29,50 +30,34 @@ export default function DBTClaimsReport() {
     );
     const disbursedClaims = disbursedClaimsResponse?.message || [];
 
+    const filtersRef = useRef<{ component: string | null; district: string | null; searchText: string }>({
+        component: null,
+        district: null,
+        searchText: "",
+    });
+
+    const { isExporting, handleExport } = useExport({
+        method: "vmddp_app.api.v1.accountant.export_dbt_completed_list",
+        filename: "dbt-claims-report",
+    });
+
+    const onExport = (format: ExportFormat) => {
+        const { district, searchText, component } = filtersRef.current;
+        handleExport({
+            format,
+            params: {
+                ...(district ? { district } : {}),
+                ...(searchText ? { search_text: searchText } : {}),
+                ...(component ? { component_filter: component } : {}),
+            },
+        });
+    };
+
     const stats = {
         total_disbursed_amount: disbursedClaims.reduce((sum, claim) => sum + (claim.total_amount || 0), 0),
         total_claims_processed: disbursedClaims.length,
         total_beneficiaries: new Set(disbursedClaims.map(c => c.app_form)).size,
         total_components: new Set(disbursedClaims.map(c => c.component)).size,
-    };
-
-    const handleExport = () => {
-        if (!disbursedClaims || disbursedClaims.length === 0) return;
-
-        const exportData = disbursedClaims.map((claim) => {
-            const beneficiaryName = [claim.first_name, claim.mid_name, claim.last_name].filter(Boolean).join(' ');
-            return {
-                "Date": new Date(claim.creation).toLocaleDateString("en-IN"),
-                "Claim ID": claim.dbt_claim_id,
-                "Application ID": claim.application_id,
-                "Beneficiary Name": beneficiaryName,
-                "Aadhar Number": claim.aadhar_number,
-                "District": claim.district,
-                "Component": claim.component,
-                "Invoice Number": claim.invoice_number,
-                "Purchase Date": claim.purchase_date,
-                "Quantity": claim.quantity,
-                "Total Amount": claim.total_amount,
-                "Subsidy Given": claim.subsidy_given ? parseFloat(claim.subsidy_given) : 0,
-                "Status": "Disbursed",
-            };
-        });
-
-        const worksheet = XLSX.utils.json_to_sheet(exportData);
-
-        const maxWidth = 50;
-        const colWidths = Object.keys(exportData[0] || {}).map(key => {
-            const maxLength = Math.max(
-                key.length,
-                ...exportData.map(row => String(row[key as keyof typeof row] || "").length)
-            );
-            return { wch: Math.min(maxLength + 2, maxWidth) };
-        });
-        worksheet["!cols"] = colWidths;
-
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "DBT Claims");
-        XLSX.writeFile(workbook, `dbt_claims_report_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
     return (
@@ -94,16 +79,6 @@ export default function DBTClaimsReport() {
                             <p className="text-xs sm:text-sm text-muted-foreground">View all processed Direct Benefit Transfer claims</p>
                         </div>
                     </div>
-                    <Button
-                        variant="outline"
-                        data-testid="button-export"
-                        onClick={handleExport}
-                        disabled={!disbursedClaims || disbursedClaims.length === 0}
-                        className="w-full sm:w-auto"
-                    >
-                        <Download className="h-4 w-4 mr-2" />
-                        Export
-                    </Button>
                 </div>
 
                 {/* Summary Cards */}
@@ -120,7 +95,7 @@ export default function DBTClaimsReport() {
                                     <p className="text-lg sm:text-2xl font-bold text-green-600 drop-shadow-sm">₹{stats.total_disbursed_amount?.toLocaleString("en-IN") || 0}</p>
                                     <div className="flex items-center gap-1 text-xs">
                                         <span className="text-muted-foreground">{stats.total_claims_processed || 0} claims</span>
-                                        
+
                                     </div>
                                 </div>
                             </div>
@@ -139,7 +114,7 @@ export default function DBTClaimsReport() {
                                     <p className="text-lg sm:text-2xl font-bold text-blue-600 drop-shadow-sm">{stats.total_claims_processed || 0}</p>
                                     <div className="flex items-center gap-1 text-xs">
                                         <span className="text-muted-foreground">Disbursed successfully</span>
-                                        
+
                                     </div>
                                 </div>
                             </div>
@@ -158,7 +133,7 @@ export default function DBTClaimsReport() {
                                     <p className="text-lg sm:text-2xl font-bold text-purple-600 drop-shadow-sm">{stats.total_beneficiaries || 0}</p>
                                     <div className="flex items-center gap-1 text-xs">
                                         <span className="text-muted-foreground">Received benefits</span>
-                                       
+
                                     </div>
                                 </div>
                             </div>
@@ -177,7 +152,7 @@ export default function DBTClaimsReport() {
                                     <p className="text-lg sm:text-2xl font-bold text-orange-600 drop-shadow-sm">{stats.total_components || 0}</p>
                                     <div className="flex items-center gap-1 text-xs">
                                         <span className="text-muted-foreground">Available components</span>
-                                        
+
                                     </div>
                                 </div>
                             </div>
@@ -189,6 +164,9 @@ export default function DBTClaimsReport() {
                 <DisbursedClaimsTable
                     title="Disbursed Claims"
                     description="Complete history of processed DBT payments"
+                    onFiltersChange={(filters) => { filtersRef.current = filters; }}
+                    onExport={onExport}
+                    isExporting={isExporting}
                 />
             </div>
         </div>
