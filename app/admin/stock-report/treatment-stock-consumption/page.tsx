@@ -10,9 +10,10 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Loader2, Pill } from "lucide-react";
+import { ArrowLeft, Loader2, Pill } from "lucide-react";
 import { useFrappeGetCall } from "frappe-react-sdk";
-
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 interface StockItem {
     item: string;
     item_name: string;
@@ -31,6 +32,7 @@ type ConsumptionResponse =
     | { message: DistrictConsumption[] };
 
 export default function TreatmentStockConsumptionReport() {
+    const router = useRouter();
     const { data, isLoading, error } = useFrappeGetCall<ConsumptionResponse>(
         "vmddp_app.api.v1.stock.get_treatment_of_infertile_animal_stock_consumption"
     );
@@ -96,9 +98,14 @@ export default function TreatmentStockConsumptionReport() {
     return (
         <div className="p-6 space-y-6 w-full">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">
-                    Treatment of Infertile Animals — Medicine Consumption
-                </h1>
+                <div className="flex items-center gap-3">
+                    <Button variant="outline" size="sm" onClick={() => router.push("/admin/stock-report")}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        Treatment of Infertile Animals — Medicine Consumption
+                    </h1>
+                </div>
                 <p className="text-muted-foreground">
                     District-wise consumption of medicines / stock items
                 </p>

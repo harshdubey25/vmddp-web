@@ -11,9 +11,10 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Loader2, BookOpen } from "lucide-react";
+import { Loader2, BookOpen, ArrowLeft } from "lucide-react";
 import { useFrappeGetCall } from "frappe-react-sdk";
-
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 interface StockConsumptionItem {
     district: string;
     total_quantity: number;
@@ -26,6 +27,8 @@ type StockConsumptionResponse =
     | { message: StockConsumptionItem[] };
 
 export default function FarmerTrainingStockConsumptionReport() {
+    const router = useRouter();
+
     const { data, isLoading, error } = useFrappeGetCall<StockConsumptionResponse>(
         "vmddp_app.api.v1.stock.get_farmer_training_stock_consumption"
     );
@@ -75,9 +78,15 @@ export default function FarmerTrainingStockConsumptionReport() {
     return (
         <div className="p-6 space-y-6 w-full">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">
-                    Consumption of Books and Certificates
-                </h1>
+                <div className="flex gap-3">
+                    <div className="flex items-center gap-3">
+                    <Button variant="outline" size="sm" onClick={() => router.push("/admin/stock-report")} className="ml-auto">
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <h1 className="text-3xl font-bold tracking-tight">Consumption of Books and Certificates</h1>
+                    </div>
+                </div>
+
                 <p className="text-muted-foreground">
                     District-wise farmer training stock consumption report
                 </p>

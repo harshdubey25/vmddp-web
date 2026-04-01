@@ -1,5 +1,5 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useFrappeGetDocList, useFrappeCreateDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Package, Plus, Loader2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+import { Package, Plus, Loader2, Edit, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
 import {
     Pagination,
     PaginationContent,
@@ -59,6 +59,7 @@ export default function StockItemsManagement() {
     const [selectedItem, setSelectedItem] = useState<StockItem | null>(null);
     const [editRate, setEditRate] = useState<string>("");
     const [editUnitOfMeasure, setEditUnitOfMeasure] = useState<string>("");
+    const router = useRouter();
 
     // Pagination and search
     const [page, setPage] = useState(1);
@@ -176,7 +177,12 @@ export default function StockItemsManagement() {
         <div className="p-6 space-y-6 w-full">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Stock Items</h1>
+                    <div className="flex items-center gap-3">
+                        <Button variant="outline" size="sm" onClick={() => router.push("/admin/stock")}>
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                        <h1 className="text-3xl font-bold tracking-tight">Stock Items</h1>
+                    </div>
                     <p className="text-muted-foreground">
                         Manage stock items and their rates.
                     </p>

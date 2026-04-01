@@ -10,8 +10,10 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Loader2, Package } from "lucide-react";
+import { ArrowLeft, Loader2, Package } from "lucide-react";
 import { useFrappeGetCall } from "frappe-react-sdk";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 interface StockItem {
     item: string;
@@ -29,6 +31,8 @@ interface DistrictStockSummary {
 type StockSummaryResponse = DistrictStockSummary[] | { message: DistrictStockSummary[] };
 
 export default function StockReport() {
+
+    const router = useRouter();
     const { data, isLoading: loading, error } = useFrappeGetCall<StockSummaryResponse>(
         "vmddp_app.api.v1.stock.get_stock_summary"
     );
@@ -86,7 +90,12 @@ export default function StockReport() {
         <div className="p-6 space-y-6 w-full">
             <div className="flex justify-between items-center">
                 <div>
+                    <div className="flex gap-3">
+                       <Button variant="outline" size="sm" onClick={() => router.push("/admin/stock-report")} className="ml-auto">
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
                     <h1 className="text-3xl font-bold tracking-tight">District Allocation Summary</h1>
+                    </div>
                     <p className="text-muted-foreground">
                         District-wise admin, allocated, and balance stock.
                     </p>
