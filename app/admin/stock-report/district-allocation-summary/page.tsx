@@ -10,10 +10,11 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Loader2, Package } from "lucide-react";
+import { ArrowLeft, Download, Loader2, Package } from "lucide-react";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useExport } from "@/hooks/use-export";
 
 interface StockItem {
     item: string;
@@ -33,6 +34,10 @@ type StockSummaryResponse = DistrictStockSummary[] | { message: DistrictStockSum
 export default function StockReport() {
 
     const router = useRouter();
+    const { isExporting, handleExport } = useExport({
+        method: "vmddp_app.api.v1.stock.export_stock_summary",
+        filename: "district-allocation-summary",
+    });
     const { data, isLoading: loading, error } = useFrappeGetCall<StockSummaryResponse>(
         "vmddp_app.api.v1.stock.get_stock_summary"
     );
@@ -91,15 +96,28 @@ export default function StockReport() {
             <div className="flex justify-between items-center">
                 <div>
                     <div className="flex gap-3">
-                       <Button variant="outline" size="sm" onClick={() => router.push("/admin/stock-report")} className="ml-auto">
+                        <Button variant="outline" size="sm" onClick={() => router.push("/admin/stock-report")} className="ml-auto">
                             <ArrowLeft className="h-4 w-4" />
                         </Button>
-                    <h1 className="text-3xl font-bold tracking-tight">District Allocation Summary</h1>
+                        <h1 className="text-3xl font-bold tracking-tight">District Allocation Summary</h1>
                     </div>
                     <p className="text-muted-foreground">
                         District-wise admin, allocated, and balance stock.
                     </p>
                 </div>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleExport({ format: "excel" })}
+                    disabled={isExporting}
+                >
+                    {isExporting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                        <Download className="h-4 w-4" />
+                    )}
+                    Export Excel
+                </Button>
             </div>
 
             <Card>

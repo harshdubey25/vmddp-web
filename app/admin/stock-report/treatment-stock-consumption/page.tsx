@@ -10,10 +10,11 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Loader2, Pill } from "lucide-react";
+import { ArrowLeft, Download, Loader2, Pill } from "lucide-react";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useExport } from "@/hooks/use-export";
 interface StockItem {
     item: string;
     item_name: string;
@@ -33,6 +34,10 @@ type ConsumptionResponse =
 
 export default function TreatmentStockConsumptionReport() {
     const router = useRouter();
+    const { isExporting, handleExport } = useExport({
+        method: "vmddp_app.api.v1.stock.export_treatment_of_infertile_animal_stock_consumption",
+        filename: "treatment-stock-consumption",
+    });
     const { data, isLoading, error } = useFrappeGetCall<ConsumptionResponse>(
         "vmddp_app.api.v1.stock.get_treatment_of_infertile_animal_stock_consumption"
     );
@@ -97,18 +102,33 @@ export default function TreatmentStockConsumptionReport() {
 
     return (
         <div className="p-6 space-y-6 w-full">
-            <div>
-                <div className="flex items-center gap-3">
-                    <Button variant="outline" size="sm" onClick={() => router.push("/admin/stock-report")}>
-                        <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Treatment of Infertile Animals — Medicine Consumption
-                    </h1>
+            <div className="flex justify-between items-center">
+                <div>
+                    <div className="flex items-center gap-3">
+                        <Button variant="outline" size="sm" onClick={() => router.push("/admin/stock-report")}>
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            Treatment of Infertile Animals — Medicine Consumption
+                        </h1>
+                    </div>
+                    <p className="text-muted-foreground">
+                        District-wise consumption of medicines / stock items
+                    </p>
                 </div>
-                <p className="text-muted-foreground">
-                    District-wise consumption of medicines / stock items
-                </p>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleExport({ format: "excel" })}
+                    disabled={isExporting}
+                >
+                    {isExporting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                        <Download className="h-4 w-4" />
+                    )}
+                    Export Excel
+                </Button>
             </div>
 
             <Card>
