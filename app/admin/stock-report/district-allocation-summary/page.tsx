@@ -92,7 +92,7 @@ export default function StockReport() {
     const itemGroupBorderClass = "border-r-2 border-r-foreground/40";
 
     return (
-        <div className="p-6 space-y-6 w-full">
+        <div className="p-6 space-y-6 w-full max-w-full overflow-hidden">
             <div className="flex justify-between items-center">
                 <div>
                     <div className="flex gap-3">
