@@ -259,16 +259,6 @@ export default function ComponentAllocation() {
                             >
                                 <RefreshCw className="h-4 w-4" />
                             </Button>
-                            <Button
-                                variant="default"
-                                className="gap-2"
-                                onClick={() => handleExport("excel")}
-                                data-testid="button-export"
-                            >
-                                <Download className="h-4 w-4" />
-                                <span className="hidden sm:inline">Export Excel</span>
-                                <span className="sm:hidden">Export</span>
-                            </Button>
                         </div>
                     </div>
 
@@ -358,30 +348,17 @@ export default function ComponentAllocation() {
                                     {/* Filters */}
                                     <div className="flex flex-wrap items-center gap-2">
                                         {activeTab === "completed" && (
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button
-                                                        variant="default"
-                                                        size="sm"
-                                                        className="gap-2"
-                                                        disabled={isExporting}
-                                                        data-testid="button-export-report"
-                                                    >
-                                                        <Download className="h-4 w-4" />
-                                                        {isExporting ? "Exporting..." : "Export"}
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => handleExport("excel")} data-testid="export-excel">
-                                                        <FileSpreadsheet className="h-4 w-4 mr-2" />
-                                                        Export as Excel
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => handleExport("pdf")} data-testid="export-pdf">
-                                                        <FileText className="h-4 w-4 mr-2" />
-                                                        Export as PDF
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                            <Button
+                                                variant="default"
+                                                size="sm"
+                                                className="gap-2"
+                                                disabled={isExporting}
+                                                onClick={() => handleExport("excel")}
+                                                data-testid="button-export-report"
+                                            >
+                                                <Download className="h-4 w-4" />
+                                                {isExporting ? "Exporting..." : "Export Excel"}
+                                            </Button>
                                         )}
                                         <div className="relative">
                                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
