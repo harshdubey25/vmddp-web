@@ -75,12 +75,19 @@ export default function TreatmentPage() {
   const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [districtFilter, setDistrictFilter] = useState("all");
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
 
 
+
+  const { data: frappeDistricts } = useFrappeGetDocList("District Master", {
+    fields: ["name1"],
+    limit: 100,
+  });
 
   const { data: treatmentApplications, isLoading, error } = useFrappeGetDocList<TreatmentDoc>(
     "Treatment of Infertile Animal",
@@ -138,8 +145,11 @@ export default function TreatmentPage() {
       app.applicantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.village.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.aadharNumber?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || app.docstatus.toString() === statusFilter;
-    return matchesSearch && matchesStatus;
+    const submittedDate = new Date(app.submittedDate.split('/').reverse().join('-'));
+    const matchesFrom = !fromDate || submittedDate >= new Date(fromDate);
+    const matchesTo = !toDate || submittedDate <= new Date(toDate);
+    const matchesDistrict = districtFilter === "all" || app.district === districtFilter;
+    return matchesSearch && matchesFrom && matchesTo && matchesDistrict;
   });
 
   const totalRecords = filteredApplications.length;
@@ -167,7 +177,7 @@ export default function TreatmentPage() {
       const XLSX = await import('xlsx');
 
       const exportData = filteredApplications.map(app => ({
-        'Application ID': app.id,
+        'Training ID': app.id,
         'Applicant Name': app.applicantName,
         'Aadhar Number': app.aadharNumber || '-',
         'District': app.district,
@@ -243,34 +253,77 @@ export default function TreatmentPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                  <div className="md:col-span-2 flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">Search</label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search by ID or name..."
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        className="pl-10"
+                        data-testid="input-search"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">From Date</label>
                     <Input
-                      placeholder="Search by ID or name..."
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                      className="pl-10"
-                      data-testid="input-search"
+                      type="date"
+                      value={fromDate}
+                      onChange={(e) => { setFromDate(e.target.value); setCurrentPage(1); }}
+                      data-testid="input-from-date"
                     />
                   </div>
-                  <Select value={statusFilter} onValueChange={(value) => {
-                    setStatusFilter(value);
-                    setCurrentPage(1);
-                  }}>
-                    <SelectTrigger data-testid="select-status-filter">
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="0">Draft</SelectItem>
-                      <SelectItem value="1">Submitted</SelectItem>
-                      <SelectItem value="2">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">To Date</label>
+                    <Input
+                      type="date"
+                      value={toDate}
+                      onChange={(e) => { setToDate(e.target.value); setCurrentPage(1); }}
+                      data-testid="input-to-date"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">District</label>
+                    <Select value={districtFilter} onValueChange={(value) => { setDistrictFilter(value); setCurrentPage(1); }}>
+                      <SelectTrigger data-testid="select-district-filter">
+                        <SelectValue placeholder="All Districts" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Districts</SelectItem>
+                        {(frappeDistricts || []).map((d) => (
+                          <SelectItem key={d.name1} value={d.name1}>{d.name1}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="md:col-span-2 flex items-end justify-end">
+                    {(searchQuery || fromDate || toDate || districtFilter !== "all") && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0"
+                        onClick={() => {
+                          setSearchQuery("");
+                          setFromDate("");
+                          setToDate("");
+                          setDistrictFilter("all");
+                          setCurrentPage(1);
+                        }}
+                        data-testid="button-clear-filters"
+                      >
+                        Clear Filters
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 {isLoading ? (
@@ -293,7 +346,7 @@ export default function TreatmentPage() {
                         <thead className="bg-muted sticky top-0 z-30 border-b">
                           <tr>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium w-12">#</th>
-                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Application ID</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Training ID</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Applicant Name</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Aadhar Number</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">District</th>

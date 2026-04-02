@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Pagination,
   PaginationContent,
@@ -20,6 +19,7 @@ import {
 import { Download, GraduationCap, Upload, Search, FileText, Loader2 } from "lucide-react";
 import { Application } from "@/types/subadmin";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 
@@ -31,9 +31,16 @@ export default function FarmerTraining() {
 
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [districtFilter, setDistrictFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
+
+  const { data: frappeDistricts } = useFrappeGetDocList("District Master", {
+    fields: ["name1"],
+    limit: 100,
+  });
 
   const { data: applications, isLoading, error } = useFrappeGetDocList<Application>("Farmer Training Application", {
     fields: [
@@ -64,8 +71,13 @@ export default function FarmerTraining() {
     const matchesSearch =
       app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.event_name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || app.docstatus.toString() === statusFilter;
-    return matchesSearch && matchesStatus;
+
+    const appDate = new Date(app.event_date);
+    const matchesFrom = !fromDate || appDate >= new Date(fromDate);
+    const matchesTo = !toDate || appDate <= new Date(toDate);
+    const matchesDistrict = districtFilter === "all" || app.district === districtFilter;
+
+    return matchesSearch && matchesFrom && matchesTo && matchesDistrict;
   });
 
   const totalRecords = filteredApplications.length;
@@ -107,7 +119,7 @@ export default function FarmerTraining() {
 
       // Prepare data for export
       const exportData = filteredApplications.map(app => ({
-        'Application ID': app.name,
+        'Training ID': app.name,
         'Event Name': app.event_name,
         'Event Date': new Date(app.event_date).toLocaleDateString('en-GB'),
         'District': app.district,
@@ -165,13 +177,13 @@ export default function FarmerTraining() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
       <div className="flex flex-col flex-1 overflow-hidden">
-        <header className="flex items-center justify-between p-6 border-b bg-card">
+        <header className="flex items-center justify-between px-6 py-4 border-b bg-card">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-farmer-training-title">
               <GraduationCap className="w-6 h-6" />
               Farmer Training
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground mt-0.5">
               Manage training applications
             </p>
           </div>
@@ -183,8 +195,8 @@ export default function FarmerTraining() {
 
         <main className="flex-1 overflow-auto p-6 bg-muted/30">
           <div className="space-y-6 max-w-7xl">
-            <Card>
-              <CardHeader>
+            <Card className="shadow-sm">
+              <CardHeader className="border-b">
                 <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
                   <div>
                     <h2 className="text-lg font-semibold">Training Applications</h2>
@@ -194,36 +206,84 @@ export default function FarmerTraining() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <CardContent className="space-y-4 pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                  <div className="md:col-span-2 flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">Search</label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search by ID or event name..."
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        className="pl-10"
+                        data-testid="input-search"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">From Date</label>
                     <Input
-                      placeholder="Search by ID or event name..."
-                      value={searchQuery}
+                      type="date"
+                      value={fromDate}
                       onChange={(e) => {
-                        setSearchQuery(e.target.value);
+                        setFromDate(e.target.value);
                         setCurrentPage(1);
                       }}
-                      className="pl-10"
-                      data-testid="input-search"
+                      data-testid="input-from-date"
                     />
                   </div>
-                  <Select value={statusFilter} onValueChange={(value) => {
-                    setStatusFilter(value);
-                    setCurrentPage(1);
-                  }}>
-                    <SelectTrigger data-testid="select-status-filter">
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="0">Draft</SelectItem>
-                      <SelectItem value="1">Submitted</SelectItem>
-                      <SelectItem value="2">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">To Date</label>
+                    <Input
+                      type="date"
+                      value={toDate}
+                      onChange={(e) => {
+                        setToDate(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      data-testid="input-to-date"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                  <div className="md:col-span-2 flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">District</label>
+                    <Select value={districtFilter} onValueChange={(value) => { setDistrictFilter(value); setCurrentPage(1); }}>
+                      <SelectTrigger data-testid="select-district-filter">
+                        <SelectValue placeholder="All Districts" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Districts</SelectItem>
+                        {(frappeDistricts || []).map((d) => (
+                          <SelectItem key={d.name1} value={d.name1}>{d.name1}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="md:col-span-2 flex items-end justify-end">
+                  {(searchQuery || fromDate || toDate || districtFilter !== "all") && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setFromDate("");
+                        setToDate("");
+                        setDistrictFilter("all");
+                        setCurrentPage(1);
+                      }}
+                      data-testid="button-clear-filters"
+                    >
+                      Clear Filters
+                    </Button>
+                  )}
+                  </div>
                 </div>
 
                 <p className="text-sm text-muted-foreground">
@@ -249,39 +309,27 @@ export default function FarmerTraining() {
                         <thead className="bg-muted sticky top-0 z-30 border-b">
                           <tr>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">#</th>
-                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Application ID</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Training ID</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Event Name</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Date</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Venue</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Participants</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Budget</th>
-                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Status</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">District</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
-
                           </tr>
                         </thead>
                         <tbody>
                           {paginatedApplications.map((app, idx) => (
-                            <tr key={app.name} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                            <tr key={app.name} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                               <td className="p-3 text-xs sm:text-sm text-muted-foreground">{startIndex + idx + 1}</td>
                               <td className="p-3 text-xs sm:text-sm font-mono">{app.name}</td>
-                              <td className="p-3 text-xs sm:text-sm">{app.event_name}</td>
+                              <td className="p-3 text-xs sm:text-sm font-medium">{app.event_name}</td>
                               <td className="p-3 text-xs sm:text-sm">{new Date(app.event_date).toLocaleDateString()}</td>
                               <td className="p-3 text-xs sm:text-sm">{app.venue_name}</td>
                               <td className="p-3 text-xs sm:text-sm">{app.number_of_participants}</td>
                               <td className="p-3 text-xs sm:text-sm">{formatCurrency(getTotalBudget(app))}</td>
-                              <td className="p-3 text-xs sm:text-sm">
-                                <Badge
-                                  variant="outline"
-                                  className={cn(
-                                    app.docstatus === 0 && "bg-yellow-50 text-yellow-700 border-yellow-200",
-                                    app.docstatus === 1 && "bg-green-50 text-green-700 border-green-200",
-                                    app.docstatus === 2 && "bg-red-50 text-red-700 border-red-200"
-                                  )}
-                                >
-                                  {app.docstatus === 0 ? "Draft" : app.docstatus === 1 ? "Submitted" : "Cancelled"}
-                                </Badge>
-                              </td>
+                              <td className="p-3 text-xs sm:text-sm">{app.district}</td>
                               <td className="p-3 text-xs sm:text-sm">
                                 <Button
                                   variant="ghost"
