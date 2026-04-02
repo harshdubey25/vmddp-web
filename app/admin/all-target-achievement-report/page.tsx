@@ -141,23 +141,23 @@ export default function AllTargetAchievementReport() {
 
 
     return (
-        <div className="min-h-screen bg-background overflow-y-scroll">
-            <main className="overflow-auto min-h-screen">
-                <div className="p-6 space-y-6">
+        <div className="flex-1 flex flex-col overflow-hidden">
+            <main className="flex-1 overflow-auto">
+                <div className="p-4 space-y-4">
 
                     {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4">
                         <div>
-                            <h1 className="text-2xl font-bold">All Components — Target & Achievement</h1>
-                            <p className="text-muted-foreground">
-                                District-wise physical and financial targets and achievements across all components
+                            <h1 className="text-xl font-bold">All Components — Target & Achievement</h1>
+                            <p className="text-sm text-muted-foreground">
+                                District-wise targets and achievements across all components
                             </p>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-2">
                             {/* District filter */}
                             <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
-                                <SelectTrigger className="w-[170px]">
+                                <SelectTrigger className="w-[160px]">
                                     <SelectValue placeholder="All Districts" />
                                 </SelectTrigger>
                                 <SelectContent>
