@@ -435,7 +435,7 @@ export default function TargetAchievement() {
                                                     {isFarmerTraining ? (
                                                         <>
                                                             <th className="text-center bg-green-50 dark:bg-green-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
-                                                                Financial(DPO Expense + Books and Certificate)
+                                                                Financial
                                                             </th>
                                                             <th className="text-center bg-green-50 dark:bg-green-950/30 border-r px-2 py-1.5 text-xs sm:text-sm font-medium">
                                                                 No. of Trainings
