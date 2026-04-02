@@ -71,8 +71,13 @@ export default function DBTClaims() {
 
     // Filter and pagination state
     const [searchText, setSearchText] = useState("");
+    const [applicationId, setApplicationId] = useState("");
     const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
+
+    // Committed filter values (only updated on Search click)
+    const [committedSearch, setCommittedSearch] = useState("");
+    const [committedApplicationId, setCommittedApplicationId] = useState("");
 
     const [disbursedFilters, setDisbursedFilters] = useState<{
         component: string | null;
@@ -96,16 +101,23 @@ export default function DBTClaims() {
         {
             component_filter: selectedComponent?.name,
             district: selectedDistrict || undefined,
-            search_text: searchText || undefined,
+            search_text: committedSearch || undefined,
+            application_id: committedApplicationId || undefined,
             limit_start: (currentPage - 1) * PAGE_SIZE,
             limit_page_length: PAGE_SIZE,
         },
-        selectedComponent ? `dbt_application_list_${selectedComponent.name}_${selectedDistrict || 'all'}_${searchText}_${currentPage}` : null
+        selectedComponent ? `dbt_application_list_${selectedComponent.name}_${selectedDistrict || 'all'}_${committedSearch}_${committedApplicationId}_${currentPage}` : null
     );
     const beneficiaries = beneficiariesResponse?.message || [];
 
     // Reset pagination when filters change
     const handleFilterChange = () => {
+        setCurrentPage(1);
+    };
+
+    const handleSearch = () => {
+        setCommittedSearch(searchText);
+        setCommittedApplicationId(applicationId);
         setCurrentPage(1);
     };
 
@@ -119,13 +131,13 @@ export default function DBTClaims() {
         `dbt_completed_list_stats`
     );
     const disbursedClaims = disbursedClaimsResponse?.message || [];
-    
+
     // Get count of all disbursed claims
     const { data: disbursedClaimsCount } = useFrappeGetDocCount(
         "DBT Claims",
         [["docstatus", "=", 1]]
     );
-    
+
     const { data: dbtStats } = useFrappeGetCall<{ message: { total_subsidy_amount: number, applications_count: number, claims_count: number } }>(
         "vmddp_app.api.v1.accountant.dbt_stats",
         {
@@ -140,11 +152,6 @@ export default function DBTClaims() {
 
     const handleDistrictChange = (value: string) => {
         setSelectedDistrict(value === "all" ? null : value);
-        handleFilterChange();
-    }
-
-    const handleSearchChange = (value: string) => {
-        setSearchText(value);
         handleFilterChange();
     }
 
@@ -339,16 +346,35 @@ export default function DBTClaims() {
                                             </SelectContent>
                                         </Select>
 
+                                        <div className="relative w-48">
+                                            <Input
+                                                placeholder="Application ID"
+                                                value={applicationId}
+                                                onChange={(e) => setApplicationId(e.target.value)}
+                                                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                                                data-testid="input-application-id"
+                                            />
+                                        </div>
+
                                         <div className="relative w-64">
                                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                             <Input
                                                 placeholder="Search name, Aadhaar..."
                                                 className="pl-9"
                                                 value={searchText}
-                                                onChange={(e) => handleSearchChange(e.target.value)}
+                                                onChange={(e) => setSearchText(e.target.value)}
+                                                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                                                 data-testid="input-search"
                                             />
                                         </div>
+
+                                        <Button
+                                            onClick={handleSearch}
+                                            data-testid="button-search"
+                                        >
+                                            <Search className="h-4 w-4 mr-2" />
+                                            Search
+                                        </Button>
                                     </div>
 
                                     {selectedComponent && (

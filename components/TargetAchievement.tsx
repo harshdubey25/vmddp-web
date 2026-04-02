@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { Components } from "@/constants";
 
 interface DistrictData {
     district: string;
@@ -32,6 +33,7 @@ interface DistrictData {
     admin_expense: number;
     physical_balance: number;
     financial_balance: number;
+    number_of_applications: number;
 }
 
 interface Totals {
@@ -44,6 +46,7 @@ interface Totals {
     admin_expense: number;
     physical_balance: number;
     financial_balance: number;
+    number_of_applications: number;
 }
 
 interface TargetAchievementResponse {
@@ -70,6 +73,10 @@ export default function TargetAchievement() {
         method: "vmddp_app.api.v1.accountant.export_target_and_achievement",
     });
 
+    const { isExporting: isExportingFarmerTraining, handleExport: exportFarmerTrainingData } = useExport({
+        method: "vmddp_app.api.v1.accountant.export_farmer_training_target_and_achievement",
+    });
+
     const { data: componentsData } = useFrappeGetDocList<Component>("Component", {
         fields: ["name"],
         orderBy: { field: "name", order: "asc" },
@@ -82,6 +89,7 @@ export default function TargetAchievement() {
 
     const components = componentsData || [];
     const districts = districtsData || [];
+    const isFarmerTraining = selectedComponent === Components.FARMER_TRAINING;
 
     useEffect(() => {
         if (components.length > 0 && !selectedComponent) {
@@ -116,6 +124,7 @@ export default function TargetAchievement() {
         admin_expense: 0,
         physical_balance: 0,
         financial_balance: 0,
+        number_of_applications: 0,
     };
 
     const formatCurrency = (amount: number) => {
@@ -139,6 +148,18 @@ export default function TargetAchievement() {
     };
 
     const handleExport = (format: ExportFormat, allComponents = false) => {
+        if (isFarmerTraining && !allComponents) {
+            const params: Record<string, string> = {};
+            if (selectedDistrict !== "all") {
+                params.district = selectedDistrict;
+            }
+            exportFarmerTrainingData({
+                params,
+                format,
+                filename: "Target_Achievement_Farmer_Training",
+            });
+            return;
+        }
         const params: Record<string, string> = {};
         if (!allComponents && selectedComponent) {
             params.component = selectedComponent;
@@ -201,10 +222,10 @@ export default function TargetAchievement() {
                                 <DropdownMenuTrigger asChild>
                                     <Button
                                         variant="default"
-                                        disabled={isExporting || isLoading}
+                                        disabled={isExporting || isExportingFarmerTraining || isLoading}
                                     >
                                         <Download className="h-4 w-4 mr-2" />
-                                        {isExporting ? "Exporting..." : "Export"}
+                                        {isExporting || isExportingFarmerTraining ? "Exporting..." : "Export"}
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
@@ -389,7 +410,7 @@ export default function TargetAchievement() {
                                                         Target
                                                     </th>
                                                     <th
-                                                        colSpan={4}
+                                                        colSpan={isFarmerTraining ? 3 : 4}
                                                         className="text-center bg-green-50 dark:bg-green-950/30 border-r border-b px-2 py-1.5 text-xs sm:text-sm font-medium"
                                                     >
                                                         Achievement
@@ -411,15 +432,28 @@ export default function TargetAchievement() {
                                                     <th className="text-center bg-green-50 dark:bg-green-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
                                                         Physical
                                                     </th>
-                                                    <th className="text-center bg-green-50 dark:bg-green-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
-                                                        Beneficiary Share
-                                                    </th>
-                                                    <th className="text-center bg-green-50 dark:bg-green-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
-                                                        Subsidy Share
-                                                    </th>
-                                                    <th className="text-center bg-green-50 dark:bg-green-950/30 border-r px-2 py-1.5 text-xs sm:text-sm font-medium">
-                                                        Admin Expense
-                                                    </th>
+                                                    {isFarmerTraining ? (
+                                                        <>
+                                                            <th className="text-center bg-green-50 dark:bg-green-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
+                                                                Financial
+                                                            </th>
+                                                            <th className="text-center bg-green-50 dark:bg-green-950/30 border-r px-2 py-1.5 text-xs sm:text-sm font-medium">
+                                                                No. of Trainings
+                                                            </th>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <th className="text-center bg-green-50 dark:bg-green-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
+                                                                Beneficiary Share
+                                                            </th>
+                                                            <th className="text-center bg-green-50 dark:bg-green-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
+                                                                Subsidy Share
+                                                            </th>
+                                                            <th className="text-center bg-green-50 dark:bg-green-950/30 border-r px-2 py-1.5 text-xs sm:text-sm font-medium">
+                                                                Admin Expense
+                                                            </th>
+                                                        </>
+                                                    )}
                                                     <th className="text-center bg-orange-50 dark:bg-orange-950/30 px-2 py-1.5 text-xs sm:text-sm font-medium">
                                                         Physical
                                                     </th>
@@ -443,15 +477,28 @@ export default function TargetAchievement() {
                                                         <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold px-2 py-1.5 text-xs sm:text-sm">
                                                             {item.physical_achievement.toLocaleString()}
                                                         </td>
-                                                        <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold px-2 py-1.5 text-xs sm:text-sm">
-                                                            {formatCurrency(item.beneficiary_share)}
-                                                        </td>
-                                                        <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold px-2 py-1.5 text-xs sm:text-sm">
-                                                            {formatCurrency(item.subsidy_share)}
-                                                        </td>
-                                                        <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold border-r px-2 py-1.5 text-xs sm:text-sm">
-                                                            {formatCurrency(item.admin_expense)}
-                                                        </td>
+                                                        {isFarmerTraining ? (
+                                                            <>
+                                                                <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold px-2 py-1.5 text-xs sm:text-sm">
+                                                                    {formatCurrency(item.financial_achievement)}
+                                                                </td>
+                                                                <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold border-r px-2 py-1.5 text-xs sm:text-sm">
+                                                                    {item.number_of_applications?.toLocaleString() ?? 0}
+                                                                </td>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold px-2 py-1.5 text-xs sm:text-sm">
+                                                                    {formatCurrency(item.beneficiary_share)}
+                                                                </td>
+                                                                <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold px-2 py-1.5 text-xs sm:text-sm">
+                                                                    {formatCurrency(item.subsidy_share)}
+                                                                </td>
+                                                                <td className="text-center bg-green-50/50 dark:bg-green-950/20 text-green-600 font-semibold border-r px-2 py-1.5 text-xs sm:text-sm">
+                                                                    {formatCurrency(item.admin_expense)}
+                                                                </td>
+                                                            </>
+                                                        )}
                                                         <td className="text-center bg-orange-50/50 dark:bg-orange-950/20 font-semibold px-2 py-1.5 text-xs sm:text-sm">
                                                             {item.physical_balance.toLocaleString()}
                                                         </td>
@@ -473,15 +520,28 @@ export default function TargetAchievement() {
                                                     <td className="text-center text-green-600 px-2 py-1.5 text-xs sm:text-sm">
                                                         {totals.physical_achievement.toLocaleString()}
                                                     </td>
-                                                    <td className="text-center text-green-600 px-2 py-1.5 text-xs sm:text-sm">
-                                                        {formatCurrency(totals.beneficiary_share)}
-                                                    </td>
-                                                    <td className="text-center text-green-600 px-2 py-1.5 text-xs sm:text-sm">
-                                                        {formatCurrency(totals.subsidy_share)}
-                                                    </td>
-                                                    <td className="text-center text-green-600 border-r px-2 py-1.5 text-xs sm:text-sm">
-                                                        {formatCurrency(totals.admin_expense)}
-                                                    </td>
+                                                    {isFarmerTraining ? (
+                                                        <>
+                                                            <td className="text-center text-green-600 px-2 py-1.5 text-xs sm:text-sm">
+                                                                {formatCurrency(totals.financial_achievement)}
+                                                            </td>
+                                                            <td className="text-center text-green-600 border-r px-2 py-1.5 text-xs sm:text-sm">
+                                                                {totals.number_of_applications?.toLocaleString() ?? 0}
+                                                            </td>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <td className="text-center text-green-600 px-2 py-1.5 text-xs sm:text-sm">
+                                                                {formatCurrency(totals.beneficiary_share)}
+                                                            </td>
+                                                            <td className="text-center text-green-600 px-2 py-1.5 text-xs sm:text-sm">
+                                                                {formatCurrency(totals.subsidy_share)}
+                                                            </td>
+                                                            <td className="text-center text-green-600 border-r px-2 py-1.5 text-xs sm:text-sm">
+                                                                {formatCurrency(totals.admin_expense)}
+                                                            </td>
+                                                        </>
+                                                    )}
                                                     <td className="text-center px-2 py-1.5 text-xs sm:text-sm">
                                                         {totals.physical_balance.toLocaleString()}
                                                     </td>
