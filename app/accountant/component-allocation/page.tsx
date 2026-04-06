@@ -13,14 +13,12 @@ import {
     Search,
     ArrowRight,
     Download,
-    FileSpreadsheet,
     FileText,
     RefreshCw,
     FileCheck,
     Clock,
     CheckCircle,
     Eye,
-    TrendingUp,
     Ban,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -31,7 +29,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { UserRole } from "@/enums/roles";
 import CancelDDDialog, { DDDocDetails, PendingApplicationForDDCancel } from "@/app/accountant/component-allocation/CancelDDDialog";
@@ -67,7 +64,10 @@ export default function ComponentAllocation() {
     const [activeTab, setActiveTab] = useState(searchParams.get("tab") === "completed" ? "completed" : "pending");
     const [districtFilter, setDistrictFilter] = useState(searchParams.get("district") || "all")
     const [aadharFilter, setAadharFilter] = useState(searchParams.get("aadhaar") || "")
+    const [applicationIdFilter, setApplicationIdFilter] = useState(searchParams.get("application_id") || "")
     const [componentFilter, setComponentFilter] = useState(searchParams.get("component") || "all")
+    const [appliedAadharFilter, setAppliedAadharFilter] = useState(searchParams.get("aadhaar") || "")
+    const [appliedApplicationIdFilter, setAppliedApplicationIdFilter] = useState(searchParams.get("application_id") || "")
     const [pendingPage, setPendingPage] = useState(1)
     const [completedPage, setCompletedPage] = useState(1)
     const [showCancelDDDialog, setShowCancelDDDialog] = useState(false)
@@ -87,7 +87,8 @@ export default function ComponentAllocation() {
     })
     const { data: ddCompletedApplications, mutate: mutatePendingApplications } = useFrappeGetCall<DDCompletedApplication>('vmddp_app.api.v1.accountant.get_pending_component_allocation_list', {
         district: districtFilter === 'all' ? null : districtFilter,
-        search_text: aadharFilter.length === 0 ? null : aadharFilter,
+        search_text: appliedAadharFilter.length === 0 ? null : appliedAadharFilter,
+        application_id: appliedApplicationIdFilter.length === 0 ? null : appliedApplicationIdFilter,
         component: componentFilter === 'all' ? null : componentFilter,
         limit_start: (pendingPage - 1) * PAGE_SIZE,
         limit_page_length: PAGE_SIZE,
@@ -95,7 +96,8 @@ export default function ComponentAllocation() {
 
     const { data: completedAllocations } = useFrappeGetCall<DDCompletedApplication>('vmddp_app.api.v1.accountant.get_completed_component_allocation_list', {
         district: districtFilter === 'all' ? null : districtFilter,
-        search_text: aadharFilter.length === 0 ? null : aadharFilter,
+        search_text: appliedAadharFilter.length === 0 ? null : appliedAadharFilter,
+        application_id: appliedApplicationIdFilter.length === 0 ? null : appliedApplicationIdFilter,
         component: componentFilter === 'all' ? null : componentFilter,
         limit_start: (completedPage - 1) * PAGE_SIZE,
         limit_page_length: PAGE_SIZE,
@@ -172,17 +174,22 @@ export default function ComponentAllocation() {
         setCompletedPage(1);
     };
 
-    const handleAadharFilterChange = (value: string) => {
-        const cleaned = value.replace(/\D/g, "");
-        setAadharFilter(cleaned);
-        updateSearchParams({ aadhaar: cleaned });
+    const handleApplicationIdFilterChange = (value: string) => {
+        setApplicationIdFilter(value.trim());
+    };
+
+    const handleSearch = () => {
+        setAppliedAadharFilter(aadharFilter);
+        setAppliedApplicationIdFilter(applicationIdFilter);
+        updateSearchParams({ aadhaar: aadharFilter, application_id: applicationIdFilter });
         handleFilterChange();
     };
 
     const handleExport = (format: "excel" | "pdf") => {
         const params: Record<string, string> = {};
 
-        if (aadharFilter) params.search_text = aadharFilter;
+        if (appliedAadharFilter) params.search_text = appliedAadharFilter;
+        if (appliedApplicationIdFilter) params.application_id = appliedApplicationIdFilter;
         if (componentFilter !== "all") params.component = componentFilter;
         if (districtFilter !== "all") params.district = districtFilter;
 
@@ -251,6 +258,19 @@ export default function ComponentAllocation() {
                             <p className="text-sm text-muted-foreground">Allocate components to approved beneficiaries</p>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
+                            {activeTab === "completed" && (
+                                <Button
+                                    variant="default"
+                                    size="sm"
+                                    className="gap-2"
+                                    disabled={isExporting}
+                                    onClick={() => handleExport("excel")}
+                                    data-testid="button-export-report"
+                                >
+                                    <Download className="h-4 w-4" />
+                                    {isExporting ? "Exporting..." : "Export Excel"}
+                                </Button>
+                            )}
                             <Button
                                 variant="outline"
                                 size="icon"
@@ -347,29 +367,37 @@ export default function ComponentAllocation() {
 
                                     {/* Filters */}
                                     <div className="flex flex-wrap items-center gap-2">
-                                        {activeTab === "completed" && (
-                                            <Button
-                                                variant="default"
-                                                size="sm"
-                                                className="gap-2"
-                                                disabled={isExporting}
-                                                onClick={() => handleExport("excel")}
-                                                data-testid="button-export-report"
-                                            >
-                                                <Download className="h-4 w-4" />
-                                                {isExporting ? "Exporting..." : "Export Excel"}
-                                            </Button>
-                                        )}
                                         <div className="relative">
                                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                             <Input
-                                                placeholder="Search Aadhaar..."
+                                                placeholder="Search name, Aadhaar..."
                                                 value={aadharFilter}
-                                                onChange={(e) => handleAadharFilterChange(e.target.value)}
-                                                className="pl-9 w-40"
+                                                onChange={(e) => setAadharFilter(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                                className="pl-9 w-48"
                                                 data-testid="input-list-search-aadhaar"
                                             />
                                         </div>
+                                        <div className="relative">
+                                            <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                placeholder="Application ID..."
+                                                value={applicationIdFilter}
+                                                onChange={(e) => handleApplicationIdFilterChange(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                                className="pl-9 w-44"
+                                                data-testid="input-list-search-application-id"
+                                            />
+                                        </div>
+                                        <Button
+                                            variant="default"
+                                            size="sm"
+                                            onClick={handleSearch}
+                                            data-testid="button-search"
+                                        >
+                                            <Search className="h-4 w-4 mr-1" />
+                                            Search
+                                        </Button>
                                         <Select value={districtFilter} onValueChange={handleDistrictFilterChange}>
                                             <SelectTrigger className="w-36" data-testid="select-filter-district">
                                                 <SelectValue placeholder="District" />
