@@ -21,7 +21,8 @@ import {
   Building2,
   RefreshCcw,
   Target,
-  MapPin
+  MapPin,
+  Layers,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -122,6 +123,7 @@ const accountantMenuItems: MenuItem[] = [
 const secretoryMenuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/secretory/dashboard" },
   { icon: TargetIcon, label: "Target and Achievement", path: "/secretory/target-achievement" },
+  { icon: Layers, label: "All Components", path: "/secretory/all-component-aggregation" },
   { icon: FileCheck, label: "DBT Summary", path: "/secretory/dbt-summary" },
   { icon: FileText, label: "All Target Report", path: "/secretory/all-target" },
   { type: "separator", label: "LiveStock Tracking" },
