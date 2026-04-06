@@ -3,10 +3,10 @@ import Link from "next/link";
 import { parseFrappeError } from "@/lib/frappe-error-parser";
 import { useFrappeGetCall, useFrappeFileUpload, useFrappeCreateDoc, useFrappeGetDocList } from "frappe-react-sdk";
 import { useState, useRef } from 'react'
-import { ApplicationDetails, FrappeCustomApiResponse, QuotaDetails, DBTClaim } from "@/types";
+import { ApplicationDetails, FrappeCustomApiResponse, QuotaDetails, DBTClaim, DBTCompletedClaim } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, FileText, Check, User, Building2, MapPin, CreditCard, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowLeft, FileText, Check, User, Building2, MapPin, CreditCard, ExternalLink, Loader2, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -102,7 +102,16 @@ export default function ClaimForm({
     const beneficiary = beneficiaryData?.message?.[0];
     const quota = quotaData?.message;
 
-    // Computed values from quota
+    const { data: allClaimsResponse, isLoading: allClaimsLoading } = useFrappeGetCall<FrappeCustomApiResponse<DBTCompletedClaim[]>>(
+        (beneficiary?.aadhar_number ? "vmddp_app.api.v1.accountant.dbt_completed_list" : null) as string,
+        beneficiary?.aadhar_number
+            ? { search_text: beneficiary.aadhar_number, limit_page_length: 20 }
+            : undefined,
+        undefined,
+        { revalidateOnFocus: false }
+    );
+
+    const allCompletedClaims: DBTCompletedClaim[] = allClaimsResponse?.message || [];
     const usagePercent = quota
         ? quota.max_quantity > 0
             ? Math.min(100, ((quota.used_quantity) / quota.max_quantity) * 100)
@@ -465,6 +474,48 @@ export default function ClaimForm({
                             </CardContent>
                         </Card>
                     </div>
+
+                    {(allClaimsLoading || allCompletedClaims.length > 0) && (
+                        <Card data-testid="card-all-claims-summary">
+                            <CardHeader className="pb-3">
+                                <CardTitle className="flex items-center gap-2 text-base">
+                                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                                    Claims Across All Components
+                                </CardTitle>
+                                <CardDescription>
+                                    Completed DBT claims already recorded for this beneficiary
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {allClaimsLoading ? (
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Loading...
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-wrap gap-3">
+                                        {allCompletedClaims.map((claim) => (
+                                            <div
+                                                key={claim.dbt_claim_id}
+                                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${claim.component === component
+                                                        ? "bg-primary/10 border-primary/30 font-semibold"
+                                                        : "bg-green-500/5 border-green-500/20"
+                                                    }`}
+                                            >
+                                                <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+                                                <div>
+                                                    <p className="font-medium leading-none">{claim.component}</p>
+                                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                                        {claim.dbt_claim_id} • ₹{claim.subsidy_given.toLocaleString("en-IN")}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
 
                     {/* Claim History Section */}
                     <Card data-testid="card-claim-history">
