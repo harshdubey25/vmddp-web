@@ -1,5 +1,7 @@
 
 
+export type { DBTCompletedClaim } from "./accountant";
+
 export type Doctype = {
     name: string;
     owner: string;
