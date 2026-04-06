@@ -1048,6 +1048,20 @@ export default function AdminReports() {
                                     </CardContent>
                                 </Card>
                             </Link>
+                            <Link href="/admin/application-history-report" className="block h-full">
+                                <Card className="relative overflow-hidden border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer h-full group">
+                                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                                    <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 h-full relative">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                            <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 truncate">Application History</h3>
+                                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Beneficiary history with components &amp; subsidy details</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
                         </div>
                     </div>
 
