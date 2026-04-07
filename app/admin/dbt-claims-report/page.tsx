@@ -80,11 +80,12 @@ export default function DBTClaimsReport() {
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 
                     <div className="flex items-center gap-3">
-                        <Link href="/admin/reports">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
-                                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <div className= "flex itemms-center">
+                            <Button variant="ghost" size="icon" onClick={() => router.back()} data-testid="button-back">
+                                <ArrowLeft className="h-5 w-5" />
                             </Button>
-                        </Link>
+                        </div>
+
                         <div className="flex flex-col gap-1">
                             <h1 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-page-title">
                                 DBT Claims Report
