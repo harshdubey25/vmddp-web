@@ -19,6 +19,9 @@ interface Application {
     village: string;
     component: string;
     submittedDate: string;
+    animal_type: string;
+    tag_number: string;
+    treatment_date: string;
     docstatus: number;
 }
 
@@ -41,6 +44,9 @@ export default function AccountantTreatmentPage() {
                 "district",
                 "taluka",
                 "village",
+                "animal_type",
+                "tag_number",
+                "treatment_date",
                 "docstatus",
                 "creation",
             ],
@@ -61,6 +67,9 @@ export default function AccountantTreatmentPage() {
         village: doc.village,
         component: "Treatment of Infertile Animal",
         submittedDate: doc.creation ? new Date(doc.creation).toLocaleDateString("en-GB") : "",
+        animal_type: doc.animal_type || "-",
+        tag_number: doc.tag_number || "-",
+        treatment_date: doc.treatment_date ? new Date(doc.treatment_date).toLocaleDateString("en-GB") : "-",
         docstatus: doc.docstatus || 0,
     }));
 
@@ -92,12 +101,15 @@ export default function AccountantTreatmentPage() {
             const XLSX = await import('xlsx');
 
             const exportData = filteredApplications.map(app => ({
-                'Application ID': app.id,
+                'Treatment ID': app.id,
                 'Applicant Name': app.applicantName,
+                'Animal Type': app.animal_type || '-',
+                'Tag Number': app.tag_number || '-',
                 'Aadhar Number': app.aadharNumber || '-',
                 'District': app.district,
                 'Taluka': app.taluka,
                 'Village': app.village,
+                'Treatment Date': app.treatment_date || '-',
                 'Submitted Date': app.submittedDate,
                 'Status': app.docstatus === 0 ? 'Draft' : app.docstatus === 1 ? 'Submitted' : 'Cancelled',
             }));
@@ -212,13 +224,15 @@ export default function AccountantTreatmentPage() {
                                             <table className="w-full">
                                                 <thead className="bg-muted sticky top-0 z-30 border-b">
                                                     <tr>
-                                                        <th className="text-left p-3 text-sm font-medium">Application ID</th>
+                                                        <th className="text-left p-3 text-sm font-medium">Treatment ID</th>
                                                         <th className="text-left p-3 text-sm font-medium">Applicant Name</th>
+                                                        <th className="text-left p-3 text-sm font-medium">Animal Type</th>
+                                                        <th className="text-left p-3 text-sm font-medium">Tag Number</th>
                                                         <th className="text-left p-3 text-sm font-medium">District</th>
                                                         <th className="text-left p-3 text-sm font-medium">Taluka</th>
                                                         <th className="text-left p-3 text-sm font-medium">Village</th>
+                                                        <th className="text-left p-3 text-sm font-medium">Treatment Date</th>
                                                         <th className="text-left p-3 text-sm font-medium">Status</th>
-                                                        <th className="text-left p-3 text-sm font-medium">Date</th>
                                                         <th className="text-left p-3 text-sm font-medium">Actions</th>
                                                     </tr>
                                                 </thead>
@@ -227,9 +241,12 @@ export default function AccountantTreatmentPage() {
                                                         <tr key={app.id} className="border-b hover:bg-muted/30">
                                                             <td className="p-3 text-sm font-mono">{app.id}</td>
                                                             <td className="p-3 text-sm font-medium">{app.applicantName}</td>
+                                                            <td className="p-3 text-sm">{app.animal_type}</td>
+                                                            <td className="p-3 text-sm">{app.tag_number}</td>
                                                             <td className="p-3 text-sm">{app.district}</td>
                                                             <td className="p-3 text-sm">{app.taluka}</td>
                                                             <td className="p-3 text-sm">{app.village}</td>
+                                                            <td className="p-3 text-sm">{app.treatment_date}</td>
                                                             <td className="p-3 text-sm">
                                                                 {app.docstatus === 0 ? (
                                                                     <span className="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">Draft</span>
@@ -239,7 +256,6 @@ export default function AccountantTreatmentPage() {
                                                                     <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">Cancelled</span>
                                                                 )}
                                                             </td>
-                                                            <td className="p-3 text-sm">{app.submittedDate}</td>
                                                             <td className="p-3 text-sm">
                                                                 <Button
                                                                     variant="ghost"

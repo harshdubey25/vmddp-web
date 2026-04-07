@@ -61,6 +61,9 @@ interface Application {
   village: string;
   component: string;
   submittedDate: string;
+  treatment_date: string;
+  tag_number: string;
+  animal_type: string;
   treatmentDetails?: TreatmentDetails;
   componentDetails: {
     benefits: string[];
@@ -131,6 +134,9 @@ export default function TreatmentPage() {
     village: doc.village,
     component: "Treatment of Infertile Animal",
     submittedDate: doc.creation ? new Date(doc.creation).toLocaleDateString("en-GB") : "",
+    treatment_date: doc.treatment_date || "-",
+    tag_number: doc.tag_number || "-",
+    animal_type: doc.animal_type,
     componentDetails: {
       benefits: [],
       customQuestions: [],
@@ -179,12 +185,13 @@ export default function TreatmentPage() {
       const exportData = filteredApplications.map(app => ({
         'Training ID': app.id,
         'Applicant Name': app.applicantName,
+        'Animal Type': app.animal_type || '-',
+        'Tag Number': app.tag_number || '-',
         'Aadhar Number': app.aadharNumber || '-',
         'District': app.district,
         'Taluka': app.taluka,
         'Village': app.village,
-        'Component': app.component,
-        'Submitted Date': app.submittedDate,
+        'Treatment Date': app.treatment_date || '-',
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -348,12 +355,13 @@ export default function TreatmentPage() {
                             <th className="text-left p-3 text-xs sm:text-sm font-medium w-12">#</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Training ID</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Applicant Name</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Animal Type</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Tag Number</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Aadhar Number</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">District</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Taluka</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Village</th>
-                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Submitted Date</th>
-                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Status</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Treatment Date</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
 
                           </tr>
@@ -364,23 +372,13 @@ export default function TreatmentPage() {
                               <td className="p-3 text-xs sm:text-sm text-muted-foreground">{startIndex + index + 1}</td>
                               <td className="p-3 text-xs sm:text-sm font-mono">{app.id}</td>
                               <td className="p-3 text-xs sm:text-sm font-medium">{app.applicantName}</td>
+                              <td className="p-3 text-xs sm:text-sm">{app.animal_type}</td>
+                              <td className="p-3 text-xs sm:text-sm">{app.tag_number}</td>
                               <td className="p-3 text-xs sm:text-sm">{app.aadharNumber || "-"}</td>
                               <td className="p-3 text-xs sm:text-sm">{app.district}</td>
                               <td className="p-3 text-xs sm:text-sm">{app.taluka}</td>
                               <td className="p-3 text-xs sm:text-sm">{app.village}</td>
-                              <td className="p-3 text-xs sm:text-sm text-muted-foreground">{app.submittedDate}</td>
-                              <td className="p-3 text-xs sm:text-sm">
-                                <Badge
-                                  variant="outline"
-                                  className={cn(
-                                    app.docstatus === 0 && "bg-yellow-50 text-yellow-700 border-yellow-200",
-                                    app.docstatus === 1 && "bg-green-50 text-green-700 border-green-200",
-                                    app.docstatus === 2 && "bg-red-50 text-red-700 border-red-200"
-                                  )}
-                                >
-                                  {app.docstatus === 0 ? "Draft" : app.docstatus === 1 ? "Submitted" : "Cancelled"}
-                                </Badge>
-                              </td>
+                              <td className="p-3 text-xs sm:text-sm text-muted-foreground">{app.treatment_date}</td>
                               <td className="p-3 text-xs sm:text-sm">
                                 <Button
                                   variant="ghost"
