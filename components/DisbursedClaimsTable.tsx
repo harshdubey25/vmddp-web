@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { DBTClaim, Component } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, ChevronLeft, ChevronRight, Loader2, ExternalLink, Download, FileSpreadsheet, FileText } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Loader2, ExternalLink, Download, FileSpreadsheet, FileText, ArrowUpRight } from "lucide-react";
 import { type ExportFormat } from "@/lib/export-report";
 
 const PAGE_SIZE = 20;
@@ -205,9 +206,18 @@ export default function DisbursedClaimsTable({
                                                     <span className="font-mono">{claim.dbt_claim_id}</span>
                                                 </td>
                                                 <td className="p-3 text-xs sm:text-sm">
-                                                    <div>
-                                                        <span className="font-medium">{claim.application_id}</span>
-                                                        <p className="text-xs text-muted-foreground">{beneficiaryName}</p>
+                                                    <div className="flex items-center gap-1">
+                                                        <div>
+                                                            <Link href={`/accountant/dbt-claims/submitted/${claim.application_id}`} className="font-medium text-primary hover:underline">
+                                                                {claim.application_id}
+                                                            </Link>
+                                                            <p className="text-xs text-muted-foreground">{beneficiaryName}</p>
+                                                        </div>
+                                                        <Link href={`/accountant/dbt-claims/submitted/${claim.application_id}`}>
+                                                            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
+                                                                <ArrowUpRight className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                        </Link>
                                                     </div>
                                                 </td>
                                                 <td className="p-3 text-xs sm:text-sm">
