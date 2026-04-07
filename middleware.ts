@@ -39,7 +39,7 @@ const ROUTE_CONFIG: RouteConfig[] = [
     crossRoleAccess: [
       {
         role: UserRole.VMDDP_ADMIN,
-        allowedSubPaths: ["/accountant/component-allocation","/accountant/dd-report","/accountant/admin-expenses"],
+        allowedSubPaths: ["/accountant/component-allocation","/accountant/dd-report","/accountant/admin-expenses","/accountant/dbt-claims/submitted/"],
       },
     ],
   },
