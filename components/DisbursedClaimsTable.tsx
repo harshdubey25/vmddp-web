@@ -19,6 +19,7 @@ interface DisbursedClaimsTableProps {
     showFilters?: boolean;
     defaultDistrict?: string | null;
     defaultComponent?: string | null;
+    defaultSearchText?: string;
     onFiltersChange?: (filters: { component: string | null; district: string | null; searchText: string }) => void;
     onExport?: (format: ExportFormat) => void;
     isExporting?: boolean;
@@ -30,12 +31,13 @@ export default function DisbursedClaimsTable({
     showFilters = true,
     defaultDistrict = null,
     defaultComponent = null,
+    defaultSearchText = "",
     onFiltersChange,
     onExport,
     isExporting = false,
 }: DisbursedClaimsTableProps) {
     // Disbursed claims filters
-    const [disbursedSearchText, setDisbursedSearchText] = useState("");
+    const [disbursedSearchText, setDisbursedSearchText] = useState(defaultSearchText);
     const [disbursedDistrict, setDisbursedDistrict] = useState<string | null>(defaultDistrict);
     const [disbursedComponent, setDisbursedComponent] = useState<string | null>(defaultComponent);
     const [disbursedPage, setDisbursedPage] = useState(1);

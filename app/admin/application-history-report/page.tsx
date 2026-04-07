@@ -230,19 +230,30 @@ export default function ApplicationHistoryReport() {
                                                         {app.benefited_components.length > 0 ? (
                                                             <div className="flex flex-col gap-1">
                                                                 {app.benefited_components.map((c, i) => {
+                                                                    const isClickable = c.type === "for_component_allocation" || c.type === "for_dbt_claims";
                                                                     const badge = (
-                                                                        <Badge key={i} variant="default" className={`bg-green-600 text-[10px] gap-1 w-fit ${c.type === "for_component_allocation" ? "cursor-pointer hover:bg-green-700" : ""}`}>
+                                                                        <Badge key={i} variant="default" className={`bg-green-600 text-[10px] gap-1 w-fit ${isClickable ? "cursor-pointer hover:bg-green-700" : ""}`}>
                                                                             {c.component}
                                                                             {c.subsidy_given != null && (
                                                                                 <span> — ₹{c.subsidy_given.toLocaleString("en-IN")}</span>
                                                                             )}
                                                                         </Badge>
                                                                     )
-                                                                    return c.type === "for_component_allocation" ? (
-                                                                        <Link key={i} href={`/accountant/component-allocation/allocated/${encodeURIComponent(`${app.app_form}-${c.component}`)}`}>
-                                                                            {badge}
-                                                                        </Link>
-                                                                    ) : badge
+                                                                    if (c.type === "for_component_allocation") {
+                                                                        return (
+                                                                            <Link key={i} href={`/accountant/component-allocation/allocated/${encodeURIComponent(`${app.app_form}-${c.component}`)}`}>
+                                                                                {badge}
+                                                                            </Link>
+                                                                        );
+                                                                    }
+                                                                    if (c.type === "for_dbt_claims") {
+                                                                        return (
+                                                                            <Link key={i} href={`/admin/dbt-claims-report?search=${encodeURIComponent(app.app_form)}&component=${encodeURIComponent(c.component)}`}>
+                                                                                {badge}
+                                                                            </Link>
+                                                                        );
+                                                                    }
+                                                                    return badge;
                                                                 })}
                                                             </div>
                                                         ) : (
