@@ -1,5 +1,5 @@
 "use client"
-import { useRef } from "react";
+import { useCallback } from "react";
 import {
     Download,
     CheckCircle,
@@ -10,6 +10,7 @@ import {
     Package
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -19,6 +20,22 @@ import { useExport } from "@/hooks/use-export";
 import { type ExportFormat } from "@/lib/export-report";
 
 export default function DBTClaimsReport() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
+    const urlSearch = searchParams.get("search") || "";
+    const urlDistrict = searchParams.get("district") || null;
+    const urlComponent = searchParams.get("component") || null;
+
+    const updateSearchParams = useCallback((filters: { component: string | null; district: string | null; searchText: string }) => {
+        const params = new URLSearchParams();
+        if (filters.searchText) params.set("search", filters.searchText);
+        if (filters.district) params.set("district", filters.district);
+        if (filters.component) params.set("component", filters.component);
+        const qs = params.toString();
+        router.replace(`?${qs}`, { scroll: false });
+    }, [router]);
+
     // Fetch disbursed claims for stats only
     const { data: disbursedClaimsResponse } = useFrappeGetCall<{ message: DBTClaim[] }>(
         "vmddp_app.api.v1.accountant.dbt_completed_list",
@@ -30,19 +47,15 @@ export default function DBTClaimsReport() {
     );
     const disbursedClaims = disbursedClaimsResponse?.message || [];
 
-    const filtersRef = useRef<{ component: string | null; district: string | null; searchText: string }>({
-        component: null,
-        district: null,
-        searchText: "",
-    });
-
     const { isExporting, handleExport } = useExport({
         method: "vmddp_app.api.v1.accountant.export_dbt_completed_list",
         filename: "dbt-claims-report",
     });
 
     const onExport = (format: ExportFormat) => {
-        const { district, searchText, component } = filtersRef.current;
+        const district = searchParams.get("district") || null;
+        const searchText = searchParams.get("search") || "";
+        const component = searchParams.get("component") || null;
         handleExport({
             format,
             params: {
@@ -164,7 +177,10 @@ export default function DBTClaimsReport() {
                 <DisbursedClaimsTable
                     title="Disbursed Claims"
                     description="Complete history of processed DBT payments"
-                    onFiltersChange={(filters) => { filtersRef.current = filters; }}
+                    defaultSearchText={urlSearch}
+                    defaultDistrict={urlDistrict}
+                    defaultComponent={urlComponent}
+                    onFiltersChange={updateSearchParams}
                     onExport={onExport}
                     isExporting={isExporting}
                 />
