@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useRouter } from "next/navigation";
 
 interface ComponentAllocationDoc {
     insurance_vendor: string;
@@ -59,6 +60,7 @@ export default function ComponentAllocationDetails({
 }: {
     applicationId: string;
 }) {
+    const router = useRouter();
     const decodedComponentAllocationId = decodeURIComponent(applicationId);
     const { data: allocationDoc, isLoading, error } = useFrappeGetDoc<ComponentAllocationDoc>(
         "Component Allocation",
@@ -99,7 +101,7 @@ export default function ComponentAllocationDetails({
         (allocationDoc.animal_cost || 0) +
         (allocationDoc.collar_cost || 0) +
         (allocationDoc.premium_paid || 0) +
-        (allocationDoc.transportation_cost || 0);
+        (allocationDoc.transportation_cost || 0);    
 
     return (
         <div className="min-h-screen bg-background w-full overflow-y-auto">
@@ -107,11 +109,11 @@ export default function ComponentAllocationDetails({
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link href="/accountant/component-allocation">
-                            <Button variant="ghost" size="icon">
+                      <div className= "flex itemms-center">
+                            <Button variant="ghost" size="icon" onClick={() => router.back()} data-testid="button-back">
                                 <ArrowLeft className="h-5 w-5" />
                             </Button>
-                        </Link>
+                        </div>
                         <div>
                             <h1 className="text-2xl font-bold">{allocationDoc.name}</h1>
                             <p className="text-muted-foreground">Component Allocation Details</p>

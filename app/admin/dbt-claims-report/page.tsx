@@ -85,7 +85,6 @@ export default function DBTClaimsReport() {
                                 <ArrowLeft className="h-5 w-5" />
                             </Button>
                         </div>
-
                         <div className="flex flex-col gap-1">
                             <h1 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-page-title">
                                 DBT Claims Report
