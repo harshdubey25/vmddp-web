@@ -11,7 +11,12 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, ChevronDown } from 'lucide-react';
+import { AlertCircle, ChevronDown, Download, FileSpreadsheet, FileText } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { exportReport, type ExportFormat } from '@/lib/export-report';
+import { useToast } from '@/hooks/use-toast';
 import { FrappeCustomApiResponse } from '@/types';
 
 interface ReportData {
@@ -162,6 +167,33 @@ export default function MPRPage() {
     const [selectedMonth, setSelectedMonth] = useState<string>(String(currentDate.getMonth() + 1));
     const [selectedYear, setSelectedYear] = useState<string>(String(currentDate.getFullYear()));
 
+    const { toast } = useToast();
+
+    const handleExport = async (format: ExportFormat = 'excel') => {
+        toast({
+            title: 'Export started',
+            description: `Generating ${format.toUpperCase()} report...`,
+        });
+        try {
+            await exportReport({
+                method: 'vmddp_app.api.v1.secretory.export_dbt_claims_summary',
+                format,
+                filename: 'dbt-claims-summary',
+            });
+            toast({
+                title: 'Export completed',
+                description: 'Report downloaded successfully.',
+            });
+        } catch (error) {
+            console.error('Export error:', error);
+            toast({
+                title: 'Export failed',
+                description: 'Failed to export report. Please try again.',
+                variant: 'destructive',
+            });
+        }
+    };
+
     const { data: apiData, isLoading, error } = useFrappeGetCall<FrappeCustomApiResponse<any>>(
         'vmddp_app.api.v1.secretory.get_dbt_claims_summary'
     );
@@ -250,6 +282,62 @@ export default function MPRPage() {
     }, [animalInductionData]);
 
     const hgmTotals = hgmData?.message?.progressive?.totals || null;
+
+    const exportAnimalInductionExcel = () => {
+        if (!animalInductionTotals) return;
+        const t = animalInductionTotals;
+        const rows = [
+            [
+                'No. of Cow', 'No. of Cross-breed', 'No. of Buffalo',
+                'Physical Target', 'Physical Balance',
+                'Animal Cost - Beneficiary', 'Animal Cost - Subsidy', 'Animal Cost - Total',
+                'Digital Collar - Beneficiary', 'Digital Collar - Subsidy', 'Digital Collar - Total',
+                'Insurance - Beneficiary', 'Insurance - Subsidy', 'Insurance - Total',
+                'Transportation - Beneficiary', 'Transportation - Subsidy', 'Transportation - Total',
+                'Total Expenditure - Beneficiary', 'Total Expenditure - Subsidy', 'Total Expenditure - Total',
+                'Financial Target', 'Financial Balance',
+            ],
+            [
+                t.cow_count, t.crossbreed_count, t.buffalo_count,
+                t.target.physical_target, t.balance.physical_balance,
+                t.animal_cost.beneficiary_share, t.animal_cost.subsidy_share, t.animal_cost.total,
+                t.collar_cost.beneficiary_share, t.collar_cost.subsidy_share, t.collar_cost.total,
+                t.premium_paid.beneficiary_share, t.premium_paid.subsidy_share, t.premium_paid.total,
+                t.transportation_cost.beneficiary_share, t.transportation_cost.subsidy_share, t.transportation_cost.total,
+                t.total_expenditure.benenficiary_share_total, t.total_expenditure.subsidy_share_total, t.total_expenditure.total,
+                t.target.financial_target, t.balance.financial_balance,
+            ],
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Animal Induction MPR');
+        XLSX.writeFile(wb, `animal-induction-mpr-${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
+    const exportHGMExcel = () => {
+        if (!hgmTotals) return;
+        const t = hgmTotals;
+        const rows = [
+            [
+                'No. of Cow', 'No. of Buffalo',
+                'Beneficiary Share (Rs.)', 'Subsidy (Rs.)', 'Total (Rs.)',
+                'Financial Target', 'Physical Target',
+                'Financial Achievement', 'Physical Achievement',
+                'Financial Balance', 'Physical Balance',
+            ],
+            [
+                t.total_cows, t.total_buffaloes,
+                t.total_beneficiary_share, t.total_subsidy, t.grand_total,
+                t.total_financial_target, t.total_physical_target,
+                t.total_financial_achievement, t.total_physical_achievement,
+                t.total_financial_balance, t.total_physical_balance,
+            ],
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'HGM MPR');
+        XLSX.writeFile(wb, `hgm-mpr-${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
 
     useEffect(() => {
         if (apiData?.message) {
@@ -351,8 +439,30 @@ export default function MPRPage() {
                 <Card className="relative overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:shadow-xl transition-all duration-300 group backdrop-blur-sm">
                     <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
                     <CardHeader className="relative z-10">
-                        <CardTitle className="text-xl font-bold text-blue-900 dark:text-blue-100">DBT Claims - Target & Achievement Report</CardTitle>
-                        <CardDescription className="text-blue-700/80 dark:text-blue-300 font-medium">Jun-25</CardDescription>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle className="text-xl font-bold text-blue-900 dark:text-blue-100">DBT Claims - Target & Achievement Report</CardTitle>
+                                <CardDescription className="text-blue-700/80 dark:text-blue-300 font-medium">Jun-25</CardDescription>
+                            </div>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="default" className="gap-2 text-xs sm:text-sm h-8 sm:h-10">
+                                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                                        Export
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleExport('excel')}>
+                                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                        Export as Excel
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                                        <FileText className="h-4 w-4 mr-2" />
+                                        Export as PDF
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </CardHeader>
                     <CardContent>
                         {error && (
@@ -461,11 +571,17 @@ export default function MPRPage() {
                                 <CardTitle className="text-xl font-bold text-green-900 dark:text-green-100">Animal Induction MPR - Total Summary</CardTitle>
                                 <CardDescription className="text-green-700/80 dark:text-green-300 font-medium">Induction of High Genetic Merit Dairy Animals</CardDescription>
                             </div>
-                            <ChevronDown
-                                className={`w-5 h-5 text-gray-600 transition-transform flex-shrink-0 ml-2 ${
-                                    expandedSections.has('animalInduction') ? 'rotate-180' : ''
-                                }`}
-                            />
+                            <div className="flex items-center gap-2 flex-shrink-0 ml-2" onClick={(e) => e.stopPropagation()}>
+                                <Button variant="default" size="sm" className="gap-2 text-xs h-8" onClick={exportAnimalInductionExcel}>
+                                    <FileSpreadsheet className="w-3 h-3" />
+                                    Export Excel
+                                </Button>
+                                <ChevronDown
+                                    className={`w-5 h-5 text-gray-600 transition-transform ${
+                                        expandedSections.has('animalInduction') ? 'rotate-180' : ''
+                                    }`}
+                                />
+                            </div>
                         </div>
                         {expandedSections.has('animalInduction') && (
                             <CardContent>
@@ -562,11 +678,17 @@ export default function MPRPage() {
                                 <CardTitle className="text-xl font-bold text-indigo-900 dark:text-indigo-100">HGM (Pregnant Cow) MPR - Total Summary</CardTitle>
                                 <CardDescription className="text-indigo-700/80 dark:text-indigo-300 font-medium">Supply Of High Genetic Merit Pregnant Heifers (IVF/ETT)</CardDescription>
                             </div>
-                            <ChevronDown
-                                className={`w-5 h-5 text-gray-600 transition-transform flex-shrink-0 ml-2 ${
-                                    expandedSections.has('hgm') ? 'rotate-180' : ''
-                                }`}
-                            />
+                            <div className="flex items-center gap-2 flex-shrink-0 ml-2" onClick={(e) => e.stopPropagation()}>
+                                <Button variant="default" size="sm" className="gap-2 text-xs h-8" onClick={exportHGMExcel}>
+                                    <FileSpreadsheet className="w-3 h-3" />
+                                    Export Excel
+                                </Button>
+                                <ChevronDown
+                                    className={`w-5 h-5 text-gray-600 transition-transform ${
+                                        expandedSections.has('hgm') ? 'rotate-180' : ''
+                                    }`}
+                                />
+                            </div>
                         </div>
                         {expandedSections.has('hgm') && (
                             <CardContent>
@@ -609,8 +731,56 @@ export default function MPRPage() {
                     <Card className="relative overflow-hidden border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-amber-600/5 hover:shadow-xl transition-all duration-300 group backdrop-blur-sm">
                         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
                         <CardHeader className="relative z-10">
-                            <CardTitle className="text-xl font-bold text-amber-900 dark:text-amber-100">Farmer Training - Target & Achievement Summary</CardTitle>
-                            <CardDescription className="text-amber-700/80 dark:text-amber-300 font-medium">Training sessions completion status</CardDescription>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <CardTitle className="text-xl font-bold text-amber-900 dark:text-amber-100">Farmer Training - Target & Achievement Summary</CardTitle>
+                                    <CardDescription className="text-amber-700/80 dark:text-amber-300 font-medium">Training sessions completion status</CardDescription>
+                                </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="default" className="gap-2 text-xs sm:text-sm h-8 sm:h-10">
+                                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            Export
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={async () => {
+                                            toast({ title: 'Export started', description: 'Generating EXCEL report...' });
+                                            try {
+                                                await exportReport({
+                                                    method: 'vmddp_app.api.v1.secretory.export_farmer_training_summary',
+                                                    params: { component: 'Farmer Training' },
+                                                    format: 'excel',
+                                                    filename: 'farmer-training-summary',
+                                                });
+                                                toast({ title: 'Export completed', description: 'Report downloaded successfully.' });
+                                            } catch (e) {
+                                                toast({ title: 'Export failed', description: 'Failed to export report. Please try again.', variant: 'destructive' });
+                                            }
+                                        }}>
+                                            <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                            Export as Excel
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={async () => {
+                                            toast({ title: 'Export started', description: 'Generating PDF report...' });
+                                            try {
+                                                await exportReport({
+                                                    method: 'vmddp_app.api.v1.secretory.export_farmer_training_summary',
+                                                    params: { component: 'Farmer Training' },
+                                                    format: 'pdf',
+                                                    filename: 'farmer-training-summary',
+                                                });
+                                                toast({ title: 'Export completed', description: 'Report downloaded successfully.' });
+                                            } catch (e) {
+                                                toast({ title: 'Export failed', description: 'Failed to export report. Please try again.', variant: 'destructive' });
+                                            }
+                                        }}>
+                                            <FileText className="h-4 w-4 mr-2" />
+                                            Export as PDF
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         </CardHeader>
                         <CardContent>
                             <div className="overflow-x-auto">
@@ -656,8 +826,56 @@ export default function MPRPage() {
                     <Card className="relative overflow-hidden border-2 border-rose-500/30 bg-gradient-to-br from-rose-500/10 to-rose-600/5 hover:shadow-xl transition-all duration-300 group backdrop-blur-sm">
                         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-rose-500/20 to-rose-600/10 opacity-30 blur-2xl transition-all group-hover:opacity-50 group-hover:scale-110" />
                         <CardHeader className="relative z-10">
-                            <CardTitle className="text-xl font-bold text-rose-900 dark:text-rose-100">Treatment of Infertile Animal - Target & Achievement Summary</CardTitle>
-                            <CardDescription className="text-rose-700/80 dark:text-rose-300 font-medium">Treatment applications completion status</CardDescription>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <CardTitle className="text-xl font-bold text-rose-900 dark:text-rose-100">Treatment of Infertile Animal - Target & Achievement Summary</CardTitle>
+                                    <CardDescription className="text-rose-700/80 dark:text-rose-300 font-medium">Treatment applications completion status</CardDescription>
+                                </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="default" className="gap-2 text-xs sm:text-sm h-8 sm:h-10">
+                                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            Export
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={async () => {
+                                            toast({ title: 'Export started', description: 'Generating EXCEL report...' });
+                                            try {
+                                                await exportReport({
+                                                    method: 'vmddp_app.api.v1.secretory.export_treatment_infertile_animal_summary',
+                                                    params: { component: 'Treatment of Infertile Animal' },
+                                                    format: 'excel',
+                                                    filename: 'treatment-infertile-animal-summary',
+                                                });
+                                                toast({ title: 'Export completed', description: 'Report downloaded successfully.' });
+                                            } catch (e) {
+                                                toast({ title: 'Export failed', description: 'Failed to export report. Please try again.', variant: 'destructive' });
+                                            }
+                                        }}>
+                                            <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                            Export as Excel
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={async () => {
+                                            toast({ title: 'Export started', description: 'Generating PDF report...' });
+                                            try {
+                                                await exportReport({
+                                                    method: 'vmddp_app.api.v1.secretory.export_treatment_infertile_animal_summary',
+                                                    params: { component: 'Treatment of Infertile Animal' },
+                                                    format: 'pdf',
+                                                    filename: 'treatment-infertile-animal-summary',
+                                                });
+                                                toast({ title: 'Export completed', description: 'Report downloaded successfully.' });
+                                            } catch (e) {
+                                                toast({ title: 'Export failed', description: 'Failed to export report. Please try again.', variant: 'destructive' });
+                                            }
+                                        }}>
+                                            <FileText className="h-4 w-4 mr-2" />
+                                            Export as PDF
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         </CardHeader>
                         <CardContent>
                             <div className="overflow-x-auto">
