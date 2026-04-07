@@ -7,12 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useRouter } from "next/navigation";
 
 export default function SubmittedClaimDetails({
     appId
 }: {
     appId: string;
 }) {
+    const router = useRouter();
     // Fetch beneficiary details (component is optional)
     const { data: beneficiaryData, isLoading: loading, error } = useFrappeGetCall<FrappeCustomApiResponse<ApplicationDetails[]>>(
         "vmddp_app.api.v1.accountant.get_application_details",
@@ -76,11 +78,9 @@ export default function SubmittedClaimDetails({
                 <div className="p-6 space-y-6">
                     {/* Header */}
                     <div className="flex items-center gap-4">
-                        <Link href="/accountant/dbt-claims">
-                            <Button variant="ghost" size="icon" data-testid="button-back">
-                                <ArrowLeft className="h-5 w-5" />
-                            </Button>
-                        </Link>
+                        <Button variant="ghost" size="icon" onClick={() => router.back()} data-testid="button-back">
+                            <ArrowLeft className="h-5 w-5" />
+                        </Button>
                         <div>
                             <h1 className="text-2xl font-bold">Applicant Details</h1>
                             <p className="text-muted-foreground">{appId}</p>
