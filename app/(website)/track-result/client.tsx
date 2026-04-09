@@ -13,7 +13,6 @@ import {
   XCircle,
   Clock,
   FileText,
-  User,
   Phone,
   MapPin,
   Package,
@@ -21,7 +20,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { frappePublic } from "@/lib/frappe";
-import { getStatusBadge } from "@/lib/status-utils";
 
 interface ComponentStatus {
   name: string;
@@ -48,6 +46,7 @@ export default function TrackResultPage() {
   const searchParams = useSearchParams();
   const mobile = searchParams.get("mobile");
   const appId = searchParams.get("appId");
+  const aadhar = searchParams.get("aadhar");
 
   const [applications, setApplications] = useState<Application[]>([]);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
@@ -59,10 +58,9 @@ export default function TrackResultPage() {
         const params: any = {};
         if (mobile) params.phone_number = mobile.trim();
         if (appId) params.application_number = appId.trim();
+        if (aadhar) params.aadhar_number = aadhar.trim();
 
         const response = await frappePublic.call().get('vmddp_app.api.api.get_application_status', params);
-        console.log('API Response:', response);
-        console.log('Params:', params);
 
         if (response.message?.error) {
           setApplications([]);
@@ -93,12 +91,12 @@ export default function TrackResultPage() {
       }
     };
 
-    if (mobile || appId) {
+    if (mobile || appId || aadhar) {
       fetchApplications();
     } else {
       setLoading(false);
     }
-  }, [mobile, appId]);
+  }, [mobile, appId, aadhar]);
 
   const getStatusBadge = (status: Application["status"]) => {
     const statusConfig = {
@@ -336,11 +334,13 @@ export default function TrackResultPage() {
               <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="font-display font-semibold text-xl mb-2">No Application Found</h3>
               <p className="text-muted-foreground mb-6">
-                {!mobile && !appId
-                  ? "Please provide a mobile number or application ID to search"
+                {!mobile && !appId && !aadhar
+                  ? "Please provide a mobile number, application ID, or Aadhaar number to search"
                   : mobile
                     ? `No applications found for mobile number ${mobile}`
-                    : `No application found with ID ${appId}`}
+                    : appId
+                    ? `No application found with ID ${appId}`
+                    : `No application found for Aadhaar number ${aadhar}`}
               </p>
               <Link href="/track">
                 <Button data-testid="button-try-again">

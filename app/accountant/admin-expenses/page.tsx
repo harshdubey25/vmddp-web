@@ -3,15 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
-    ArrowLeft,
     Plus,
-    IndianRupee,
     Loader2,
     FileSpreadsheet,
     Target,
     Receipt,
     Wallet,
-    TrendingUp
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

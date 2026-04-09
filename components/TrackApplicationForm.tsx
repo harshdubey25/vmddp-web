@@ -12,7 +12,7 @@ import { Search } from "lucide-react";
 const TrackApplicationForm = () => {
   const { t } = useTranslation('common');
   const router = useRouter();
-  const [trackBy, setTrackBy] = useState<"mobile" | "applicationId">("mobile");
+  const [trackBy, setTrackBy] = useState<"mobile" | "applicationId" | "aadhar_number">("mobile");
   const [value, setValue] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -21,7 +21,9 @@ const TrackApplicationForm = () => {
 
     const params = trackBy === "mobile"
       ? `mobile=${encodeURIComponent(value)}`
-      : `appId=${encodeURIComponent(value)}`;
+      : trackBy === "applicationId"
+      ? `appId=${encodeURIComponent(value)}`
+      : `aadhar=${encodeURIComponent(value)}`;
     router.push(`/track-result?${params}`);
   };
 
@@ -39,7 +41,7 @@ const TrackApplicationForm = () => {
             <Label>{t('track_by')}</Label>
             <RadioGroup
               value={trackBy}
-              onValueChange={(val) => setTrackBy(val as "mobile" | "applicationId")}
+              onValueChange={(val) => setTrackBy(val as "mobile" | "applicationId" | "aadhar_number")}
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="mobile" id="mobile" data-testid="radio-mobile" />
@@ -53,12 +55,18 @@ const TrackApplicationForm = () => {
                   {t('application_id')}
                 </Label>
               </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="aadhar_number" id="aadhar_number" data-testid="radio-aadhar-number" />
+                <Label htmlFor="aadhar_number" className="font-normal cursor-pointer">
+                  {t('aadhar_number')}
+                </Label>
+              </div>
             </RadioGroup>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="trackValue">
-              {trackBy === "mobile" ? t('mobile_number') : t('application_id')}
+              {trackBy === "mobile" ? t('mobile_number') : trackBy === "applicationId" ? t('application_id') : t('aadhar_number')}
             </Label>
             <Input
               id="trackValue"
@@ -66,7 +74,9 @@ const TrackApplicationForm = () => {
               placeholder={
                 trackBy === "mobile"
                   ? t('enter_mobile_number')
-                  : t('enter_application_id')
+                  : trackBy === "applicationId"
+                  ? t('enter_application_id')
+                  : t('enter_aadhar_number')
               }
               value={value}
               onChange={(e) => setValue(e.target.value)}
