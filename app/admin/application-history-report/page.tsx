@@ -152,17 +152,17 @@ export default function ApplicationHistoryReport() {
                                     <FileText className="h-5 w-5" />
                                     Application History
                                 </CardTitle>
-                                <CardDescription>Search by name, Aadhaar, application ID, or mobile number</CardDescription>
+                                <CardDescription>Search by name, Aadhaar, mobile number, or application ID</CardDescription>
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input
-                                        placeholder="Search name, Aadhaar..."
+                                        placeholder="Search name, Aadhaar, mobile..."
                                         value={searchText}
                                         onChange={(e) => setSearchText(e.target.value)}
                                         onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                                        className="pl-9 w-48"
+                                        className="pl-9 w-52"
                                         data-testid="input-search"
                                     />
                                 </div>
