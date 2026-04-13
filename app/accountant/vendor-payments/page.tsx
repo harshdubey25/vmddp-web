@@ -393,6 +393,7 @@ export default function VendorPayments() {
                                                         <th className="h-12 px-4 text-left align-middle font-medium min-w-[140px]">Beneficiary</th>
                                                         <th className="h-12 px-4 text-left align-middle font-medium min-w-[100px]">Component</th>
                                                         <th className="h-12 px-4 text-left align-middle font-medium min-w-[100px]">Animal</th>
+                                                        <th className="h-12 px-4 text-left align-middle font-medium min-w-[100px]">District</th>
                                                         <th className="h-12 px-4 text-left align-middle font-medium min-w-[100px]">Vendor</th>
                                                         <th className="h-12 px-4 text-left align-middle font-medium min-w-[80px]">Category</th>
                                                         <th className="h-12 px-4 text-right align-middle font-medium min-w-[100px] whitespace-nowrap">Amount to Pay</th>
@@ -429,7 +430,7 @@ export default function VendorPayments() {
                                                                     <div>
                                                                         <p className="font-medium">{payment.beneficiary_name}</p>
                                                                         <p className="text-xs text-muted-foreground">{payment.aadhar_number}</p>
-                                                                        <p className="text-xs text-muted-foreground">{payment.district}, {payment.taluka}</p>
+                                                                        <p className="text-xs text-muted-foreground">{payment.taluka}</p>
                                                                     </div>
                                                                 </td>
                                                                 <td className="p-4 align-middle">
@@ -442,6 +443,9 @@ export default function VendorPayments() {
                                                                         <p className="font-medium">{payment.type_of_animal}</p>
                                                                         <p className="text-xs text-muted-foreground">Tag: {payment.tag_number}</p>
                                                                     </div>
+                                                                </td>
+                                                                <td className="p-4 align-middle">
+                                                                    <p className="text-sm">{payment.district}</p>
                                                                 </td>
                                                                 <td className="p-4 align-middle">
                                                                     <div>
