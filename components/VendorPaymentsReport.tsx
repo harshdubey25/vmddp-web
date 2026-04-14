@@ -82,6 +82,7 @@ interface VendorPaymentsReportProps {
 export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportProps) {
     const [selectedVendor, setSelectedVendor] = useState<string | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
     const [searchText, setSearchText] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
@@ -97,6 +98,7 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
             limit_page_length: 1000,
             vendor_name: selectedVendor || undefined,
             vendor_category: selectedCategory || undefined,
+            district: selectedDistrict || undefined,
             search_text: searchText || undefined,
             start_date: startDate || undefined,
             end_date: endDate || undefined,
@@ -110,6 +112,10 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
         limit: 100
     });
     const { data: vendorCategories } = useFrappeGetDocList<{ name: string }>("Vendor Categories", {
+        fields: ["name"],
+        limit: 100
+    });
+    const { data: districts } = useFrappeGetDocList<{ name: string }>("District Master", {
         fields: ["name"],
         limit: 100
     });
@@ -131,6 +137,7 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
         try {
             const params: Record<string, string> = {};
             if (selectedVendor) params.vendor_name = selectedVendor;
+            if (selectedDistrict) params.district = selectedDistrict;
             if (searchText) params.search_text = searchText;
             if (startDate) params.start_date = startDate;
             if (endDate) params.end_date = endDate;
@@ -327,6 +334,23 @@ export default function VendorPaymentsReport({ backLink }: VendorPaymentsReportP
                                     <SelectItem value="all">All Categories</SelectItem>
                                     {vendorCategories?.map((c) => (
                                         <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select
+                                value={selectedDistrict || "all"}
+                                onValueChange={(value) => {
+                                    setSelectedDistrict(value === "all" ? null : value);
+                                    setCurrentPage(1);
+                                }}
+                            >
+                                <SelectTrigger className="w-full sm:w-44" data-testid="select-district">
+                                    <SelectValue placeholder="District" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Districts</SelectItem>
+                                    {districts?.map((d) => (
+                                        <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>

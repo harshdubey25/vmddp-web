@@ -36,6 +36,7 @@ export default function VendorPayments() {
     const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([])
     const [selectedVendor, setSelectedVendor] = useState<string | null>(null)
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+    const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null)
     const [searchText, setSearchText] = useState("");
     const debouncedSearchText = useDebounce(searchText, 500);
     const [currentPage, setCurrentPage] = useState(1);
@@ -62,6 +63,7 @@ export default function VendorPayments() {
     };
     if (selectedVendor) apiParams.vendor_name = selectedVendor;
     if (selectedCategory) apiParams.vendor_category = selectedCategory;
+    if (selectedDistrict) apiParams.district = selectedDistrict;
     const trimmedSearch = debouncedSearchText.trim().replace(/\s+/g, " ");
     if (trimmedSearch) apiParams.search_text = trimmedSearch;
 
@@ -83,6 +85,10 @@ export default function VendorPayments() {
     });
     const { data: BankList, mutate: refetchBanks } = useFrappeGetDocList("Bank")
     const { data: vendorCategories } = useFrappeGetDocList<{ name: string }>("Vendor Categories", {
+        fields: ["name"],
+        limit: 100
+    });
+    const { data: districts } = useFrappeGetDocList<{ name: string }>("District Master", {
         fields: ["name"],
         limit: 100
     });
@@ -335,6 +341,24 @@ export default function VendorPayments() {
                                                 ))}
                                             </SelectContent>
                                         </Select>
+                                        <Select
+                                            value={selectedDistrict || "all"}
+                                            onValueChange={(value) => {
+                                                setSelectedDistrict(value === "all" ? null : value);
+                                                setSelectedRowKeys([]);
+                                                setCurrentPage(1);
+                                            }}
+                                        >
+                                            <SelectTrigger className="w-44" data-testid="select-district">
+                                                <SelectValue placeholder="District" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Districts</SelectItem>
+                                                {districts?.map((d) => (
+                                                    <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -383,94 +407,94 @@ export default function VendorPayments() {
                                     ) : vendorPayments.length > 0 ? (
                                         <>
                                             <div className="border rounded-lg overflow-hidden flex flex-col">
-                                            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
-                                            <table className="w-full caption-bottom text-sm">
-                                                <thead className="bg-muted sticky top-0 z-30 border-b">
-                                                    <tr>
-                                                        <th className="h-12 px-4 text-left align-middle font-medium w-12">
-                                                            <Check data-testid="checkbox-select-all" />
-                                                        </th>
-                                                        <th className="h-12 px-4 text-left align-middle font-medium min-w-[140px]">Beneficiary</th>
-                                                        <th className="h-12 px-4 text-left align-middle font-medium min-w-[100px]">Component</th>
-                                                        <th className="h-12 px-4 text-left align-middle font-medium min-w-[100px]">Animal</th>
-                                                        <th className="h-12 px-4 text-left align-middle font-medium min-w-[100px]">District</th>
-                                                        <th className="h-12 px-4 text-left align-middle font-medium min-w-[100px]">Vendor</th>
-                                                        <th className="h-12 px-4 text-left align-middle font-medium min-w-[80px]">Category</th>
-                                                        <th className="h-12 px-4 text-right align-middle font-medium min-w-[100px] whitespace-nowrap">Amount to Pay</th>
-                                                        <th className="h-12 px-4 text-left align-middle font-medium min-w-[80px] whitespace-nowrap">Date</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="[&_tr:last-child]:border-0">
-                                                    {vendorPayments.map((payment) => {
-                                                        const rowKey = getRowKey(payment);
-                                                        const isSelected = selectedRowKeys.includes(rowKey);
-
-                                                        const categoryColors: Record<string, string> = {
-                                                            Animal: "bg-blue-500/10 text-blue-700 border-blue-500/20",
-                                                            Collar: "bg-purple-500/10 text-purple-700 border-purple-500/20",
-                                                            Insurance: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-                                                            Transportation: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-                                                        };
-
-                                                        return (
-                                                            <tr
-                                                                key={rowKey}
-                                                                className={`border-b transition-colors hover:bg-muted/50 ${isSelected ? "bg-primary/5" : ""}`}
-                                                                data-testid={`row-payment-${rowKey}`}
-                                                            >
-                                                                <td className="p-4 align-middle">
-                                                                    <Checkbox
-                                                                        checked={isSelected}
-                                                                        disabled={!isSelected && !canSelectPayment(payment)}
-                                                                        onCheckedChange={(checked) => handleTogglePayment(rowKey, !!checked)}
-                                                                        data-testid={`checkbox-${rowKey}`}
-                                                                    />
-                                                                </td>
-                                                                <td className="p-4 align-middle">
-                                                                    <div>
-                                                                        <p className="font-medium">{payment.beneficiary_name}</p>
-                                                                        <p className="text-xs text-muted-foreground">{payment.aadhar_number}</p>
-                                                                        <p className="text-xs text-muted-foreground">{payment.taluka}</p>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="p-4 align-middle">
-                                                                    <div className="space-y-1">
-                                                                        <p className="text-sm font-medium">{payment.component_name}</p>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="p-4 align-middle">
-                                                                    <div>
-                                                                        <p className="font-medium">{payment.type_of_animal}</p>
-                                                                        <p className="text-xs text-muted-foreground">Tag: {payment.tag_number}</p>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="p-4 align-middle">
-                                                                    <p className="text-sm">{payment.district}</p>
-                                                                </td>
-                                                                <td className="p-4 align-middle">
-                                                                    <div>
-                                                                        <p className="font-medium">{payment.vendor_name}</p>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="p-4 align-middle">
-                                                                    <Badge variant="outline" className={categoryColors[payment.vendor_category] || ""}>
-                                                                        {payment.vendor_category}
-                                                                    </Badge>
-                                                                </td>
-                                                                <td className="p-4 align-middle text-right">
-                                                                    <span className="font-bold text-green-600">
-                                                                        ₹{payment.amount_to_pay.toLocaleString("en-IN")}
-                                                                    </span>
-                                                                </td>
-                                                                <td className="p-4 align-middle">
-                                                                    <p className="text-sm">{payment.date_of_purchase}</p>
-                                                                </td>
+                                                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)]">
+                                                    <table className="w-full caption-bottom text-sm">
+                                                        <thead className="bg-muted sticky top-0 z-30 border-b">
+                                                            <tr>
+                                                                <th className="h-12 px-4 text-left align-middle font-medium w-12">
+                                                                    <Check data-testid="checkbox-select-all" />
+                                                                </th>
+                                                                <th className="h-12 px-4 text-left align-middle font-medium min-w-[140px]">Beneficiary</th>
+                                                                <th className="h-12 px-4 text-left align-middle font-medium min-w-[100px]">Component</th>
+                                                                <th className="h-12 px-4 text-left align-middle font-medium min-w-[100px]">Animal</th>
+                                                                <th className="h-12 px-4 text-left align-middle font-medium min-w-[100px]">District</th>
+                                                                <th className="h-12 px-4 text-left align-middle font-medium min-w-[100px]">Vendor</th>
+                                                                <th className="h-12 px-4 text-left align-middle font-medium min-w-[80px]">Category</th>
+                                                                <th className="h-12 px-4 text-right align-middle font-medium min-w-[100px] whitespace-nowrap">Amount to Pay</th>
+                                                                <th className="h-12 px-4 text-left align-middle font-medium min-w-[80px] whitespace-nowrap">Date</th>
                                                             </tr>
-                                                        );
-                                                    })}
-                                                </tbody>
-                                            </table>
-                                            </div>
+                                                        </thead>
+                                                        <tbody className="[&_tr:last-child]:border-0">
+                                                            {vendorPayments.map((payment) => {
+                                                                const rowKey = getRowKey(payment);
+                                                                const isSelected = selectedRowKeys.includes(rowKey);
+
+                                                                const categoryColors: Record<string, string> = {
+                                                                    Animal: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+                                                                    Collar: "bg-purple-500/10 text-purple-700 border-purple-500/20",
+                                                                    Insurance: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+                                                                    Transportation: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+                                                                };
+
+                                                                return (
+                                                                    <tr
+                                                                        key={rowKey}
+                                                                        className={`border-b transition-colors hover:bg-muted/50 ${isSelected ? "bg-primary/5" : ""}`}
+                                                                        data-testid={`row-payment-${rowKey}`}
+                                                                    >
+                                                                        <td className="p-4 align-middle">
+                                                                            <Checkbox
+                                                                                checked={isSelected}
+                                                                                disabled={!isSelected && !canSelectPayment(payment)}
+                                                                                onCheckedChange={(checked) => handleTogglePayment(rowKey, !!checked)}
+                                                                                data-testid={`checkbox-${rowKey}`}
+                                                                            />
+                                                                        </td>
+                                                                        <td className="p-4 align-middle">
+                                                                            <div>
+                                                                                <p className="font-medium">{payment.beneficiary_name}</p>
+                                                                                <p className="text-xs text-muted-foreground">{payment.aadhar_number}</p>
+                                                                                <p className="text-xs text-muted-foreground">{payment.taluka}</p>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="p-4 align-middle">
+                                                                            <div className="space-y-1">
+                                                                                <p className="text-sm font-medium">{payment.component_name}</p>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="p-4 align-middle">
+                                                                            <div>
+                                                                                <p className="font-medium">{payment.type_of_animal}</p>
+                                                                                <p className="text-xs text-muted-foreground">Tag: {payment.tag_number}</p>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="p-4 align-middle">
+                                                                            <p className="text-sm">{payment.district}</p>
+                                                                        </td>
+                                                                        <td className="p-4 align-middle">
+                                                                            <div>
+                                                                                <p className="font-medium">{payment.vendor_name}</p>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="p-4 align-middle">
+                                                                            <Badge variant="outline" className={categoryColors[payment.vendor_category] || ""}>
+                                                                                {payment.vendor_category}
+                                                                            </Badge>
+                                                                        </td>
+                                                                        <td className="p-4 align-middle text-right">
+                                                                            <span className="font-bold text-green-600">
+                                                                                ₹{payment.amount_to_pay.toLocaleString("en-IN")}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="p-4 align-middle">
+                                                                            <p className="text-sm">{payment.date_of_purchase}</p>
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
 
                                             {pagination && pagination.total_pages > 1 && (
