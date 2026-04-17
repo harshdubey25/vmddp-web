@@ -147,7 +147,7 @@ export default function TrackApplicationResult({ backHref = "/track" }: TrackApp
         }
 
         return (
-            <div className="relative w-full">
+            <div className="relative w-full  rounded-lg p-6">
                 <div className="flex items-center justify-between">
                     {steps.map((step, index) => {
                         const isCompleted = index <= currentIndex;
@@ -189,9 +189,9 @@ export default function TrackApplicationResult({ backHref = "/track" }: TrackApp
     };
 
     const ApplicationCard = ({ app }: { app: Application }) => (
-        <Card>
+        <Card >
             <CardHeader>
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start justify-between gap-4 w-full">
                     <div>
                         <CardTitle className="font-display text-xl mb-2">{app.applicantName.replace(/'/g, "&apos")}</CardTitle>
                         <CardDescription className="flex items-center gap-2">
@@ -316,7 +316,7 @@ export default function TrackApplicationResult({ backHref = "/track" }: TrackApp
     }
 
     return (
-        <div className="min-h-[calc(100vh-16rem)] py-12 sm:py-16">
+        <div className="min-h-[calc(100vh-16rem)] py-12 sm:py-16 w-full">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <Link href={backHref}>
                     <Button variant="ghost" className="mb-6 gap-2" data-testid="button-back-to-search">
