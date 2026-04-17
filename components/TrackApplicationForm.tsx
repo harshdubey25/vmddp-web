@@ -9,7 +9,11 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Search } from "lucide-react";
 
-const TrackApplicationForm = () => {
+interface TrackApplicationFormProps {
+  resultPath?: string;
+}
+
+const TrackApplicationForm = ({ resultPath = "/track-result" }: TrackApplicationFormProps) => {
   const { t } = useTranslation('common');
   const router = useRouter();
   const [trackBy, setTrackBy] = useState<"mobile" | "applicationId" | "aadhar_number">("mobile");
@@ -22,9 +26,9 @@ const TrackApplicationForm = () => {
     const params = trackBy === "mobile"
       ? `mobile=${encodeURIComponent(value)}`
       : trackBy === "applicationId"
-      ? `appId=${encodeURIComponent(value)}`
-      : `aadhar=${encodeURIComponent(value)}`;
-    router.push(`/track-result?${params}`);
+        ? `appId=${encodeURIComponent(value)}`
+        : `aadhar=${encodeURIComponent(value)}`;
+    router.push(`${resultPath}?${params}`);
   };
 
   return (
@@ -75,8 +79,8 @@ const TrackApplicationForm = () => {
                 trackBy === "mobile"
                   ? t('enter_mobile_number')
                   : trackBy === "applicationId"
-                  ? t('enter_application_id')
-                  : t('enter_aadhar_number')
+                    ? t('enter_application_id')
+                    : t('enter_aadhar_number')
               }
               value={value}
               onChange={(e) => setValue(e.target.value)}

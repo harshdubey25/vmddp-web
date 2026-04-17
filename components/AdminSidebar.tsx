@@ -23,6 +23,7 @@ import {
   Target,
   MapPin,
   Layers,
+  Search,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -87,6 +88,7 @@ const subAdminMenuItems: MenuItem[] = [
 ]
 const accountantMenuItems: MenuItem[] = [
   { icon: Target, label: "Target", path: "/accountant/target-achievement" },
+  { icon: Search, label: "Track Application", path: "/accountant/track" },
   { icon: FileText, label: "DD Collection", path: "/accountant/dd" },
   { icon: BarChart3, label: "DD Reports", path: "/accountant/dd-report" },
   { icon: Package, label: "Component Allocation", path: "/accountant/component-allocation" },
