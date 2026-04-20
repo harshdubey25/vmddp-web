@@ -34,6 +34,7 @@ export default function VendorPayments() {
     const [activeTab, setActiveTab] = useState("vendor");
     const [openPaymentDialog, setOpenPaymentDialog] = useState(false)
     const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([])
+    const [selectedPaymentsByKey, setSelectedPaymentsByKey] = useState<Record<string, PendingVendorPayment>>({})
     const [selectedVendor, setSelectedVendor] = useState<string | null>(null)
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
     const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null)
@@ -97,37 +98,55 @@ export default function VendorPayments() {
 
     // Computed values from API data
     const totalPending = vendorPayments.reduce((sum, p) => sum + p.amount_to_pay, 0);
+    const selectedPayments = selectedRowKeys
+        .map((rowKey) => selectedPaymentsByKey[rowKey])
+        .filter((payment): payment is PendingVendorPayment => Boolean(payment));
 
     // Compute selected total and vendor name from selected payments
-    const selectedTotal = vendorPayments
-        .filter((p) => selectedRowKeys.includes(getRowKey(p)))
+    const selectedTotal = selectedPayments
         .reduce((sum, p) => sum + p.amount_to_pay, 0);
 
     // Get vendor ID (link name) from selected payments
     const selectedVendorId = selectedRowKeys.length > 0
-        ? vendorPayments.find((p) => getRowKey(p) === selectedRowKeys[0])?.selected_vendor || ""
+        ? selectedPayments[0]?.selected_vendor || ""
         : "";
 
     const selectedVendorName = selectedRowKeys.length > 0
-        ? vendorPayments.find((p) => getRowKey(p) === selectedRowKeys[0])?.vendor_name || "-"
+        ? selectedPayments[0]?.vendor_name || "-"
         : "-";
 
     // Get the vendor_name of the first selected payment (used to restrict selection to same vendor)
-    const firstSelectedVendorName = selectedRowKeys.length > 0
-        ? vendorPayments.find((p) => getRowKey(p) === selectedRowKeys[0])?.vendor_name
+    const firstSelectedVendorId = selectedRowKeys.length > 0
+        ? selectedPayments[0]?.selected_vendor
         : null;
 
-    const handleTogglePayment = (rowKey: string, checked: boolean) => {
+    const resetSelection = () => {
+        setSelectedRowKeys([]);
+        setSelectedPaymentsByKey({});
+    };
+
+    const handleTogglePayment = (payment: PendingVendorPayment, checked: boolean) => {
+        const rowKey = getRowKey(payment);
+
         if (checked) {
-            setSelectedRowKeys((prev) => [...prev, rowKey]);
+            setSelectedRowKeys((prev) => (prev.includes(rowKey) ? prev : [...prev, rowKey]));
+            setSelectedPaymentsByKey((prev) => ({
+                ...prev,
+                [rowKey]: payment,
+            }));
         } else {
             setSelectedRowKeys((prev) => prev.filter((id) => id !== rowKey));
+            setSelectedPaymentsByKey((prev) => {
+                const next = { ...prev };
+                delete next[rowKey];
+                return next;
+            });
         }
     };
 
     const canSelectPayment = (payment: PendingVendorPayment) => {
         if (selectedRowKeys.length === 0) return true;
-        return payment.vendor_name === firstSelectedVendorName;
+        return payment.selected_vendor === firstSelectedVendorId;
     };
 
     // Reset form state
@@ -186,7 +205,7 @@ export default function VendorPayments() {
             toast({ title: "Success", description: "Vendor payment created successfully" });
             setOpenPaymentDialog(false);
             resetForm();
-            setSelectedRowKeys([]);
+            resetSelection();
             refetchPayments();
         } catch (error: any) {
             toast({
@@ -309,7 +328,7 @@ export default function VendorPayments() {
                                             value={selectedVendor || "all"}
                                             onValueChange={(value) => {
                                                 setSelectedVendor(value === "all" ? null : value);
-                                                setSelectedRowKeys([]);
+                                                resetSelection();
                                                 setCurrentPage(1);
                                             }}
                                         >
@@ -327,7 +346,7 @@ export default function VendorPayments() {
                                             value={selectedCategory || "all"}
                                             onValueChange={(value) => {
                                                 setSelectedCategory(value === "all" ? null : value);
-                                                setSelectedRowKeys([]);
+                                                resetSelection();
                                                 setCurrentPage(1);
                                             }}
                                         >
@@ -345,7 +364,7 @@ export default function VendorPayments() {
                                             value={selectedDistrict || "all"}
                                             onValueChange={(value) => {
                                                 setSelectedDistrict(value === "all" ? null : value);
-                                                setSelectedRowKeys([]);
+                                                resetSelection();
                                                 setCurrentPage(1);
                                             }}
                                         >
@@ -379,7 +398,7 @@ export default function VendorPayments() {
                                                 </div>
                                             </div>
                                             <div className="flex gap-2">
-                                                <Button variant="outline" data-testid="button-clear-selection" onClick={() => setSelectedRowKeys([])}>
+                                                <Button variant="outline" data-testid="button-clear-selection" onClick={resetSelection}>
                                                     Clear Selection
                                                 </Button>
                                                 <Button data-testid="button-issue-cheque" onClick={handleOpenDialog}>
@@ -446,7 +465,7 @@ export default function VendorPayments() {
                                                                             <Checkbox
                                                                                 checked={isSelected}
                                                                                 disabled={!isSelected && !canSelectPayment(payment)}
-                                                                                onCheckedChange={(checked) => handleTogglePayment(rowKey, !!checked)}
+                                                                                onCheckedChange={(checked) => handleTogglePayment(payment, !!checked)}
                                                                                 data-testid={`checkbox-${rowKey}`}
                                                                             />
                                                                         </td>
