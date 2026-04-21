@@ -14,7 +14,6 @@ import {
 import {
     Pagination,
     PaginationContent,
-    PaginationEllipsis,
     PaginationItem,
     PaginationLink,
     PaginationNext,
@@ -647,7 +646,7 @@ export default function AdminSelectionClient({
                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
                                         <FileCheck className="w-6 h-6 text-white" />
                                     </div>
-                            
+
                                 </div>
                                 <CardDescription className="text-xs sm:text-sm font-medium">Approved</CardDescription>
                                 <CardTitle className="text-3xl sm:text-4xl font-bold text-green-600 drop-shadow-sm">
@@ -662,7 +661,7 @@ export default function AdminSelectionClient({
                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
                                         <CheckCircle className="w-6 h-6 text-white" />
                                     </div>
-                                
+
                                 </div>
                                 <CardDescription className="text-xs sm:text-sm font-medium">Selected</CardDescription>
                                 <CardTitle className="text-3xl sm:text-4xl font-bold text-blue-600 drop-shadow-sm">
@@ -677,7 +676,7 @@ export default function AdminSelectionClient({
                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
                                         <Target className="w-6 h-6 text-white" />
                                     </div>
-                                
+
                                 </div>
                                 <CardDescription className="text-xs sm:text-sm font-medium">Total Applications</CardDescription>
                                 <CardTitle className="text-3xl sm:text-4xl font-bold text-purple-600 drop-shadow-sm">
@@ -833,22 +832,22 @@ export default function AdminSelectionClient({
                                                                                         </div>
                                                                                     ) : (
                                                                                         Object.entries(componentQuestions)
-                                                                                            .filter(([question]) => question !== "Quantity") 
+                                                                                            .filter(([question]) => question !== "Quantity")
                                                                                             .map(([question, answers]) => (
-                                                                                            <div key={question} className="space-y-1.5 bg-background/40 p-2 rounded-lg">
-                                                                                                <p className="text-xs font-semibold text-foreground/90 leading-tight">{question}</p>
-                                                                                                <div className="space-y-1 pl-1">
-                                                                                                    {Object.entries(answers).map(([answer, count]) => (
-                                                                                                        count > 0 && (
-                                                                                                            <div key={answer} className="flex items-center justify-between text-xs group">
-                                                                                                                <span className="text-muted-foreground group-hover:text-foreground transition-colors mr-2 truncate">{answer}</span>
-                                                                                                                <span className="font-semibold px-1.5 py-0.5 rounded-full bg-background shadow-sm text-foreground/80 flex-shrink-0">{count}</span>
-                                                                                                            </div>
-                                                                                                        )
-                                                                                                    ))}
+                                                                                                <div key={question} className="space-y-1.5 bg-background/40 p-2 rounded-lg">
+                                                                                                    <p className="text-xs font-semibold text-foreground/90 leading-tight">{question}</p>
+                                                                                                    <div className="space-y-1 pl-1">
+                                                                                                        {Object.entries(answers).map(([answer, count]) => (
+                                                                                                            count > 0 && (
+                                                                                                                <div key={answer} className="flex items-center justify-between text-xs group">
+                                                                                                                    <span className="text-muted-foreground group-hover:text-foreground transition-colors mr-2 truncate">{answer}</span>
+                                                                                                                    <span className="font-semibold px-1.5 py-0.5 rounded-full bg-background shadow-sm text-foreground/80 flex-shrink-0">{count}</span>
+                                                                                                                </div>
+                                                                                                            )
+                                                                                                        ))}
+                                                                                                    </div>
                                                                                                 </div>
-                                                                                            </div>
-                                                                                        ))
+                                                                                            ))
                                                                                     )}
                                                                                 </div>
                                                                             ) : null}

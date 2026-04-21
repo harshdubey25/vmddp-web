@@ -447,6 +447,7 @@ export default function ApplicationDetailsDialog({
                                                         </div>
                                                     )}
                                                 </div>
+                                                <Badge variant={comp.component_status == "Rejected" ? 'destructive' : 'default'}>{comp.component_status}</Badge>
                                                 {comp.response && comp.response !== '{}' && (() => {
                                                     try {
                                                         const parsed = JSON.parse(comp.response);
