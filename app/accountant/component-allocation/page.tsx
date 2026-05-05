@@ -498,14 +498,14 @@ export default function ComponentAllocation() {
                                     </div>
 
                                     {/* Pagination for pending */}
-                                    {(allocationStats?.message?.pending_component_allocation ?? 0) > 0 && (
+                                    {(ddCompletedApplications?.message.pagination?.total_items ?? 0) > 0 && (
                                         <div className="flex items-center justify-between pt-4">
                                             <p className="text-sm text-muted-foreground">
-                                                Page {pendingPage} • Showing {pendingApplications.length} of {allocationStats?.message?.pending_component_allocation ?? 0} results
+                                                Page {pendingPage} • Showing {ddCompletedApplications?.message.pagination.total_pages} of {ddCompletedApplications?.message.pagination?.total_items ?? 0} results
                                             </p>
                                             <div className="flex items-center gap-2">
                                                 <Button
-                                                    variant="outline"
+                                                    // variant="outline"
                                                     size="sm"
                                                     onClick={() => setPendingPage(p => Math.max(1, p - 1))}
                                                     disabled={pendingPage === 1}
@@ -518,7 +518,7 @@ export default function ComponentAllocation() {
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => setPendingPage(p => p + 1)}
-                                                    disabled={pendingPage * PAGE_SIZE >= (allocationStats?.message?.pending_component_allocation ?? 0)}
+                                                    disabled={pendingPage * PAGE_SIZE >= (ddCompletedApplications?.message.pagination?.total_items ?? 0)}
                                                     data-testid="button-pending-next-page"
                                                 >
                                                     Next
@@ -587,10 +587,10 @@ export default function ComponentAllocation() {
                                     </div>
 
                                     {/* Pagination for completed */}
-                                    {(allocationStats?.message?.total_component_allocated ?? 0) > 0 && (
+                                    {(completedAllocations?.message?.pagination?.total_items ?? 0) > 0 && (
                                         <div className="flex items-center justify-between pt-4">
                                             <p className="text-sm text-muted-foreground">
-                                                Page {completedPage} • Showing {completedList.length} of {allocationStats?.message?.total_component_allocated ?? 0} results
+                                                Page {completedPage} • Showing {completedList.length} of {completedAllocations?.message?.pagination?.total_items ?? 0} results
                                             </p>
                                             <div className="flex items-center gap-2">
                                                 <Button
@@ -607,7 +607,7 @@ export default function ComponentAllocation() {
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => setCompletedPage(p => p + 1)}
-                                                    disabled={completedPage * PAGE_SIZE >= (allocationStats?.message?.total_component_allocated ?? 0)}
+                                                    disabled={completedPage * PAGE_SIZE >= (completedAllocations?.message?.pagination?.total_items ?? 0)}
                                                     data-testid="button-completed-next-page"
                                                 >
                                                     Next
