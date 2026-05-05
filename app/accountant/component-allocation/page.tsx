@@ -358,10 +358,10 @@ export default function ComponentAllocation() {
                                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                                     <TabsList>
                                         <TabsTrigger value="pending" data-testid="tab-pending">
-                                            Pending ({allocationStats?.message?.pending_component_allocation ?? 0})
+                                            Pending ({ddCompletedApplications?.message.pagination.total_items ?? 0})
                                         </TabsTrigger>
                                         <TabsTrigger value="completed" data-testid="tab-completed">
-                                            Completed ({allocationStats?.message?.total_component_allocated ?? 0})
+                                            Completed ({completedAllocations?.message.pagination.total_items ?? 0})
                                         </TabsTrigger>
                                     </TabsList>
 
