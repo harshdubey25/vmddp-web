@@ -120,7 +120,7 @@ export default function VendorPayments() {
         ? selectedPayments[0]?.selected_vendor
         : null;
 
-    const resetSelection = () => {
+    const resetSelection = (): void => {
         setSelectedRowKeys([]);
         setSelectedPaymentsByKey({});
     };
@@ -188,7 +188,9 @@ export default function VendorPayments() {
         }
 
         try {
-            const selectedPayments = vendorPayments.filter((p) => selectedRowKeys.includes(getRowKey(p)));
+            const selectedPayments = selectedRowKeys
+                .map((key) => selectedPaymentsByKey[key])
+                .filter((p): p is PendingVendorPayment => Boolean(p));
             await createDoc("Vendor Payments", {
                 vendor: selectedVendorId,
                 check_number: chequeNumber,
