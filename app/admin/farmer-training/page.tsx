@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappeGetDocCount } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -42,6 +42,27 @@ export default function FarmerTraining() {
     limit: 100,
   });
 
+  const filters: any[] = [];
+  if (searchQuery) {
+    if (searchQuery.toUpperCase().startsWith("VMDDP")) {
+      filters.push(["name", "like", `%${searchQuery}%`]);
+    } else {
+      filters.push(["event_name", "like", `%${searchQuery}%`]);
+    }
+  }
+  if (fromDate) filters.push(["event_date", ">=", fromDate]);
+  if (toDate) filters.push(["event_date", "<=", toDate]);
+  if (districtFilter !== "all") filters.push(["district", "=", districtFilter]);
+
+  const { data: totalCountData } = useFrappeGetDocCount(
+    "Farmer Training Application",
+    filters.length > 0 ? filters : undefined
+  );
+
+  const totalRecords = totalCountData || 0;
+  const totalPages = Math.ceil(totalRecords / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+
   const { data: applications, isLoading, error } = useFrappeGetDocList<Application>("Farmer Training Application", {
     fields: [
       "name",
@@ -61,30 +82,17 @@ export default function FarmerTraining() {
       "docstatus",
       "creation"
     ],
+    filters: filters.length > 0 ? filters : undefined,
     orderBy: {
       field: "creation",
       order: "desc"
     },
+    limit: pageSize,
+    limit_start: startIndex,
   });
 
-  const filteredApplications = (applications || []).filter((app) => {
-    const matchesSearch =
-      app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.event_name.toLowerCase().includes(searchQuery.toLowerCase());
+  const paginatedApplications = applications || [];
 
-    const appDate = new Date(app.event_date);
-    const matchesFrom = !fromDate || appDate >= new Date(fromDate);
-    const matchesTo = !toDate || appDate <= new Date(toDate);
-    const matchesDistrict = districtFilter === "all" || app.district === districtFilter;
-
-    return matchesSearch && matchesFrom && matchesTo && matchesDistrict;
-  });
-
-  const totalRecords = filteredApplications.length;
-  const totalPages = Math.ceil(totalRecords / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedApplications = filteredApplications.slice(startIndex, endIndex);
 
 
 
@@ -105,20 +113,50 @@ export default function FarmerTraining() {
   };
 
   const handleExport = async () => {
-    if (!filteredApplications || filteredApplications.length === 0) {
-      toast({
-        title: "No data",
-        description: "There are no applications to export.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
+      const { frappeBrowser } = await import("@/lib/frappe");
+      toast({
+        title: "Exporting",
+        description: "Fetching applications for export...",
+      });
+
+      const allApplications = await frappeBrowser.db().getDocList("Farmer Training Application", {
+        fields: [
+          "name",
+          "event_name",
+          "event_date",
+          "district",
+          "taluka",
+          "village",
+          "venue_name",
+          "venue_type",
+          "number_of_participants",
+          "no_of_male",
+          "no_of_female",
+          "training_material",
+          "logistics",
+          "refreshment",
+          "docstatus",
+          "creation"
+        ],
+        filters: filters.length > 0 ? filters : undefined,
+        limit: 10000,
+        orderBy: { field: "creation", order: "desc" }
+      });
+
+      if (!allApplications || allApplications.length === 0) {
+        toast({
+          title: "No data",
+          description: "There are no applications to export.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const XLSX = await import('xlsx');
 
       // Prepare data for export
-      const exportData = filteredApplications.map(app => ({
+      const exportData = allApplications.map((app: any) => ({
         'Training ID': app.name,
         'Event Name': app.event_name,
         'Event Date': new Date(app.event_date).toLocaleDateString('en-GB'),
@@ -163,7 +201,7 @@ export default function FarmerTraining() {
 
       toast({
         title: "Export successful",
-        description: `Exported ${filteredApplications.length} applications.`,
+        description: `Exported ${allApplications.length} applications.`,
       });
     } catch (error) {
       toast({
@@ -201,7 +239,7 @@ export default function FarmerTraining() {
                   <div>
                     <h2 className="text-lg font-semibold">Training Applications</h2>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Total {filteredApplications.length} applications found
+                      Total {totalRecords} applications found
                     </p>
                   </div>
                 </div>
@@ -298,7 +336,7 @@ export default function FarmerTraining() {
                   <div className="text-center py-12 text-destructive">
                     Error loading applications. Please try again.
                   </div>
-                ) : filteredApplications && filteredApplications.length === 0 ? (
+                ) : paginatedApplications && paginatedApplications.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
                     No applications found.
                   </div>
