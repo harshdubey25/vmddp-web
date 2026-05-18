@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
@@ -176,6 +176,29 @@ export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
         }
     };
 
+    const handleApproveApplication = async () => {
+        if (!application) return;
+
+        try {
+            await updateDoc("Farmer Training Application", application.name, {
+                docstatus: 1,
+            });
+
+            await mutate();
+
+            toast({
+                title: "Application approved",
+                description: "Draft training application has been approved.",
+            });
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to approve application. Please try again.",
+                variant: "destructive",
+            });
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex h-screen w-full overflow-hidden bg-background">
@@ -232,10 +255,38 @@ export default function ViewFarmerTrainingApplication({ id }: { id: string }) {
                     <div className="space-y-6 max-w-4xl">
                         <Card className="border-0 bg-muted/30">
                             <CardContent className="p-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="flex-1">
+                                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                    <div>
                                         <p className="font-mono font-semibold text-lg">{application.name}</p>
                                         <p className="text-sm text-muted-foreground">Submitted on {new Date(application.creation).toLocaleDateString()}</p>
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+                                        <span
+                                            className={cn(
+                                                "inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold",
+                                                application.docstatus === 1
+                                                    ? "bg-emerald-100 text-emerald-700"
+                                                    : "bg-amber-100 text-amber-700"
+                                            )}
+                                        >
+                                            {application.docstatus === 1 ? "Approved" : "Draft"}
+                                        </span>
+                                        {application.docstatus === 0 && (
+                                            <Button
+                                                onClick={handleApproveApplication}
+                                                disabled={isUpdating}
+                                                variant="secondary"
+                                            >
+                                                {isUpdating ? (
+                                                    <>
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                        Approving...
+                                                    </>
+                                                ) : (
+                                                    "Approve Application"
+                                                )}
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             </CardContent>

@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/pagination";
 import { Download, GraduationCap, Upload, Search, FileText, Loader2 } from "lucide-react";
 import { Application } from "@/types/subadmin";
+import AccountantFarmerTrainingReviewDialog from "@/components/AccountantFarmerTrainingReviewDialog";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -29,11 +30,15 @@ export default function FarmerTraining() {
   const router = useRouter();
   const { toast } = useToast();
 
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+
 
   const [searchQuery, setSearchQuery] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [districtFilter, setDistrictFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
 
@@ -53,8 +58,9 @@ export default function FarmerTraining() {
   if (fromDate) filters.push(["event_date", ">=", fromDate]);
   if (toDate) filters.push(["event_date", "<=", toDate]);
   if (districtFilter !== "all") filters.push(["district", "=", districtFilter]);
+  if (statusFilter !== "all") filters.push(["docstatus", "=", Number(statusFilter)]);
 
-  const { data: totalCountData } = useFrappeGetDocCount(
+  const { data: totalCountData, mutate: mutateTotalCount } = useFrappeGetDocCount(
     "Farmer Training Application",
     filters.length > 0 ? filters : undefined
   );
@@ -63,7 +69,7 @@ export default function FarmerTraining() {
   const totalPages = Math.ceil(totalRecords / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
 
-  const { data: applications, isLoading, error } = useFrappeGetDocList<Application>("Farmer Training Application", {
+  const { data: applications, isLoading, error, mutate: mutateApplications } = useFrappeGetDocList<Application>("Farmer Training Application", {
     fields: [
       "name",
       "event_name",
@@ -93,11 +99,9 @@ export default function FarmerTraining() {
 
   const paginatedApplications = applications || [];
 
-
-
-
   const handleViewDetails = (app: Application) => {
-    router.push(`/admin/farmer-training/${encodeURIComponent(app.name)}`);
+    setSelectedApplicationId(app.name);
+    setIsReviewOpen(true);
   };
 
   const formatCurrency = (amount: number) => {
@@ -303,24 +307,38 @@ export default function FarmerTraining() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">Status</label>
+                    <Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value); setCurrentPage(1); }}>
+                      <SelectTrigger data-testid="select-status-filter">
+                        <SelectValue placeholder="All Statuses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="0">Draft</SelectItem>
+                        <SelectItem value="1">Submitted</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="md:col-span-2 flex items-end justify-end">
-                  {(searchQuery || fromDate || toDate || districtFilter !== "all") && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="shrink-0"
-                      onClick={() => {
-                        setSearchQuery("");
-                        setFromDate("");
-                        setToDate("");
-                        setDistrictFilter("all");
-                        setCurrentPage(1);
-                      }}
-                      data-testid="button-clear-filters"
-                    >
-                      Clear Filters
-                    </Button>
-                  )}
+                    {(searchQuery || fromDate || toDate || districtFilter !== "all" || statusFilter !== "all") && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0"
+                        onClick={() => {
+                          setSearchQuery("");
+                          setFromDate("");
+                          setToDate("");
+                          setDistrictFilter("all");
+                          setStatusFilter("all");
+                          setCurrentPage(1);
+                        }}
+                        data-testid="button-clear-filters"
+                      >
+                        Clear Filters
+                      </Button>
+                    )}
                   </div>
                 </div>
 
@@ -354,6 +372,7 @@ export default function FarmerTraining() {
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Participants</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Budget</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">District</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Status</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
                           </tr>
                         </thead>
@@ -368,6 +387,11 @@ export default function FarmerTraining() {
                               <td className="p-3 text-xs sm:text-sm">{app.number_of_participants}</td>
                               <td className="p-3 text-xs sm:text-sm">{formatCurrency(getTotalBudget(app))}</td>
                               <td className="p-3 text-xs sm:text-sm">{app.district}</td>
+                              <td className="p-3 text-xs sm:text-sm">
+                                <span className="inline-flex rounded-full px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground bg-muted">
+                                  {app.docstatus === 0 ? "Draft" : app.docstatus === 1 ? "Submitted" : "Cancelled"}
+                                </span>
+                              </td>
                               <td className="p-3 text-xs sm:text-sm">
                                 <Button
                                   variant="ghost"
@@ -440,6 +464,19 @@ export default function FarmerTraining() {
           </div>
         </main>
       </div>
+      <AccountantFarmerTrainingReviewDialog
+        applicationId={selectedApplicationId}
+        open={isReviewOpen}
+        onOpenChange={(open) => {
+          setIsReviewOpen(open);
+          if (!open) setSelectedApplicationId(null);
+        }}
+        canApprove={true}
+        onApproved={async () => {
+          await Promise.all([mutateApplications(), mutateTotalCount()]);
+          router.refresh();
+        }}
+      />
     </div>
   );
 }

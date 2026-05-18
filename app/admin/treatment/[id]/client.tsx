@@ -49,6 +49,7 @@ interface TreatmentDoc {
         expiry_date?: string;
         price?: number;
     }>;
+    docstatus?: number;
 }
 
 export default function ViewTreatmentApplication({ id }: { id: string }) {
@@ -200,6 +201,29 @@ export default function ViewTreatmentApplication({ id }: { id: string }) {
         }
     };
 
+    const handleApproveTreatment = async () => {
+        if (!treatmentDoc) return;
+
+        try {
+            await updateDoc("Treatment of Infertile Animal", treatmentDoc.name, {
+                docstatus: 1,
+            });
+
+            await mutate();
+
+            toast({
+                title: "Application approved",
+                description: "Draft treatment application has been approved.",
+            });
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to approve application. Please try again.",
+                variant: "destructive",
+            });
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex h-screen w-full overflow-hidden bg-background">
@@ -261,15 +285,43 @@ export default function ViewTreatmentApplication({ id }: { id: string }) {
                     <div className="space-y-6 max-w-4xl">
                         <Card className="border-0 bg-muted/30">
                             <CardContent className="p-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="flex-1">
+                                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                    <div>
                                         <p className="font-mono font-semibold text-lg" data-testid="text-application-id">{application.id}</p>
                                         <p className="text-sm text-muted-foreground" data-testid="text-submitted-date">Submitted on {application.submittedDate}</p>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-sm text-muted-foreground">Applicant</p>
-                                        <p className="font-semibold" data-testid="text-applicant-name">{application.applicantName}</p>
-                                        <p className="text-sm text-muted-foreground" data-testid="text-mobile">{application.aadharNumber}</p>
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 text-right">
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Applicant</p>
+                                            <p className="font-semibold" data-testid="text-applicant-name">{application.applicantName}</p>
+                                            <p className="text-sm text-muted-foreground" data-testid="text-mobile">{application.aadharNumber}</p>
+                                        </div>
+                                        <span
+                                            className={cn(
+                                                "inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold",
+                                                treatmentDoc?.docstatus === 1
+                                                    ? "bg-emerald-100 text-emerald-700"
+                                                    : "bg-amber-100 text-amber-700"
+                                            )}
+                                        >
+                                            {treatmentDoc?.docstatus === 1 ? "Approved" : "Draft"}
+                                        </span>
+                                        {treatmentDoc?.docstatus !== 1 && (
+                                            <Button
+                                                onClick={handleApproveTreatment}
+                                                disabled={isUpdating}
+                                                variant="secondary"
+                                            >
+                                                {isUpdating ? (
+                                                    <>
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                        Approving...
+                                                    </>
+                                                ) : (
+                                                    "Approve Application"
+                                                )}
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             </CardContent>

@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
     useFrappeCreateDoc,
     useFrappeGetDocList,
     useFrappeAuth,
     useFrappeGetDoc,
     useFrappeGetCall,
+    useFrappeUpdateDoc,
 } from "frappe-react-sdk";
 import {
     validateAndCompressImages,
@@ -61,10 +62,40 @@ const MAX_IMAGES = MAX_TRAINING_IMAGES;
 const MAX_IMAGE_SIZE_MB = 5;
 const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 
+interface ExistingTrainingDoc {
+    name: string;
+    event_name: string;
+    event_date: string;
+    district: string;
+    taluka: string;
+    village: string;
+    venue_type: string;
+    venue_name: string;
+    number_of_participants: number;
+    no_of_male?: number;
+    no_of_female?: number;
+    training_material?: number;
+    logistics?: number;
+    refreshment?: number;
+    images_table?: { pdf_file: string }[];
+    gallery_table?: { image: string }[];
+    comment?: string;
+}
+
+function getFileUrl(path: string) {
+    if (!path) return "";
+    return path.startsWith("http")
+        ? path
+        : `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${path}`;
+}
+
 export default function FarmerTrainingForm() {
     const { toast } = useToast();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const editingId = searchParams.get("id");
     const { createDoc, loading: isSubmitting } = useFrappeCreateDoc();
+    const { updateDoc } = useFrappeUpdateDoc();
     const [uploadingImages, setUploadingImages] = useState(false);
     const [compressingImages, setCompressingImages] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -78,6 +109,17 @@ export default function FarmerTrainingForm() {
 
     const { data: dpoData } = useFrappeGetDoc("DPO", currentUser || undefined);
     const assignedDistrict = dpoData?.district;
+
+    const [existingImagesTable, setExistingImagesTable] = useState<{ pdf_file: string }[]>([]);
+    const [existingGalleryTable, setExistingGalleryTable] = useState<{ image: string }[]>([]);
+    const [initialComment, setInitialComment] = useState<string>("");
+    const [loadedEditDocId, setLoadedEditDocId] = useState<string | null>(null);
+
+    const { data: editDoc } = useFrappeGetDoc<ExistingTrainingDoc>(
+        "Farmer Training Application",
+        editingId || "",
+        editingId ? undefined : null,
+    );
 
     const { data: trainingTarget } = useFrappeGetDocList(
         "Target Allocation",
@@ -162,6 +204,44 @@ export default function FarmerTrainingForm() {
         refreshment: "",
         totalAmount: "0",
     });
+
+    useEffect(() => {
+        if (!editingId) {
+            setLoadedEditDocId(null);
+            setExistingImagesTable([]);
+            setExistingGalleryTable([]);
+            setInitialComment("");
+            return;
+        }
+
+        if (!editDoc || loadedEditDocId === editingId) {
+            return;
+        }
+
+        setLoadedEditDocId(editingId);
+        setExistingImagesTable(editDoc.images_table || []);
+        setExistingGalleryTable(editDoc.gallery_table || []);
+        setInitialComment(editDoc.comment || "");
+
+        setFormData({
+            eventName: editDoc.event_name || "",
+            eventDate: editDoc.event_date ? new Date(editDoc.event_date) : undefined,
+            district: editDoc.district || assignedDistrict || "",
+            taluka: editDoc.taluka || "",
+            village: editDoc.village || "",
+            venueType: editDoc.venue_type || "",
+            venueName: editDoc.venue_name || "",
+            numberOfParticipants: editDoc.number_of_participants ? String(editDoc.number_of_participants) : "",
+            numberOfMale: typeof editDoc.no_of_male === "number" ? String(editDoc.no_of_male) : "",
+            numberOfFemale: typeof editDoc.no_of_female === "number" ? String(editDoc.no_of_female) : "",
+            participantListImages: [],
+            galleryImages: [],
+            trainingMaterial: typeof editDoc.training_material === "number" ? String(editDoc.training_material) : "",
+            logistics: typeof editDoc.logistics === "number" ? String(editDoc.logistics) : "",
+            refreshment: typeof editDoc.refreshment === "number" ? String(editDoc.refreshment) : "",
+            totalAmount: "0",
+        });
+    }, [assignedDistrict, editDoc, editingId, loadedEditDocId]);
 
     const { data: districtData } = useFrappeGetDocList("District Master", {
         fields: ["name", "name1"],
@@ -285,13 +365,15 @@ export default function FarmerTrainingForm() {
         if (!files) return;
 
         const newImages = Array.from(files);
-        const totalImages =
-            formData.participantListImages.length + newImages.length;
+        const existingCount = existingImagesTable.length;
+        const queuedCount = formData.participantListImages.length;
+        const totalImages = existingCount + queuedCount + newImages.length;
+        const remainingSlots = Math.max(0, MAX_IMAGES - existingCount - queuedCount);
 
         if (totalImages > MAX_IMAGES) {
             toast({
                 title: "Image Limit Exceeded",
-                description: `Maximum ${MAX_IMAGES} images allowed. You can add ${MAX_IMAGES - formData.participantListImages.length} more.`,
+                description: `Maximum ${MAX_IMAGES} PDFs allowed. You can add ${remainingSlots} more.`,
                 variant: "destructive",
             });
             return;
@@ -358,12 +440,15 @@ export default function FarmerTrainingForm() {
         if (!files) return;
 
         const newImages = Array.from(files);
-        const totalImages = formData.galleryImages.length + newImages.length;
+        const existingCount = existingGalleryTable.length;
+        const queuedCount = formData.galleryImages.length;
+        const totalImages = existingCount + queuedCount + newImages.length;
+        const remainingSlots = Math.max(0, MAX_IMAGES - existingCount - queuedCount);
 
         if (totalImages > MAX_IMAGES) {
             toast({
                 title: "Image Limit Exceeded",
-                description: `Maximum ${MAX_IMAGES} images allowed. You can add ${MAX_IMAGES - formData.galleryImages.length} more.`,
+                description: `Maximum ${MAX_IMAGES} images allowed. You can add ${remainingSlots} more.`,
                 variant: "destructive",
             });
             return;
@@ -547,7 +632,7 @@ export default function FarmerTrainingForm() {
 
             setUploadingImages(false);
 
-            await createDoc('Farmer Training Application', {
+            const payload = {
                 event_name: formData.eventName,
                 event_date: format(formData.eventDate!, 'yyyy-MM-dd'),
                 district: formData.district,
@@ -558,17 +643,25 @@ export default function FarmerTrainingForm() {
                 number_of_participants: parseInt(formData.numberOfParticipants),
                 no_of_male: formData.numberOfMale ? parseInt(formData.numberOfMale) : 0,
                 no_of_female: formData.numberOfFemale ? parseInt(formData.numberOfFemale) : 0,
-                images_table: imageTableEntries,
-                gallery_table: galleryTableEntries,
+                images_table: [...existingImagesTable, ...imageTableEntries],
+                gallery_table: [...existingGalleryTable, ...galleryTableEntries],
                 training_material: parseFloat(formData.trainingMaterial) || 0,
                 logistics: parseFloat(formData.logistics) || 0,
                 refreshment: parseFloat(formData.refreshment) || 0,
-            });
+            };
+
+            if (editingId) {
+                await updateDoc("Farmer Training Application", editingId, payload);
+            } else {
+                await createDoc('Farmer Training Application', payload);
+            }
 
             toast({
-                title: "Application Submitted",
+                title: editingId ? "Application Updated" : "Application Submitted",
                 description:
-                    "Farmer training application has been submitted successfully.",
+                    editingId
+                        ? "Farmer training application updated successfully."
+                        : "Farmer training application has been submitted successfully.",
             });
 
             router.push("/subadmin/farmer-training");
@@ -592,6 +685,14 @@ export default function FarmerTrainingForm() {
 
     const handleCancel = () => {
         router.push("/subadmin/farmer-training");
+    };
+
+    const removeExistingPdf = (idx: number) => {
+        setExistingImagesTable((prev) => prev.filter((_, i) => i !== idx));
+    };
+
+    const removeExistingGalleryImage = (idx: number) => {
+        setExistingGalleryTable((prev) => prev.filter((_, i) => i !== idx));
     };
 
     const formatCurrency = (amount: string | number) => {
@@ -627,11 +728,12 @@ export default function FarmerTrainingForm() {
                                 <div className="p-2 bg-primary/10 text-primary rounded-lg shadow-sm">
                                     <GraduationCap className="w-5 h-5" />
                                 </div>
-                                New Farmer Training Application
+                                {editingId ? "Edit Farmer Training Application" : "New Farmer Training Application"}
                             </h1>
                             <p className="text-sm text-muted-foreground mt-1">
-                                Fill in the details to create a new training
-                                application
+                                {editingId
+                                    ? "Update the details and submit again"
+                                    : "Fill in the details to create a new training application"}
                             </p>
                         </div>
                     </div>
@@ -649,6 +751,22 @@ export default function FarmerTrainingForm() {
                                     <strong>No Target Allocated:</strong> No physical or financial target has been allocated for Farmer Training component in your district. Please contact the administrator to set up targets before submitting applications.
                                 </AlertDescription>
                             </Alert>
+                        )}
+
+                        {editingId && initialComment.trim() && (
+                            <Card className="border-2 border-blue-200 bg-blue-50/40">
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-base">Comment</CardTitle>
+                                    <CardDescription>
+                                        Please review this comment before updating the application.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="whitespace-pre-wrap text-sm text-foreground">
+                                        {initialComment}
+                                    </div>
+                                </CardContent>
+                            </Card>
                         )}
                         <Card className="relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm shadow-sm transition-all hover:shadow-md">
                             <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
@@ -1037,6 +1155,43 @@ export default function FarmerTrainingForm() {
                                         onChange={handleImageUpload}
                                         data-testid="input-images"
                                     />
+                                    {editingId && existingImagesTable.length > 0 && (
+                                        <div className="mt-3 space-y-2">
+                                            <div className="text-xs font-medium text-muted-foreground">
+                                                Existing PDFs
+                                            </div>
+                                            <div className="space-y-2">
+                                                {existingImagesTable.map((entry, idx) => {
+                                                    const url = getFileUrl(entry.pdf_file);
+                                                    const filename =
+                                                        entry.pdf_file?.split("/").pop() || `PDF ${idx + 1}`;
+                                                    return (
+                                                        <div
+                                                            key={`${entry.pdf_file}-${idx}`}
+                                                            className="flex items-center justify-between gap-3 rounded-md border bg-muted/10 p-3"
+                                                        >
+                                                            <a
+                                                                href={url}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="truncate text-sm text-primary underline"
+                                                            >
+                                                                {filename}
+                                                            </a>
+                                                            <Button
+                                                                type="button"
+                                                                variant="destructive"
+                                                                size="sm"
+                                                                onClick={() => removeExistingPdf(idx)}
+                                                            >
+                                                                Remove
+                                                            </Button>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
                                     {formData.participantListImages.length > 0 && (
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
                                             {formData.participantListImages.map((img, idx) => (
@@ -1066,6 +1221,49 @@ export default function FarmerTrainingForm() {
                                         onChange={handleGalleryUpload}
                                         data-testid="input-gallery-images"
                                     />
+                                    {editingId && existingGalleryTable.length > 0 && (
+                                        <div className="mt-3 space-y-2">
+                                            <div className="text-xs font-medium text-muted-foreground">
+                                                Existing Images
+                                            </div>
+                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                                {existingGalleryTable.map((entry, idx) => {
+                                                    const url = getFileUrl(entry.image);
+                                                    return (
+                                                        <div
+                                                            key={`${entry.image}-${idx}`}
+                                                            className="group relative overflow-hidden rounded-md border bg-muted/10"
+                                                        >
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img
+                                                                src={url}
+                                                                alt={`Gallery ${idx + 1}`}
+                                                                className="h-28 w-full object-cover"
+                                                            />
+                                                            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-background/80 p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                                                <a
+                                                                    href={url}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="truncate text-xs text-primary underline"
+                                                                >
+                                                                    View
+                                                                </a>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="destructive"
+                                                                    size="sm"
+                                                                    onClick={() => removeExistingGalleryImage(idx)}
+                                                                >
+                                                                    Remove
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
                                     {formData.galleryImages.length > 0 && (
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
                                             {formData.galleryImages.map((img, idx) => (

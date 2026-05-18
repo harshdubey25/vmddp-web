@@ -138,7 +138,10 @@ export default function TreatmentPage() {
       app.applicantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.village.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.aadharNumber?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || app.docstatus.toString() === statusFilter;
+    const matchesStatus =
+      statusFilter === "all"
+        ? app.docstatus !== 2
+        : app.docstatus.toString() === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -269,7 +272,6 @@ export default function TreatmentPage() {
                       <SelectItem value="all">All Status</SelectItem>
                       <SelectItem value="0">Draft</SelectItem>
                       <SelectItem value="1">Submitted</SelectItem>
-                      <SelectItem value="2">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -334,16 +336,27 @@ export default function TreatmentPage() {
                                 </Badge>
                               </td>
                               <td className="p-3 text-sm">
-
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleViewDetails(app)}
-                                  data-testid="button-view-details"
-                                >
-                                  <FileText className="w-4 h-4 mr-1" />
-                                  View
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleViewDetails(app)}
+                                    data-testid="button-view-details"
+                                  >
+                                    <FileText className="w-4 h-4 mr-1" />
+                                    View
+                                  </Button>
+                                  {app.docstatus === 0 && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => router.push(`/subadmin/treatment-form?id=${app.id}`)}
+                                      data-testid="button-edit-application"
+                                    >
+                                      Edit
+                                    </Button>
+                                  )}
+                                </div>
                               </td>
                             </tr>
                           ))}
