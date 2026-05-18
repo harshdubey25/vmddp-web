@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
+import { uploadImagesWithCompression } from "@/lib/image-utils";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { X } from "lucide-react";
 import {
     CheckCircle,
     ImageIcon,
@@ -15,6 +18,7 @@ import {
     Pill,
     Stethoscope,
     User,
+    Trash2,
 } from "lucide-react";
 
 interface ImageTableEntry {
@@ -59,6 +63,7 @@ interface TreatmentApplication {
     follow_up_observations?: string;
     gallery_table?: ImageTableEntry[];
     medicine?: TreatmentMedicineEntry[];
+    comment?: string;
     docstatus?: number;
 }
 
@@ -89,6 +94,12 @@ export default function AccountantTreatmentReviewDialog({
     const { updateDoc } = useFrappeUpdateDoc();
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSendingBack, setIsSendingBack] = useState(false);
+    const [comment, setComment] = useState("");
+
+    const [deletingIdx, setDeletingIdx] = useState<number | null>(null);
+    const [uploadingGallery, setUploadingGallery] = useState(false);
+    const galleryInputRef = useRef<HTMLInputElement>(null);
 
     const {
         data: treatmentDoc,
@@ -102,13 +113,20 @@ export default function AccountantTreatmentReviewDialog({
     );
 
     useEffect(() => {
+        if (open && treatmentDoc?.comment) {
+            setComment(treatmentDoc.comment);
+        }
+    }, [open, treatmentDoc?.comment]);
+
+    useEffect(() => {
         if (!open) {
             setPreviewImage(null);
+            setComment("");
         }
     }, [open]);
 
     const handleApproveAndSubmit = async () => {
-        if (!applicationId || isSubmitting) {
+        if (!applicationId || isSubmitting || isSendingBack) {
             return;
         }
 
@@ -120,12 +138,15 @@ export default function AccountantTreatmentReviewDialog({
             });
 
             await mutate();
-            await onApproved?.();
-
+            
             toast({
                 title: "Application Submitted",
                 description: "The treatment application has been approved and submitted successfully.",
             });
+            
+            // Close dialog and trigger page refresh
+            onOpenChange(false);
+            await onApproved?.();
         } catch (err: any) {
             toast({
                 title: "Submission Failed",
@@ -137,6 +158,104 @@ export default function AccountantTreatmentReviewDialog({
         }
     };
 
+    const handleSendBackToDPO = async () => {
+        if (!applicationId || isSubmitting || isSendingBack) {
+            return;
+        }
+
+        const nextComment = comment.trim();
+        if (!nextComment) {
+            toast({
+                title: "Comment required",
+                description: "Please add a comment before sending back to DPO.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setIsSendingBack(true);
+
+        try {
+            await updateDoc("Treatment of Infertile Animal", applicationId, {
+                docstatus: 0,
+                comment: nextComment,
+            });
+
+            await mutate();
+
+            toast({
+                title: "Sent back to DPO",
+                description: "Comment saved and application sent back for correction.",
+            });
+
+            onOpenChange(false);
+            await onApproved?.();
+        } catch (err: any) {
+            toast({
+                title: "Send back failed",
+                description: err?.message || "Failed to send back the application. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsSendingBack(false);
+        }
+    };
+
+    const handleAddGalleryImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!treatmentDoc) return;
+
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        try {
+            setUploadingGallery(true);
+            toast({ title: "Uploading...", description: `Adding ${files.length} image(s) to gallery...` });
+
+            const uploaded = await uploadImagesWithCompression(Array.from(files), { fileType: 'image' });
+
+            const existingGallery = treatmentDoc.gallery_table || [];
+            const newGalleryEntries = uploaded.map((img) => ({ image: img.image }));
+
+            await updateDoc("Treatment of Infertile Animal", treatmentDoc.name, {
+                gallery_table: [
+                    ...existingGallery.map((entry) => ({ image: entry.image })),
+                    ...newGalleryEntries,
+                ],
+            });
+
+            await mutate();
+
+            toast({ title: "Images added successfully", description: `${uploaded.length} image(s) added to gallery.` });
+
+            if (galleryInputRef.current) galleryInputRef.current.value = "";
+        } catch (err) {
+            toast({ title: "Upload failed", description: "Failed to upload images. Please try again.", variant: "destructive" });
+        } finally {
+            setUploadingGallery(false);
+        }
+    };
+
+    const handleDeleteGalleryImage = async (idx: number) => {
+        if (!treatmentDoc) return;
+
+        try {
+            setDeletingIdx(idx);
+            const updated = treatmentDoc.gallery_table?.filter((_, i) => i !== idx) || [];
+
+            await updateDoc("Treatment of Infertile Animal", treatmentDoc.name, {
+                gallery_table: updated.map((entry) => ({ image: entry.image })),
+            });
+
+            await mutate();
+
+            toast({ title: "Image removed", description: "Gallery image has been deleted successfully." });
+        } catch (err) {
+            toast({ title: "Error", description: "Failed to delete image. Please try again.", variant: "destructive" });
+        } finally {
+            setDeletingIdx(null);
+        }
+    };
+
     const medicineTotal = treatmentDoc?.medicine?.reduce((sum, medicine) => sum + (medicine.price || 0), 0) || 0;
 
     return (
@@ -144,43 +263,43 @@ export default function AccountantTreatmentReviewDialog({
             <Dialog open={open} onOpenChange={onOpenChange}>
                 <DialogContent className="w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto p-0">
                     <DialogHeader className="sticky top-0 z-10 border-b bg-background px-6 py-4">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex items-start justify-between gap-4">
                             <div className="space-y-1">
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
                                     <DialogTitle className="flex items-center gap-2">
                                         <Stethoscope className="h-5 w-5" />
                                         Review Application
                                     </DialogTitle>
-                                    <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+
+                                    <Badge
+                                        variant="secondary"
+                                        className="border-primary/20 bg-primary/10 text-primary"
+                                    >
                                         Treatment of Infertile Animal
                                     </Badge>
+
                                     {treatmentDoc?.docstatus === 1 && (
-                                        <Badge className="bg-green-100 text-green-800 border-green-200">
+                                        <Badge className="border-green-200 bg-green-100 text-green-800">
                                             <CheckCircle className="mr-1 h-3.5 w-3.5" />
                                             Submitted
                                         </Badge>
                                     )}
                                 </div>
+
                                 <DialogDescription>
                                     {treatmentDoc ? treatmentDoc.name : applicationId || "Loading application"}
                                 </DialogDescription>
                             </div>
 
-                            {canApprove && treatmentDoc?.docstatus === 0 && (
+                            <DialogClose asChild>
                                 <Button
-                                    className="gap-2 self-start"
-                                    onClick={handleApproveAndSubmit}
-                                    disabled={isSubmitting}
-                                    data-testid="button-submit"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="shrink-0 rounded-full"
                                 >
-                                    {isSubmitting ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                        <CheckCircle className="h-4 w-4" />
-                                    )}
-                                    Approve & Submit
+                                    <X className="h-4 w-4" />
                                 </Button>
-                            )}
+                            </DialogClose>
                         </div>
                     </DialogHeader>
 
@@ -200,6 +319,19 @@ export default function AccountantTreatmentReviewDialog({
                                         <strong>Review needed:</strong> This application is currently in <strong>Draft</strong>.
                                         Verify the treatment and medicine details before approving fund release.
                                     </div>
+                                )}
+
+                                {treatmentDoc.comment?.trim() && (
+                                    <Card>
+                                        <CardHeader className="pb-3">
+                                            <CardTitle className="text-base">Comment</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="whitespace-pre-wrap text-sm text-foreground">
+                                                {treatmentDoc.comment}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
                                 )}
 
                                 <Card>
@@ -379,6 +511,23 @@ export default function AccountantTreatmentReviewDialog({
                                             <CardTitle className="flex items-center gap-2 text-base">
                                                 <ImageIcon className="h-4 w-4" />
                                                 Gallery
+                                                <Button
+                                                    onClick={() => galleryInputRef.current?.click()}
+                                                    disabled={uploadingGallery}
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="ml-4"
+                                                >
+                                                    {uploadingGallery ? "Uploading..." : "Add Images"}
+                                                </Button>
+                                                <input
+                                                    ref={galleryInputRef}
+                                                    type="file"
+                                                    multiple
+                                                    accept="image/*"
+                                                    onChange={handleAddGalleryImage}
+                                                    className="hidden"
+                                                />
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent>
@@ -389,15 +538,30 @@ export default function AccountantTreatmentReviewDialog({
                                                     return (
                                                         <div
                                                             key={`${imageUrl}-${idx}`}
-                                                            className="group relative h-24 cursor-pointer overflow-hidden rounded-lg border bg-muted shadow-sm transition-all hover:shadow-md"
-                                                            onClick={() => setPreviewImage(imageUrl)}
+                                                            className="group relative h-24 overflow-hidden rounded-lg border bg-muted shadow-sm transition-all hover:shadow-md"
                                                         >
-                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                            <img
-                                                                src={imageUrl}
-                                                                alt={`Gallery ${idx + 1}`}
-                                                                className="h-full w-full object-cover transition-transform group-hover:scale-110"
-                                                            />
+                                                            <div onClick={() => setPreviewImage(imageUrl)} className="cursor-pointer h-full">
+                                                                <img
+                                                                    src={imageUrl}
+                                                                    alt={`Gallery ${idx + 1}`}
+                                                                    className="h-full w-full object-cover transition-transform group-hover:scale-110"
+                                                                />
+                                                            </div>
+
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteGalleryImage(idx);
+                                                                }}
+                                                                disabled={deletingIdx === idx}
+                                                                className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                                                            >
+                                                                {deletingIdx === idx ? (
+                                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                                ) : (
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                )}
+                                                            </button>
                                                         </div>
                                                     );
                                                 })}
@@ -407,21 +571,51 @@ export default function AccountantTreatmentReviewDialog({
                                 )}
 
                                 {canApprove && treatmentDoc.docstatus === 0 && (
-                                    <div className="flex justify-center pt-2">
-                                        <Button
-                                            size="lg"
-                                            className="px-10 text-base font-semibold"
-                                            onClick={handleApproveAndSubmit}
-                                            disabled={isSubmitting}
-                                        >
-                                            {isSubmitting ? (
-                                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                            ) : (
-                                                <CheckCircle className="mr-2 h-5 w-5" />
-                                            )}
-                                            Approve and Finalize Payment
-                                        </Button>
-                                    </div>
+                                    <Card>
+                                        <CardHeader className="pb-3">
+                                            <CardTitle className="text-base">Review</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-3">
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-medium text-muted-foreground">Comment (required to send back)</label>
+                                                <Textarea
+                                                    value={comment}
+                                                    onChange={(e) => setComment(e.target.value)}
+                                                    placeholder="Write a comment for the DPO (what to correct, missing documents, etc.)"
+                                                    disabled={isSubmitting || isSendingBack}
+                                                />
+                                            </div>
+
+                                            <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+                                                <Button
+                                                    size="lg"
+                                                    variant="outline"
+                                                    className="px-8 text-base font-semibold"
+                                                    onClick={handleSendBackToDPO}
+                                                    disabled={isSubmitting || isSendingBack}
+                                                >
+                                                    {isSendingBack ? (
+                                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                                    ) : null}
+                                                    Send Back to DPO
+                                                </Button>
+
+                                                <Button
+                                                    size="lg"
+                                                    className="px-10 text-base font-semibold"
+                                                    onClick={handleApproveAndSubmit}
+                                                    disabled={isSubmitting || isSendingBack}
+                                                >
+                                                    {isSubmitting ? (
+                                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                                    ) : (
+                                                        <CheckCircle className="mr-2 h-5 w-5" />
+                                                    )}
+                                                    Submit
+                                                </Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
                                 )}
                             </div>
                         )}

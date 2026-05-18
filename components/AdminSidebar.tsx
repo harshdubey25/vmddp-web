@@ -117,9 +117,6 @@ const accountantMenuItems: MenuItem[] = [
 
   },
   { icon: TargetIcon, label: "Admin Expenses", path: "/accountant/admin-expenses" },
-  { type: "separator", label: "Target Based Allocation" },
-  { icon: GraduationCap, label: "Farmer Training", path: "/accountant/farmer-training" },
-  { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/accountant/treatment" }
 ]
 
 const secretoryMenuItems: MenuItem[] = [

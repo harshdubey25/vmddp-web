@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/pagination";
 import { Download, Stethoscope, Upload, Search, FileText, Loader2 } from "lucide-react";
 import { TreatmentDoc } from "@/types/subadmin";
+import AccountantTreatmentReviewDialog from "@/components/AccountantTreatmentReviewDialog";
 
 interface TreatmentDetails {
   ownerFirstName: string;
@@ -77,10 +78,14 @@ interface Application {
 export default function TreatmentPage() {
   const router = useRouter();
 
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [districtFilter, setDistrictFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
@@ -92,7 +97,12 @@ export default function TreatmentPage() {
     limit: 100,
   });
 
-  const { data: treatmentApplications, isLoading, error } = useFrappeGetDocList<TreatmentDoc>(
+  const {
+    data: treatmentApplications,
+    isLoading,
+    error,
+    mutate: mutateTreatmentApplications,
+  } = useFrappeGetDocList<TreatmentDoc>(
     "Treatment of Infertile Animal",
     {
       fields: [
@@ -155,7 +165,11 @@ export default function TreatmentPage() {
     const matchesFrom = !fromDate || submittedDate >= new Date(fromDate);
     const matchesTo = !toDate || submittedDate <= new Date(toDate);
     const matchesDistrict = districtFilter === "all" || app.district === districtFilter;
-    return matchesSearch && matchesFrom && matchesTo && matchesDistrict;
+    const matchesStatus =
+      statusFilter === "all"
+        ? app.docstatus !== 2
+        : app.docstatus.toString() === statusFilter;
+    return matchesSearch && matchesFrom && matchesTo && matchesDistrict && matchesStatus;
   });
 
   const totalRecords = filteredApplications.length;
@@ -166,7 +180,8 @@ export default function TreatmentPage() {
 
 
   const handleViewDetails = (app: Application) => {
-    router.push(`/admin/treatment/${encodeURIComponent(app.id)}`);
+    setSelectedApplicationId(app.id);
+    setIsReviewOpen(true);
   };
 
   const handleExport = async () => {
@@ -233,6 +248,19 @@ export default function TreatmentPage() {
         <header className="flex items-center justify-between p-6 border-b bg-card">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-treatment-title">
+              <AccountantTreatmentReviewDialog
+                applicationId={selectedApplicationId}
+                open={isReviewOpen}
+                onOpenChange={(open) => {
+                  setIsReviewOpen(open);
+                  if (!open) setSelectedApplicationId(null);
+                }}
+                canApprove={true}
+                onApproved={async () => {
+                  await mutateTreatmentApplications();
+                  router.refresh();
+                }}
+              />
               <Stethoscope className="w-6 h-6" />
               Treatment of Infertile Animal
             </h1>
@@ -312,8 +340,21 @@ export default function TreatmentPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">Status</label>
+                    <Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value); setCurrentPage(1); }}>
+                      <SelectTrigger data-testid="select-status-filter">
+                        <SelectValue placeholder="All Statuses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="0">Draft</SelectItem>
+                        <SelectItem value="1">Submitted</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="md:col-span-2 flex items-end justify-end">
-                    {(searchQuery || fromDate || toDate || districtFilter !== "all") && (
+                    {(searchQuery || fromDate || toDate || districtFilter !== "all" || statusFilter !== "all") && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -323,6 +364,7 @@ export default function TreatmentPage() {
                           setFromDate("");
                           setToDate("");
                           setDistrictFilter("all");
+                          setStatusFilter("all");
                           setCurrentPage(1);
                         }}
                         data-testid="button-clear-filters"
@@ -361,6 +403,7 @@ export default function TreatmentPage() {
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">District</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Taluka</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Village</th>
+                            <th className="text-left p-3 text-xs sm:text-sm font-medium">Status</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Treatment Date</th>
                             <th className="text-left p-3 text-xs sm:text-sm font-medium">Actions</th>
 
@@ -378,6 +421,11 @@ export default function TreatmentPage() {
                               <td className="p-3 text-xs sm:text-sm">{app.district}</td>
                               <td className="p-3 text-xs sm:text-sm">{app.taluka}</td>
                               <td className="p-3 text-xs sm:text-sm">{app.village}</td>
+                              <td className="p-3 text-xs sm:text-sm">
+                                <span className="inline-flex rounded-full bg-muted px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                  {app.docstatus === 0 ? "Draft" : app.docstatus === 1 ? "Submitted" : "Cancelled"}
+                                </span>
+                              </td>
                               <td className="p-3 text-xs sm:text-sm text-muted-foreground">{app.treatment_date}</td>
                               <td className="p-3 text-xs sm:text-sm">
                                 <Button

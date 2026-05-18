@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
+import { uploadImagesWithCompression, uploadFiles } from "@/lib/image-utils";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { X } from "lucide-react";
 import {
     Building,
     CheckCircle,
@@ -45,6 +48,7 @@ interface FarmerTrainingApplication {
     training_material: number;
     logistics: number;
     refreshment: number;
+    comment?: string;
     docstatus: number;
     creation: string;
 }
@@ -78,6 +82,15 @@ export default function AccountantFarmerTrainingReviewDialog({
     const { updateDoc } = useFrappeUpdateDoc();
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSendingBack, setIsSendingBack] = useState(false);
+    const [comment, setComment] = useState("");
+
+    const [deletingPdfIdx, setDeletingPdfIdx] = useState<number | null>(null);
+    const [deletingGalleryIdx, setDeletingGalleryIdx] = useState<number | null>(null);
+    const [uploadingGallery, setUploadingGallery] = useState(false);
+    const [uploadingPdfs, setUploadingPdfs] = useState(false);
+    const galleryInputRef = useRef<HTMLInputElement>(null);
+    const pdfInputRef = useRef<HTMLInputElement>(null);
 
     const {
         data: application,
@@ -91,8 +104,15 @@ export default function AccountantFarmerTrainingReviewDialog({
     );
 
     useEffect(() => {
+        if (open && application?.comment) {
+            setComment(application.comment);
+        }
+    }, [open, application?.comment]);
+
+    useEffect(() => {
         if (!open) {
             setPreviewImage(null);
+            setComment("");
         }
     }, [open]);
 
@@ -122,7 +142,7 @@ export default function AccountantFarmerTrainingReviewDialog({
     const getRemainingBudget = () => getExpectedBudget() - getTotalBudget();
 
     const handleApproveAndSubmit = async () => {
-        if (!applicationId || isSubmitting) {
+        if (!applicationId || isSubmitting || isSendingBack) {
             return;
         }
 
@@ -134,12 +154,15 @@ export default function AccountantFarmerTrainingReviewDialog({
             });
 
             await mutate();
-            await onApproved?.();
-
+            
             toast({
                 title: "Application Submitted",
                 description: "The training application has been approved and submitted successfully.",
             });
+            
+            // Close dialog and trigger page refresh
+            onOpenChange(false);
+            await onApproved?.();
         } catch (err: any) {
             toast({
                 title: "Submission Failed",
@@ -151,45 +174,193 @@ export default function AccountantFarmerTrainingReviewDialog({
         }
     };
 
+    const handleSendBackToDPO = async () => {
+        if (!applicationId || isSubmitting || isSendingBack) {
+            return;
+        }
+
+        const nextComment = comment.trim();
+        if (!nextComment) {
+            toast({
+                title: "Comment required",
+                description: "Please add a comment before sending back to DPO.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setIsSendingBack(true);
+
+        try {
+            await updateDoc("Farmer Training Application", applicationId, {
+                docstatus: 0,
+                comment: nextComment,
+            });
+
+            await mutate();
+
+            toast({
+                title: "Sent back to DPO",
+                description: "Comment saved and application sent back for correction.",
+            });
+
+            onOpenChange(false);
+            await onApproved?.();
+        } catch (err: any) {
+            toast({
+                title: "Send back failed",
+                description: err?.message || "Failed to send back the application. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsSendingBack(false);
+        }
+    };
+
+    const handleAddGalleryImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!application) return;
+
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        try {
+            setUploadingGallery(true);
+            toast({ title: "Uploading...", description: `Adding ${files.length} image(s) to gallery...` });
+
+            const uploaded = await uploadImagesWithCompression(Array.from(files), { fileType: 'image' });
+
+            const existingGallery = application.gallery_table || [];
+            const newGalleryEntries = uploaded.map((img) => ({ image: img.image }));
+
+            await updateDoc("Farmer Training Application", application.name, {
+                gallery_table: [
+                    ...existingGallery.map((entry) => ({ image: entry.image })),
+                    ...newGalleryEntries,
+                ],
+            });
+
+            await mutate();
+
+            toast({ title: "Images added successfully", description: `${uploaded.length} image(s) added to gallery.` });
+
+            if (galleryInputRef.current) galleryInputRef.current.value = "";
+        } catch (err) {
+            toast({ title: "Upload failed", description: "Failed to upload images. Please try again.", variant: "destructive" });
+        } finally {
+            setUploadingGallery(false);
+        }
+    };
+
+    const handleDeleteGalleryImage = async (idx: number) => {
+        if (!application) return;
+
+        try {
+            setDeletingGalleryIdx(idx);
+            const updated = application.gallery_table?.filter((_, i) => i !== idx) || [];
+
+            await updateDoc("Farmer Training Application", application.name, {
+                gallery_table: updated.map((entry) => ({ image: entry.image })),
+            });
+
+            await mutate();
+
+            toast({ title: "Image removed", description: "Gallery image has been deleted successfully." });
+        } catch (err) {
+            toast({ title: "Error", description: "Failed to delete image. Please try again.", variant: "destructive" });
+        } finally {
+            setDeletingGalleryIdx(null);
+        }
+    };
+
+    const handleAddPdfs = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!application) return;
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        try {
+            setUploadingPdfs(true);
+            toast({ title: "Uploading...", description: `Uploading ${files.length} PDF(s)...` });
+
+            const uploadedUrls = await uploadFiles(Array.from(files), false, 'Home');
+
+            const existing = application.images_table || [];
+            const newEntries = uploadedUrls.map((url) => ({ pdf_file: url }));
+
+            await updateDoc("Farmer Training Application", application.name, {
+                images_table: [
+                    ...existing.map((entry) => ({ pdf_file: entry.pdf_file })),
+                    ...newEntries,
+                ],
+            });
+
+            await mutate();
+
+            toast({ title: "PDFs uploaded", description: `${uploadedUrls.length} PDF(s) added.` });
+
+            if (pdfInputRef.current) pdfInputRef.current.value = "";
+        } catch (err) {
+            toast({ title: "Upload failed", description: "Failed to upload PDFs.", variant: "destructive" });
+        } finally {
+            setUploadingPdfs(false);
+        }
+    };
+
+    const handleDeletePdf = async (idx: number) => {
+        if (!application) return;
+
+        try {
+            setDeletingPdfIdx(idx);
+            const updated = application.images_table?.filter((_, i) => i !== idx) || [];
+
+            await updateDoc("Farmer Training Application", application.name, {
+                images_table: updated.map((entry) => ({ pdf_file: entry.pdf_file })),
+            });
+
+            await mutate();
+
+            toast({ title: "PDF removed", description: "PDF has been deleted successfully." });
+        } catch (err) {
+            toast({ title: "Error", description: "Failed to delete PDF.", variant: "destructive" });
+        } finally {
+            setDeletingPdfIdx(null);
+        }
+    };
+
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
                 <DialogContent className="w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto p-0">
                     <DialogHeader className="sticky top-0 z-10 border-b bg-background px-6 py-4">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex items-start justify-between gap-4">
                             <div className="space-y-1">
                                 <div className="flex items-center gap-2">
                                     <DialogTitle className="flex items-center gap-2">
                                         <FileText className="h-5 w-5" />
                                         Review Training Application
                                     </DialogTitle>
+
                                     {application?.docstatus === 1 && (
                                         <Badge className="bg-green-100 text-green-800 border-green-200">
                                             <CheckCircle className="mr-1 h-3.5 w-3.5" />
-                                            Already Submitted
+                                            Submitted
                                         </Badge>
                                     )}
                                 </div>
+
                                 <DialogDescription>
                                     {application ? application.name : applicationId || "Loading application"}
                                 </DialogDescription>
                             </div>
 
-                            {canApprove && application?.docstatus === 0 && (
+                            <DialogClose asChild>
                                 <Button
-                                    className="gap-2 self-start"
-                                    onClick={handleApproveAndSubmit}
-                                    disabled={isSubmitting}
-                                    data-testid="button-submit-application"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="shrink-0 rounded-full"
                                 >
-                                    {isSubmitting ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                        <CheckCircle className="h-4 w-4" />
-                                    )}
-                                    Approve & Submit
+                                    <X className="h-4 w-4" />
                                 </Button>
-                            )}
+                            </DialogClose>
                         </div>
                     </DialogHeader>
 
@@ -209,6 +380,19 @@ export default function AccountantFarmerTrainingReviewDialog({
                                         <strong>Attention:</strong> This application is in <strong>Draft</strong> status.
                                         Review it before approving.
                                     </div>
+                                )}
+
+                                {application.comment?.trim() && (
+                                    <Card>
+                                        <CardHeader className="pb-3">
+                                            <CardTitle className="text-base">Comment</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="whitespace-pre-wrap text-sm text-foreground">
+                                                {application.comment}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
                                 )}
 
                                 <Card>
@@ -376,43 +560,71 @@ export default function AccountantFarmerTrainingReviewDialog({
                                         <CardTitle className="flex items-center gap-2 text-base">
                                             <FileText className="h-4 w-4" />
                                             Supporting Documents (PDF)
+                                            <Button
+                                                onClick={() => pdfInputRef.current?.click()}
+                                                disabled={uploadingPdfs}
+                                                size="sm"
+                                                variant="outline"
+                                                className="ml-4"
+                                            >
+                                                {uploadingPdfs ? "Uploading..." : "Add PDF"}
+                                            </Button>
+                                            <input
+                                                ref={pdfInputRef}
+                                                type="file"
+                                                multiple
+                                                accept="application/pdf"
+                                                onChange={handleAddPdfs}
+                                                className="hidden"
+                                            />
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent>
                                         {application.images_table && application.images_table.length > 0 ? (
-                                            <div className="grid gap-3 md:grid-cols-2">
+                                            <div className="space-y-2">
                                                 {application.images_table.map((entry, idx) => {
                                                     const pdfUrl = getFileUrl(entry.pdf_file);
                                                     const fileName =
                                                         pdfUrl.split("/").pop() || `Participant List ${idx + 1}`;
 
                                                     return (
-                                                        <a
-                                                            key={`${pdfUrl}-${idx}`}
-                                                            href={pdfUrl}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-muted"
-                                                        >
-                                                            <div className="flex h-10 w-10 items-center justify-center rounded bg-red-50 text-red-500">
-                                                                <FileText size={20} />
-                                                            </div>
-                                                            <div className="min-w-0 flex-1">
-                                                                <p className="truncate text-sm font-medium">{fileName}</p>
-                                                                <p className="text-xs text-muted-foreground">
-                                                                    Click to view or download
-                                                                </p>
-                                                            </div>
-                                                        </a>
+                                                        <div key={`${pdfUrl}-${idx}`} className="flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-muted">
+                                                            <a
+                                                                href={pdfUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="min-w-0 flex-1"
+                                                            >
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="flex h-10 w-10 items-center justify-center rounded bg-red-50 text-red-500">
+                                                                        <FileText size={20} />
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="truncate text-sm font-medium">{fileName}</p>
+                                                                        <p className="text-xs text-muted-foreground">Click to view or download</p>
+                                                                    </div>
+                                                                </div>
+                                                            </a>
+                                                            <button
+                                                                onClick={() => handleDeletePdf(idx)}
+                                                                disabled={deletingPdfIdx === idx}
+                                                                className="ml-2 rounded bg-red-500 px-2 py-1 text-white disabled:opacity-50"
+                                                            >
+                                                                {deletingPdfIdx === idx ? "Removing..." : "Remove"}
+                                                            </button>
+                                                        </div>
                                                     );
                                                 })}
                                             </div>
                                         ) : (
                                             <div className="rounded-lg border border-dashed bg-muted/20 p-8 text-center">
                                                 <FileText className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
-                                                <p className="text-sm text-muted-foreground">
-                                                    No participant lists uploaded
-                                                </p>
+                                                <p className="text-sm text-muted-foreground">No participant lists uploaded</p>
+                                                <div className="mt-2">
+                                                    <Button size="sm" variant="outline" onClick={() => pdfInputRef.current?.click()}>
+                                                        Add PDF
+                                                    </Button>
+                                                </div>
                                             </div>
                                         )}
                                     </CardContent>
@@ -423,6 +635,23 @@ export default function AccountantFarmerTrainingReviewDialog({
                                         <CardTitle className="flex items-center gap-2 text-base">
                                             <ImageIcon className="h-4 w-4" />
                                             Event Gallery
+                                            <Button
+                                                onClick={() => galleryInputRef.current?.click()}
+                                                disabled={uploadingGallery}
+                                                size="sm"
+                                                variant="outline"
+                                                className="ml-4"
+                                            >
+                                                {uploadingGallery ? "Uploading..." : "Add Images"}
+                                            </Button>
+                                            <input
+                                                ref={galleryInputRef}
+                                                type="file"
+                                                multiple
+                                                accept="image/*"
+                                                onChange={handleAddGalleryImage}
+                                                className="hidden"
+                                            />
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent>
@@ -435,17 +664,30 @@ export default function AccountantFarmerTrainingReviewDialog({
                                                         <div
                                                             key={`${imageUrl}-${idx}`}
                                                             className="group relative cursor-pointer overflow-hidden rounded-lg border bg-muted shadow-sm transition-all hover:shadow-md"
-                                                            onClick={() => setPreviewImage(imageUrl)}
                                                         >
-                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                            <img
-                                                                src={imageUrl}
-                                                                alt={`Gallery image ${idx + 1}`}
-                                                                className="h-32 w-full object-cover transition-transform group-hover:scale-110"
-                                                            />
-                                                            <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">
-                                                                <ImageIcon className="h-6 w-6 text-white" />
+                                                            <div onClick={() => setPreviewImage(imageUrl)}>
+                                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                <img
+                                                                    src={imageUrl}
+                                                                    alt={`Gallery image ${idx + 1}`}
+                                                                    className="h-32 w-full object-cover transition-transform group-hover:scale-110"
+                                                                />
                                                             </div>
+
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteGalleryImage(idx);
+                                                                }}
+                                                                disabled={deletingGalleryIdx === idx}
+                                                                className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                                                            >
+                                                                {deletingGalleryIdx === idx ? (
+                                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                                ) : (
+                                                                    <X className="w-4 h-4" />
+                                                                )}
+                                                            </button>
                                                         </div>
                                                     );
                                                 })}
@@ -454,27 +696,62 @@ export default function AccountantFarmerTrainingReviewDialog({
                                             <div className="rounded-lg border border-dashed bg-muted/20 p-8 text-center">
                                                 <ImageIcon className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
                                                 <p className="text-sm text-muted-foreground">No gallery images available</p>
+                                                <div className="mt-2">
+                                                    <Button size="sm" variant="outline" onClick={() => galleryInputRef.current?.click()}>
+                                                        Add Images
+                                                    </Button>
+                                                </div>
                                             </div>
                                         )}
                                     </CardContent>
                                 </Card>
 
                                 {canApprove && application.docstatus === 0 && (
-                                    <div className="flex justify-center pt-2">
-                                        <Button
-                                            size="lg"
-                                            className="px-10 text-base font-semibold"
-                                            onClick={handleApproveAndSubmit}
-                                            disabled={isSubmitting}
-                                        >
-                                            {isSubmitting ? (
-                                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                            ) : (
-                                                <CheckCircle className="mr-2 h-5 w-5" />
-                                            )}
-                                            Submit for Fund Release
-                                        </Button>
-                                    </div>
+                                    <Card>
+                                        <CardHeader className="pb-3">
+                                            <CardTitle className="text-base">Review</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-3">
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-medium text-muted-foreground">Comment (required to send back)</label>
+                                                <Textarea
+                                                    value={comment}
+                                                    onChange={(e) => setComment(e.target.value)}
+                                                    placeholder="Write a comment for the DPO (what to correct, missing documents, etc.)"
+                                                    disabled={isSubmitting || isSendingBack}
+                                                />
+                                            </div>
+
+                                            <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+                                                <Button
+                                                    size="lg"
+                                                    variant="outline"
+                                                    className="px-8 text-base font-semibold"
+                                                    onClick={handleSendBackToDPO}
+                                                    disabled={isSubmitting || isSendingBack}
+                                                >
+                                                    {isSendingBack ? (
+                                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                                    ) : null}
+                                                    Send Back to DPO
+                                                </Button>
+
+                                                <Button
+                                                    size="lg"
+                                                    className="px-10 text-base font-semibold"
+                                                    onClick={handleApproveAndSubmit}
+                                                    disabled={isSubmitting || isSendingBack}
+                                                >
+                                                    {isSubmitting ? (
+                                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                                    ) : (
+                                                        <CheckCircle className="mr-2 h-5 w-5" />
+                                                    )}
+                                                    Submit
+                                                </Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
                                 )}
                             </div>
                         )}
@@ -490,7 +767,6 @@ export default function AccountantFarmerTrainingReviewDialog({
                     <div className="flex items-center justify-center p-2">
                         {previewImage && (
                             <>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                     src={previewImage}
                                     alt="Preview"

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { useFrappeCreateDoc, useFrappeGetDocList, useFrappeAuth, useFrappeGetDoc, useFrappeGetCall } from "frappe-react-sdk";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useFrappeCreateDoc, useFrappeGetDocList, useFrappeAuth, useFrappeGetDoc, useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
 import { validateAndCompressImages, uploadImagesWithCompression } from "@/lib/image-utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,10 +23,59 @@ import { Badge } from "@/components/ui/badge";
 const MAX_IMAGES = 5;
 const MAX_IMAGE_SIZE_MB = 5;
 
+interface ExistingTreatmentSymptomEntry {
+  symtomp: string;
+}
+
+interface ExistingTreatmentMedicineEntry {
+  date?: string;
+  medicine_name?: string;
+  dose?: string;
+  schedule?: string;
+  route_of_administration?: string;
+  batch_number?: string;
+  expiry_date?: string;
+  price?: number;
+  unit?: string;
+}
+
+interface ExistingTreatmentDoc {
+  name: string;
+  first_name: string;
+  middle_name?: string;
+  surname: string;
+  aadhar_number?: string;
+  district: string;
+  taluka: string;
+  village: string;
+  animal_type: string;
+  tag_number: string;
+  examination_date?: string;
+  veterinarian_name?: string;
+  symptom?: ExistingTreatmentSymptomEntry[];
+  suggested_treatment?: string;
+  treatment_given?: string;
+  treatment_date?: string;
+  primary_treatment?: string;
+  actual_treatment_outcome?: string;
+  follow_up_observations?: string;
+  medicine?: ExistingTreatmentMedicineEntry[];
+  gallery_table?: { image: string }[];
+  comment?: string;
+}
+
+function getFileUrl(path: string) {
+  if (!path) return "";
+  return path.startsWith("http") ? path : `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}${path}`;
+}
+
 export default function TreatmentForm() {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editingId = searchParams.get("id");
   const { createDoc, loading: isSubmitting } = useFrappeCreateDoc();
+  const { updateDoc } = useFrappeUpdateDoc();
   const [compressingImages, setCompressingImages] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { currentUser } = useFrappeAuth();
@@ -53,6 +102,20 @@ export default function TreatmentForm() {
     assignedDistrict ? { district: assignedDistrict } : undefined,
     assignedDistrict ? undefined : null
   );
+
+  const [existingGalleryTable, setExistingGalleryTable] = useState<{ image: string }[]>([]);
+  const [initialComment, setInitialComment] = useState<string>("");
+  const [loadedEditDocId, setLoadedEditDocId] = useState<string | null>(null);
+
+  const { data: editDoc } = useFrappeGetDoc<ExistingTreatmentDoc>(
+    "Treatment of Infertile Animal",
+    editingId || "",
+    editingId ? undefined : null
+  );
+
+  const removeExistingGalleryImage = (idx: number) => {
+    setExistingGalleryTable((prev) => prev.filter((_, i) => i !== idx));
+  };
 
   const remainingStockQuantity = remainingStockData?.message ?? null;
 
@@ -102,6 +165,60 @@ export default function TreatmentForm() {
       setFormData(prev => ({ ...prev, district: assignedDistrict }));
     }
   }, [assignedDistrict, formData.district]);
+
+  useEffect(() => {
+    if (!editingId) {
+      setLoadedEditDocId(null);
+      setExistingGalleryTable([]);
+      setInitialComment("");
+      return;
+    }
+
+    if (!editDoc || loadedEditDocId === editingId) {
+      return;
+    }
+
+    setLoadedEditDocId(editingId);
+    setExistingGalleryTable(editDoc.gallery_table || []);
+    setInitialComment(editDoc.comment || "");
+
+    const symptoms = (editDoc.symptom || []).map((s) => s.symtomp).filter(Boolean);
+    const medicines: MedicineEntry[] = (editDoc.medicine || []).map((m, idx) => ({
+      unit: m.unit || "",
+      id: `med-existing-${idx}`,
+      date: m.date ? new Date(m.date) : undefined,
+      medicineName: m.medicine_name || "",
+      dose: m.dose || "",
+      schedule: m.schedule || "",
+      routeOfAdministration: m.route_of_administration || "",
+      batchNumber: m.batch_number || "",
+      expiryDate: m.expiry_date ? new Date(m.expiry_date) : undefined,
+      price: typeof m.price === "number" ? String(m.price) : "",
+    }));
+
+    setFormData({
+      firstName: editDoc.first_name || "",
+      middleName: editDoc.middle_name || "",
+      surname: editDoc.surname || "",
+      aadharNumber: editDoc.aadhar_number || "",
+      district: editDoc.district || assignedDistrict || "",
+      taluka: editDoc.taluka || "",
+      village: editDoc.village || "",
+      animalType: editDoc.animal_type || "",
+      tagNumber: editDoc.tag_number || "",
+      examinationDate: editDoc.examination_date ? new Date(editDoc.examination_date) : undefined,
+      veterinarianName: editDoc.veterinarian_name || "",
+      symptoms,
+      suggestedTreatment: editDoc.suggested_treatment || "",
+      treatmentGiven: editDoc.treatment_given || "",
+      treatmentDate: editDoc.treatment_date ? new Date(editDoc.treatment_date) : undefined,
+      primaryTreatment: editDoc.primary_treatment || "",
+      actualTreatment: editDoc.actual_treatment_outcome || "",
+      followUpNotes: editDoc.follow_up_observations || "",
+      medicines,
+      galleryImages: [],
+    });
+  }, [assignedDistrict, editDoc, editingId, loadedEditDocId]);
 
   const { data: itemData } = useFrappeGetDocList("Item", {
     fields: ["name", "item_name"],
@@ -197,12 +314,15 @@ export default function TreatmentForm() {
     if (!files) return;
 
     const newImages = Array.from(files);
-    const totalImages = formData.galleryImages.length + newImages.length;
+    const existingCount = existingGalleryTable.length;
+    const queuedCount = formData.galleryImages.length;
+    const totalImages = existingCount + queuedCount + newImages.length;
+    const remainingSlots = Math.max(0, MAX_IMAGES - existingCount - queuedCount);
 
     if (totalImages > MAX_IMAGES) {
       toast({
         title: "Image Limit Exceeded",
-        description: `Maximum ${MAX_IMAGES} images allowed. You can add ${MAX_IMAGES - formData.galleryImages.length} more.`,
+        description: `Maximum ${MAX_IMAGES} images allowed. You can add ${remainingSlots} more.`,
         variant: "destructive",
       });
       return;
@@ -442,8 +562,9 @@ export default function TreatmentForm() {
         })
         : [];
 
+      const nextGalleryTable = [...existingGalleryTable, ...galleryTableEntries];
+
       const docData = {
-        doctype: "Treatment of Infertile Animal",
         first_name: formData.firstName,
         middle_name: formData.middleName || undefined,
         surname: formData.surname,
@@ -467,14 +588,25 @@ export default function TreatmentForm() {
         actual_treatment_outcome: formData.actualTreatment || undefined,
         follow_up_observations: formData.followUpNotes || undefined,
         medicine: medicinesTable.length > 0 ? medicinesTable : undefined,
-        gallery_table: galleryTableEntries.length > 0 ? galleryTableEntries : undefined,
+        ...(editingId
+          ? { gallery_table: nextGalleryTable }
+          : { gallery_table: nextGalleryTable.length > 0 ? nextGalleryTable : undefined }),
       };
 
-      await createDoc("Treatment of Infertile Animal", docData);
+      if (editingId) {
+        await updateDoc("Treatment of Infertile Animal", editingId, docData);
+      } else {
+        await createDoc("Treatment of Infertile Animal", {
+          doctype: "Treatment of Infertile Animal",
+          ...docData,
+        });
+      }
 
       toast({
-        title: "Application Submitted",
-        description: "Treatment of Infertile Animal application has been registered successfully.",
+        title: editingId ? "Application Updated" : "Application Submitted",
+        description: editingId
+          ? "Treatment of Infertile Animal application updated successfully."
+          : "Treatment of Infertile Animal application has been registered successfully.",
       });
 
       router.push("/subadmin/treatment");
@@ -513,7 +645,7 @@ export default function TreatmentForm() {
                 Treatment of Infertile Animal
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Register new application for infertility treatment
+                {editingId ? "Update the existing application" : "Register new application for infertility treatment"}
               </p>
             </div>
           </div>
@@ -557,6 +689,19 @@ export default function TreatmentForm() {
                 </AlertDescription>
               </Alert>
             )}
+
+            {editingId && initialComment.trim() && (
+              <Card className="border-2 border-blue-200 bg-blue-50/40">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Comment</CardTitle>
+                  <CardDescription>Please review this comment before updating the application.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="whitespace-pre-wrap text-sm text-foreground">{initialComment}</div>
+                </CardContent>
+              </Card>
+            )}
+
             <fieldset disabled={!hasValidTarget || targetsAchieved.either}>
               {hasValidTarget && (
                 <Card className="relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm shadow-sm transition-all hover:shadow-md">
@@ -975,6 +1120,49 @@ export default function TreatmentForm() {
                       onChange={handleGalleryUpload}
                       data-testid="input-gallery-images"
                     />
+                    {editingId && existingGalleryTable.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <div className="text-xs font-medium text-muted-foreground">
+                          Existing Images
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {existingGalleryTable.map((entry, idx) => {
+                            const url = getFileUrl(entry.image);
+                            return (
+                              <div
+                                key={`${entry.image}-${idx}`}
+                                className="group relative overflow-hidden rounded-md border bg-muted/10"
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={url}
+                                  alt={`Gallery ${idx + 1}`}
+                                  className="h-28 w-full object-cover"
+                                />
+                                <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-background/80 p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                  <a
+                                    href={url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="truncate text-xs text-primary underline"
+                                  >
+                                    View
+                                  </a>
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => removeExistingGalleryImage(idx)}
+                                  >
+                                    Remove
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                     {formData.galleryImages.length > 0 && (
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
                         {formData.galleryImages.map((img, idx) => (
