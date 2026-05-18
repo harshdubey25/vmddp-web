@@ -58,7 +58,11 @@ export default function FarmerTraining() {
   if (fromDate) filters.push(["event_date", ">=", fromDate]);
   if (toDate) filters.push(["event_date", "<=", toDate]);
   if (districtFilter !== "all") filters.push(["district", "=", districtFilter]);
-  if (statusFilter !== "all") filters.push(["docstatus", "=", Number(statusFilter)]);
+  if (statusFilter === "all") {
+    filters.push(["docstatus", "!=", 2]);
+  } else {
+    filters.push(["docstatus", "=", Number(statusFilter)]);
+  }
 
   const { data: totalCountData, mutate: mutateTotalCount } = useFrappeGetDocCount(
     "Farmer Training Application",
