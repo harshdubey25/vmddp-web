@@ -154,12 +154,12 @@ export default function AccountantFarmerTrainingReviewDialog({
             });
 
             await mutate();
-            
+
             toast({
                 title: "Application Submitted",
                 description: "The training application has been approved and submitted successfully.",
             });
-            
+
             // Close dialog and trigger page refresh
             onOpenChange(false);
             await onApproved?.();
@@ -560,15 +560,17 @@ export default function AccountantFarmerTrainingReviewDialog({
                                         <CardTitle className="flex items-center gap-2 text-base">
                                             <FileText className="h-4 w-4" />
                                             Supporting Documents (PDF)
-                                            <Button
-                                                onClick={() => pdfInputRef.current?.click()}
-                                                disabled={uploadingPdfs}
-                                                size="sm"
-                                                variant="outline"
-                                                className="ml-4"
-                                            >
-                                                {uploadingPdfs ? "Uploading..." : "Add PDF"}
-                                            </Button>
+                                            {application.docstatus !== 1 && (
+                                                <Button
+                                                    onClick={() => pdfInputRef.current?.click()}
+                                                    disabled={uploadingPdfs}
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="ml-4"
+                                                >
+                                                    {uploadingPdfs ? "Uploading..." : "Add PDF"}
+                                                </Button>
+                                            )}
                                             <input
                                                 ref={pdfInputRef}
                                                 type="file"
@@ -605,13 +607,15 @@ export default function AccountantFarmerTrainingReviewDialog({
                                                                     </div>
                                                                 </div>
                                                             </a>
-                                                            <button
-                                                                onClick={() => handleDeletePdf(idx)}
-                                                                disabled={deletingPdfIdx === idx}
-                                                                className="ml-2 rounded bg-red-500 px-2 py-1 text-white disabled:opacity-50"
-                                                            >
-                                                                {deletingPdfIdx === idx ? "Removing..." : "Remove"}
-                                                            </button>
+                                                            {application.docstatus !== 1 && (
+                                                                <button
+                                                                    onClick={() => handleDeletePdf(idx)}
+                                                                    disabled={deletingPdfIdx === idx}
+                                                                    className="ml-2 rounded bg-red-500 px-2 py-1 text-white disabled:opacity-50"
+                                                                >
+                                                                    {deletingPdfIdx === idx ? "Removing..." : "Remove"}
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     );
                                                 })}
@@ -635,15 +639,17 @@ export default function AccountantFarmerTrainingReviewDialog({
                                         <CardTitle className="flex items-center gap-2 text-base">
                                             <ImageIcon className="h-4 w-4" />
                                             Event Gallery
-                                            <Button
-                                                onClick={() => galleryInputRef.current?.click()}
-                                                disabled={uploadingGallery}
-                                                size="sm"
-                                                variant="outline"
+                                            {application.docstatus !== 1 && (
+                                                <Button
+                                                    onClick={() => galleryInputRef.current?.click()}
+                                                    disabled={uploadingGallery}
+                                                    size="sm"
+                                                    variant="outline"
                                                 className="ml-4"
                                             >
                                                 {uploadingGallery ? "Uploading..." : "Add Images"}
                                             </Button>
+                                            )}
                                             <input
                                                 ref={galleryInputRef}
                                                 type="file"
@@ -726,14 +732,14 @@ export default function AccountantFarmerTrainingReviewDialog({
                                                 <Button
                                                     size="lg"
                                                     variant="outline"
-                                                    className="px-8 text-base font-semibold"
+                                                    className="px bg-yellow-400 text-base font-semibold"
                                                     onClick={handleSendBackToDPO}
                                                     disabled={isSubmitting || isSendingBack}
                                                 >
                                                     {isSendingBack ? (
                                                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                                                     ) : null}
-                                                    Send Back to DPO
+                                                    Review and Reject
                                                 </Button>
 
                                                 <Button

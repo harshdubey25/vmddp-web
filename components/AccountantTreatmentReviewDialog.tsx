@@ -138,12 +138,12 @@ export default function AccountantTreatmentReviewDialog({
             });
 
             await mutate();
-            
+
             toast({
                 title: "Application Submitted",
                 description: "The treatment application has been approved and submitted successfully.",
             });
-            
+
             // Close dialog and trigger page refresh
             onOpenChange(false);
             await onApproved?.();
@@ -511,15 +511,17 @@ export default function AccountantTreatmentReviewDialog({
                                             <CardTitle className="flex items-center gap-2 text-base">
                                                 <ImageIcon className="h-4 w-4" />
                                                 Gallery
-                                                <Button
-                                                    onClick={() => galleryInputRef.current?.click()}
-                                                    disabled={uploadingGallery}
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="ml-4"
-                                                >
-                                                    {uploadingGallery ? "Uploading..." : "Add Images"}
-                                                </Button>
+                                                {treatmentDoc.docstatus !== 1 && (
+                                                    <Button
+                                                        onClick={() => galleryInputRef.current?.click()}
+                                                        disabled={uploadingGallery}
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="ml-4"
+                                                    >
+                                                        {uploadingGallery ? "Uploading..." : "Add Images"}
+                                                    </Button>
+                                                )}
                                                 <input
                                                     ref={galleryInputRef}
                                                     type="file"
@@ -590,14 +592,14 @@ export default function AccountantTreatmentReviewDialog({
                                                 <Button
                                                     size="lg"
                                                     variant="outline"
-                                                    className="px-8 text-base font-semibold"
+                                                    className="px-8 bg-yellow-400 text-base font-semibold"
                                                     onClick={handleSendBackToDPO}
                                                     disabled={isSubmitting || isSendingBack}
                                                 >
                                                     {isSendingBack ? (
                                                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                                                     ) : null}
-                                                    Send Back to DPO
+                                                    Review and Reject
                                                 </Button>
 
                                                 <Button
