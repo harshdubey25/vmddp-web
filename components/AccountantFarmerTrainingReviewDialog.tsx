@@ -51,6 +51,7 @@ interface FarmerTrainingApplication {
     comment?: string;
     docstatus: number;
     creation: string;
+    inreview: number;
 }
 
 interface AccountantFarmerTrainingReviewDialogProps {
@@ -151,6 +152,7 @@ export default function AccountantFarmerTrainingReviewDialog({
         try {
             await updateDoc("Farmer Training Application", applicationId, {
                 docstatus: 1,
+                inreview: 0,
             });
 
             await mutate();
@@ -195,6 +197,7 @@ export default function AccountantFarmerTrainingReviewDialog({
             await updateDoc("Farmer Training Application", applicationId, {
                 docstatus: 0,
                 comment: nextComment,
+                inreview: 1,
             });
 
             await mutate();
@@ -645,10 +648,10 @@ export default function AccountantFarmerTrainingReviewDialog({
                                                     disabled={uploadingGallery}
                                                     size="sm"
                                                     variant="outline"
-                                                className="ml-4"
-                                            >
-                                                {uploadingGallery ? "Uploading..." : "Add Images"}
-                                            </Button>
+                                                    className="ml-4"
+                                                >
+                                                    {uploadingGallery ? "Uploading..." : "Add Images"}
+                                                </Button>
                                             )}
                                             <input
                                                 ref={galleryInputRef}

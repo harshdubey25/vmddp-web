@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappeGetDocCount } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
@@ -71,6 +71,7 @@ interface Application {
     customQuestions: { label: string; answer: string }[];
   };
   docstatus: number;
+  inreview: number;
 }
 
 
@@ -80,7 +81,7 @@ export default function TreatmentPage() {
 
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
-
+  const [activeTab, setActiveTab] = useState<"application" | "review">("application");
   const [searchQuery, setSearchQuery] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -89,6 +90,7 @@ export default function TreatmentPage() {
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
+
 
 
 
@@ -126,13 +128,21 @@ export default function TreatmentPage() {
         "docstatus",
         "creation",
         "modified",
-
+        "inreview",
       ],
       orderBy: {
         field: "creation",
         order: "desc",
       },
     }
+  );
+
+  const { data: reviewCountData } = useFrappeGetDocCount(
+    "Treatment of Infertile Animal",
+    [
+      ["inreview", "=", 1],
+      ["docstatus", "!=", 2],
+    ]
   );
 
   const applications: Application[] = (treatmentApplications || []).map((doc) => ({
@@ -152,6 +162,7 @@ export default function TreatmentPage() {
       customQuestions: [],
     },
     docstatus: doc.docstatus,
+    inreview: doc.inreview,
   }));
 
 
@@ -169,7 +180,10 @@ export default function TreatmentPage() {
       statusFilter === "all"
         ? app.docstatus !== 2
         : app.docstatus.toString() === statusFilter;
-    return matchesSearch && matchesFrom && matchesTo && matchesDistrict && matchesStatus;
+
+    const matchesTab =
+      activeTab === "application" ? app.inreview !== 1 : app.inreview === 1;
+    return matchesSearch && matchesFrom && matchesTo && matchesDistrict && matchesStatus && matchesTab;
   });
 
   const totalRecords = filteredApplications.length;
@@ -278,15 +292,44 @@ export default function TreatmentPage() {
           <div className="space-y-6 max-w-7xl">
             <Card>
               <CardHeader>
-                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div className="flex flex-col md:flex-row justify-between">
                   <div>
                     <h2 className="text-lg font-semibold">Treatment Applications</h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Total {filteredApplications.length} applications found • Page {currentPage} of {totalPages || 1}
+                    <p className="text-sm text-muted-foreground">
+                      Total {filteredApplications.length} applications
                     </p>
                   </div>
+
+
                 </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant={activeTab === "application" ? "default" : "outline"}
+                    onClick={() => {
+                      setActiveTab("application");
+                      setCurrentPage(1);
+                    }}
+                  >
+                    Applications
+                  </Button>
+
+                  <Button
+                    variant={activeTab === "review" ? "default" : "outline"}
+                    onClick={() => {
+                      setActiveTab("review");
+                      setCurrentPage(1);
+                    }}
+                  >
+                    In Review
+                    {reviewCountData && reviewCountData > 0 && (
+                      <Badge variant="destructive" className="ml-2">
+                        {reviewCountData}
+                      </Badge>
+                    )}
+                  </Button>
+                </div>  
               </CardHeader>
+
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                   <div className="md:col-span-2 flex flex-col gap-1">

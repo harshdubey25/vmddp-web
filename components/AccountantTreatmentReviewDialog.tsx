@@ -135,6 +135,7 @@ export default function AccountantTreatmentReviewDialog({
         try {
             await updateDoc("Treatment of Infertile Animal", applicationId, {
                 docstatus: 1,
+                inreview: 0,
             });
 
             await mutate();
@@ -179,6 +180,7 @@ export default function AccountantTreatmentReviewDialog({
             await updateDoc("Treatment of Infertile Animal", applicationId, {
                 docstatus: 0,
                 comment: nextComment,
+                inreview: 1,
             });
 
             await mutate();
