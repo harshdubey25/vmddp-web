@@ -300,33 +300,34 @@ export default function TreatmentPage() {
                     </p>
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant={activeTab === "application" ? "default" : "outline"}
-                      onClick={() => {
-                        setActiveTab("application");
-                        setCurrentPage(1);
-                      }}
-                    >
-                      Applications
-                    </Button>
 
-                    <Button
-                      variant={activeTab === "review" ? "default" : "outline"}
-                      onClick={() => {
-                        setActiveTab("review");
-                        setCurrentPage(1);
-                      }}
-                    >
-                      In Review
-                      {reviewCountData && reviewCountData > 0 && (
-                        <Badge variant="destructive" className="ml-2">
-                          {reviewCountData}
-                        </Badge>
-                      )}
-                    </Button>
-                  </div>
                 </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant={activeTab === "application" ? "default" : "outline"}
+                    onClick={() => {
+                      setActiveTab("application");
+                      setCurrentPage(1);
+                    }}
+                  >
+                    Applications
+                  </Button>
+
+                  <Button
+                    variant={activeTab === "review" ? "default" : "outline"}
+                    onClick={() => {
+                      setActiveTab("review");
+                      setCurrentPage(1);
+                    }}
+                  >
+                    In Review
+                    {reviewCountData && reviewCountData > 0 && (
+                      <Badge variant="destructive" className="ml-2">
+                        {reviewCountData}
+                      </Badge>
+                    )}
+                  </Button>
+                </div>  
               </CardHeader>
 
               <CardContent className="space-y-4">
