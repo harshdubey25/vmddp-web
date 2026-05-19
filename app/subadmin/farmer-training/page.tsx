@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useFrappeGetDocList, useFrappeAuth, useFrappeGetDoc } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappeAuth, useFrappeGetDoc, useFrappeGetDocCount } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -22,7 +22,7 @@ export default function FarmerTraining() {
   const router = useRouter();
   const { toast } = useToast();
   const { currentUser } = useFrappeAuth();
-
+  const [activeTab, setActiveTab] = useState<"application" | "review">("application");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
@@ -48,7 +48,8 @@ export default function FarmerTraining() {
       "logistics",
       "refreshment",
       "docstatus",
-      "creation"
+      "creation",
+      "inreview"
     ],
     filters: assignedDistrict ? [["district", "=", assignedDistrict]] : [],
     orderBy: {
@@ -58,12 +59,25 @@ export default function FarmerTraining() {
     limit: 1000,
   });
 
+  const { data: reviewCount } = useFrappeGetDocCount(
+    "Farmer Training Application",
+    [
+      ["district", "=", assignedDistrict],
+      ["inreview", "=", 1],
+      ["docstatus", "!=", 2],
+    ]
+  );
+
   const filteredApplications = (applications || []).filter((app) => {
     const matchesSearch =
       app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.event_name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" ? app.docstatus !== 2 : app.docstatus.toString() === statusFilter;
-    return matchesSearch && matchesStatus;
+
+    const mathcesTab =
+      activeTab === "application" ? app.inreview !== 1 : app.inreview === 1;
+
+    return matchesSearch && matchesStatus && mathcesTab;
   });
 
 
@@ -197,6 +211,29 @@ export default function FarmerTraining() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={activeTab === "application" ? "default" : "outline"}
+                    onClick={() => setActiveTab("application")}
+                  >
+                    Applications
+                  </Button>
+
+                  <Button
+                    variant={activeTab === "review" ? "default" : "outline"}
+                    onClick={() => setActiveTab("review")}
+                    className="relative"
+                    data-testid="button-tab-reviews"
+                  >
+                    In Review
+
+                    {(reviewCount || 0) > 0 && (
+                      <span className="ml-2 rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">
+                        {reviewCount}
+                      </span>
+                    )}
+                  </Button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -267,7 +304,13 @@ export default function FarmerTraining() {
                                     app.docstatus === 2 && "bg-red-50 text-red-700 border-red-200"
                                   )}
                                 >
-                                  {app.docstatus === 0 ? "Draft" : app.docstatus === 1 ? "Submitted" : "Cancelled"}
+                                  {app.inreview === 1
+                                    ? "Review Requested"
+                                    : app.docstatus === 0
+                                      ? "Draft"
+                                      : app.docstatus === 1
+                                        ? "Submitted"
+                                        : "Cancelled"}
                                 </Badge>
                               </td>
                               <td className="p-3 text-sm">
@@ -281,7 +324,7 @@ export default function FarmerTraining() {
                                     <FileText className="w-4 h-4 mr-1" />
                                     View
                                   </Button>
-                                  {app.docstatus === 0 && (
+                                  {app.docstatus === 0 && app.inreview === 1 && (
                                     <Button
                                       variant="outline"
                                       size="sm"

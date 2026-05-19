@@ -33,7 +33,7 @@ export default function FarmerTraining() {
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
 
-
+  const [activeTab, setActiveTab] = useState<"application" | "review">("application");
   const [searchQuery, setSearchQuery] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -64,9 +64,23 @@ export default function FarmerTraining() {
     filters.push(["docstatus", "=", Number(statusFilter)]);
   }
 
+  if (activeTab === "application") {
+    filters.push(["inreview", "!=", 1]);
+  } else {
+    filters.push(["inreview", "=", 1]);
+  }
+
   const { data: totalCountData, mutate: mutateTotalCount } = useFrappeGetDocCount(
     "Farmer Training Application",
     filters.length > 0 ? filters : undefined
+  );
+
+  const { data: reviewCountData } = useFrappeGetDocCount(
+    "Farmer Training Application",
+    [
+      ["inreview", "=", 1],
+      ["docstatus", "!=", 2]
+    ]
   );
 
   const totalRecords = totalCountData || 0;
@@ -90,7 +104,8 @@ export default function FarmerTraining() {
       "logistics",
       "refreshment",
       "docstatus",
-      "creation"
+      "creation",
+      "inreview"
     ],
     filters: filters.length > 0 ? filters : undefined,
     orderBy: {
@@ -100,6 +115,7 @@ export default function FarmerTraining() {
     limit: pageSize,
     limit_start: startIndex,
   });
+
 
   const paginatedApplications = applications || [];
 
@@ -253,6 +269,35 @@ export default function FarmerTraining() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 pt-4">
+                <div className="flex gap-2">
+                  <Button
+                    variant={activeTab === "application" ? "default" : "outline"}
+                    onClick={() => {
+                      setActiveTab("application");
+                      setCurrentPage(1);
+                    }}
+                    data-testid="button-tab-applications"
+                  >
+                    Applications
+                  </Button>
+                  <Button
+                    variant={activeTab === "review" ? "default" : "outline"}
+                    onClick={() => {
+                      setActiveTab("review");
+                      setCurrentPage(1);
+                    }}
+                    className="relative"
+                    data-testid="button-tab-reviews"
+                  >
+                    In Review
+
+                    {reviewCountData ? (
+                      <span className="ml-2 rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">
+                        {reviewCountData}
+                      </span>
+                    ) : null}
+                  </Button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                   <div className="md:col-span-2 flex flex-col gap-1">
                     <label className="text-xs font-medium text-muted-foreground">Search</label>
@@ -393,7 +438,14 @@ export default function FarmerTraining() {
                               <td className="p-3 text-xs sm:text-sm">{app.district}</td>
                               <td className="p-3 text-xs sm:text-sm">
                                 <span className="inline-flex rounded-full px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground bg-muted">
-                                  {app.docstatus === 0 ? "Draft" : app.docstatus === 1 ? "Submitted" : "Cancelled"}
+                                  {app.inreview === 1
+                                    ? "In Review"
+                                    : app.docstatus === 0
+                                      ? "Draft"
+                                      : app.docstatus === 1
+                                        ? "Submitted"
+                                        : "Cancelled"
+                                  }
                                 </span>
                               </td>
                               <td className="p-3 text-xs sm:text-sm">

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useFrappeGetDocList, useFrappeAuth, useFrappeGetDoc } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappeAuth, useFrappeGetDoc, useFrappeGetDocCount } from "frappe-react-sdk";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -62,6 +62,7 @@ interface Application {
     customQuestions: { label: string; answer: string }[];
   };
   docstatus: number;
+  inreview: number;
 }
 
 
@@ -74,7 +75,7 @@ export default function TreatmentPage() {
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const { toast } = useToast();
-
+  const [activeTab, setActiveTab] = useState<"application" | "review">("application");
   const { data: dpoData } = useFrappeGetDoc("DPO", currentUser || undefined);
   const assignedDistrict = dpoData?.district;
 
@@ -102,7 +103,7 @@ export default function TreatmentPage() {
         "docstatus",
         "creation",
         "modified",
-
+        "inreview"
       ],
       filters: assignedDistrict ? [["district", "=", assignedDistrict]] : [],
       orderBy: {
@@ -110,6 +111,15 @@ export default function TreatmentPage() {
         order: "desc",
       },
     }
+  );
+
+  const { data: reviewCount } = useFrappeGetDocCount(
+    "Treatment of Infertile Animal",
+    [
+      ["district", "=", assignedDistrict],
+      ["inreview", "=", 1],
+      ["docstatus", "!=", 2],
+    ]
   );
 
   const applications: Application[] = (treatmentApplications || []).map((doc) => ({
@@ -129,6 +139,7 @@ export default function TreatmentPage() {
       customQuestions: [],
     },
     docstatus: doc.docstatus,
+    inreview: doc.inreview,
   }));
 
 
@@ -142,7 +153,13 @@ export default function TreatmentPage() {
       statusFilter === "all"
         ? app.docstatus !== 2
         : app.docstatus.toString() === statusFilter;
-    return matchesSearch && matchesStatus;
+
+    const matchesTab =
+      activeTab === "application"
+        ? app.inreview !== 1
+        : app.inreview === 1;
+
+    return matchesSearch && matchesStatus && matchesTab;
   });
 
 
@@ -253,6 +270,28 @@ export default function TreatmentPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                  <Button
+                    variant={activeTab === "application" ? "default" : "outline"}
+                    onClick={() => setActiveTab("application")}
+                  >
+                    Applications
+                  </Button>
+
+                  <Button
+                    variant={activeTab === "review" ? "default" : "outline"}
+                    onClick={() => setActiveTab("review")}
+                    className="relative"
+                  >
+                    In Review
+
+                    {(reviewCount || 0) > 0 && (
+                      <span className="ml-2 rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">
+                        {reviewCount}
+                      </span>
+                    )}
+                  </Button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

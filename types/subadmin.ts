@@ -122,6 +122,7 @@ export interface Application {
     total_budget: number;
     docstatus: number;
     creation: string;
+    inreview: number;
 }
 
 export interface TreatmentDoc {
@@ -145,5 +146,6 @@ export interface TreatmentDoc {
     docstatus: number;
     creation: string;
     modified: string;
+    inreview: number;
 }
 
