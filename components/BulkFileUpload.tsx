@@ -368,7 +368,7 @@ export default function BulkFileUpload({
 
     // Phase 5 Polling
     const startPolling = (importName: string) => {
-        let intervalId: NodeJS.Timeout;
+        let intervalId: NodeJS.Timeout | undefined = undefined;
         const POLL_INTERVAL = 3000; // Poll every 3 seconds
 
         const checkStatus = async () => {
