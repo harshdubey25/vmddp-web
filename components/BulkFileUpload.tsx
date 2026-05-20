@@ -551,7 +551,7 @@ export default function BulkFileUpload({
                     <div>
                         <CardTitle className="text-xl font-bold font-display">Bulk File Importer</CardTitle>
                         <CardDescription>
-                            Import records securely using Frappe's background Data Import architecture.
+                            Import records securely using Frappe&apos;s background Data Import architecture.
                         </CardDescription>
                     </div>
                     <div className="flex items-center gap-3">
