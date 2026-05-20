@@ -385,7 +385,7 @@ export default function TreatmentPage() {
                                     <FileText className="w-4 h-4 mr-1" />
                                     View
                                   </Button>
-                                  {app.docstatus === 0 && (
+                                  {app.docstatus === 0 && app.inreview===1 && (
                                     <Button
                                       variant="outline"
                                       size="sm"
