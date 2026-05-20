@@ -24,6 +24,7 @@ import { Component, DBTClaim } from "@/types";
 import DisbursedClaimsTable from "@/components/DisbursedClaimsTable";
 import { exportReport, type ExportFormat } from "@/lib/export-report";
 import { useToast } from "@/hooks/use-toast";
+import BulkFileUpload from "@/components/BulkFileUpload";
 interface DBTBeneficiary {
     name: string;
     first_name: string;
@@ -309,6 +310,7 @@ export default function DBTClaims() {
                         <TabsList>
                             <TabsTrigger value="new-claim">New Claim</TabsTrigger>
                             <TabsTrigger value="history">Disbursed History ({disbursedClaimsCount || 0})</TabsTrigger>
+                            <TabsTrigger value="bulk-upload">Bulk Upload</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="new-claim">
@@ -534,6 +536,10 @@ export default function DBTClaims() {
                                 onExport={handleExport}
                                 isExporting={isExporting}
                             />
+                        </TabsContent>
+
+                        <TabsContent value="bulk-upload">
+                            <BulkFileUpload defaultDocType="DBT Claims" />
                         </TabsContent>
                     </Tabs>
 
