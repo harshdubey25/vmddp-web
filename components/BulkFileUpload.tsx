@@ -63,7 +63,7 @@ const DOCTYPE_COLUMNS: Record<string, ColumnDefinition[]> = {
         { fieldname: "purchase_date", label: "Purchase Date", required: true },
         { fieldname: "quantity", label: "Quantity", required: true },
         { fieldname: "total_amount", label: "Total Amount", required: true },
-        { fieldname: "component", label: "Component ", required: true },
+        { fieldname: "component", label: "Component", required: true },
         { fieldname: "app_form", label: "App Form", required: true },
         { fieldname: "type_of_animal", label: "Type Of Animal", required: true },
         { fieldname: "number_of_animals_benefitted", label: "Number of animals benefitted", required: false },
@@ -85,6 +85,7 @@ interface LogEntry {
     row: number;
     success: boolean;
     messages: string[];
+    exception?: string;
 }
 
 export default function BulkFileUpload({
@@ -102,6 +103,7 @@ export default function BulkFileUpload({
     const [currentState, setCurrentState] = useState<UploadState>("Idle");
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [missingColumns, setMissingColumns] = useState<string[]>([]);
+    const [templateWarnings, setTemplateWarnings] = useState<any[]>([]);
     const [dataImportId, setDataImportId] = useState<string | null>(null);
     const [progressPercent, setProgressPercent] = useState<number>(0);
     const [jobStatus, setJobStatus] = useState<string | null>(null);
@@ -130,6 +132,7 @@ export default function BulkFileUpload({
         setCurrentState("Idle");
         setErrorMessage(null);
         setMissingColumns([]);
+        setTemplateWarnings([]);
         setDataImportId(null);
         setProgressPercent(0);
         setJobStatus(null);
@@ -232,8 +235,8 @@ export default function BulkFileUpload({
 
                     // Check headers
                     requiredConfigs.forEach((col) => {
-                        const targetFieldLower = col.fieldname.toLowerCase();
-                        const targetLabelLower = col.label.toLowerCase();
+                        const targetFieldLower = col.fieldname.trim().toLowerCase();
+                        const targetLabelLower = col.label.trim().toLowerCase();
                         const targetLabelSpaceLower = targetLabelLower.replace(/_/g, " ");
 
                         const found = headers.some(
@@ -302,14 +305,40 @@ export default function BulkFileUpload({
             setCurrentState("Uploading File");
             setProgressPercent(20);
 
-            // Convert file to base64
+            // Convert file to cleaned base64 (trimming all leading/trailing whitespaces in string cells)
             const fileData = await new Promise<string>((resolve, reject) => {
                 const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => {
-                    const result = reader.result as string;
-                    const base64 = result.split(",")[1];
-                    resolve(base64);
+                reader.readAsArrayBuffer(file);
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+                        const workbook = XLSX.read(data, { type: "array" });
+                        
+                        // Clean the workbook values
+                        workbook.SheetNames.forEach((sheetName) => {
+                            const worksheet = workbook.Sheets[sheetName];
+                            if (!worksheet) return;
+                            
+                            Object.keys(worksheet).forEach((cellRef) => {
+                                if (cellRef.startsWith('!')) return;
+                                const cell = worksheet[cellRef];
+                                if (cell && cell.t === 's' && typeof cell.v === 'string') {
+                                    cell.v = cell.v.trim();
+                                    if (typeof cell.w === 'string') {
+                                        cell.w = cell.w.trim();
+                                    }
+                                }
+                            });
+                        });
+
+                        // Write back in the same format
+                        const extension = file.name.split(".").pop()?.toLowerCase();
+                        const bookType = extension === "csv" ? "csv" : (extension === "xls" ? "xls" : "xlsx");
+                        const base64 = XLSX.write(workbook, { bookType: bookType as any, type: 'base64' });
+                        resolve(base64);
+                    } catch (err) {
+                        reject(err);
+                    }
                 };
                 reader.onerror = (err) => reject(err);
             });
@@ -377,15 +406,44 @@ export default function BulkFileUpload({
                 const doc = await frappeBrowser.db().getDoc("Data Import", importName);
                 if (!doc) return;
 
-                const status = doc.status;
+                const status = doc.status || (doc.data && doc.data.status);
                 setJobStatus(status);
+
+                // Check for template warnings
+                const templateWarningsRaw = doc.template_warnings || (doc.data && doc.data.template_warnings);
+                let parsedWarnings: any[] = [];
+                if (templateWarningsRaw) {
+                    try {
+                        const parsed = typeof templateWarningsRaw === "string"
+                            ? JSON.parse(templateWarningsRaw)
+                            : templateWarningsRaw;
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            parsedWarnings = parsed;
+                        }
+                    } catch (e) {
+                        console.error("Error parsing template warnings:", e);
+                    }
+                }
+
+                if (parsedWarnings.length > 0) {
+                    clearInterval(intervalId);
+                    setTemplateWarnings(parsedWarnings);
+                    setCurrentState("Failed");
+                    setErrorMessage("Template validation warnings found. Data was not imported.");
+                    toast({
+                        title: "Import Halted",
+                        description: "Template warnings detected. Please resolve them.",
+                        variant: "destructive"
+                    });
+                    return;
+                }
 
                 // Update progress percentages based on status
                 if (status === "Pending") {
                     setProgressPercent(70);
                 } else if (status === "In Progress") {
                     setProgressPercent(85);
-                } else if (["Success", "Partial Success", "Failed"].includes(status)) {
+                } else if (["Success", "Partial Success", "Failed", "Error"].includes(status)) {
                     clearInterval(intervalId);
                     setProgressPercent(100);
                     setCurrentState("Complete");
@@ -408,7 +466,9 @@ export default function BulkFileUpload({
                                             parsedMessages = parsed.map((m: any) => {
                                                 if (m && typeof m === "object") {
                                                     if (m.message) {
-                                                        return m.title ? `[${m.title}] ${m.message}` : m.message;
+                                                        return m.title && m.title !== "Message"
+                                                            ? `[${m.title}] ${m.message}`
+                                                            : m.message;
                                                     }
                                                     return JSON.stringify(m);
                                                 }
@@ -427,8 +487,8 @@ export default function BulkFileUpload({
                                         parsedMessages = [String(item.messages)];
                                     }
                                 }
-                                if (item.exception) {
-                                    parsedMessages.push(`Exception: ${item.exception}`);
+                                if (item.exception && parsedMessages.length === 0) {
+                                    parsedMessages.push("System exception occurred. See technical details.");
                                 }
                                 if (parsedMessages.length === 0) {
                                     parsedMessages = [item.success ? "Row imported successfully" : "No error context provided"];
@@ -453,7 +513,8 @@ export default function BulkFileUpload({
                                 return {
                                     row: rowNum,
                                     success: !!item.success,
-                                    messages: parsedMessages
+                                    messages: parsedMessages,
+                                    exception: item.exception || undefined
                                 };
                             });
                             logs.sort((a, b) => a.row - b.row);
@@ -483,10 +544,10 @@ export default function BulkFileUpload({
                         });
                     } else {
                         setCurrentState("Failed");
-                        setErrorMessage(doc.error_log || "Frappe failed to process the import job. Check errors below.");
+                        setErrorMessage(doc.error_log || "Data Import failed. Data was not imported.");
                         toast({
                             title: "Import Failed",
-                            description: "The background task failed. Review errors below.",
+                            description: "Data Import failed. Data was not imported.",
                             variant: "destructive"
                         });
                     }
@@ -675,15 +736,76 @@ export default function BulkFileUpload({
                     {errorMessage && (
                         <Alert variant="destructive" className="bg-red-500/5 border-red-500/20 text-red-700 dark:text-red-400">
                             <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                            <AlertTitle className="font-bold">Execution Error</AlertTitle>
-                            <AlertDescription className="text-sm leading-relaxed">
-                                {errorMessage}
-                                {missingColumns.length > 0 && (
-                                    <div className="mt-2 text-xs font-semibold">
-                                        Please add the following required headers to your file: {missingColumns.join(", ")}
-                                    </div>
-                                )}
-                            </AlertDescription>
+                            <div className="w-full">
+                                <AlertTitle className="font-bold">Execution Error</AlertTitle>
+                                <AlertDescription className="text-sm leading-relaxed">
+                                    {errorMessage}
+                                    {missingColumns.length > 0 && (
+                                        <div className="mt-2 text-xs font-semibold">
+                                            Please add the following required headers to your file: {missingColumns.join(", ")}
+                                        </div>
+                                    )}
+
+                                    {/* Template Warnings */}
+                                    {templateWarnings.length > 0 && (
+                                        <div className="mt-4 space-y-2 border-t pt-3 border-red-500/10">
+                                            <p className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                                                Template Validation Warnings:
+                                            </p>
+                                            <div className="max-h-48 overflow-y-auto space-y-2">
+                                                {templateWarnings.map((warn, idx) => (
+                                                    <div key={idx} className="p-2.5 rounded bg-amber-500/5 border border-amber-500/15 text-xs text-amber-700 dark:text-amber-400">
+                                                        <div className="font-semibold mb-0.5">
+                                                            Column {warn.col !== undefined ? warn.col + 1 : "Unknown"}
+                                                        </div>
+                                                        <div className="font-mono text-[11px] leading-relaxed">
+                                                            {warn.message}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Detailed Logs for Failed Imports */}
+                                    {importLogs.length > 0 && (
+                                        <div className="mt-4 space-y-2 border-t pt-3 border-red-500/10">
+                                            <p className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
+                                                Detailed Import Errors:
+                                            </p>
+                                            <div className="max-h-60 overflow-y-auto space-y-2.5">
+                                                {importLogs.map((log, idx) => (
+                                                    <div key={idx} className="p-3 rounded-lg bg-red-500/5 border border-red-500/10 space-y-1">
+                                                        <div className="flex items-center justify-between text-xs font-bold">
+                                                            <span className="text-red-700 dark:text-red-300">Row {log.row}</span>
+                                                            <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20 text-[9px] font-bold py-0 h-4">
+                                                                FAILED
+                                                            </Badge>
+                                                        </div>
+                                                        <div className="space-y-1 font-mono text-xs pl-2 border-l border-red-500/20">
+                                                            {log.messages.map((msg, mIdx) => (
+                                                                <div key={mIdx} className="text-red-600 dark:text-red-400">
+                                                                    {msg}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        {log.exception && (
+                                                            <details className="mt-1 text-xs">
+                                                                <summary className="cursor-pointer text-[10px] underline font-semibold text-muted-foreground hover:text-foreground transition-colors duration-200">
+                                                                    Technical Details / Stack Trace
+                                                                </summary>
+                                                                <pre className="mt-2 p-2 rounded bg-background border text-[10px] font-mono whitespace-pre-wrap overflow-x-auto text-muted-foreground max-h-40">
+                                                                    {log.exception}
+                                                                </pre>
+                                                            </details>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </AlertDescription>
+                            </div>
                         </Alert>
                     )}
 
@@ -778,6 +900,16 @@ export default function BulkFileUpload({
                                                                     {msg}
                                                                 </div>
                                                             ))}
+                                                            {log.exception && (
+                                                                <details className="mt-1 text-[10px]">
+                                                                    <summary className="cursor-pointer underline text-muted-foreground hover:text-foreground transition-colors duration-200">
+                                                                        Technical Details / Stack Trace
+                                                                    </summary>
+                                                                    <pre className="mt-1 p-2 rounded bg-background border text-[9px] font-mono whitespace-pre-wrap overflow-x-auto text-muted-foreground max-h-32">
+                                                                        {log.exception}
+                                                                    </pre>
+                                                                </details>
+                                                            )}
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}
