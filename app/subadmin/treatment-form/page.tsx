@@ -79,6 +79,7 @@ export default function TreatmentForm() {
   const [compressingImages, setCompressingImages] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { currentUser } = useFrappeAuth();
+  const [selectedItem, setSelectedItem] = useState("");
 
   const { data: dpoData } = useFrappeGetDoc("DPO", currentUser || undefined);
   const assignedDistrict = dpoData?.district;
@@ -99,7 +100,7 @@ export default function TreatmentForm() {
 
   const { data: remainingStockData } = useFrappeGetCall<{ message: number }>(
     "vmddp_app.api.v1.stock.get_remaining_treatment_of_infertile_animal_stock_quantity",
-    assignedDistrict ? { district: assignedDistrict } : undefined,
+    assignedDistrict ? { district: assignedDistrict, item: selectedItem } : undefined,
     assignedDistrict ? undefined : null
   );
 
@@ -1249,7 +1250,9 @@ export default function TreatmentForm() {
                               <Label>Medicine Name</Label>
                               <Select
                                 value={medicine.medicineName}
-                                onValueChange={(value) => updateMedicine(medicine.id, "medicineName", value)}
+                                onValueChange={(value) => {updateMedicine(medicine.id, "medicineName", value);
+                                  setSelectedItem(value);
+                                }}
                               >
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select medicine" />
