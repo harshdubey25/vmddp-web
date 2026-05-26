@@ -584,7 +584,6 @@ export default function BulkFileUpload({
             sampleRow["App Form"] = "APP-000123";
             sampleRow["Type Of Animal"] = "Cow";
             sampleRow["Number of animals benefitted"] = 5;
-            sampleRow["Land Covered"] = 1.5;
         } else {
             configColumns.forEach((col) => {
                 sampleRow[col.label] = `Sample ${col.label}`;
