@@ -67,7 +67,6 @@ const DOCTYPE_COLUMNS: Record<string, ColumnDefinition[]> = {
         { fieldname: "app_form", label: "App Form", required: true },
         { fieldname: "type_of_animal", label: "Type Of Animal", required: true },
         { fieldname: "number_of_animals_benefitted", label: "Number of animals benefitted", required: false },
-        { fieldname: "land_covered", label: "Land Covered", required: false },
     ]
 };
 
