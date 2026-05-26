@@ -580,7 +580,7 @@ export default function BulkFileUpload({
             sampleRow["Purchase Date"] = "2026-05-20";
             sampleRow["Quantity"] = 50.0;
             sampleRow["Total Amount"] = 15000.00;
-            sampleRow["Component "] = "Fodder Seed";
+            sampleRow["Component"] = "Fodder Seed";
             sampleRow["App Form"] = "APP-000123";
             sampleRow["Type Of Animal"] = "Cow";
             sampleRow["Number of animals benefitted"] = 5;
