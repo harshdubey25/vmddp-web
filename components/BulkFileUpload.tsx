@@ -112,9 +112,7 @@ export default function BulkFileUpload({
     const [successRows, setSuccessRows] = useState<number>(0);
 
     // SDK Hooks
-    const { call: uploadCustomFile, loading: customUploadLoading } = useFrappePostCall(
-        "vmddp_app.api.api.file_upload"
-    );
+    const [uploadLoading, setUploadLoading] = useState<boolean>(false);
     const { createDoc, loading: createLoading } = useFrappeCreateDoc();
     const { call: triggerBackgroundImport, loading: triggerLoading } = useFrappePostCall(
         "frappe.core.doctype.data_import.data_import.form_start_import"
@@ -139,6 +137,7 @@ export default function BulkFileUpload({
         setImportLogs([]);
         setTotalRows(0);
         setSuccessRows(0);
+        setUploadLoading(false);
     };
 
     const handleDocTypeChange = (value: string) => {
@@ -300,13 +299,14 @@ export default function BulkFileUpload({
         const isValid = await validateFileHeaders(file);
         if (!isValid) return;
 
+        setUploadLoading(true);
         try {
-            // 2. Phase 2: Upload File to Frappe using custom API
+            // 2. Phase 2: Upload File to Frappe using custom API via multipart/form-data
             setCurrentState("Uploading File");
             setProgressPercent(20);
 
-            // Convert file to cleaned base64 (trimming all leading/trailing whitespaces in string cells)
-            const fileData = await new Promise<string>((resolve, reject) => {
+            // Clean the workbook values and build a binary Blob
+            const fileBlob = await new Promise<Blob>((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsArrayBuffer(file);
                 reader.onload = (e) => {
@@ -334,8 +334,9 @@ export default function BulkFileUpload({
                         // Write back in the same format
                         const extension = file.name.split(".").pop()?.toLowerCase();
                         const bookType = extension === "csv" ? "csv" : (extension === "xls" ? "xls" : "xlsx");
-                        const base64 = XLSX.write(workbook, { bookType: bookType as any, type: 'base64' });
-                        resolve(base64);
+                        const outArray = XLSX.write(workbook, { bookType: bookType as any, type: 'array' });
+                        const blob = new Blob([outArray], { type: file.type || "application/octet-stream" });
+                        resolve(blob);
                     } catch (err) {
                         reject(err);
                     }
@@ -343,15 +344,31 @@ export default function BulkFileUpload({
                 reader.onerror = (err) => reject(err);
             });
 
-            const uploadResponse = await uploadCustomFile({
-                file: fileData,
-                file_data: fileData,
-                filedata: fileData,
-                filename: file.name,
-                file_name: file.name
+            const formData = new FormData();
+            formData.append("file", fileBlob, file.name);
+
+            // Fetch authorization token if available
+            const token = localStorage.getItem("frappe_access_token") ||
+                document.cookie.match(/(?:^|; )frappe_access_token=([^;]*)/)?.[1];
+
+            const headers: Record<string, string> = {};
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL || ""}/api/method/vmddp_app.api.api.file_upload`, {
+                method: "POST",
+                headers,
+                body: formData
             });
 
-            const result = uploadResponse?.message || uploadResponse;
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`File upload failed: ${errText || response.statusText}`);
+            }
+
+            const resultJson = await response.json();
+            const result = resultJson.message || resultJson;
 
             if (result && (result.status === 500 || result.status === "500" || result.error)) {
                 throw new Error(result.error || result.message || "Custom file upload API failed.");
@@ -392,6 +409,8 @@ export default function BulkFileUpload({
                 description: error.message || "Operation failed. Please try again.",
                 variant: "destructive"
             });
+        } finally {
+            setUploadLoading(false);
         }
     };
 
@@ -812,16 +831,16 @@ export default function BulkFileUpload({
                     {/* Trigger Actions */}
                     {file && (currentState === "Selected" || currentState === "Failed") && (
                         <div className="flex items-center gap-3 justify-end">
-                            <Button variant="ghost" onClick={() => resetStates(true)} disabled={customUploadLoading || createLoading || triggerLoading}>
+                            <Button variant="ghost" onClick={() => resetStates(true)} disabled={uploadLoading || createLoading || triggerLoading}>
                                 Clear File
                             </Button>
                             <Button
                                 onClick={handleStartImport}
-                                disabled={customUploadLoading || createLoading || triggerLoading}
+                                disabled={uploadLoading || createLoading || triggerLoading}
                                 data-testid="button-start-import"
                                 className="bg-gradient-to-r from-indigo-500 to-primary hover:shadow-lg transition-all duration-300"
                             >
-                                {customUploadLoading || createLoading || triggerLoading ? (
+                                {uploadLoading || createLoading || triggerLoading ? (
                                     <>
                                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                         Running Pipeline...
