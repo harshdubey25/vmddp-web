@@ -304,27 +304,86 @@ export default function BulkFileUpload({
             setCurrentState("Uploading File");
             setProgressPercent(20);
 
-            // Clean the workbook values and build a binary Blob
+            // Clean the workbook values, convert Excel serial dates and JS Date objects in date columns to YYYY-MM-DD string cells, and build a binary Blob
             const fileBlob = await new Promise<Blob>((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsArrayBuffer(file);
                 reader.onload = (e) => {
                     try {
                         const data = new Uint8Array(e.target?.result as ArrayBuffer);
-                        const workbook = XLSX.read(data, { type: "array" });
+                        const workbook = XLSX.read(data, { type: "array", cellDates: true });
                         
-                        // Clean the workbook values
+                        // Clean the workbook values and normalize date formatting
                         workbook.SheetNames.forEach((sheetName) => {
                             const worksheet = workbook.Sheets[sheetName];
                             if (!worksheet) return;
                             
+                            // 1. Identify date columns in this sheet based on header names (row 1)
+                            const dateCols = new Set<string>();
+                            Object.keys(worksheet).forEach((cellRef) => {
+                                const match = cellRef.match(/^([A-Z]+)1$/);
+                                if (match) {
+                                    const col = match[1];
+                                    const val = String(worksheet[cellRef]?.v || "").trim().toLowerCase();
+                                    if (val.includes("date")) {
+                                        dateCols.add(col);
+                                    }
+                                }
+                            });
+
+                            // 2. Process all cells in the sheet
                             Object.keys(worksheet).forEach((cellRef) => {
                                 if (cellRef.startsWith('!')) return;
+                                
+                                const match = cellRef.match(/^([A-Z]+)(\d+)$/);
+                                if (!match) return;
+                                
+                                const col = match[1];
+                                const row = parseInt(match[2]);
+                                
+                                // Skip header row
+                                if (row === 1) return;
+                                
                                 const cell = worksheet[cellRef];
-                                if (cell && cell.t === 's' && typeof cell.v === 'string') {
-                                    cell.v = cell.v.trim();
-                                    if (typeof cell.w === 'string') {
-                                        cell.w = cell.w.trim();
+                                if (!cell) return;
+
+                                // If this cell belongs to a date column, normalize its format
+                                if (dateCols.has(col)) {
+                                    if (cell.t === 'n' && typeof cell.v === 'number') {
+                                        const serial = cell.v;
+                                        // General safety range for reasonable dates (approx 1982 to 2119)
+                                        if (serial > 30000 && serial < 80000) {
+                                            const date = new Date((Math.floor(serial) - 25569) * 86400 * 1000);
+                                            const yyyy = date.getUTCFullYear();
+                                            const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
+                                            const dd = String(date.getUTCDate()).padStart(2, '0');
+                                            
+                                            cell.t = 's';
+                                            cell.v = `${yyyy}-${mm}-${dd}`;
+                                            cell.w = `${yyyy}-${mm}-${dd}`;
+                                        }
+                                    } else if (cell.t === 'd' && cell.v instanceof Date) {
+                                        const date = cell.v;
+                                        const yyyy = date.getUTCFullYear();
+                                        const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
+                                        const dd = String(date.getUTCDate()).padStart(2, '0');
+                                        
+                                        cell.t = 's';
+                                        cell.v = `${yyyy}-${mm}-${dd}`;
+                                        cell.w = `${yyyy}-${mm}-${dd}`;
+                                    } else if (cell.t === 's' && typeof cell.v === 'string') {
+                                        cell.v = cell.v.trim();
+                                        if (typeof cell.w === 'string') {
+                                            cell.w = cell.w.trim();
+                                        }
+                                    }
+                                } else {
+                                    // Clean non-date string cells
+                                    if (cell.t === 's' && typeof cell.v === 'string') {
+                                        cell.v = cell.v.trim();
+                                        if (typeof cell.w === 'string') {
+                                            cell.w = cell.w.trim();
+                                        }
                                     }
                                 }
                             });
