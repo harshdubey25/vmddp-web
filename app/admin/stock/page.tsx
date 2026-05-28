@@ -46,17 +46,32 @@ interface Stock {
     date: string;
 }
 
+interface ItemGroup {
+    name: string;
+    group_name: string;
+}
+
 export default function StockManagement() {
     const [isAddStockDialogOpen, setIsAddStockDialogOpen] = useState(false);
 
     // Stock Entry State
+    const [selectedItemGroup, setSelectedItemGroup] = useState<string>("");
     const [selectedItem, setSelectedItem] = useState<string>("");
     const [quantity, setQuantity] = useState<string>("");
     const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
+    const { data: itemGroups, isLoading: loadingItemGroups } = useFrappeGetDocList<ItemGroup>("Item Group", {
+        fields: ["name", "group_name"],
+        orderBy: { field: "group_name", order: "asc" },
+        limit: 100,
+    });
+
     const { data: stockItems, isLoading: loadingItems } = useFrappeGetDocList<StockItem>("Stock Item", {
         fields: ["name", "item_name", "rate"],
         limit: 100,
+        filters: selectedItemGroup && selectedItemGroup !== "all"
+            ? [["stock_item_group", "=", selectedItemGroup]]
+            : undefined,
     });
 
     const { data: stockEntries, isLoading: loadingStock, mutate: mutateStock } = useFrappeGetDocList<Stock>("Stock", {
@@ -96,6 +111,7 @@ export default function StockManagement() {
 
             setIsAddStockDialogOpen(false);
             setSelectedItem("");
+            setSelectedItemGroup("");
             setQuantity("");
             setDate(new Date().toISOString().split('T')[0]);
             mutateStock();
@@ -181,7 +197,18 @@ export default function StockManagement() {
                 </CardContent>
             </Card>
 
-            <Dialog open={isAddStockDialogOpen} onOpenChange={setIsAddStockDialogOpen}>
+            <Dialog 
+                open={isAddStockDialogOpen} 
+                onOpenChange={(open) => {
+                    setIsAddStockDialogOpen(open);
+                    if (!open) {
+                        setSelectedItem("");
+                        setSelectedItemGroup("");
+                        setQuantity("");
+                        setDate(new Date().toISOString().split('T')[0]);
+                    }
+                }}
+            >
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Add Stock Entry</DialogTitle>
@@ -191,21 +218,50 @@ export default function StockManagement() {
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
+                            <Label htmlFor="item_group">Item Group</Label>
+                            <Select
+                                value={selectedItemGroup}
+                                onValueChange={(val) => {
+                                    setSelectedItemGroup(val);
+                                    setSelectedItem("");
+                                }}
+                                disabled={loadingItemGroups}
+                            >
+                                <SelectTrigger id="item_group">
+                                    <SelectValue placeholder="Select an item group" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Item Groups</SelectItem>
+                                    {itemGroups?.map((group) => (
+                                        <SelectItem key={group.name} value={group.name}>
+                                            {group.group_name || group.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
                             <Label htmlFor="item">Item</Label>
                             <Select
                                 value={selectedItem}
                                 onValueChange={setSelectedItem}
                                 disabled={loadingItems}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger id="item">
                                     <SelectValue placeholder="Select an item" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {stockItems?.map((item) => (
-                                        <SelectItem key={item.name} value={item.name}>
-                                            {item.item_name || item.name}
+                                    {stockItems && stockItems.length > 0 ? (
+                                        stockItems.map((item) => (
+                                            <SelectItem key={item.name} value={item.name}>
+                                                {item.item_name || item.name}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <SelectItem value="no_items" disabled>
+                                            No items found
                                         </SelectItem>
-                                    ))}
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -243,7 +299,16 @@ export default function StockManagement() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsAddStockDialogOpen(false)}>
+                        <Button 
+                            variant="outline" 
+                            onClick={() => {
+                                setIsAddStockDialogOpen(false);
+                                setSelectedItem("");
+                                setSelectedItemGroup("");
+                                setQuantity("");
+                                setDate(new Date().toISOString().split('T')[0]);
+                            }}
+                        >
                             Cancel
                         </Button>
                         <Button onClick={handleAddStock} disabled={isCreating}>

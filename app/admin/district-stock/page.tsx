@@ -51,8 +51,14 @@ interface DistrictStock {
     date: string;
 }
 
+interface ItemGroup {
+    name: string;
+    group_name: string;
+}
+
 export default function DistrictStockManagement() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [selectedItemGroup, setSelectedItemGroup] = useState<string>("");
     const [selectedItem, setSelectedItem] = useState<string>("");
     const [selectedDistrict, setSelectedDistrict] = useState<string>("");
     const [quantity, setQuantity] = useState<string>("");
@@ -61,9 +67,18 @@ export default function DistrictStockManagement() {
     const [filterDistrict, setFilterDistrict] = useState<string>("all");
     const [filterItem, setFilterItem] = useState<string>("all");
 
+    const { data: itemGroups, isLoading: loadingItemGroups } = useFrappeGetDocList<ItemGroup>("Item Group", {
+        fields: ["name", "group_name"],
+        orderBy: { field: "group_name", order: "asc" },
+        limit: 100,
+    });
+
     const { data: stockItems, isLoading: loadingItems } = useFrappeGetDocList<StockItem>("Stock Item", {
         fields: ["name", "item_name", "rate"],
         limit: 100,
+        filters: selectedItemGroup && selectedItemGroup !== "all"
+            ? [["stock_item_group", "=", selectedItemGroup]]
+            : undefined,
     });
 
     const { data: districts, isLoading: loadingDistricts } = useFrappeGetDocList<District>("District Master", {
@@ -109,6 +124,7 @@ export default function DistrictStockManagement() {
 
             setIsAddDialogOpen(false);
             setSelectedItem("");
+            setSelectedItemGroup("");
             setSelectedDistrict("");
             setQuantity("");
             setDate(new Date().toISOString().split('T')[0]);
@@ -238,7 +254,19 @@ export default function DistrictStockManagement() {
                 </CardContent>
             </Card>
 
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <Dialog 
+                open={isAddDialogOpen} 
+                onOpenChange={(open) => {
+                    setIsAddDialogOpen(open);
+                    if (!open) {
+                        setSelectedItem("");
+                        setSelectedItemGroup("");
+                        setSelectedDistrict("");
+                        setQuantity("");
+                        setDate(new Date().toISOString().split('T')[0]);
+                    }
+                }}
+            >
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Add District Stock Entry</DialogTitle>
@@ -254,7 +282,7 @@ export default function DistrictStockManagement() {
                                 onValueChange={setSelectedDistrict}
                                 disabled={loadingDistricts}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger id="district">
                                     <SelectValue placeholder="Select a district" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -267,21 +295,50 @@ export default function DistrictStockManagement() {
                             </Select>
                         </div>
                         <div className="space-y-2">
+                            <Label htmlFor="item_group">Item Group</Label>
+                            <Select
+                                value={selectedItemGroup}
+                                onValueChange={(val) => {
+                                    setSelectedItemGroup(val);
+                                    setSelectedItem("");
+                                }}
+                                disabled={loadingItemGroups}
+                            >
+                                <SelectTrigger id="item_group">
+                                    <SelectValue placeholder="Select an item group" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Item Groups</SelectItem>
+                                    {itemGroups?.map((group) => (
+                                        <SelectItem key={group.name} value={group.name}>
+                                            {group.group_name || group.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
                             <Label htmlFor="item">Item</Label>
                             <Select
                                 value={selectedItem}
                                 onValueChange={setSelectedItem}
                                 disabled={loadingItems}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger id="item">
                                     <SelectValue placeholder="Select an item" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {stockItems?.map((item) => (
-                                        <SelectItem key={item.name} value={item.name}>
-                                            {item.item_name || item.name}
+                                    {stockItems && stockItems.length > 0 ? (
+                                        stockItems.map((item) => (
+                                            <SelectItem key={item.name} value={item.name}>
+                                                {item.item_name || item.name}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <SelectItem value="no_items" disabled>
+                                            No items found
                                         </SelectItem>
-                                    ))}
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -307,7 +364,17 @@ export default function DistrictStockManagement() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                        <Button 
+                            variant="outline" 
+                            onClick={() => {
+                                setIsAddDialogOpen(false);
+                                setSelectedItem("");
+                                setSelectedItemGroup("");
+                                setSelectedDistrict("");
+                                setQuantity("");
+                                setDate(new Date().toISOString().split('T')[0]);
+                            }}
+                        >
                             Cancel
                         </Button>
                         <Button onClick={handleAddStock} disabled={isCreating}>
