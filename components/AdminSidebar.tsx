@@ -24,6 +24,7 @@ import {
   MapPin,
   Layers,
   Search,
+  Sprout,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -83,6 +84,7 @@ const subAdminMenuItems: MenuItem[] = [
   { type: "separator", label: "Target Based Allocation" },
   { icon: GraduationCap, label: "Farmer Training", path: "/subadmin/farmer-training" },
   { icon: Stethoscope, label: "Treatment of Infertile Animal", path: "/subadmin/treatment" },
+  { icon: Sprout, label: "Fodder Seed", path: "/subadmin/fodder-seed" },
   { type: "separator", label: "LiveStock Tracking" },
   { icon: MapPin, label: "Track Animal", path: "https://platform.vetcare.solutions/auth/login" },
 ]
