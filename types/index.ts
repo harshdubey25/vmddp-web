@@ -149,6 +149,7 @@ export interface DBTClaim {
     aadhar_number: string;
     district: string;
     docstatus: number;
+    claim_source: string;
 }
 
 export interface PendingVendorPayment {

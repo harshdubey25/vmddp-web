@@ -194,7 +194,8 @@ export default function DisbursedClaimsTable({
                                         <th className="text-right p-3 font-medium">Qty</th>
                                         <th className="text-right p-3 font-medium">Total Amt</th>
                                         <th className="text-right p-3 font-medium">Subsidy</th>
-                                        <th className="text-left p-3 font-medium">Invoice</th>
+                                        <th className="text-left p-3 font-medium">Invoice Uploaded</th>
+                                        <th className="text-left p-3 font-medium">Claim Source</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -257,6 +258,9 @@ export default function DisbursedClaimsTable({
                                                     ) : (
                                                         <span className="text-xs text-muted-foreground">N/A</span>
                                                     )}
+                                                </td>
+                                                <td className="p-3 text-xs sm:text-sm">
+                                                    <span className="capitalize">{claim.claim_source}</span>
                                                 </td>
                                             </tr>
                                         );
