@@ -18,7 +18,8 @@ import {
     Info,
     Loader2,
     RefreshCw,
-    FileText
+    FileText,
+    Package
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFrappeAuth, useFrappeGetDoc, useFrappeGetCall } from "frappe-react-sdk";
@@ -103,6 +104,24 @@ export default function SubAdminFodderSeedPage() {
         cacheKey
     );
 
+    // Fetch district fodder seed stock from API
+    const stockCacheKey = `district_fodder_seed_stock_${assignedDistrict}`;
+    const { data: stockResponse, isLoading: isStockLoading, mutate: mutateStock } = useFrappeGetCall<{
+        message: {
+            district: string;
+            total_quantity: number;
+            items: Array<{
+                item_id: string;
+                item_name: string;
+                quantity: number;
+            }>;
+        }
+    }>(
+        "vmddp_app.api.v1.dpo.get_district_fodder_seed_stock",
+        assignedDistrict ? { district: assignedDistrict } : {},
+        assignedDistrict ? stockCacheKey : undefined
+    );
+
     const isLoading = isComponentLoading || isReportLoading;
     const beneficiaries = applicationsResponse?.message || [];
 
@@ -114,6 +133,7 @@ export default function SubAdminFodderSeedPage() {
 
     const handleRefresh = () => {
         mutate();
+        mutateStock();
         toast({ title: "Refreshing", description: "Fetching latest data..." });
     };
 
@@ -149,30 +169,39 @@ export default function SubAdminFodderSeedPage() {
                 </div>
 
                 {/* Summary cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                    <Card className="relative overflow-hidden border-2 border-lime-500/30 bg-gradient-to-br from-lime-500/20 to-lime-600/10 hover:-translate-y-1 transition-all duration-300 group">
-                        <div className="absolute -top-8 -right-8 w-32 h-32 bg-lime-400/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <Card className="relative overflow-hidden border-2 border-sky-500/30 bg-gradient-to-br from-sky-500/20 to-sky-600/10 hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute -top-8 -right-8 w-32 h-32 bg-sky-400/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
                         <CardContent className="p-4 relative">
                             <div className="flex items-center justify-between mb-2">
-                                <p className="text-xs text-muted-foreground font-medium">Assigned District</p>
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-lime-500 to-lime-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <MapPin className="h-4 w-4 text-white" />
+                                <p className="text-xs text-muted-foreground font-medium">Fodder Seed Stock</p>
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                                    <Package className="h-4 w-4 text-white" />
                                 </div>
                             </div>
-                            <p className="text-lg font-bold text-lime-700 truncate">{assignedDistrict || "Loading..."}</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:-translate-y-1 transition-all duration-300 group">
-                        <div className="absolute -top-8 -right-8 w-32 h-32 bg-green-400/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardContent className="p-4 relative">
-                            <div className="flex items-center justify-between mb-2">
-                                <p className="text-xs text-muted-foreground font-medium">Active Component</p>
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Sprout className="h-4 w-4 text-white" />
+                            <div className="flex flex-col">
+                                <p className="text-lg font-bold text-sky-700 truncate">
+                                    {isStockLoading ? (
+                                        <Loader2 className="h-4 w-4 animate-spin inline-block text-sky-600" />
+                                    ) : (
+                                        `${stockResponse?.message?.total_quantity || 0} ${fodderSeedComponent?.unit || "Kg"}`
+                                    )}
+                                </p>
+                                <div className="mt-1 space-y-1 max-h-[60px] overflow-y-auto pr-1">
+                                    {stockResponse?.message?.items && stockResponse.message.items.length > 0 ? (
+                                        stockResponse.message.items.map((item) => (
+                                            <div key={item.item_id} className="flex items-center justify-between text-[10px] text-sky-855 bg-sky-50/50 backdrop-blur rounded px-1.5 py-0.5 border border-sky-100/50">
+                                                <span className="font-medium truncate max-w-[100px]" title={item.item_name}>
+                                                    {item.item_name}
+                                                </span>
+                                                <span className="font-bold">{item.quantity} {fodderSeedComponent?.unit || "Kg"}</span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <span className="text-[10px] text-muted-foreground">No varieties assigned</span>
+                                    )}
                                 </div>
                             </div>
-                            <p className="text-lg font-bold text-green-700 truncate">{fodderSeedComponent?.name || "Fodder Seed"}</p>
                         </CardContent>
                     </Card>
 
