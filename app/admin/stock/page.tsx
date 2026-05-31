@@ -37,6 +37,7 @@ interface StockItem {
     name: string;
     item_name: string;
     rate?: number;
+    stock_item_group?: string;
 }
 
 interface Stock {
@@ -44,6 +45,8 @@ interface Stock {
     item: string;
     quantity: string;
     date: string;
+    expected_land_coverage?: number;
+    expected_yield?: number;
 }
 
 interface ItemGroup {
@@ -58,6 +61,8 @@ export default function StockManagement() {
     const [selectedItemGroup, setSelectedItemGroup] = useState<string>("");
     const [selectedItem, setSelectedItem] = useState<string>("");
     const [quantity, setQuantity] = useState<string>("");
+    const [expectedLandCoverage, setExpectedLandCoverage] = useState<string>("");
+    const [expectedYield, setExpectedYield] = useState<string>("");
     const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
     const { data: itemGroups, isLoading: loadingItemGroups } = useFrappeGetDocList<ItemGroup>("Item Group", {
@@ -67,7 +72,7 @@ export default function StockManagement() {
     });
 
     const { data: stockItems, isLoading: loadingItems } = useFrappeGetDocList<StockItem>("Stock Item", {
-        fields: ["name", "item_name", "rate"],
+        fields: ["name", "item_name", "rate", "stock_item_group"],
         limit: 100,
         filters: selectedItemGroup && selectedItemGroup !== "all"
             ? [["stock_item_group", "=", selectedItemGroup]]
@@ -75,7 +80,7 @@ export default function StockManagement() {
     });
 
     const { data: stockEntries, isLoading: loadingStock, mutate: mutateStock } = useFrappeGetDocList<Stock>("Stock", {
-        fields: ["name", "item", "quantity", "date"],
+        fields: ["name", "item", "quantity", "date", "expected_land_coverage", "expected_yield"],
         orderBy: { field: "creation", order: "desc" },
         limit: 100,
     });
@@ -86,6 +91,7 @@ export default function StockManagement() {
     const itemRate = selectedItemDetails?.rate ?? 0;
     const quantityNumber = parseFloat(quantity) || 0;
     const totalAmount = itemRate * quantityNumber;
+    const isFodderSeed = selectedItemGroup === "Fodder Seed" || (selectedItemDetails && selectedItemDetails.stock_item_group === "Fodder Seed");
 
     const handleAddStock = async () => {
         if (!selectedItem || !quantity || !date) {
@@ -98,11 +104,18 @@ export default function StockManagement() {
         }
 
         try {
-            await createDoc("Stock", {
+            const docData: any = {
                 item: selectedItem,
                 quantity: quantity,
                 date: date,
-            });
+            };
+
+            if (isFodderSeed) {
+                if (expectedLandCoverage) docData.expected_land_coverage = parseFloat(expectedLandCoverage);
+                if (expectedYield) docData.expected_yield = parseFloat(expectedYield);
+            }
+
+            await createDoc("Stock", docData);
 
             toast({
                 title: "Success",
@@ -113,6 +126,8 @@ export default function StockManagement() {
             setSelectedItem("");
             setSelectedItemGroup("");
             setQuantity("");
+            setExpectedLandCoverage("");
+            setExpectedYield("");
             setDate(new Date().toISOString().split('T')[0]);
             mutateStock();
         } catch (error) {
@@ -168,6 +183,8 @@ export default function StockManagement() {
                                     <TableHead>Date</TableHead>
                                     <TableHead>Item</TableHead>
                                     <TableHead>Quantity</TableHead>
+                                    <TableHead>Expected Land Coverage</TableHead>
+                                    <TableHead>Expected Yield</TableHead>
                                     <TableHead>Total Price</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -183,6 +200,8 @@ export default function StockManagement() {
                                             <TableCell>{entry.date}</TableCell>
                                             <TableCell>{entry.item}</TableCell>
                                             <TableCell>{entry.quantity}</TableCell>
+                                            <TableCell>{entry.expected_land_coverage !== undefined && entry.expected_land_coverage !== null ? entry.expected_land_coverage : "-"}</TableCell>
+                                            <TableCell>{entry.expected_yield !== undefined && entry.expected_yield !== null ? entry.expected_yield : "-"}</TableCell>
                                             <TableCell>₹{totalPrice.toFixed(2)}</TableCell>
                                         </TableRow>
                                     );
@@ -205,6 +224,8 @@ export default function StockManagement() {
                         setSelectedItem("");
                         setSelectedItemGroup("");
                         setQuantity("");
+                        setExpectedLandCoverage("");
+                        setExpectedYield("");
                         setDate(new Date().toISOString().split('T')[0]);
                     }
                 }}
@@ -276,6 +297,32 @@ export default function StockManagement() {
                                 onChange={(e) => setQuantity(e.target.value)}
                             />
                         </div>
+                        {isFodderSeed && (
+                            <>
+                                <div className="space-y-2">
+                                    <Label htmlFor="expected_land_coverage">Expected Land Coverage</Label>
+                                    <Input
+                                        id="expected_land_coverage"
+                                        type="number"
+                                        step="any"
+                                        placeholder="Enter expected land coverage"
+                                        value={expectedLandCoverage}
+                                        onChange={(e) => setExpectedLandCoverage(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="expected_yield">Expected Yield</Label>
+                                    <Input
+                                        id="expected_yield"
+                                        type="number"
+                                        step="any"
+                                        placeholder="Enter expected yield"
+                                        value={expectedYield}
+                                        onChange={(e) => setExpectedYield(e.target.value)}
+                                    />
+                                </div>
+                            </>
+                        )}
                         {selectedItem && quantity.trim() !== "" && (
                             <div className="rounded-lg border bg-muted/40 p-3 text-sm">
                                 <div className="flex items-center justify-between">
@@ -306,6 +353,8 @@ export default function StockManagement() {
                                 setSelectedItem("");
                                 setSelectedItemGroup("");
                                 setQuantity("");
+                                setExpectedLandCoverage("");
+                                setExpectedYield("");
                                 setDate(new Date().toISOString().split('T')[0]);
                             }}
                         >
