@@ -118,14 +118,14 @@ export default function FodderSeedReportPage() {
             <div className={containerClassName}>
                 <table className="w-full min-w-[600px] text-xs">
                     <thead className="sticky top-0 z-30">
-                        <tr>
-                            <th className="text-center p-3 font-semibold whitespace-nowrap sticky left-0 z-30 min-w-[50px] bg-lime-600 text-white border-r border-lime-500">
+                        <tr className="bg-muted border-b border-border">
+                            <th className="text-center p-3 font-semibold whitespace-nowrap sticky left-0 z-30 min-w-[50px] bg-muted border-r border-border text-muted-foreground">
                                 Sr. No.
                             </th>
-                            <th className="text-left p-3 font-semibold whitespace-nowrap sticky left-[50px] z-30 min-w-[140px] bg-lime-600 text-white border-r border-lime-500">
+                            <th className="text-left p-3 font-semibold whitespace-nowrap sticky left-[50px] z-30 min-w-[140px] bg-muted border-r border-border text-muted-foreground">
                                 District Name
                             </th>
-                            <th className="text-right p-3 font-semibold whitespace-nowrap bg-green-700 text-white border-r border-green-600">
+                            <th className="text-right p-3 font-semibold whitespace-nowrap bg-muted border-r border-border text-muted-foreground">
                                 No. of Applications
                             </th>
                             {!isLoading &&
@@ -155,7 +155,7 @@ export default function FodderSeedReportPage() {
                                     colSpan={3 + varieties.length}
                                     className="p-10 text-center text-muted-foreground"
                                 >
-                                    <Sprout className="h-10 w-10 mx-auto mb-2 text-lime-400 opacity-60" />
+                                    <Sprout className="h-10 w-10 mx-auto mb-2 text-slate-400 opacity-60" />
                                     No records found for the selected filters.
                                 </td>
                             </tr>
@@ -163,13 +163,13 @@ export default function FodderSeedReportPage() {
                             rows.map((row, idx) => (
                                 <tr
                                     key={row.district_name + idx}
-                                    className={`border-b last:border-0 hover:brightness-95 transition-all ${
-                                        idx % 2 === 0 ? "bg-white" : "bg-lime-50/40"
+                                    className={`border-b last:border-0 hover:bg-slate-50/50 transition-all ${
+                                        idx % 2 === 0 ? "bg-white" : "bg-slate-50/30"
                                     }`}
                                 >
-                                    <td className="p-3 text-center font-medium sticky left-0 z-10 bg-inherit border-r border-lime-100">{idx + 1}</td>
-                                    <td className="p-3 font-semibold sticky left-[50px] z-10 bg-inherit border-r border-lime-100 text-lime-800">{row.district_name}</td>
-                                    <td className="p-3 text-right font-medium text-green-700">{row.no_of_applications}</td>
+                                    <td className="p-3 text-center font-medium sticky left-0 z-10 bg-inherit border-r border-slate-200/60">{idx + 1}</td>
+                                    <td className="p-3 font-semibold sticky left-[50px] z-10 bg-inherit border-r border-slate-200/60 text-slate-800">{row.district_name}</td>
+                                    <td className="p-3 text-right font-medium text-slate-700">{row.no_of_applications}</td>
                                     {varieties.map((v, i) => (
                                         <td key={v} className={`p-3 text-right border-r last:border-r-0 ${varietyColors[i % varietyColors.length].cell}`}>
                                             {(row[v] as number) ?? 0}
@@ -180,11 +180,11 @@ export default function FodderSeedReportPage() {
                         )}
                     </tbody>
                     {rows.length > 0 && (
-                        <tfoot className="border-t-2 border-lime-300 font-bold">
-                            <tr className="bg-lime-100">
-                                <td className="p-3 sticky left-0 bg-lime-100 z-10 border-r border-lime-200"></td>
-                                <td className="p-3 sticky left-[50px] bg-lime-100 z-10 border-r border-lime-200 text-lime-900">TOTAL</td>
-                                <td className="p-3 text-right text-green-800">
+                        <tfoot className="border-t-2 border-border font-bold">
+                            <tr className="bg-muted">
+                                <td className="p-3 sticky left-0 bg-muted z-10 border-r border-border"></td>
+                                <td className="p-3 sticky left-[50px] bg-muted z-10 border-r border-border text-foreground">TOTAL</td>
+                                <td className="p-3 text-right text-foreground">
                                     {rows.reduce((sum, r) => sum + r.no_of_applications, 0)}
                                 </td>
                                 {varieties.map((v, i) => (
@@ -202,27 +202,20 @@ export default function FodderSeedReportPage() {
 
     return (
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-auto w-full">
-            {/* Gradient hero header */}
-            <div className="relative rounded-2xl bg-gradient-to-br from-lime-500 via-green-500 to-emerald-600 p-4 sm:p-6 overflow-hidden shadow-lg">
-                <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-                <div className="absolute -top-8 -right-8 w-48 h-48 bg-white/10 rounded-full blur-2xl" />
-                <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/10 rounded-full blur-xl" />
-                <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
-                    <div className="flex items-center gap-3">
-                        <Link href="/admin/reports">
-                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-                                <ArrowLeft className="h-5 w-5" />
-                            </Button>
-                        </Link>
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-                            <Sprout className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-xl sm:text-2xl font-bold text-white">Fodder Seed District Report</h1>
-                            <p className="text-sm text-white/80">District-wise fodder seed variety distribution</p>
-                        </div>
+            {/* Simple clean header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4">
+                <div className="flex items-center gap-3">
+                    <Link href="/admin/reports">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+                            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+                        </Button>
+                    </Link>
+                    <div>
+                        <h1 className="text-xl sm:text-2xl font-bold">Fodder Seed District Report</h1>
+                        <p className="text-xs sm:text-sm text-muted-foreground">District-wise fodder seed variety distribution</p>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
                     {/* Filters */}
                     <Select value={districtFilter} onValueChange={setDistrictFilter}>
                         <SelectTrigger className="w-[140px] sm:w-[160px]">
@@ -238,13 +231,13 @@ export default function FodderSeedReportPage() {
                         </SelectContent>
                     </Select>
 
-                    <Button variant="ghost" size="icon" onClick={handleRefresh} className="text-white hover:bg-white/20">
-                        <RefreshCw className="h-4 w-4" />
+                    <Button variant="outline" size="icon" onClick={handleRefresh}>
+                        <RefreshCw className="h-4 w-4 text-muted-foreground" />
                     </Button>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button disabled={isExporting || isLoading} variant="secondary" size="sm" className="bg-white/20 text-white hover:bg-white/30 border border-white/30">
+                            <Button disabled={isExporting || isLoading} variant="default" size="sm">
                                 {isExporting ? (
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                 ) : (
@@ -268,60 +261,56 @@ export default function FodderSeedReportPage() {
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    </div>
                 </div>
             </div>
 
             {/* Summary cards */}
             {!isLoading && rows.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                    <Card className="relative overflow-hidden border-2 border-lime-500/30 bg-gradient-to-br from-lime-500/20 to-lime-600/10 hover:-translate-y-1 transition-all duration-300 group">
-                        <div className="absolute -top-8 -right-8 w-32 h-32 bg-lime-400/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardContent className="p-4 relative">
-                            <div className="flex items-center justify-between mb-2">
-                                <p className="text-xs text-muted-foreground font-medium">Districts</p>
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-lime-500 to-lime-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <MapPin className="h-4 w-4 text-white" />
-                                </div>
+                    <Card className="border shadow-sm">
+                        <CardContent className="p-4 flex items-center justify-between">
+                            <div>
+                                <p className="text-xs text-muted-foreground font-medium mb-1">Districts</p>
+                                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{rows.length}</p>
                             </div>
-                            <p className="text-2xl font-bold text-lime-700">{rows.length}</p>
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                <MapPin className="h-5 w-5 text-slate-500" />
+                            </div>
                         </CardContent>
                     </Card>
-                    <Card className="relative overflow-hidden border-2 border-green-500/30 bg-gradient-to-br from-green-500/20 to-green-600/10 hover:-translate-y-1 transition-all duration-300 group">
-                        <div className="absolute -top-8 -right-8 w-32 h-32 bg-green-400/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardContent className="p-4 relative">
-                            <div className="flex items-center justify-between mb-2">
-                                <p className="text-xs text-muted-foreground font-medium">Total Applications</p>
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Sprout className="h-4 w-4 text-white" />
-                                </div>
+                    <Card className="border shadow-sm">
+                        <CardContent className="p-4 flex items-center justify-between">
+                            <div>
+                                <p className="text-xs text-muted-foreground font-medium mb-1">Total Applications</p>
+                                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                    {rows.reduce((s, r) => s + r.no_of_applications, 0)}
+                                </p>
                             </div>
-                            <p className="text-2xl font-bold text-green-700">
-                                {rows.reduce((s, r) => s + r.no_of_applications, 0)}
-                            </p>
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                <Sprout className="h-5 w-5 text-slate-500" />
+                            </div>
                         </CardContent>
                     </Card>
-                    <Card className="relative overflow-hidden border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 hover:-translate-y-1 transition-all duration-300 group">
-                        <div className="absolute -top-8 -right-8 w-32 h-32 bg-emerald-400/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-                        <CardContent className="p-4 relative">
-                            <div className="flex items-center justify-between mb-2">
-                                <p className="text-xs text-muted-foreground font-medium">Varieties</p>
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                                    <Leaf className="h-4 w-4 text-white" />
-                                </div>
+                    <Card className="border shadow-sm">
+                        <CardContent className="p-4 flex items-center justify-between">
+                            <div>
+                                <p className="text-xs text-muted-foreground font-medium mb-1">Varieties</p>
+                                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{varieties.length}</p>
                             </div>
-                            <p className="text-2xl font-bold text-emerald-700">{varieties.length}</p>
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                <Leaf className="h-5 w-5 text-slate-500" />
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
             )}
 
             {/* Report Card */}
-            <Card className="border-2 border-lime-200 shadow-md">
-                <CardHeader className="p-3 sm:p-4 md:p-6 bg-gradient-to-r from-lime-50 to-green-50 border-b border-lime-200 rounded-t-xl">
+            <Card className="border shadow-md">
+                <CardHeader className="p-3 sm:p-4 md:p-6 bg-slate-50 dark:bg-slate-900 border-b border-border rounded-t-xl">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="space-y-1">
-                            <CardTitle className="text-base sm:text-lg md:text-xl text-lime-800">
+                            <CardTitle className="text-base sm:text-lg md:text-xl text-slate-800 dark:text-slate-100">
                                 District-wise Fodder Seed Records
                             </CardTitle>
                             <CardDescription className="text-xs sm:text-sm">
@@ -332,7 +321,7 @@ export default function FodderSeedReportPage() {
                         <Button
                             variant="outline"
                             size="sm"
-                            className="w-full sm:w-auto border-lime-400 text-lime-700 hover:bg-lime-50"
+                            className="w-full sm:w-auto border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300"
                             onClick={() => setIsTableFullscreen(true)}
                             disabled={isLoading || rows.length === 0}
                         >
@@ -349,7 +338,7 @@ export default function FodderSeedReportPage() {
                         </div>
                     ) : rows.length === 0 ? (
                         <div className="text-center py-12 text-muted-foreground">
-                            <Sprout className="h-12 w-12 mx-auto mb-4 text-lime-300" />
+                            <Sprout className="h-12 w-12 mx-auto mb-4 text-slate-300" />
                             No data available for the selected filters.
                         </div>
                     ) : (
