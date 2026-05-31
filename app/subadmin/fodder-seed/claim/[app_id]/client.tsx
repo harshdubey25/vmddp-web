@@ -118,13 +118,19 @@ export default function FodderSeedClaimForm({
         }
     }, [fodderSeedDetails]);
 
-    // Auto-calculate amount when quantity or item rate changes
+    // Auto-calculate amount when quantity or item rate changes, capped at maximum subsidy amount
     useEffect(() => {
         const qtyNum = parseFloat(quantity) || 0;
         if (qtyNum > 0 && itemRate > 0) {
-            setAmount((itemRate * qtyNum).toFixed(2));
+            const calculatedAmount = itemRate * qtyNum;
+            const maxSubsidy = fodderSeedDetails?.maximum_subsidy_amount ?? 6000;
+            if (calculatedAmount > maxSubsidy) {
+                setAmount(maxSubsidy.toFixed(2));
+            } else {
+                setAmount(calculatedAmount.toFixed(2));
+            }
         }
-    }, [quantity, itemRate]);
+    }, [quantity, itemRate, fodderSeedDetails]);
 
     const { createDoc, loading: createLoading } = useFrappeCreateDoc();
 
@@ -133,7 +139,9 @@ export default function FodderSeedClaimForm({
     };
 
     const isFormValid = () => {
-        return !!(selectedStockItem && quantity && amount);
+        const amountNum = parseFloat(amount) || 0;
+        const maxSubsidy = fodderSeedDetails?.maximum_subsidy_amount ?? 6000;
+        return !!(selectedStockItem && quantity && amount && amountNum > 0 && amountNum <= maxSubsidy);
     };
 
     const handleSubmit = async () => {
@@ -141,6 +149,17 @@ export default function FodderSeedClaimForm({
             toast({
                 title: "Missing Fields",
                 description: "Please fill all required fields.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const amountNum = parseFloat(amount) || 0;
+        const maxSubsidy = fodderSeedDetails?.maximum_subsidy_amount ?? 6000;
+        if (amountNum > maxSubsidy) {
+            toast({
+                title: "Limit Exceeded",
+                description: `Amount cannot exceed the maximum subsidy amount of ₹${maxSubsidy}.`,
                 variant: "destructive",
             });
             return;
@@ -355,9 +374,9 @@ export default function FodderSeedClaimForm({
                                 <Select
                                     value={selectedStockItem}
                                     onValueChange={setSelectedStockItem}
-                                    disabled={true}
+                                    disabled={isSubmitting || createLoading}
                                 >
-                                    <SelectTrigger id="stock_item" className="h-9 rounded-lg text-xs bg-slate-50 text-slate-500" data-testid="select-stock-item">
+                                    <SelectTrigger id="stock_item" className="h-9 rounded-lg text-xs" data-testid="select-stock-item">
                                         <SelectValue placeholder="Select Fodder Seed stock item" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -381,11 +400,6 @@ export default function FodderSeedClaimForm({
                                             ₹{itemRate} / {fodderSeedDetails?.unit || "Kg"}
                                         </Badge>
                                     </div>
-                                )}
-                                {selectedStockItem && (
-                                    <p className="text-[10px] text-green-600 font-semibold flex items-center gap-1 mt-1">
-                                        <Check className="h-3.5 w-3.5 text-green-600" /> Locked to the pre-filled variety from applicant response
-                                    </p>
                                 )}
                             </div>
 
@@ -412,11 +426,27 @@ export default function FodderSeedClaimForm({
                                     type="number"
                                     placeholder="Enter amount"
                                     value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        const numVal = parseFloat(val);
+                                        const maxSubsidy = fodderSeedDetails?.maximum_subsidy_amount ?? 6000;
+                                        if (numVal > maxSubsidy) {
+                                            setAmount(String(maxSubsidy));
+                                            toast({
+                                                title: "Limit Exceeded",
+                                                description: `Amount cannot exceed the maximum subsidy amount of ₹${maxSubsidy}.`,
+                                            });
+                                        } else {
+                                            setAmount(val);
+                                        }
+                                    }}
                                     className="h-9 rounded-lg text-xs font-semibold"
                                     data-testid="input-amount"
                                     hideSpinners
                                 />
+                                <span className="text-[10px] text-muted-foreground block mt-1">
+                                    Maximum subsidy limit: ₹{fodderSeedDetails?.maximum_subsidy_amount ?? 6000}
+                                </span>
                             </div>
 
                             {/* Action Buttons */}
