@@ -30,6 +30,8 @@ interface FodderSeedDataResponse {
         fodder_seed_variety?: string;
         Quantity?: string | number;
         price_per_unit?: number;
+        claimed_quantity?: number;
+        claimed_subsidy_amount?: number;
     };
 }
 
@@ -118,14 +120,16 @@ export default function FodderSeedClaimForm({
         }
     }, [fodderSeedDetails]);
 
-    // Auto-calculate amount when quantity or item rate changes, capped at maximum subsidy amount
+    // Auto-calculate amount when quantity or item rate changes, capped at remaining subsidy amount
     useEffect(() => {
         const qtyNum = parseFloat(quantity) || 0;
         if (qtyNum > 0 && itemRate > 0) {
             const calculatedAmount = itemRate * qtyNum;
             const maxSubsidy = fodderSeedDetails?.maximum_subsidy_amount ?? 6000;
-            if (calculatedAmount > maxSubsidy) {
-                setAmount(maxSubsidy.toFixed(2));
+            const claimedSubsidy = fodderSeedDetails?.claimed_subsidy_amount ?? 0;
+            const remainingSubsidy = Math.max(0, maxSubsidy - claimedSubsidy);
+            if (calculatedAmount > remainingSubsidy) {
+                setAmount(remainingSubsidy.toFixed(2));
             } else {
                 setAmount(calculatedAmount.toFixed(2));
             }
@@ -141,7 +145,9 @@ export default function FodderSeedClaimForm({
     const isFormValid = () => {
         const amountNum = parseFloat(amount) || 0;
         const maxSubsidy = fodderSeedDetails?.maximum_subsidy_amount ?? 6000;
-        return !!(selectedStockItem && quantity && amount && amountNum > 0 && amountNum <= maxSubsidy);
+        const claimedSubsidy = fodderSeedDetails?.claimed_subsidy_amount ?? 0;
+        const remainingSubsidy = Math.max(0, maxSubsidy - claimedSubsidy);
+        return !!(selectedStockItem && quantity && amount && amountNum > 0 && amountNum <= remainingSubsidy);
     };
 
     const handleSubmit = async () => {
@@ -156,10 +162,12 @@ export default function FodderSeedClaimForm({
 
         const amountNum = parseFloat(amount) || 0;
         const maxSubsidy = fodderSeedDetails?.maximum_subsidy_amount ?? 6000;
-        if (amountNum > maxSubsidy) {
+        const claimedSubsidy = fodderSeedDetails?.claimed_subsidy_amount ?? 0;
+        const remainingSubsidy = Math.max(0, maxSubsidy - claimedSubsidy);
+        if (amountNum > remainingSubsidy) {
             toast({
                 title: "Limit Exceeded",
-                description: `Amount cannot exceed the maximum subsidy amount of ₹${maxSubsidy}.`,
+                description: `Amount cannot exceed the remaining subsidy amount of ₹${remainingSubsidy}.`,
                 variant: "destructive",
             });
             return;
@@ -170,7 +178,9 @@ export default function FodderSeedClaimForm({
         try {
             // Create Fodder Seed Claim document
             const maxSubsidy = fodderSeedDetails?.maximum_subsidy_amount ?? 6000;
-            const subsidyAmount = Math.min(parseFloat(amount) || 0, maxSubsidy);
+            const claimedSubsidy = fodderSeedDetails?.claimed_subsidy_amount ?? 0;
+            const remainingSubsidy = Math.max(0, maxSubsidy - claimedSubsidy);
+            const subsidyAmount = Math.min(parseFloat(amount) || 0, remainingSubsidy);
 
             await createDoc("Fodder Seed Claim", {
                 application: appId,
@@ -304,27 +314,52 @@ export default function FodderSeedClaimForm({
                             </div>
 
                             {fodderSeedDetails && (
-                                <div className="pt-4 border-t border-slate-100">
-                                    <p className="text-xs font-bold uppercase tracking-wider text-lime-800 mb-2 flex items-center gap-1">
-                                        <Sprout className="h-3.5 w-3.5 text-lime-600" />
-                                        Fodder Seed Registration Metadata
-                                    </p>
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs bg-lime-50/20 p-3 rounded-lg border border-lime-100/50">
-                                        <div>
-                                            <p className="text-muted-foreground font-medium mb-0.5">Applied Variety</p>
-                                            <p className="font-bold text-slate-800">{fodderSeedDetails.fodder_seed_variety || "N/A"}</p>
+                                <div className="pt-4 border-t border-slate-100 space-y-4">
+                                    <div>
+                                        <p className="text-xs font-bold uppercase tracking-wider text-lime-800 mb-2 flex items-center gap-1">
+                                            <Sprout className="h-3.5 w-3.5 text-lime-600" />
+                                            Fodder Seed Registration Metadata
+                                        </p>
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs bg-lime-50/20 p-3 rounded-lg border border-lime-100/50">
+                                            <div>
+                                                <p className="text-muted-foreground font-medium mb-0.5">Applied Variety</p>
+                                                <p className="font-bold text-slate-800">{fodderSeedDetails.fodder_seed_variety || "N/A"}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-muted-foreground font-medium mb-0.5">Applied Quantity</p>
+                                                <p className="font-bold text-slate-800 font-mono">{fodderSeedDetails.Quantity || "0"} {fodderSeedDetails.unit || "Kg"}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-muted-foreground font-medium mb-0.5">Rate per Unit</p>
+                                                <p className="font-bold text-slate-800 font-mono">₹{fodderSeedDetails.price_per_unit || "0"}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-muted-foreground font-medium mb-0.5">Max Subsidy Amount</p>
+                                                <p className="font-bold text-slate-800 font-mono">₹{fodderSeedDetails.maximum_subsidy_amount || "0"}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-muted-foreground font-medium mb-0.5">Applied Quantity</p>
-                                            <p className="font-bold text-slate-800 font-mono">{fodderSeedDetails.Quantity || "0"} {fodderSeedDetails.unit || "Kg"}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-muted-foreground font-medium mb-0.5">Rate per Unit</p>
-                                            <p className="font-bold text-slate-800 font-mono">₹{fodderSeedDetails.price_per_unit || "0"}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-muted-foreground font-medium mb-0.5">Max Subsidy Amount</p>
-                                            <p className="font-bold text-slate-800 font-mono">₹{fodderSeedDetails.maximum_subsidy_amount || "0"}</p>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-xs font-bold uppercase tracking-wider text-amber-800 mb-2 flex items-center gap-1">
+                                            <FileText className="h-3.5 w-3.5 text-amber-600" />
+                                            Subsidy Utilization &amp; Claims History
+                                        </p>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs bg-amber-50/20 p-3 rounded-lg border border-amber-100/50">
+                                            <div>
+                                                <p className="text-muted-foreground font-medium mb-0.5">Claimed Quantity</p>
+                                                <p className="font-bold text-slate-800 font-mono">{fodderSeedDetails.claimed_quantity || "0"} {fodderSeedDetails.unit || "Kg"}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-muted-foreground font-medium mb-0.5">Claimed Subsidy Amount</p>
+                                                <p className="font-bold text-slate-800 font-mono">₹{fodderSeedDetails.claimed_subsidy_amount || "0"}</p>
+                                            </div>
+                                            <div className="col-span-2 sm:col-span-1">
+                                                <p className="text-muted-foreground font-medium mb-0.5">Remaining Subsidy Amount</p>
+                                                <p className="font-bold text-green-700 font-mono bg-green-50 px-2 py-0.5 rounded border border-green-200/60 inline-block">
+                                                    ₹{Math.max(0, (fodderSeedDetails.maximum_subsidy_amount ?? 6000) - (fodderSeedDetails.claimed_subsidy_amount ?? 0))}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -430,11 +465,13 @@ export default function FodderSeedClaimForm({
                                         const val = e.target.value;
                                         const numVal = parseFloat(val);
                                         const maxSubsidy = fodderSeedDetails?.maximum_subsidy_amount ?? 6000;
-                                        if (numVal > maxSubsidy) {
-                                            setAmount(String(maxSubsidy));
+                                        const claimedSubsidy = fodderSeedDetails?.claimed_subsidy_amount ?? 0;
+                                        const remainingSubsidy = Math.max(0, maxSubsidy - claimedSubsidy);
+                                        if (numVal > remainingSubsidy) {
+                                            setAmount(String(remainingSubsidy));
                                             toast({
                                                 title: "Limit Exceeded",
-                                                description: `Amount cannot exceed the maximum subsidy amount of ₹${maxSubsidy}.`,
+                                                description: `Amount cannot exceed the remaining subsidy amount of ₹${remainingSubsidy}.`,
                                             });
                                         } else {
                                             setAmount(val);
@@ -445,7 +482,7 @@ export default function FodderSeedClaimForm({
                                     hideSpinners
                                 />
                                 <span className="text-[10px] text-muted-foreground block mt-1">
-                                    Maximum subsidy limit: ₹{fodderSeedDetails?.maximum_subsidy_amount ?? 6000}
+                                    Remaining subsidy limit: ₹{Math.max(0, (fodderSeedDetails?.maximum_subsidy_amount ?? 6000) - (fodderSeedDetails?.claimed_subsidy_amount ?? 0))} (Max: ₹{fodderSeedDetails?.maximum_subsidy_amount ?? 6000}, Claimed: ₹{fodderSeedDetails?.claimed_subsidy_amount ?? 0})
                                 </span>
                             </div>
 

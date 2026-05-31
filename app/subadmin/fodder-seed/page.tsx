@@ -140,12 +140,13 @@ export default function SubAdminFodderSeedPage() {
     );
 
     // Fetch completed fodder seed claims list
-    const completedCacheKey = `fodder_seed_completed_list_${committedSearch}_${completedPage}`;
+    const completedCacheKey = `fodder_seed_completed_list_${committedSearch}_${committedApplicationId}_${completedPage}`;
 
     const { data: completedResponse, isLoading: isCompletedLoading, mutate: mutateCompleted } = useFrappeGetCall<{ message: CompletedFodderSeedClaim[] }>(
         "vmddp_app.api.v1.dpo.fodder_seed_completed_list",
         {
             search_text: committedSearch || undefined,
+            application_id: committedApplicationId || undefined,
             limit_start: (completedPage - 1) * PAGE_SIZE,
             limit_page_length: PAGE_SIZE,
         },
@@ -302,18 +303,16 @@ export default function SubAdminFodderSeedPage() {
                     </CardHeader>
                     <CardContent className="p-4 space-y-4">
                         <div className="flex flex-wrap gap-3 items-center">
-                            {activeTab === "active" && (
-                                <div className="flex flex-col gap-1 w-full sm:w-44">
-                                    <label className="text-[10px] uppercase font-bold text-muted-foreground">Application ID</label>
-                                    <Input
-                                        placeholder="Application ID"
-                                        value={applicationId}
-                                        onChange={(e) => setApplicationId(e.target.value)}
-                                        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                                        data-testid="input-application-id"
-                                    />
-                                </div>
-                            )}
+                            <div className="flex flex-col gap-1 w-full sm:w-44">
+                                <label className="text-[10px] uppercase font-bold text-muted-foreground">Application ID</label>
+                                <Input
+                                    placeholder="Application ID"
+                                    value={applicationId}
+                                    onChange={(e) => setApplicationId(e.target.value)}
+                                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                                    data-testid="input-application-id"
+                                />
+                            </div>
 
                             <div className="flex flex-col gap-1 w-full sm:w-64">
                                 <label className="text-[10px] uppercase font-bold text-muted-foreground">Search Beneficiary</label>
@@ -431,17 +430,17 @@ export default function SubAdminFodderSeedPage() {
                                                                         <span>₹{(beneficiary.subsidy_amount || 0).toLocaleString('en-IN')}</span>
                                                                         <span>₹{(beneficiary.maximum_subsidy_amount || 0).toLocaleString('en-IN')}</span>
                                                                     </div>
-                                                                    <Progress 
+                                                                    <Progress
                                                                         value={
-                                                                            (beneficiary.maximum_subsidy_amount || 0) > 0 
-                                                                                ? ((beneficiary.subsidy_amount || 0) / (beneficiary.maximum_subsidy_amount || 0)) * 100 
+                                                                            (beneficiary.maximum_subsidy_amount || 0) > 0
+                                                                                ? ((beneficiary.subsidy_amount || 0) / (beneficiary.maximum_subsidy_amount || 0)) * 100
                                                                                 : 0
-                                                                        } 
-                                                                        className="h-2 bg-slate-100" 
+                                                                        }
+                                                                        className="h-2 bg-slate-100"
                                                                     />
                                                                     <span className="text-[9px] text-muted-foreground block text-right font-medium">
-                                                                        {((beneficiary.maximum_subsidy_amount || 0) > 0 
-                                                                            ? ((beneficiary.subsidy_amount || 0) / (beneficiary.maximum_subsidy_amount || 0)) * 100 
+                                                                        {((beneficiary.maximum_subsidy_amount || 0) > 0
+                                                                            ? ((beneficiary.subsidy_amount || 0) / (beneficiary.maximum_subsidy_amount || 0)) * 100
                                                                             : 0
                                                                         ).toFixed(1)}% claimed
                                                                     </span>
@@ -520,23 +519,21 @@ export default function SubAdminFodderSeedPage() {
                             <TabsContent value="completed" className="space-y-4">
                                 <div className="border rounded-lg overflow-hidden flex flex-col shadow-sm">
                                     <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-420px)]">
-                                        <table className="w-full min-w-[900px] text-xs">
+                                        <table className="w-full min-w-[750px] text-xs">
                                             <thead className="bg-muted sticky top-0 z-30 border-b">
                                                 <tr>
                                                     <th className="text-left p-3 font-semibold">Claim Info</th>
                                                     <th className="text-left p-3 font-semibold">Location</th>
-                                                    <th className="text-left p-3 font-semibold">Bank Details</th>
                                                     <th className="text-left p-3 font-semibold">Seed Variety</th>
                                                     <th className="text-left p-3 font-semibold">Quantity</th>
-                                                    <th className="text-left p-3 font-semibold">Financials</th>
-                                                    <th className="text-left p-3 font-semibold">Date Completed</th>
+                                                    <th className="text-left p-3 font-semibold">Subsidy</th>
                                                     <th className="text-left p-3 font-semibold">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {isCompletedLoading ? (
                                                     <tr>
-                                                        <td colSpan={8} className="text-center py-12">
+                                                        <td colSpan={6} className="text-center py-12">
                                                             <div className="flex flex-col items-center gap-2">
                                                                 <Loader2 className="h-6 w-6 animate-spin text-lime-600" />
                                                                 <p className="text-xs text-muted-foreground">Loading completed claims...</p>
@@ -567,13 +564,6 @@ export default function SubAdminFodderSeedPage() {
                                                                 </div>
                                                             </td>
                                                             <td className="p-3">
-                                                                <div>
-                                                                    <p className="font-medium">Acct: {maskAccountNumber(claim.account_number)}</p>
-                                                                    <p className="text-muted-foreground text-[10px]">{claim.bank_name}</p>
-                                                                    <p className="text-muted-foreground text-[10px] font-mono">{claim.ifsc_code}</p>
-                                                                </div>
-                                                            </td>
-                                                            <td className="p-3">
                                                                 <p className="font-semibold text-slate-800">{claim.stock_item || "N/A"}</p>
                                                             </td>
                                                             <td className="p-3">
@@ -582,15 +572,9 @@ export default function SubAdminFodderSeedPage() {
                                                                 </Badge>
                                                             </td>
                                                             <td className="p-3">
-                                                                <div>
-                                                                    <p className="font-medium text-slate-700">Total: ₹{claim.amount?.toLocaleString('en-IN')}</p>
-                                                                    <Badge className="bg-emerald-600 text-white text-[10px] font-bold mt-0.5">
-                                                                        Subsidy: ₹{claim.subsidy_amount?.toLocaleString('en-IN')}
-                                                                    </Badge>
-                                                                </div>
-                                                            </td>
-                                                            <td className="p-3 text-slate-600 font-mono text-[11px]">
-                                                                {formatDate(claim.modified)}
+                                                                <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold font-mono">
+                                                                    ₹{claim.subsidy_amount?.toLocaleString('en-IN')}
+                                                                </Badge>
                                                             </td>
                                                             <td className="p-3">
                                                                 <Button
@@ -604,14 +588,14 @@ export default function SubAdminFodderSeedPage() {
                                                                     data-testid={`button-view-claim-${claim.claim_id}`}
                                                                 >
                                                                     <FileText className="h-3.5 w-3.5 mr-1" />
-                                                                    View Receipt
+                                                                    View Details
                                                                 </Button>
                                                             </td>
                                                         </tr>
                                                     ))
                                                 ) : (
                                                     <tr>
-                                                        <td colSpan={8} className="text-center py-12 text-muted-foreground">
+                                                        <td colSpan={6} className="text-center py-12 text-muted-foreground">
                                                             <Sprout className="h-10 w-10 mx-auto mb-2 text-lime-300" />
                                                             No completed claims found matching your criteria.
                                                         </td>
