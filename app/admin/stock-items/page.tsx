@@ -38,6 +38,8 @@ interface StockItem {
     unit_of_measure: string;
     rate: number;
     stock_item_group: string;
+    expected_land_coverage?: number;
+    expected_yield?: number;
 }
 
 interface Unit {
@@ -56,10 +58,16 @@ export default function StockItemsManagement() {
     const [unitOfMeasure, setUnitOfMeasure] = useState<string>("");
     const [rate, setRate] = useState<string>("");
     const [itemGroup, setItemGroup] = useState<string>("");
+    const [expectedLandCoverage, setExpectedLandCoverage] = useState<string>("");
+    const [expectedYield, setExpectedYield] = useState<string>("");
     const [selectedItem, setSelectedItem] = useState<StockItem | null>(null);
     const [editRate, setEditRate] = useState<string>("");
     const [editUnitOfMeasure, setEditUnitOfMeasure] = useState<string>("");
+    const [editExpectedLandCoverage, setEditExpectedLandCoverage] = useState<string>("");
+    const [editExpectedYield, setEditExpectedYield] = useState<string>("");
     const router = useRouter();
+    const isFodderSeed = itemGroup === "Fodder Seed";
+    const isEditFodderSeed = selectedItem?.stock_item_group === "Fodder Seed";
 
     // Pagination and search
     const [page, setPage] = useState(1);
@@ -78,7 +86,7 @@ export default function StockItemsManagement() {
     });
 
     const { data: stockItems, isLoading: loadingItems, mutate: mutateItems } = useFrappeGetDocList<StockItem>("Stock Item", {
-        fields: ["name", "item_name", "unit_of_measure", "rate", "stock_item_group"],
+        fields: ["name", "item_name", "unit_of_measure", "rate", "stock_item_group", "expected_land_coverage", "expected_yield"],
         orderBy: { field: "creation", order: "desc" },
         limit: PAGE_SIZE,
         limit_start: (page - 1) * PAGE_SIZE,
@@ -101,12 +109,19 @@ export default function StockItemsManagement() {
         }
 
         try {
-            await createDoc("Stock Item", {
+            const docData: any = {
                 item_name: itemName,
                 unit_of_measure: unitOfMeasure,
                 rate: parseFloat(rate),
                 stock_item_group: itemGroup
-            });
+            };
+
+            if (isFodderSeed) {
+                if (expectedLandCoverage) docData.expected_land_coverage = parseFloat(expectedLandCoverage);
+                if (expectedYield) docData.expected_yield = parseFloat(expectedYield);
+            }
+
+            await createDoc("Stock Item", docData);
 
             toast({
                 title: "Success",
@@ -118,6 +133,8 @@ export default function StockItemsManagement() {
             setUnitOfMeasure("");
             setRate("");
             setItemGroup("");
+            setExpectedLandCoverage("");
+            setExpectedYield("");
             mutateItems();
         } catch (error) {
             console.error("Error adding stock item:", error);
@@ -133,6 +150,8 @@ export default function StockItemsManagement() {
         setSelectedItem(item);
         setEditRate(item.rate !== undefined && item.rate !== null ? String(item.rate) : "");
         setEditUnitOfMeasure(item.unit_of_measure || "");
+        setEditExpectedLandCoverage(item.expected_land_coverage !== undefined && item.expected_land_coverage !== null ? String(item.expected_land_coverage) : "");
+        setEditExpectedYield(item.expected_yield !== undefined && item.expected_yield !== null ? String(item.expected_yield) : "");
         setIsEditDialogOpen(true);
     };
 
@@ -150,10 +169,17 @@ export default function StockItemsManagement() {
         }
 
         try {
-            await updateDoc("Stock Item", selectedItem.name, {
+            const updateData: any = {
                 rate: parsedRate,
                 unit_of_measure: editUnitOfMeasure,
-            });
+            };
+
+            if (selectedItem.stock_item_group === "Fodder Seed") {
+                updateData.expected_land_coverage = editExpectedLandCoverage ? parseFloat(editExpectedLandCoverage) : null;
+                updateData.expected_yield = editExpectedYield ? parseFloat(editExpectedYield) : null;
+            }
+
+            await updateDoc("Stock Item", selectedItem.name, updateData);
             toast({
                 title: "Success",
                 description: "Stock item updated successfully.",
@@ -163,6 +189,8 @@ export default function StockItemsManagement() {
             setSelectedItem(null);
             setEditRate("");
             setEditUnitOfMeasure("");
+            setEditExpectedLandCoverage("");
+            setEditExpectedYield("");
         } catch (error) {
             console.error("Error updating stock item:", error);
             toast({
@@ -229,6 +257,8 @@ export default function StockItemsManagement() {
                                                 <th className="text-left p-3 text-sm font-medium">Unit of Measure</th>
                                                 <th className="text-left p-3 text-sm font-medium">Rate</th>
                                                 <th className="text-left p-3 text-sm font-medium">Item Group</th>
+                                                <th className="text-left p-3 text-sm font-medium">Expected Land Coverage</th>
+                                                <th className="text-left p-3 text-sm font-medium">Expected Yield</th>
                                                 <th className="text-right p-3 text-sm font-medium">Actions</th>
                                             </tr>
                                         </thead>
@@ -239,6 +269,8 @@ export default function StockItemsManagement() {
                                                     <td className="p-3 text-sm">{item.unit_of_measure}</td>
                                                     <td className="p-3 text-sm">₹{item.rate}</td>
                                                     <td className="p-3 text-sm">{item.stock_item_group}</td>
+                                                    <td className="p-3 text-sm">{item.expected_land_coverage !== undefined && item.expected_land_coverage !== null ? `${item.expected_land_coverage} Ha` : "-"}</td>
+                                                    <td className="p-3 text-sm">{item.expected_yield !== undefined && item.expected_yield !== null ? `${item.expected_yield} Qtl` : "-"}</td>
                                                     <td className="p-3 text-sm text-right">
                                                         <Button
                                                             variant="ghost"
@@ -305,7 +337,17 @@ export default function StockItemsManagement() {
                 </CardContent>
             </Card>
 
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+                setIsAddDialogOpen(open);
+                if (!open) {
+                    setItemName("");
+                    setUnitOfMeasure("");
+                    setRate("");
+                    setItemGroup("");
+                    setExpectedLandCoverage("");
+                    setExpectedYield("");
+                }
+            }}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Add Stock Item</DialogTitle>
@@ -378,9 +420,43 @@ export default function StockItemsManagement() {
                                 </SelectContent>
                             </Select>
                         </div>
+                        {isFodderSeed && (
+                            <>
+                                <div className="space-y-2">
+                                    <Label htmlFor="expected_land_coverage">Expected Land Coverage</Label>
+                                    <Input
+                                        id="expected_land_coverage"
+                                        type="number"
+                                        step="any"
+                                        placeholder="Enter expected land coverage"
+                                        value={expectedLandCoverage}
+                                        onChange={(e) => setExpectedLandCoverage(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="expected_yield">Expected Yield</Label>
+                                    <Input
+                                        id="expected_yield"
+                                        type="number"
+                                        step="any"
+                                        placeholder="Enter expected yield"
+                                        value={expectedYield}
+                                        onChange={(e) => setExpectedYield(e.target.value)}
+                                    />
+                                </div>
+                            </>
+                        )}
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                        <Button variant="outline" onClick={() => {
+                            setIsAddDialogOpen(false);
+                            setItemName("");
+                            setUnitOfMeasure("");
+                            setRate("");
+                            setItemGroup("");
+                            setExpectedLandCoverage("");
+                            setExpectedYield("");
+                        }}>
                             Cancel
                         </Button>
                         <Button onClick={handleAddStockItem} disabled={isCreating}>
@@ -391,7 +467,16 @@ export default function StockItemsManagement() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+                setIsEditDialogOpen(open);
+                if (!open) {
+                    setSelectedItem(null);
+                    setEditRate("");
+                    setEditUnitOfMeasure("");
+                    setEditExpectedLandCoverage("");
+                    setEditExpectedYield("");
+                }
+            }}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Edit Stock Item</DialogTitle>
@@ -430,6 +515,32 @@ export default function StockItemsManagement() {
                                 onChange={(e) => setEditRate(e.target.value)}
                             />
                         </div>
+                        {isEditFodderSeed && (
+                            <>
+                                <div className="space-y-2">
+                                    <Label htmlFor="edit_expected_land_coverage">Expected Land Coverage</Label>
+                                    <Input
+                                        id="edit_expected_land_coverage"
+                                        type="number"
+                                        step="any"
+                                        placeholder="Enter expected land coverage"
+                                        value={editExpectedLandCoverage}
+                                        onChange={(e) => setEditExpectedLandCoverage(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="edit_expected_yield">Expected Yield</Label>
+                                    <Input
+                                        id="edit_expected_yield"
+                                        type="number"
+                                        step="any"
+                                        placeholder="Enter expected yield"
+                                        value={editExpectedYield}
+                                        onChange={(e) => setEditExpectedYield(e.target.value)}
+                                    />
+                                </div>
+                            </>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button
@@ -439,6 +550,8 @@ export default function StockItemsManagement() {
                                 setSelectedItem(null);
                                 setEditRate("");
                                 setEditUnitOfMeasure("");
+                                setEditExpectedLandCoverage("");
+                                setEditExpectedYield("");
                             }}
                         >
                             Cancel
