@@ -10,7 +10,7 @@ export interface DBTCompletedClaim {
     subsidy_given: number;        
     type_of_animal: string;
     number_of_animals_benefitted: number;
-    land_covered: number;
+    land_covered?: number;
     creation: string;
     application_id: string;
     first_name: string;

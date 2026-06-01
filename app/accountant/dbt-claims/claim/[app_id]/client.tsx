@@ -49,7 +49,6 @@ export default function ClaimForm({
         acknowledgement: false,
         component: component,
         typeOfAnimal: "",
-        land_covered: "",
         numberOfAnimalsBenefitted: "",
         fodderSeedVariety: "",
     });
@@ -136,7 +135,7 @@ export default function ClaimForm({
         );
 
         if (beneficiary?.component_name === "Fodder Seed") {
-            return baseFieldsValid && !!formData.fodderSeedVariety && !!formData.land_covered;
+            return baseFieldsValid && !!formData.fodderSeedVariety;
         }
 
         return baseFieldsValid;
@@ -186,7 +185,6 @@ export default function ClaimForm({
             acknowledgement: false,
             component: component,
             typeOfAnimal: "",
-            land_covered: "",
             numberOfAnimalsBenefitted: "",
             fodderSeedVariety: "",
         });
@@ -218,10 +216,10 @@ export default function ClaimForm({
             return;
         }
 
-        if (beneficiary?.component_name === "Fodder Seed" && (!formData.fodderSeedVariety || !formData.land_covered)) {
+        if (beneficiary?.component_name === "Fodder Seed" && !formData.fodderSeedVariety) {
             toast({
                 title: "Missing Fields",
-                description: "Please fill in Fodder Seed Variety and Land Covered fields.",
+                description: "Please fill in Fodder Seed Variety field.",
                 variant: "destructive",
             });
             return;
@@ -277,7 +275,6 @@ export default function ClaimForm({
                 quantity: parseFloat(formData.quantity),
                 total_amount: parseFloat(formData.totalAmount),
                 type_of_animal: formData.typeOfAnimal,
-                land_covered: formData.land_covered ? parseFloat(formData.land_covered) : undefined,
                 number_of_animals_benefitted: parseInt(formData.numberOfAnimalsBenefitted),
                 fodder_seed_variety: formData.fodderSeedVariety || undefined,
             });
@@ -626,43 +623,30 @@ export default function ClaimForm({
                                     />
                                 </div>
                                 {beneficiary.component_name === "Fodder Seed" && (
-                                    <>
-                                        <div className="space-y-2">
-                                            <Label>Fodder Seed Variety *</Label>
-                                            <Select
-                                                value={formData.fodderSeedVariety}
-                                                onValueChange={(value) => handleInputChange("fodderSeedVariety", value)}
-                                            >
-                                                <SelectTrigger data-testid="select-fodder-seed-variety">
-                                                    <SelectValue placeholder="Select fodder seed variety" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {fodderSeedLoading ? (
-                                                        <div className="p-2 text-sm text-muted-foreground">Loading...</div>
-                                                    ) : fodderSeedList && fodderSeedList.length > 0 ? (
-                                                        fodderSeedList.map((seed: any) => (
-                                                            <SelectItem key={seed.name} value={seed.name}>
-                                                                {seed.fodder_seed}
-                                                            </SelectItem>
-                                                        ))
-                                                    ) : (
-                                                        <div className="p-2 text-sm text-muted-foreground">No varieties found</div>
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Land covered *</Label>
-                                            <Input
-                                                type="number"
-                                                placeholder="Enter land covered"
-                                                value={formData.land_covered}
-                                                onChange={(e) => handleInputChange("land_covered", e.target.value)}
-                                                min="1"
-                                                data-testid="input-land-covered"
-                                            />
-                                        </div>
-                                    </>
+                                    <div className="space-y-2">
+                                        <Label>Fodder Seed Variety *</Label>
+                                        <Select
+                                            value={formData.fodderSeedVariety}
+                                            onValueChange={(value) => handleInputChange("fodderSeedVariety", value)}
+                                        >
+                                            <SelectTrigger data-testid="select-fodder-seed-variety">
+                                                <SelectValue placeholder="Select fodder seed variety" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {fodderSeedLoading ? (
+                                                    <div className="p-2 text-sm text-muted-foreground">Loading...</div>
+                                                ) : fodderSeedList && fodderSeedList.length > 0 ? (
+                                                    fodderSeedList.map((seed: any) => (
+                                                        <SelectItem key={seed.name} value={seed.name}>
+                                                            {seed.fodder_seed}
+                                                        </SelectItem>
+                                                    ))
+                                                ) : (
+                                                    <div className="p-2 text-sm text-muted-foreground">No varieties found</div>
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 )}
                                 <div className="space-y-2">
                                     <Label>Quantity *</Label>

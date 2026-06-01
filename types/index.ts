@@ -139,7 +139,7 @@ export interface DBTClaim {
     subsidy_given: string | null;
     type_of_animal: string | null;
     number_of_animals_benefitted: number;
-    land_covered: number;
+    land_covered?: number;
     fodder_seed_variety?: string;
     creation: string;
     application_id: string;
