@@ -20,6 +20,11 @@ const stockReportPages = [
         title: "Treatment of Infertile Animals — Medicine Consumption",
         description: "District-wise medicine / stock item consumption report.",
     },
+    {
+        href: "/admin/stock-report/fodder-seed-consumption",
+        title: "Fodder Seed District Wise Report",
+        description: "District-wise fodder seed stock allocation & consumption report.",
+    },
 ];
 
 export default function StockReport() {
