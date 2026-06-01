@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react'
 import { ApplicationDetails, FrappeCustomApiResponse } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, FileText, Check, User, Building2, MapPin, CreditCard, Loader2, Sprout } from "lucide-react";
+import { ArrowLeft, FileText, Check, User, MapPin, Loader2, Sprout, Map, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,8 @@ interface StockItem {
     item_name: string;
     rate?: number;
     stock_item_group?: string;
+    expected_land_coverage?: number;
+    expected_yield?: number;
 }
 
 interface FodderSeedDataResponse {
@@ -71,7 +73,7 @@ export default function FodderSeedClaimForm({
     const { data: stockItems, isLoading: loadingStock } = useFrappeGetDocList<StockItem>(
         "Stock Item",
         {
-            fields: ["name", "item_name", "rate", "stock_item_group"],
+            fields: ["name", "item_name", "rate", "stock_item_group", "expected_land_coverage", "expected_yield"],
             filters: [["stock_item_group", "=", "Fodder Seed"]],
             limit: 200,
         }
@@ -81,7 +83,7 @@ export default function FodderSeedClaimForm({
     const { data: fallbackStockItems } = useFrappeGetDocList<StockItem>(
         "Stock Item",
         {
-            fields: ["name", "item_name", "rate", "stock_item_group"],
+            fields: ["name", "item_name", "rate", "stock_item_group", "expected_land_coverage", "expected_yield"],
             limit: 200,
         },
         stockItems && stockItems.length > 0 ? null : undefined
@@ -296,19 +298,28 @@ export default function FodderSeedClaimForm({
                                         <p className="text-muted-foreground">{beneficiary.taluka}, {beneficiary.district}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-start gap-2">
-                                    <CreditCard className="h-4 w-4 text-lime-600 mt-0.5" />
+                                <div className="flex items-start gap-2" data-testid="container-land-coverage">
+                                    <Map className="h-4 w-4 text-lime-600 mt-0.5" />
                                     <div>
-                                        <p className="text-muted-foreground font-medium mb-0.5">Bank Account</p>
-                                        <p className="font-bold text-slate-800">****{beneficiary.account_number.slice(-4)}</p>
-                                        <p className="text-muted-foreground font-mono">{beneficiary.ifsc_code}</p>
+                                        <p className="text-muted-foreground font-medium mb-0.5">Expected Land Coverage</p>
+                                        <p className="font-bold text-slate-800">
+                                            {selectedItemDetails?.expected_land_coverage !== undefined && selectedItemDetails?.expected_land_coverage !== null
+                                                ? `${selectedItemDetails.expected_land_coverage} Ha`
+                                                : "-"}
+                                        </p>
+                                        <p className="text-muted-foreground">For selected seed variety</p>
                                     </div>
                                 </div>
-                                <div className="flex items-start gap-2">
-                                    <Building2 className="h-4 w-4 text-lime-600 mt-0.5" />
+                                <div className="flex items-start gap-2" data-testid="container-expected-yield">
+                                    <TrendingUp className="h-4 w-4 text-lime-600 mt-0.5" />
                                     <div>
-                                        <p className="text-muted-foreground font-medium mb-0.5">Bank Name</p>
-                                        <p className="font-bold text-slate-800">{beneficiary.bank_name}</p>
+                                        <p className="text-muted-foreground font-medium mb-0.5">Expected Yield</p>
+                                        <p className="font-bold text-slate-800">
+                                            {selectedItemDetails?.expected_yield !== undefined && selectedItemDetails?.expected_yield !== null
+                                                ? `${selectedItemDetails.expected_yield} Qtl`
+                                                : "-"}
+                                        </p>
+                                        <p className="text-muted-foreground">Projected output</p>
                                     </div>
                                 </div>
                             </div>

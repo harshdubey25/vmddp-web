@@ -14,7 +14,6 @@ import {
     Sprout,
     MapPin,
     User,
-    Banknote,
     Info,
     Loader2,
     RefreshCw,
@@ -78,11 +77,7 @@ interface CompletedFodderSeedClaim {
 
 const PAGE_SIZE = 20;
 
-const maskAccountNumber = (accountNumber?: string) => {
-    if (!accountNumber) return "N/A";
-    if (accountNumber.length <= 4) return accountNumber;
-    return "X".repeat(accountNumber.length - 4) + accountNumber.slice(-4);
-};
+
 
 
 export default function SubAdminFodderSeedPage() {
@@ -689,27 +684,7 @@ export default function SubAdminFodderSeedPage() {
                                     </div>
                                 </div>
 
-                                {/* Bank Info Section */}
-                                <div className="space-y-2">
-                                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                                        <Banknote className="h-3.5 w-3.5 text-green-600" />
-                                        Bank Account Details
-                                    </h3>
-                                    <div className="bg-slate-50 rounded-xl p-3 space-y-1.5 text-xs">
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Bank Name:</span>
-                                            <span className="font-semibold text-slate-800">{selectedBeneficiary.bank_name}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Account Number:</span>
-                                            <span className="font-mono text-slate-800">{maskAccountNumber(selectedBeneficiary.account_number)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">IFSC Code:</span>
-                                            <span className="font-mono text-slate-800">{selectedBeneficiary.ifsc_code}</span>
-                                        </div>
-                                    </div>
-                                </div>
+
 
                                 {/* Fodder Seed Details Section */}
                                 <div className="space-y-2">
@@ -789,27 +764,7 @@ export default function SubAdminFodderSeedPage() {
                                     </div>
                                 </div>
 
-                                {/* Bank Info Section */}
-                                <div className="space-y-2">
-                                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                                        <Banknote className="h-3.5 w-3.5 text-emerald-600" />
-                                        Bank Account Details
-                                    </h3>
-                                    <div className="bg-slate-50 rounded-xl p-3 space-y-1.5 text-xs">
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Bank Name:</span>
-                                            <span className="font-semibold text-slate-800">{selectedCompletedClaim.bank_name}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Account Number:</span>
-                                            <span className="font-mono text-slate-800">{maskAccountNumber(selectedCompletedClaim.account_number)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">IFSC Code:</span>
-                                            <span className="font-mono text-slate-800">{selectedCompletedClaim.ifsc_code}</span>
-                                        </div>
-                                    </div>
-                                </div>
+
 
                                 {/* Claim & Seed Details Section */}
                                 <div className="space-y-2">
