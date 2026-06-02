@@ -4,6 +4,38 @@ export const dynamic = "force-dynamic";
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
+
+  const accessToken = req.cookies.get("frappe_access_token")?.value;
+  const refreshToken = req.cookies.get("frappe_refresh_token")?.value;
+
+  const revokeUrl = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/frappe.integrations.oauth2.revoke_token`;
+  const clientId = process.env.FRAPPE_OAUTH_CLIENT_ID;
+  const clientSecret = process.env.FRAPPE_OAUTH_CLIENT_SECRET;
+
+
+  const revokeToken = async(token?: string) => {
+    if (token && clientId && clientSecret) {
+      try {
+        await fetch(revokeUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            token,
+            client_id: clientId,
+            client_secret: clientSecret,
+          }),
+        })
+      } catch (error) {
+        console.error("Error revoking token:", error)
+      }
+    }
+  } 
+   
+  await revokeToken(accessToken);
+  await revokeToken(refreshToken);
+
   // Clear cookies by setting them to expire in the past
   const headers = new Headers({
     "Content-Type": "application/json",

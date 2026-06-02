@@ -105,13 +105,10 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         router.push("/login");
     };
-    const adminLogout = () => {
-        localStorage.removeItem("frappe_access_token");
-        localStorage.removeItem("frappe_refresh_token");
-        setUser(null);
-        router.push("/login");
+    const adminLogout = async () => {
+        await logout();
     };
-    return <AuthContext.Provider value={{ user, loading, login: login, logout: logout, adminLogout: () => { } }} >
+    return <AuthContext.Provider value={{ user, loading, login, logout, adminLogout }} >
         {children}
     </AuthContext.Provider>
 }
