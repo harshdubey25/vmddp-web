@@ -348,7 +348,7 @@ export default function StockItemsManagement() {
                     setExpectedYield("");
                 }
             }}>
-                <DialogContent>
+                <DialogContent className="max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Add Stock Item</DialogTitle>
                         <DialogDescription>
