@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useFrappeGetDocList, useFrappeCreateDoc, useFrappeUpdateDoc, useFrappeDeleteDoc } from "frappe-react-sdk";
+import { parseFrappeError } from "@/lib/frappe-error-parser";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -139,9 +140,10 @@ export default function StockManagement() {
             mutateStock();
         } catch (error) {
             console.error("Error adding stock:", error);
+            const { title, message } = parseFrappeError(error, "Error", "Failed to add stock entry. Please try again.");
             toast({
-                title: "Error",
-                description: "Failed to add stock entry. Please try again.",
+                title,
+                description: message,
                 variant: "destructive",
             });
         }
@@ -179,9 +181,10 @@ export default function StockManagement() {
             mutateStock();
         } catch (error) {
             console.error("Error updating stock:", error);
+            const { title, message } = parseFrappeError(error, "Error", "Failed to update stock entry. Please try again.");
             toast({
-                title: "Error",
-                description: "Failed to update stock entry. Please try again.",
+                title,
+                description: message,
                 variant: "destructive",
             });
         }
@@ -212,9 +215,10 @@ export default function StockManagement() {
             mutateStock();
         } catch (error) {
             console.error("Error deleting stock:", error);
+            const { title, message } = parseFrappeError(error, "Error", "Failed to delete stock entry. Please try again.");
             toast({
-                title: "Error",
-                description: "Failed to delete stock entry. Please try again.",
+                title,
+                description: message,
                 variant: "destructive",
             });
         } finally {
