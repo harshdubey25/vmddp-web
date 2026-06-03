@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useFrappeGetDocList, useFrappeCreateDoc } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappeCreateDoc, useFrappeUpdateDoc, useFrappeDeleteDoc } from "frappe-react-sdk";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -13,6 +13,16 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -23,7 +33,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Package, Plus, Loader2 } from "lucide-react";
+import { Package, Plus, Loader2, Edit, Trash2 } from "lucide-react";
 import {
     Table,
     TableBody,
@@ -45,6 +55,7 @@ interface Stock {
     item: string;
     quantity: string;
     date: string;
+    docstatus?: number;
 }
 
 interface ItemGroup {
@@ -54,6 +65,13 @@ interface ItemGroup {
 
 export default function StockManagement() {
     const [isAddStockDialogOpen, setIsAddStockDialogOpen] = useState(false);
+    const [isEditStockDialogOpen, setIsEditStockDialogOpen] = useState(false);
+    const [editingStockEntry, setEditingStockEntry] = useState<Stock | null>(null);
+    const [editQuantity, setEditQuantity] = useState<string>("");
+
+    const [isDeleteStockDialogOpen, setIsDeleteStockDialogOpen] = useState(false);
+    const [deletingStockEntry, setDeletingStockEntry] = useState<Stock | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Stock Entry State
     const [selectedItemGroup, setSelectedItemGroup] = useState<string>("");
@@ -76,12 +94,14 @@ export default function StockManagement() {
     });
 
     const { data: stockEntries, isLoading: loadingStock, mutate: mutateStock } = useFrappeGetDocList<Stock>("Stock", {
-        fields: ["name", "item", "quantity", "date"],
+        fields: ["name", "item", "quantity", "date", "docstatus"],
         orderBy: { field: "creation", order: "desc" },
         limit: 100,
     });
 
     const { createDoc, loading: isCreating } = useFrappeCreateDoc();
+    const { updateDoc, loading: isUpdating } = useFrappeUpdateDoc();
+    const { deleteDoc } = useFrappeDeleteDoc();
 
     const selectedItemDetails = stockItems?.find((item) => item.name === selectedItem);
     const itemRate = selectedItemDetails?.rate ?? 0;
@@ -103,11 +123,12 @@ export default function StockManagement() {
                 item: selectedItem,
                 quantity: quantity,
                 date: date,
+                docstatus: 1, // Automatically submit the stock entry
             });
 
             toast({
                 title: "Success",
-                description: "Stock entry added successfully.",
+                description: "Stock entry added and submitted successfully.",
             });
 
             setIsAddStockDialogOpen(false);
@@ -123,6 +144,81 @@ export default function StockManagement() {
                 description: "Failed to add stock entry. Please try again.",
                 variant: "destructive",
             });
+        }
+    };
+
+    const handleEditClick = (entry: Stock) => {
+        setEditingStockEntry(entry);
+        setEditQuantity(entry.quantity);
+        setIsEditStockDialogOpen(true);
+    };
+
+    const handleUpdateStock = async () => {
+        if (!editingStockEntry || !editQuantity) {
+            toast({
+                title: "Validation Error",
+                description: "Please enter a quantity.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        try {
+            await updateDoc("Stock", editingStockEntry.name, {
+                quantity: editQuantity,
+            });
+
+            toast({
+                title: "Success",
+                description: "Stock quantity updated successfully.",
+            });
+
+            setIsEditStockDialogOpen(false);
+            setEditingStockEntry(null);
+            setEditQuantity("");
+            mutateStock();
+        } catch (error) {
+            console.error("Error updating stock:", error);
+            toast({
+                title: "Error",
+                description: "Failed to update stock entry. Please try again.",
+                variant: "destructive",
+            });
+        }
+    };
+
+    const handleDeleteClick = (entry: Stock) => {
+        setDeletingStockEntry(entry);
+        setIsDeleteStockDialogOpen(true);
+    };
+
+    const handleDeleteStock = async () => {
+        if (!deletingStockEntry) return;
+        setIsDeleting(true);
+        try {
+            if (deletingStockEntry.docstatus === 1) {
+                // Cancel the submitted entry first
+                await updateDoc("Stock", deletingStockEntry.name, { docstatus: 2 });
+            }
+            await deleteDoc("Stock", deletingStockEntry.name);
+
+            toast({
+                title: "Success",
+                description: "Stock entry deleted successfully.",
+            });
+
+            setIsDeleteStockDialogOpen(false);
+            setDeletingStockEntry(null);
+            mutateStock();
+        } catch (error) {
+            console.error("Error deleting stock:", error);
+            toast({
+                title: "Error",
+                description: "Failed to delete stock entry. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -170,6 +266,7 @@ export default function StockManagement() {
                                     <TableHead>Item</TableHead>
                                     <TableHead>Quantity</TableHead>
                                     <TableHead>Total Price</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -185,6 +282,26 @@ export default function StockManagement() {
                                             <TableCell>{entry.item}</TableCell>
                                             <TableCell>{entry.quantity}</TableCell>
                                             <TableCell>₹{totalPrice.toFixed(2)}</TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-950/30"
+                                                        onClick={() => handleEditClick(entry)}
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                        onClick={() => handleDeleteClick(entry)}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
                                         </TableRow>
                                     );
                                 })}
@@ -198,8 +315,8 @@ export default function StockManagement() {
                 </CardContent>
             </Card>
 
-            <Dialog 
-                open={isAddStockDialogOpen} 
+            <Dialog
+                open={isAddStockDialogOpen}
                 onOpenChange={(open) => {
                     setIsAddStockDialogOpen(open);
                     if (!open) {
@@ -300,8 +417,8 @@ export default function StockManagement() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={() => {
                                 setIsAddStockDialogOpen(false);
                                 setSelectedItem("");
@@ -319,6 +436,122 @@ export default function StockManagement() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <Dialog 
+                open={isEditStockDialogOpen} 
+                onOpenChange={(open) => {
+                    setIsEditStockDialogOpen(open);
+                    if (!open) {
+                        setEditingStockEntry(null);
+                        setEditQuantity("");
+                    }
+                }}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit Stock Quantity</DialogTitle>
+                        <DialogDescription>
+                            Update the quantity for the stock entry of {editingStockEntry?.item}.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="edit_item">Item</Label>
+                            <Input
+                                id="edit_item"
+                                value={editingStockEntry ? (stockItems?.find(i => i.name === editingStockEntry.item)?.item_name || editingStockEntry.item) : ""}
+                                disabled
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="edit_quantity">Quantity</Label>
+                            <Input
+                                id="edit_quantity"
+                                type="number"
+                                step="any"
+                                placeholder="Enter quantity"
+                                value={editQuantity}
+                                onChange={(e) => setEditQuantity(e.target.value)}
+                            />
+                        </div>
+                        {editingStockEntry && editQuantity.trim() !== "" && (
+                            <div className="rounded-lg border bg-muted/40 p-3 text-sm">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-muted-foreground">Item Price</span>
+                                    <span className="font-medium">
+                                        ₹{(stockItems?.find(i => i.name === editingStockEntry.item)?.rate || 0).toFixed(2)}
+                                    </span>
+                                </div>
+                                <div className="mt-2 flex items-center justify-between">
+                                    <span className="text-muted-foreground">Total Amount</span>
+                                    <span className="font-semibold">
+                                        ₹{((stockItems?.find(i => i.name === editingStockEntry.item)?.rate || 0) * (parseFloat(editQuantity) || 0)).toFixed(2)}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                        <div className="space-y-2">
+                            <Label htmlFor="edit_date">Date</Label>
+                            <Input
+                                id="edit_date"
+                                type="date"
+                                value={editingStockEntry?.date || ""}
+                                disabled
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button 
+                            variant="outline" 
+                            onClick={() => {
+                                setIsEditStockDialogOpen(false);
+                                setEditingStockEntry(null);
+                                setEditQuantity("");
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button onClick={handleUpdateStock} disabled={isUpdating}>
+                            {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Update Entry
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <AlertDialog 
+                open={isDeleteStockDialogOpen} 
+                onOpenChange={(open) => {
+                    setIsDeleteStockDialogOpen(open);
+                    if (!open) {
+                        setDeletingStockEntry(null);
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will delete the stock entry for {deletingStockEntry ? (stockItems?.find(i => i.name === deletingStockEntry.item)?.item_name || deletingStockEntry.item) : ""}.
+                            {deletingStockEntry?.docstatus === 1 && " Since this is a submitted document, it will be cancelled first and then deleted."}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleDeleteStock();
+                            }}
+                            disabled={isDeleting}
+                            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                        >
+                            {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
