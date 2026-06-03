@@ -270,7 +270,7 @@ export default function StockItemsManagement() {
                                                     <td className="p-3 text-sm">₹{item.rate}</td>
                                                     <td className="p-3 text-sm">{item.stock_item_group}</td>
                                                     <td className="p-3 text-sm">{item.expected_land_coverage !== undefined && item.expected_land_coverage !== null ? `${item.expected_land_coverage} Ha` : "-"}</td>
-                                                    <td className="p-3 text-sm">{item.expected_yield !== undefined && item.expected_yield !== null ? `${item.expected_yield} Qtl` : "-"}</td>
+                                                    <td className="p-3 text-sm">{item.expected_yield !== undefined && item.expected_yield !== null ? `${item.expected_yield} M.Ton` : "-"}</td>
                                                     <td className="p-3 text-sm text-right">
                                                         <Button
                                                             variant="ghost"
