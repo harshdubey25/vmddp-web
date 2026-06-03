@@ -312,12 +312,12 @@ export default function BulkFileUpload({
                     try {
                         const data = new Uint8Array(e.target?.result as ArrayBuffer);
                         const workbook = XLSX.read(data, { type: "array", cellDates: true });
-                        
+
                         // Clean the workbook values and normalize date formatting
                         workbook.SheetNames.forEach((sheetName) => {
                             const worksheet = workbook.Sheets[sheetName];
                             if (!worksheet) return;
-                            
+
                             // 1. Identify date columns in this sheet based on header names (row 1)
                             const dateCols = new Set<string>();
                             Object.keys(worksheet).forEach((cellRef) => {
@@ -334,16 +334,16 @@ export default function BulkFileUpload({
                             // 2. Process all cells in the sheet
                             Object.keys(worksheet).forEach((cellRef) => {
                                 if (cellRef.startsWith('!')) return;
-                                
+
                                 const match = cellRef.match(/^([A-Z]+)(\d+)$/);
                                 if (!match) return;
-                                
+
                                 const col = match[1];
                                 const row = parseInt(match[2]);
-                                
+
                                 // Skip header row
                                 if (row === 1) return;
-                                
+
                                 const cell = worksheet[cellRef];
                                 if (!cell) return;
 
@@ -357,7 +357,7 @@ export default function BulkFileUpload({
                                             const yyyy = date.getUTCFullYear();
                                             const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
                                             const dd = String(date.getUTCDate()).padStart(2, '0');
-                                            
+
                                             cell.t = 's';
                                             cell.v = `${yyyy}-${mm}-${dd}`;
                                             cell.w = `${yyyy}-${mm}-${dd}`;
@@ -367,7 +367,7 @@ export default function BulkFileUpload({
                                         const yyyy = date.getUTCFullYear();
                                         const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
                                         const dd = String(date.getUTCDate()).padStart(2, '0');
-                                        
+
                                         cell.t = 's';
                                         cell.v = `${yyyy}-${mm}-${dd}`;
                                         cell.w = `${yyyy}-${mm}-${dd}`;
@@ -571,6 +571,14 @@ export default function BulkFileUpload({
                                     parsedMessages = [item.success ? "Row imported successfully" : "No error context provided"];
                                 }
 
+                                if (item.success) {
+                                    parsedMessages = [
+                                        item.docname
+                                            ? `Created document ${item.docname}`
+                                            : "Row imported successfully"
+                                    ];
+                                }
+                                
                                 let rowNum = 0;
                                 if (item.row_indexes) {
                                     try {
