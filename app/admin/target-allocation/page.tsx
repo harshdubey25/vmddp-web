@@ -721,7 +721,7 @@ export default function TargetAllocation() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will delete the expense target for "{deletingExpense?.event_name}".
+                            This will delete the expense target for &quot;{deletingExpense?.event_name}&quot;.
                             Since this is a submitted document, it will be cancelled first and then deleted.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
