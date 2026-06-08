@@ -57,6 +57,7 @@ interface TargetAllocation {
 }
 
 interface AdminExpenseTarget {
+    name?: string;
     date: string;
     amount: number | null;
     event_name?: string;
@@ -78,7 +79,7 @@ export default function TargetAllocation() {
     const [adminExpense, setAdminExpense] = useState<AdminExpenseTarget>(initialExpense);
     const [showExpenseForm, setShowExpenseForm] = useState<boolean>(false);
     const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
-    const [deletingExpense, setDeletingExpense] = useState<{ name: string; event_name: string } | null>(null);
+    const [deletingExpense, setDeletingExpense] = useState<AdminExpenseTarget | null>(null);
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
     // Mock data for totals - replace with actual API data
@@ -118,13 +119,19 @@ export default function TargetAllocation() {
     const handleExpenseChange = (field: keyof AdminExpenseTarget, value: string) => {
         setAdminExpense({ ...adminExpense, [field]: field === "amount" ? (value === "" ? null : Number(value)) : value });
     };
+    const { data: targetList, mutate: mutateTargetList } = useFrappeGetDocList<AdminExpenseTarget>('Admin Expense Target', {
+        fields: ['name', 'amount', 'date', 'event_name', 'allocater', 'docstatus'],
+        filters: [['docstatus', '=', 1]],
+        orderBy: { field: 'date', order: 'desc' }
+    });
     const { data: adminExpensesData, mutate: mutateAdminExpenses } = useFrappeGetCall<FrappeCustomApiResponse<{ total_allocated: string, total_expenditure: string, targets_list: Array<{ name: string, amount: number, date: string, event_name: string, allocater: string }>, total_count: number }>>('vmddp_app.api.v1.admin.admin_expense_target')
     console.log("Admin Expenses Data:", adminExpensesData);
     const handleClearExpense = () => {
         setAdminExpense(initialExpense);
         setEditingExpenseId(null);
     };
-    const handleEditExpenseClick = (item: { name: string, date: string, amount: number, event_name?: string }) => {
+    const handleEditExpenseClick = (item: AdminExpenseTarget) => {
+        if (!item.name) return;
         setEditingExpenseId(item.name);
         setAdminExpense({
             date: item.date,
@@ -138,13 +145,14 @@ export default function TargetAllocation() {
         if (!deletingExpense) return;
         setIsDeleting(true);
         try {
-            await updateAdminExpense("Admin Expense Target", deletingExpense.name, { docstatus: 2 });
-            await deleteAdminExpense("Admin Expense Target", deletingExpense.name);
+            await updateAdminExpense("Admin Expense Target", deletingExpense.name!, { docstatus: 2 });
+            await deleteAdminExpense("Admin Expense Target", deletingExpense.name!);
             toast({
                 title: "Success",
                 description: "Expense target deleted successfully.",
             });
             mutateAdminExpenses();
+            mutateTargetList();
             setDeletingExpense(null);
         } catch (error) {
             toast({
@@ -217,6 +225,7 @@ export default function TargetAllocation() {
         }
         setAdminExpense(initialExpense);
         mutateAdminExpenses();
+        mutateTargetList();
     };
 
     const isAllocated = (componentName: string) => {
@@ -518,17 +527,17 @@ export default function TargetAllocation() {
                                         )}
 
                                         {/* Expense History List */}
-                                        {adminExpensesData?.message?.targets_list && adminExpensesData.message.targets_list.length > 0 && (
+                                        {targetList && targetList.length > 0 && (
                                             <Card>
                                                 <CardHeader>
                                                     <CardTitle className="text-base">Expense History</CardTitle>
                                                     <CardDescription>
-                                                        {adminExpensesData.message.total_count} allocation(s) recorded
+                                                        {targetList.length} allocation(s) recorded
                                                     </CardDescription>
                                                 </CardHeader>
                                                 <CardContent>
                                                     <div className="space-y-3">
-                                                        {adminExpensesData.message.targets_list.map((item) => (
+                                                        {targetList.map((item) => (
                                                             <div
                                                                 key={item.name}
                                                                 className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
