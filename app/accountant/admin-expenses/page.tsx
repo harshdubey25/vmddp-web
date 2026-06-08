@@ -34,6 +34,7 @@ interface AdminExpenseTarget {
     date: string;
     allocater: string;
     docstatus: number;
+    event_name?: string;
 }
 
 export default function AdminExpenses() {
@@ -47,7 +48,7 @@ export default function AdminExpenses() {
     });
 
     const { data: targetData, isLoading: targetLoading } = useFrappeGetDocList<AdminExpenseTarget>("Admin Expense Target", {
-        fields: ["name", "amount", "date", "allocater", "docstatus"],
+        fields: ["name", "amount", "date", "allocater", "docstatus", "event_name"],
         filters: [["docstatus", "=", 1]],
         orderBy: { field: "date", order: "desc" },
     });
