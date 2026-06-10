@@ -472,7 +472,10 @@ export default function TargetAllocation() {
                                                                 type="text"
                                                                 placeholder="Enter event name"
                                                                 value={adminExpense.event_name ?? ""}
-                                                                onChange={(e) => handleExpenseChange("event_name", e.target.value)}
+                                                                onChange={(e) => {
+                                                                    const sanitized = e.target.value.replace(/[<>]/g, "");
+                                                                    handleExpenseChange("event_name", sanitized);
+                                                                }}
                                                                 className="mt-1"
                                                                 data-testid="input-expense-event-name"
                                                             />

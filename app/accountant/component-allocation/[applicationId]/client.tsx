@@ -873,9 +873,10 @@ export default function AllocationForm({
                                             <Input
                                                 placeholder="Enter 12-digit tag number"
                                                 value={animalData.tagNumber}
-                                                onChange={(e) =>
-                                                    handleTagChange(e.target.value, "animal")
-                                                }
+                                                onChange={(e) => {
+                                                    const sanitizedValue = e.target.value.replace(/[^0-9]/g, "");
+                                                    handleTagChange(sanitizedValue, "animal");
+                                                }}
                                                 maxLength={12}
                                                 data-testid="input-tag-number"
                                             />
@@ -917,12 +918,13 @@ export default function AllocationForm({
                                             <Input
                                                 placeholder="Enter collar number"
                                                 value={animalData.digitalCollarNumber}
-                                                onChange={(e) =>
+                                                onChange={(e) => {
+                                                    const sanitizedValue = e.target.value.replace(/[^0-9]/g, "");
                                                     setAnimalData({
                                                         ...animalData,
-                                                        digitalCollarNumber: e.target.value,
+                                                        digitalCollarNumber: sanitizedValue,
                                                     })
-                                                }
+                                                }}
                                                 data-testid="input-collar-number"
                                             />
                                         </div>
@@ -1086,12 +1088,13 @@ export default function AllocationForm({
                                             <Input
                                                 placeholder="Enter policy number"
                                                 value={animalData.policyNumber}
-                                                onChange={(e) =>
+                                                onChange={(e) => {
+                                                    const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\-]/g, "");
                                                     setAnimalData({
                                                         ...animalData,
-                                                        policyNumber: e.target.value,
-                                                    })
-                                                }
+                                                        policyNumber: sanitizedValue,
+                                                    });
+                                                }}
                                                 data-testid="input-policy-number"
                                             />
                                         </div>

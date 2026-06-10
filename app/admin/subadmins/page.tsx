@@ -51,6 +51,36 @@ interface DPOApiResponse {
     error?: string;
 }
 
+
+const validatePasswordStrength = (pwd: string): { isValid: boolean; reason?: string } => {
+    if (pwd.length < 8) {
+        return { isValid: false, reason: "Password must be at least 8 characters long." };
+    }
+
+    const hasLetters = /[A-Za-z]/.test(pwd);
+    const hasNumbers = /[0-9]/.test(pwd);
+    const hasRequiredSymbol = /[@#]/.test(pwd);
+
+    if (!hasLetters || !hasNumbers || !hasRequiredSymbol) {
+        return {
+            isValid: false,
+            reason: "Password must contain letters, numbers, and at least one required symbol (@ or #)."
+        };
+    }
+
+    const lowerPwd = pwd.toLowerCase();
+    const blacklistedWords = ["admin", "test", "welcome", "password", "guest", "user", "subadmin"];
+    const hasCommonEndingSequence = /[@#](123|1234|2024|2025|2026)$/.test(lowerPwd);
+    const containsBlacklistedWord = blacklistedWords.some(word => lowerPwd.includes(word));
+    if (containsBlacklistedWord || hasCommonEndingSequence) {
+        return {
+            isValid: false,
+            reason: "Password contains blacklisted words."
+        };
+    }
+    return { isValid: true };
+};
+
 export default function AdminSubAdmins() {
     const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState("");
@@ -116,6 +146,16 @@ export default function AdminSubAdmins() {
             toast({
                 title: "Error",
                 description: "Please fill in all required fields",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const passWordCheck = validatePasswordStrength(formData.password);
+        if (!passWordCheck.isValid) {
+            toast({
+                title: "Error",
+                description: passWordCheck.reason,
                 variant: "destructive",
             });
             return;
@@ -279,10 +319,10 @@ export default function AdminSubAdmins() {
     };
 
     const handleUpdatePassword = async () => {
-        if (!newPassword || newPassword.length < 6) {
+        if (!newPassword) {
             toast({
                 title: "Error",
-                description: "Password must be at least 6 characters long",
+                description: "Password must be at least 8 characters long",
                 variant: "destructive",
             });
             return;
@@ -292,6 +332,16 @@ export default function AdminSubAdmins() {
             toast({
                 title: "Error",
                 description: "No DPO selected",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const passCheck = validatePasswordStrength(newPassword);
+        if (!passCheck.isValid) {
+            toast({
+                title: "Weak Password",
+                description: passCheck.reason,
                 variant: "destructive",
             });
             return;
@@ -385,7 +435,7 @@ export default function AdminSubAdmins() {
                                             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
                                                 <Shield className="w-6 h-6 text-white" />
                                             </div>
-                                        
+
                                         </div>
                                         <div>
                                             <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Total Sub-Admins</p>
@@ -401,7 +451,7 @@ export default function AdminSubAdmins() {
                                             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
                                                 <CheckCircle className="w-6 h-6 text-white" />
                                             </div>
-            
+
                                         </div>
                                         <div>
                                             <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Active Users</p>
@@ -419,7 +469,7 @@ export default function AdminSubAdmins() {
                                             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-6">
                                                 <MapPin className="w-6 h-6 text-white" />
                                             </div>
-                                            
+
                                         </div>
                                         <div>
                                             <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Districts Covered</p>
@@ -569,7 +619,10 @@ export default function AdminSubAdmins() {
                                     id="first-name"
                                     placeholder="Enter first name"
                                     value={formData.first_name}
-                                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                                    onChange={(e) => {
+                                        const sanitized = e.target.value.replace(/[<>]/g, "");
+                                        setFormData({ ...formData, first_name: sanitized });
+                                    }}
                                     data-testid="input-first-name"
                                 />
                             </div>
@@ -580,7 +633,10 @@ export default function AdminSubAdmins() {
                                     id="last-name"
                                     placeholder="Enter last name"
                                     value={formData.last_name}
-                                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                                    onChange={(e) => {
+                                        const sanitized = e.target.value.replace(/[<>]/g, "");
+                                        setFormData({ ...formData, last_name: sanitized });
+                                    }}
                                     data-testid="input-last-name"
                                 />
                             </div>
@@ -591,7 +647,10 @@ export default function AdminSubAdmins() {
                                     id="username"
                                     placeholder="Enter username"
                                     value={formData.username}
-                                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                                    onChange={(e) => {
+                                        const sanitized = e.target.value.replace(/[<>]/g, "");
+                                        setFormData({ ...formData, username: sanitized });
+                                    }}
                                     data-testid="input-username"
                                 />
                             </div>
@@ -603,7 +662,10 @@ export default function AdminSubAdmins() {
                                     type="email"
                                     placeholder="Enter email"
                                     value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    onChange={(e) => {
+                                        const sanitized = e.target.value.replace(/[<>]/g, "");
+                                        setFormData({ ...formData, email: sanitized });
+                                    }}
                                     data-testid="input-email"
                                 />
                             </div>
@@ -614,7 +676,10 @@ export default function AdminSubAdmins() {
                                     id="mobile"
                                     placeholder="Enter mobile number"
                                     value={formData.mobile}
-                                    onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                                    onChange={(e) => {
+                                        const sanitized = e.target.value.replace(/[<>]/g, "");
+                                        setFormData({ ...formData, mobile: sanitized });
+                                    }}
                                     data-testid="input-mobile"
                                 />
                             </div>
@@ -626,7 +691,10 @@ export default function AdminSubAdmins() {
                                     type="password"
                                     placeholder="Enter password"
                                     value={formData.password}
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    onChange={(e) => {
+                                        const sanitizedValue = e.target.value.replace(/[<>]/g, "");
+                                        setFormData({ ...formData, password: sanitizedValue });
+                                    }}
                                     data-testid="input-password"
                                 />
                             </div>
@@ -720,7 +788,10 @@ export default function AdminSubAdmins() {
                                 <Input
                                     id="edit-first-name"
                                     value={formData.first_name}
-                                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                                    onChange={(e) => {
+                                        const sanitized = e.target.value.replace(/[<>]/g, "");
+                                        setFormData({ ...formData, first_name: sanitized });
+                                    }}
                                     data-testid="input-edit-first-name"
                                 />
                             </div>
@@ -730,7 +801,10 @@ export default function AdminSubAdmins() {
                                 <Input
                                     id="edit-last-name"
                                     value={formData.last_name}
-                                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                                    onChange={(e) => {
+                                        const sanitizedValue = e.target.value.replace(/[<>]/g, "");
+                                        setFormData({ ...formData, last_name: sanitizedValue })
+                                    }}
                                     data-testid="input-edit-last-name"
                                 />
                             </div>
@@ -741,7 +815,10 @@ export default function AdminSubAdmins() {
                                     id="edit-email"
                                     type="email"
                                     value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    onChange={(e) => {
+                                        const sanitizedValue = e.target.value.replace(/[<>]/g, "");
+                                        setFormData({ ...formData, email: sanitizedValue })
+                                    }}
                                     data-testid="input-edit-email"
                                 />
                             </div>
@@ -751,7 +828,10 @@ export default function AdminSubAdmins() {
                                 <Input
                                     id="edit-mobile"
                                     value={formData.mobile}
-                                    onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                                    onChange={(e) => {
+                                        const sanitizedValue = e.target.value.replace(/[<>]/g, "");
+                                        setFormData({ ...formData, mobile: sanitizedValue })
+                                    }}
                                     data-testid="input-edit-mobile"
                                 />
                             </div>
@@ -826,19 +906,31 @@ export default function AdminSubAdmins() {
                         </DialogDescription>
                     </DialogHeader>
 
+                    <div className="p-3 border border-amber-200 bg-amber-50 rounded-md text-[11px] text-amber-800 space-y-1">
+                        <p className="font-bold">⚠️ Password Policy Constraints:</p>
+                        <ul className="list-disc pl-4 space-y-0.5">
+                            <li>Minimum length of 8 characters.</li>
+                            <li>Must contain letters, numbers, and symbols (<b>@</b> or <b>#</b>).</li>
+                            <li>Default combinations (e.g., <i>Admin@123</i>, <i>Test#123</i>) are prohibited.</li>
+                        </ul>
+                    </div>
+
                     <div className="space-y-4 pt-4">
                         <div className="space-y-2">
                             <Label htmlFor="new-password">New Password</Label>
                             <Input
                                 id="new-password"
                                 type="password"
-                                placeholder="Enter new password (min 6 characters)"
+                                placeholder="Enter new password (min 8 characters)"
                                 value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
+                                onChange={(e) => {
+                                    const sanitizedValue = e.target.value.replace(/[<>]/g, "");
+                                    setNewPassword(sanitizedValue);
+                                }}
                                 data-testid="input-new-password"
                             />
                             <p className="text-xs text-muted-foreground">
-                                Password must be at least 6 characters long
+                                Password must be at least 8 characters long
                             </p>
                         </div>
 
@@ -857,7 +949,7 @@ export default function AdminSubAdmins() {
                             <Button
                                 className="flex-1"
                                 onClick={handleUpdatePassword}
-                                disabled={passwordLoading || !newPassword || newPassword.length < 6}
+                                disabled={passwordLoading || !newPassword}
                                 data-testid="button-submit-password"
                             >
                                 {passwordLoading ? (

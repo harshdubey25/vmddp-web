@@ -805,7 +805,10 @@ export default function TreatmentForm() {
                         <Input
                           id="firstName"
                           value={formData.firstName}
-                          onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                          onChange={(e) => {
+                            const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s\-.,()]/g, "");
+                            setFormData(prev => ({ ...prev, firstName: sanitizedValue }));
+                          }}
                           placeholder="Enter first name"
                         />
                       </div>
@@ -814,7 +817,10 @@ export default function TreatmentForm() {
                         <Input
                           id="middleName"
                           value={formData.middleName}
-                          onChange={(e) => setFormData(prev => ({ ...prev, middleName: e.target.value }))}
+                          onChange={(e) => {
+                            const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s\-.,()]/g, "");
+                            setFormData(prev => ({ ...prev, middleName: sanitizedValue }));
+                          }}
                           placeholder="Enter middle name"
                         />
                       </div>
@@ -823,7 +829,10 @@ export default function TreatmentForm() {
                         <Input
                           id="surname"
                           value={formData.surname}
-                          onChange={(e) => setFormData(prev => ({ ...prev, surname: e.target.value }))}
+                          onChange={(e) => {
+                            const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s\-.,()]/g, "");
+                            setFormData(prev => ({ ...prev, surname: sanitizedValue }));
+                          }}
                           placeholder="Enter surname"
                         />
                       </div>
@@ -967,7 +976,10 @@ export default function TreatmentForm() {
                         <Input
                           id="veterinarianName"
                           value={formData.veterinarianName}
-                          onChange={(e) => setFormData(prev => ({ ...prev, veterinarianName: e.target.value }))}
+                          onChange={(e) => {
+                            const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s\-.,()]/g, "");
+                            setFormData(prev => ({ ...prev, veterinarianName: sanitizedValue }));
+                          }}
                           placeholder="Dr. Name"
                         />
                       </div>
@@ -1085,7 +1097,10 @@ export default function TreatmentForm() {
                         <Input
                           id="primaryTreatment"
                           value={formData.primaryTreatment}
-                          onChange={(e) => setFormData((prev) => ({ ...prev, primaryTreatment: e.target.value }))}
+                          onChange={(e) => {
+                            const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s\-.,()]/g, "");
+                            setFormData((prev) => ({ ...prev, primaryTreatment: sanitizedValue }));
+                          }}
                           placeholder="Enter primary treatment outcome"
                         />
                       </div>
@@ -1094,7 +1109,10 @@ export default function TreatmentForm() {
                         <Input
                           id="actualTreatment"
                           value={formData.actualTreatment}
-                          onChange={(e) => setFormData((prev) => ({ ...prev, actualTreatment: e.target.value }))}
+                          onChange={(e) => {
+                            const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s\-.,()]/g, "");
+                            setFormData((prev) => ({ ...prev, actualTreatment: sanitizedValue }));
+                          }}
                           placeholder="Enter actual treatment outcome"
                         />
                       </div>
@@ -1104,7 +1122,10 @@ export default function TreatmentForm() {
                       <Textarea
                         id="followUpNotes"
                         value={formData.followUpNotes}
-                        onChange={(e) => setFormData(prev => ({ ...prev, followUpNotes: e.target.value }))}
+                        onChange={(e) => {
+                          const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s\-.,()]/g, "");
+                          setFormData(prev => ({ ...prev, followUpNotes: sanitizedValue }));
+                        }}
                         placeholder="Enter any additional observations or notes..."
                         rows={3}
                       />
@@ -1250,7 +1271,8 @@ export default function TreatmentForm() {
                               <Label>Medicine Name</Label>
                               <Select
                                 value={medicine.medicineName}
-                                onValueChange={(value) => {updateMedicine(medicine.id, "medicineName", value);
+                                onValueChange={(value) => {
+                                  updateMedicine(medicine.id, "medicineName", value);
                                   setSelectedItem(value);
                                 }}
                               >
@@ -1294,7 +1316,10 @@ export default function TreatmentForm() {
                               <Input
                                 placeholder="e.g., Twice daily, Once weekly"
                                 value={medicine.schedule || ""}
-                                onChange={(e) => updateMedicine(medicine.id, "schedule", e.target.value)}
+                                onChange={(e) => {
+                                  const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s\-.,()]/g, "");
+                                  updateMedicine(medicine.id, "schedule", sanitizedValue);
+                                }}
                               />
                             </div>
                             <div className="space-y-2">
@@ -1302,7 +1327,10 @@ export default function TreatmentForm() {
                               <Input
                                 placeholder="e.g., Oral, Injection, Topical"
                                 value={medicine.routeOfAdministration || ""}
-                                onChange={(e) => updateMedicine(medicine.id, "routeOfAdministration", e.target.value)}
+                                onChange={(e) => {
+                                  const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s\-.,()]/g, "");
+                                  updateMedicine(medicine.id, "routeOfAdministration", sanitizedValue);
+                                }}
                               />
                             </div>
                             <div className="space-y-2">
@@ -1310,7 +1338,10 @@ export default function TreatmentForm() {
                               <Input
                                 placeholder="Enter batch number"
                                 value={medicine.batchNumber || ""}
-                                onChange={(e) => updateMedicine(medicine.id, "batchNumber", e.target.value)}
+                                onChange={(e) => {
+                                  const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s\-.,()]/g, "");
+                                  updateMedicine(medicine.id, "batchNumber", sanitizedValue);
+                                }}
                               />
                             </div>
                             <div className="space-y-2">

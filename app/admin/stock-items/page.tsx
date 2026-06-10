@@ -362,7 +362,10 @@ export default function StockItemsManagement() {
                                 id="item_name"
                                 placeholder="Enter item name"
                                 value={itemName}
-                                onChange={(e) => setItemName(e.target.value)}
+                                onChange={(e) => {
+                                    const sanitized = e.target.value.replace(/[<>]/g, "");
+                                    setItemName(sanitized);
+                                }}
                             />
                         </div>
                         <div className="space-y-2">

@@ -224,7 +224,10 @@ export default function DDFilters({ onFilterChange, initialFilters = {}, showApp
                                             id="application-id-filter"
                                             placeholder="Enter Application ID"
                                             value={applicationId}
-                                            onChange={(e) => setApplicationId(e.target.value)}
+                                            onChange={(e) => {
+                                                const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\-]/g, "");
+                                                setApplicationId(sanitizedValue);
+                                            }}
                                             onKeyDown={handleKeyPress}
                                             data-testid="input-application-id-filter"
                                         />

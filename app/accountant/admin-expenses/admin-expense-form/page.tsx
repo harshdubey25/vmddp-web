@@ -175,7 +175,10 @@ export default function AdminExpenseForm() {
                                     placeholder="Enter reason for expense"
                                     rows={4}
                                     value={formData.reason}
-                                    onChange={(e) => handleInputChange("reason", e.target.value)}
+                                    onChange={(e) => {
+                                        const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s.,-]/g, "");
+                                        handleInputChange("reason", sanitizedValue);
+                                    }}
                                     data-testid="input-reason"
                                 />
                             </div>

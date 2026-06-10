@@ -594,7 +594,10 @@ export default function VendorPayments() {
                                 id="chequeNumber"
                                 placeholder="Enter cheque number"
                                 value={chequeNumber}
-                                onChange={(e) => setChequeNumber(e.target.value)}
+                                onChange={(e) => {
+                                    const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\-]/g, "");
+                                    setChequeNumber(sanitizedValue);
+                                }}
                                 data-testid="input-cheque-number"
                             />
                         </div>

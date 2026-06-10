@@ -429,7 +429,10 @@ export default function DDCollectionForm({
                                     id="bankName"
                                     placeholder="Enter bank name"
                                     value={ddFormData.bankName}
-                                    onChange={(e) => setDdFormData({ ...ddFormData, bankName: e.target.value })}
+                                    onChange={(e) => {
+                                        const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s\-.,()]/g, "");
+                                        setDdFormData({ ...ddFormData, bankName: sanitizedValue });
+                                    }}
                                     data-testid="input-branch"
                                 />
                             </div>
@@ -439,7 +442,10 @@ export default function DDCollectionForm({
                                     id="branchName"
                                     placeholder="Enter branch name"
                                     value={ddFormData.branchName}
-                                    onChange={(e) => setDdFormData({ ...ddFormData, branchName: e.target.value })}
+                                    onChange={(e) => {
+                                        const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s\-.,()]/g, "");
+                                        setDdFormData({ ...ddFormData, branchName: sanitizedValue });
+                                    }}
                                     data-testid="input-branch"
                                 />
                             </div>

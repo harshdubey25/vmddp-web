@@ -850,12 +850,13 @@ export default function FarmerTrainingForm() {
                                         <Input
                                             id="eventName"
                                             value={formData.eventName}
-                                            onChange={(e) =>
+                                            onChange={(e) => {
+                                                const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s\-.,()]/g, "");
                                                 handleInputChange(
                                                     "eventName",
-                                                    e.target.value,
+                                                    sanitizedValue,
                                                 )
-                                            }
+                                            }}
                                             placeholder="e.g., Dairy Management Training"
                                             data-testid="input-event-name"
                                         />
@@ -1066,12 +1067,13 @@ export default function FarmerTrainingForm() {
                                         <Input
                                             id="venueName"
                                             value={formData.venueName}
-                                            onChange={(e) =>
+                                            onChange={(e) =>{
+                                                const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s\-.,()]/g, "");
                                                 handleInputChange(
                                                     "venueName",
-                                                    e.target.value,
+                                                    sanitizedValue,
                                                 )
-                                            }
+                                            }}
                                             placeholder="e.g., Krishi Vigyan Kendra"
                                             data-testid="input-venue-name"
                                         />

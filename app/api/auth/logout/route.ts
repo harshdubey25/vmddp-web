@@ -4,7 +4,6 @@ export const dynamic = "force-dynamic";
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
-
   const accessToken = req.cookies.get("frappe_access_token")?.value;
   const refreshToken = req.cookies.get("frappe_refresh_token")?.value;
 
@@ -12,9 +11,9 @@ export async function GET(req: NextRequest) {
   const clientId = process.env.FRAPPE_OAUTH_CLIENT_ID;
   const clientSecret = process.env.FRAPPE_OAUTH_CLIENT_SECRET;
 
-
-  const revokeToken = async(token?: string) => {
-    if (token && clientId && clientSecret) {
+  // Revoke tokens
+  if (clientId && clientSecret) {
+    if (accessToken) {
       try {
         await fetch(revokeUrl, {
           method: "POST",
@@ -22,21 +21,36 @@ export async function GET(req: NextRequest) {
             "Content-Type": "application/x-www-form-urlencoded",
           },
           body: new URLSearchParams({
-            token,
+            token: accessToken,
             client_id: clientId,
             client_secret: clientSecret,
           }),
-        })
-      } catch (error) {
-        console.error("Error revoking token:", error)
+        });
+      } catch (err) {
+        console.error("Error revoking access token:", err);
       }
     }
-  } 
-   
-  await revokeToken(accessToken);
-  await revokeToken(refreshToken);
 
-  // Clear cookies by setting them to expire in the past
+    if (refreshToken) {
+      try {
+        await fetch(revokeUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            token: refreshToken,
+            client_id: clientId,
+            client_secret: clientSecret,
+          }),
+        });
+      } catch (err) {
+        console.error("Error revoking refresh token:", err);
+      }
+    }
+  }
+
+  // Clear cookies
   const headers = new Headers({
     "Content-Type": "application/json",
   });

@@ -594,7 +594,10 @@ export default function ClaimForm({
                                         type="text"
                                         placeholder="Enter invoice number"
                                         value={formData.invoiceNumber}
-                                        onChange={(e) => handleInputChange("invoiceNumber", e.target.value)}
+                                        onChange={(e) => {
+                                            const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\-\/]/g, "");
+                                            handleInputChange("invoiceNumber", sanitizedValue);
+                                        }}
                                         data-testid="input-invoice-number"
                                     />
                                 </div>

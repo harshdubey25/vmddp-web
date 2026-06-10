@@ -303,7 +303,10 @@ export default function SubAdminFodderSeedPage() {
                                 <Input
                                     placeholder="Application ID"
                                     value={applicationId}
-                                    onChange={(e) => setApplicationId(e.target.value)}
+                                    onChange={(e) => {
+                                        const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\-]/g, "");
+                                        setApplicationId(sanitizedValue)
+                                    }}
                                     onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                                     data-testid="input-application-id"
                                 />

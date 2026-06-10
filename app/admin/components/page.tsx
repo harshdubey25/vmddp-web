@@ -110,11 +110,11 @@ export default function AdminComponents() {
                         Manage scheme components and configurations
                     </p>
                 </div>
-                <Button className="gap-1 sm:gap-2 text-xs sm:text-sm" onClick={handleAddComponent} data-testid="button-add-component">
+                {/* <Button className="gap-1 sm:gap-2 text-xs sm:text-sm" onClick={handleAddComponent} data-testid="button-add-component">
                     <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span className="hidden sm:inline">Add Component</span>
                     <span className="sm:hidden">Add</span>
-                </Button>
+                </Button> */}
             </header>
 
             <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 bg-muted/30">
