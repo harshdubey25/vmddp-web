@@ -26,11 +26,24 @@ import {
     Plus,
     IndianRupee,
     TrendingUp,
+    Edit,
+    Trash2,
+    Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { useFrappeGetDocList, useFrappeUpdateDoc, useFrappeCreateDoc, useFrappePostCall, useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappeUpdateDoc, useFrappeCreateDoc, useFrappePostCall, useFrappeGetCall, useFrappeDeleteDoc, useFrappeGetDoc } from "frappe-react-sdk";
 import { FrappeCustomApiResponse } from "@/types";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 interface Component {
     name: string;
 }
@@ -44,6 +57,7 @@ interface TargetAllocation {
 }
 
 interface AdminExpenseTarget {
+    name?: string;
     date: string;
     amount: number | null;
     event_name?: string;
@@ -64,6 +78,9 @@ export default function TargetAllocation() {
     const [draftAllocation, setDraftAllocation] = useState<TargetAllocation | null>(null);
     const [adminExpense, setAdminExpense] = useState<AdminExpenseTarget>(initialExpense);
     const [showExpenseForm, setShowExpenseForm] = useState<boolean>(false);
+    const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
+    const [deletingExpense, setDeletingExpense] = useState<AdminExpenseTarget | null>(null);
+    const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
     // Mock data for totals - replace with actual API data
     const { toast } = useToast();
@@ -81,13 +98,71 @@ export default function TargetAllocation() {
 
     const { createDoc: createAdminExpense, loading: createAdminExpenseLoading } = useFrappeCreateDoc<AdminExpenseTarget>()
     const { updateDoc: updateAdminExpense, loading: updateAdminExpenseLoading } = useFrappeUpdateDoc<AdminExpenseTarget>();
+    const { deleteDoc: deleteAdminExpense, loading: deleteAdminExpenseLoading } = useFrappeDeleteDoc();
+
+    const { data: singleTargetData } = useFrappeGetDoc<AdminExpenseTarget>(
+        "Admin Expense Target",
+        editingExpenseId || undefined,
+        editingExpenseId ? undefined : null
+    );
+
+    useEffect(() => {
+        if (editingExpenseId && singleTargetData) {
+            setAdminExpense({
+                date: singleTargetData.date || "",
+                amount: singleTargetData.amount || null,
+                event_name: singleTargetData.event_name || "",
+                docstatus: 1
+            });
+        }
+    }, [editingExpenseId, singleTargetData]);
     const handleExpenseChange = (field: keyof AdminExpenseTarget, value: string) => {
         setAdminExpense({ ...adminExpense, [field]: field === "amount" ? (value === "" ? null : Number(value)) : value });
     };
+    const { data: targetList, mutate: mutateTargetList } = useFrappeGetDocList<AdminExpenseTarget>('Admin Expense Target', {
+        fields: ['name', 'amount', 'date', 'event_name', 'allocater', 'docstatus'],
+        filters: [['docstatus', '=', 1]],
+        orderBy: { field: 'date', order: 'desc' }
+    });
     const { data: adminExpensesData, mutate: mutateAdminExpenses } = useFrappeGetCall<FrappeCustomApiResponse<{ total_allocated: string, total_expenditure: string, targets_list: Array<{ name: string, amount: number, date: string, event_name: string, allocater: string }>, total_count: number }>>('vmddp_app.api.v1.admin.admin_expense_target')
     console.log("Admin Expenses Data:", adminExpensesData);
     const handleClearExpense = () => {
         setAdminExpense(initialExpense);
+        setEditingExpenseId(null);
+    };
+    const handleEditExpenseClick = (item: AdminExpenseTarget) => {
+        if (!item.name) return;
+        setEditingExpenseId(item.name);
+        setAdminExpense({
+            date: item.date,
+            amount: item.amount,
+            event_name: item.event_name || "",
+            docstatus: 1
+        });
+        setShowExpenseForm(true);
+    };
+    const handleDeleteExpense = async () => {
+        if (!deletingExpense) return;
+        setIsDeleting(true);
+        try {
+            await updateAdminExpense("Admin Expense Target", deletingExpense.name!, { docstatus: 2 });
+            await deleteAdminExpense("Admin Expense Target", deletingExpense.name!);
+            toast({
+                title: "Success",
+                description: "Expense target deleted successfully.",
+            });
+            mutateAdminExpenses();
+            mutateTargetList();
+            setDeletingExpense(null);
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to delete expense target. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsDeleting(false);
+        }
     };
     useEffect(() => {
 
@@ -102,30 +177,55 @@ export default function TargetAllocation() {
             return;
         }
         try {
-            const doc = await createAdminExpense("Admin Expense Target", {
-                date: adminExpense.date,
-                amount: adminExpense.amount,
-                event_name: adminExpense.event_name,
-                allocater: user?.user,
-            })
-            await updateAdminExpense("Admin Expense Target", doc.name, {
-                allocater: user?.user,
-                docstatus: 1,
-            })
+            if (editingExpenseId) {
+                // Cancel existing target first
+                await updateAdminExpense("Admin Expense Target", editingExpenseId, { docstatus: 2 });
+                // Delete existing target
+                await deleteAdminExpense("Admin Expense Target", editingExpenseId);
+                // Create new target
+                const doc = await createAdminExpense("Admin Expense Target", {
+                    date: adminExpense.date,
+                    amount: adminExpense.amount,
+                    event_name: adminExpense.event_name,
+                    allocater: user?.user,
+                });
+                await updateAdminExpense("Admin Expense Target", doc.name, {
+                    allocater: user?.user,
+                    docstatus: 1,
+                });
+                toast({
+                    title: "Expense Target Updated",
+                    description: `Event "${adminExpense.event_name}" target updated successfully.`,
+                });
+                setEditingExpenseId(null);
+                setShowExpenseForm(false);
+            } else {
+                const doc = await createAdminExpense("Admin Expense Target", {
+                    date: adminExpense.date,
+                    amount: adminExpense.amount,
+                    event_name: adminExpense.event_name,
+                    allocater: user?.user,
+                });
+                await updateAdminExpense("Admin Expense Target", doc.name, {
+                    allocater: user?.user,
+                    docstatus: 1,
+                });
+                toast({
+                    title: "Expense Registered",
+                    description: `Event "${adminExpense.event_name}" expense of ${formatCurrency(adminExpense.amount)} submitted successfully.`,
+                });
+            }
         } catch (error) {
             toast({
                 title: "Error",
-                description: "Failed to submit expense. Please try again.",
+                description: `Failed to ${editingExpenseId ? "update" : "submit"} target. Please try again.`,
                 variant: "destructive",
             });
             return;
         }
-        toast({
-            title: "Expense Registered",
-            description: `Event "${adminExpense.event_name}" expense of ${formatCurrency(adminExpense.amount)} submitted successfully.`,
-        });
         setAdminExpense(initialExpense);
         mutateAdminExpenses();
+        mutateTargetList();
     };
 
     const isAllocated = (componentName: string) => {
@@ -358,10 +458,10 @@ export default function TargetAllocation() {
                                                 <CardHeader>
                                                     <CardTitle className="text-base flex items-center gap-2">
                                                         <Receipt className="w-4 h-4" />
-                                                        Set Head Quarter Expense Target
+                                                        {editingExpenseId ? "Edit Head Quarter Expense Target" : "Set Head Quarter Expense Target"}
                                                     </CardTitle>
                                                     <CardDescription>
-                                                        allocate expense targets for head quarter events
+                                                        {editingExpenseId ? "update expense targets for head quarter events" : "allocate expense targets for head quarter events"}
                                                     </CardDescription>
                                                 </CardHeader>
                                                 <CardContent className="space-y-4">
@@ -406,18 +506,20 @@ export default function TargetAllocation() {
                                                             onClick={handleClearExpense}
                                                             data-testid="button-clear-expense"
                                                         >
-                                                            Clear
+                                                            {editingExpenseId ? "Cancel" : "Clear"}
                                                         </Button>
                                                         <Button
                                                             size="sm"
                                                             onClick={handleSubmitAdminExpense}
                                                             data-testid="button-submit-expense"
-                                                            disabled={createAdminExpenseLoading || updateAdminExpenseLoading}
-
-
+                                                            disabled={createAdminExpenseLoading || updateAdminExpenseLoading || deleteAdminExpenseLoading}
                                                         >
-                                                            <Save className="w-4 h-4 mr-1" />
-                                                            Submit
+                                                            {createAdminExpenseLoading || updateAdminExpenseLoading || deleteAdminExpenseLoading ? (
+                                                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                                            ) : (
+                                                                <Save className="w-4 h-4 mr-1" />
+                                                            )}
+                                                            {editingExpenseId ? "Save Changes" : "Submit"}
                                                         </Button>
                                                     </div>
                                                 </CardContent>
@@ -425,17 +527,17 @@ export default function TargetAllocation() {
                                         )}
 
                                         {/* Expense History List */}
-                                        {adminExpensesData?.message?.targets_list && adminExpensesData.message.targets_list.length > 0 && (
+                                        {targetList && targetList.length > 0 && (
                                             <Card>
                                                 <CardHeader>
                                                     <CardTitle className="text-base">Expense History</CardTitle>
                                                     <CardDescription>
-                                                        {adminExpensesData.message.total_count} allocation(s) recorded
+                                                        {targetList.length} allocation(s) recorded
                                                     </CardDescription>
                                                 </CardHeader>
                                                 <CardContent>
                                                     <div className="space-y-3">
-                                                        {adminExpensesData.message.targets_list.map((item) => (
+                                                        {targetList.map((item) => (
                                                             <div
                                                                 key={item.name}
                                                                 className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
@@ -455,10 +557,32 @@ export default function TargetAllocation() {
                                                                         By: {item.allocater}
                                                                     </span>
                                                                 </div>
-                                                                <div className="text-right">
-                                                                    <span className="text-lg font-bold text-primary">
-                                                                        {formatCurrency(item.amount)}
-                                                                    </span>
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className="text-right">
+                                                                        <span className="text-lg font-bold text-primary block">
+                                                                            {formatCurrency(item.amount)}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex gap-1">
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                                            onClick={() => handleEditExpenseClick(item)}
+                                                                            data-testid={`button-edit-expense-${item.name}`}
+                                                                        >
+                                                                            <Edit className="h-4 w-4" />
+                                                                        </Button>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                                            onClick={() => setDeletingExpense(item)}
+                                                                            data-testid={`button-delete-expense-${item.name}`}
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -594,6 +718,39 @@ export default function TargetAllocation() {
                     </div>
                 </main>
             </div>
+            <AlertDialog 
+                open={!!deletingExpense} 
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setDeletingExpense(null);
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will delete the expense target for &quot;{deletingExpense?.event_name}&quot;.
+                            Since this is a submitted document, it will be cancelled first and then deleted.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleDeleteExpense();
+                            }}
+                            disabled={isDeleting}
+                            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                            data-testid="confirm-delete-expense"
+                        >
+                            {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

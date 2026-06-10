@@ -109,12 +109,6 @@ export default function SubmittedClaimDetails({
                                     <p className="text-sm text-muted-foreground">Application ID</p>
                                     <p className="font-medium">{beneficiary.name}</p>
                                 </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Status</p>
-                                    <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
-                                        {beneficiary.component_status}
-                                    </Badge>
-                                </div>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4 pt-4 border-t">
                                 <div className="flex items-start gap-2">
