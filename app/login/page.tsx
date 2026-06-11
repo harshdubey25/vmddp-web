@@ -11,7 +11,7 @@ import { useState, useEffect } from "react";
 export default function Login() {
     const { login } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
-    const [captchaCode, setCaptchaCode] = useState("");
+    const [captchaSvg, setCaptchaSvg] = useState("");
     const [captchaInput, setCaptchaInput] = useState("");
     const [formData, setFormData] = useState({
         username: "",
@@ -24,7 +24,7 @@ export default function Login() {
             const res = await fetch("/api/auth/captcha");
             if (res.ok) {
                 const data = await res.json();
-                setCaptchaCode(data.captchaCode);
+                setCaptchaSvg(data.captchaSvg);
                 setCaptchaInput("");
             }
         } catch (err) {
@@ -51,26 +51,9 @@ export default function Login() {
         setIsLoading(true);
 
         try {
-            const encoder = new TextEncoder();
-            const dataBuffer = encoder.encode(formData.password);
-            const hashBuffer = await crypto.subtle.digest("SHA-256", dataBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const secureHashedPassword = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+            const result = await login(formData.username, formData.password, captchaInput);
 
-            // Directly fetch payload challenge matching our updated route validation requirements
-            const response = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email: formData.username,
-                    password: secureHashedPassword,
-                    captchaInput: captchaInput
-                })
-            });
-
-            const result = await response.json();
-
-            if (!response.ok || !result.ok || !result.sessionNonce) {
+            if (!result.ok) {
                 toast({
                     title: "Authentication Failed",
                     description: result.error || "The credentials provided are incorrect or your session state is invalid.",
@@ -80,15 +63,11 @@ export default function Login() {
                 return;
             }
 
-            const success = await login(formData.username, secureHashedPassword, captchaInput);
-
-            if (success) {
-                toast({
-                    title: "Access Approved",
-                    description: "Welcome back to the administrative portal control panel.",
-                    variant: "default",
-                });
-            }
+            toast({
+                title: "Access Approved",
+                description: "Welcome back to the administrative portal control panel.",
+                variant: "default",
+            });
 
         } catch (err) {
             console.error("Authentication Runtime Verification Error:", err);
@@ -97,6 +76,7 @@ export default function Login() {
                 description: "An unhandled exception occurred verifying execution data hashes.",
                 variant: "destructive",
             });
+            fetchNewCaptcha();
         } finally {
             setIsLoading(false);
         }
@@ -138,7 +118,11 @@ export default function Login() {
                                         type="text"
                                         className="pl-9 bg-muted/20 focus:bg-background transition-colors"
                                         value={formData.username}
-                                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                                        onChange={(e) => {
+                                            const sanitizedValue = e.target.value.replace(/[<>]/g, "");
+                                            setFormData({ ...formData, username: sanitizedValue })
+                                        }
+                                        }
                                         required
                                         disabled={isLoading}
                                     />
@@ -158,9 +142,13 @@ export default function Login() {
                                         placeholder="Enter your password"
                                         className="pl-9 bg-muted/20 focus:bg-background transition-colors"
                                         value={formData.password}
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                        onChange={(e) => {
+                                            const sanitizedValue = e.target.value.replace(/[<>]/g, "");
+                                            setFormData({ ...formData, password: sanitizedValue })
+                                        }}
                                         required
                                         disabled={isLoading}
+                                        autoComplete="current-password"
                                     />
                                 </div>
                             </div>
@@ -168,11 +156,14 @@ export default function Login() {
                             <div className="space-y-2 border-t pt-3 mt-4">
                                 <Label htmlFor="captcha">Security Verification</Label>
                                 <div className="flex gap-3 items-center">
-                                    <div className="flex-1 bg-zinc-900 border text-zinc-100 font-mono font-bold tracking-[0.4em] text-lg rounded-md h-10 flex items-center justify-center select-none shadow-inner bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-800 to-zinc-900 relative overflow-hidden min-w-[140px]">
-                                        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:10px_10px]" />
-                                        <span className="relative z-10 animate-pulse skew-x-6">
-                                            {captchaCode || "••••••"}
-                                        </span>
+                                    <div className="flex-1 bg-zinc-900 border text-zinc-100 font-mono font-bold text-lg rounded-md h-10 flex items-center justify-center select-none shadow-inner bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-800 to-zinc-900 relative overflow-hidden min-w-[140px]">
+                                        {captchaSvg ? (
+                                            <div dangerouslySetInnerHTML={{ __html: captchaSvg }} className="w-full h-full flex items-center justify-center" />
+                                        ) : (
+                                            <span className="relative z-10 animate-pulse skew-x-6 tracking-[0.4em]">
+                                                ••••••
+                                            </span>
+                                        )}
                                     </div>
                                     <Button
                                         type="button"

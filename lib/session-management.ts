@@ -46,3 +46,24 @@ export async function revokeOtherSessions(
     return 0;
   }
 }
+
+const globalForSessions = globalThis as unknown as {
+  activeSessions?: Map<string, string>;
+};
+
+export const activeSessions =
+  globalForSessions.activeSessions || new Map<string, string>();
+
+
+export function getActiveSession(email: string): string | undefined {
+  return activeSessions.get(email.trim().toLowerCase());
+}
+
+export function setActiveSession(email: string, nonce: string): void {
+  activeSessions.set(email.trim().toLowerCase(), nonce);
+}
+
+export function clearActiveSession(email: string): void {
+  activeSessions.delete(email.trim().toLowerCase());
+}
+

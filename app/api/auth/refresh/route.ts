@@ -1,6 +1,9 @@
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
+import { validateUserToken } from "@/lib/auth";
+import { getActiveSession, setActiveSession } from "@/lib/session-management";
+
 export async function POST(req: Request): Promise<Response> {
   if (req.method !== "POST") {
     return new Response(null, { status: 405 });
@@ -17,6 +20,7 @@ export async function POST(req: Request): Promise<Response> {
     );
 
     let refreshToken = cookieMap["frappe_refresh_token"];
+    const sessionNonce = cookieMap["server_session_nonce"];
 
     // Also allow refresh token from request body as fallback
     if (!refreshToken) {
@@ -28,13 +32,14 @@ export async function POST(req: Request): Promise<Response> {
       }
     }
 
-    if (!refreshToken) {
+    if (!refreshToken || !sessionNonce) {
+      const headers = new Headers({ "Content-Type": "application/json" });
+      headers.append("Set-Cookie", "frappe_access_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0");
+      headers.append("Set-Cookie", "frappe_refresh_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0");
+      headers.append("Set-Cookie", "server_session_nonce=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0");
       return new Response(
-        JSON.stringify({ error: "No refresh token provided" }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: "No refresh token or session state found" }),
+        { status: 401, headers }
       );
     }
 
@@ -67,11 +72,36 @@ export async function POST(req: Request): Promise<Response> {
         "Set-Cookie",
         `frappe_refresh_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`
       );
+      headers.append(
+        "Set-Cookie",
+        `server_session_nonce=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`
+      );
 
       return new Response(
         JSON.stringify({ error: "Failed to refresh token", details: data }),
         { status: 401, headers }
       );
+    }
+
+    const userDetails = await validateUserToken(data.access_token);
+    const email = userDetails?.user;
+
+    if (email) {
+      const activeNonce = getActiveSession(email);
+      if (activeNonce) {
+        if (sessionNonce !== activeNonce) {
+          const headers = new Headers({ "Content-Type": "application/json" });
+          headers.append("Set-Cookie", "frappe_access_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0");
+          headers.append("Set-Cookie", "frappe_refresh_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0");
+          headers.append("Set-Cookie", "server_session_nonce=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0");
+          return new Response(
+            JSON.stringify({ error: "Multiple sessions detected. You have been logged out." }),
+            { status: 401, headers }
+          );
+        }
+      } else {
+        setActiveSession(email, sessionNonce);
+      }
     }
 
     // Set new cookies with updated tokens

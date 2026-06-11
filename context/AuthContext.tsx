@@ -16,8 +16,7 @@ interface User {
 type AuthContextType = {
     user: User | null;
     loading: boolean;
-    // 🛡️ Added captchaInput string type definition here
-    login: (email: string, password: string, captchaInput: string) => Promise<boolean>;
+    login: (email: string, password: string, captchaInput: string) => Promise<{ ok: boolean; error?: string }>;
     logout: () => void;
     adminLogout: () => void;
 }
@@ -56,33 +55,37 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     // 🛡️ Added captchaInput to function arguments
-    const login = async (email: string, password: string, captchaInput: string): Promise<boolean> => {
+    const login = async (email: string, password: string, captchaInput: string): Promise<{ ok: boolean; error?: string }> => {
         try {
             const res = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                // 🛡️ Packed captchaInput inside the JSON request string body payload
                 body: JSON.stringify({ email, password, captchaInput }),
             });
 
-            if (!res.ok) return false;
-
             const data = await res.json();
 
+            if (!res.ok) {
+                return { ok: false, error: data.error || "Authentication failed." };
+            }
+
             localStorage.setItem("frappe_access_token", data.access_token);
-            localStorage.setItem("frappe_refresh_token", data.refresh_token);
+            if (data.refresh_token) {
+                localStorage.setItem("frappe_refresh_token", data.refresh_token);
+            }
             let validated;
             
             // Immediately validate
-            const validateRes = await fetch("/api/auth/validate", {
-                headers: { Authorization: `Bearer ${data.access_token}` },
-            });
+            const validateRes = await fetch("/api/auth/validate");
 
             if (validateRes.ok) {
                 validated = await validateRes.json();
                 if (validated?.user) {
                     setUser(validated as User);
                 }
+            } else {
+                const validateErr = await validateRes.json();
+                return { ok: false, error: validateErr.error || "Session validation failed." };
             }
             if (validated?.roles.includes(UserRole.VMDDP_ADMIN)) {
                 router.push('/admin/dashboard');
@@ -96,10 +99,10 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
                 router.push('/');
             }
 
-            return true;
+            return { ok: true };
         } catch (err) {
             console.error("Login error:", err);
-            return false;
+            return { ok: false, error: "An unexpected client error occurred." };
         }
     };
 

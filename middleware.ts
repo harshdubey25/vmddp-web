@@ -107,6 +107,24 @@ export async function middleware(req: NextRequest) {
     const data = await validateUserToken(token);
     if (!data?.roles) return redirect(url, LOGIN_PATH);
 
+    const sessionNonce = req.cookies.get("server_session_nonce")?.value;
+    const email = data.user;
+    if (email) {
+      const { getActiveSession, setActiveSession } = await import("@/lib/session-management");
+      const activeNonce = getActiveSession(email);
+      if (activeNonce) {
+        if (sessionNonce !== activeNonce) {
+          const response = redirect(url, LOGIN_PATH);
+          response.cookies.set("frappe_access_token", "", { maxAge: 0 });
+          response.cookies.set("frappe_refresh_token", "", { maxAge: 0 });
+          response.cookies.set("server_session_nonce", "", { maxAge: 0 });
+          return response;
+        }
+      } else if (sessionNonce) {
+        setActiveSession(email, sessionNonce);
+      }
+    }
+
     // 3. Redirect users who belong to a *different* role to their own home
     for (const otherCfg of ROUTE_CONFIG) {
       if (otherCfg.role === matchedConfig.role) continue;
@@ -138,11 +156,32 @@ export async function middleware(req: NextRequest) {
   if (url.pathname === LOGIN_PATH && token) {
     const data = await validateUserToken(token);
     if (data?.roles) {
-      const home = getHomeForRoles(data.roles);
-      if (home) return NextResponse.redirect(new URL(home, req.url));
+      const sessionNonce = req.cookies.get("server_session_nonce")?.value;
+      const email = data.user;
+      let isSessionValid = true;
+      if (email) {
+        const { getActiveSession, setActiveSession } = await import("@/lib/session-management");
+        const activeNonce = getActiveSession(email);
+        if (activeNonce) {
+          if (sessionNonce !== activeNonce) {
+            isSessionValid = false;
+          }
+        } else if (sessionNonce) {
+          setActiveSession(email, sessionNonce);
+        }
+      }
+
+      if (isSessionValid) {
+        const home = getHomeForRoles(data.roles);
+        if (home) return NextResponse.redirect(new URL(home, req.url));
+      } else {
+        const response = NextResponse.next();
+        response.cookies.set("frappe_access_token", "", { maxAge: 0 });
+        response.cookies.set("frappe_refresh_token", "", { maxAge: 0 });
+        response.cookies.set("server_session_nonce", "", { maxAge: 0 });
+        return response;
+      }
     }
-    // If validation failed but token exists, allow access to login page
-    // to prevent redirect loops in production
   }
 
   return NextResponse.next();

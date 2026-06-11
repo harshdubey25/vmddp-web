@@ -1,17 +1,8 @@
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
-import { revokeOtherSessions } from "@/lib/session-management";
-
-// Atomic cache map to handle anti-replay matching
-const globalCaptchaStore = new Map<string, string>();
-
-function verifyLocalCaptcha(loginData: string, captchaToken: string): boolean {
-  if (!loginData || !captchaToken) {
-    return false;
-  }
-  return loginData.trim().toLowerCase() === captchaToken.trim().toLowerCase();
-}
+import { revokeOtherSessions, setActiveSession } from "@/lib/session-management";
+import { hashString } from "@/lib/hash";
 
 export async function POST(req: Request): Promise<Response> {
   if (req.method !== "POST") {
@@ -21,11 +12,11 @@ export async function POST(req: Request): Promise<Response> {
   try {
     const { email, password, captchaInput } = await req.json();
 
+    console.log("[LOGIN API] email:", email, "password length:", password?.length, "isHex:", /^[a-fA-F0-9]{64}$/.test(password || ""));
+
     // Whitelist input sanitation parameters
     const emailTest = /[^a-zA-Z0-9@.]/.test(email || "");
-    const isHexPassword = /^[a-fA-F0-9]{64}$/.test(password || "");
-    const isStandardPassword = !/[^a-zA-Z0-9@#]/.test(password || "");
-    const passwordTest = !(isHexPassword || isStandardPassword);
+    const passwordTest = !/^[ -~]+$/.test(password || "");
     const captchaTest = /[^a-zA-Z0-9]/.test(captchaInput || "");
 
     if (emailTest || passwordTest || captchaTest) {
@@ -35,12 +26,18 @@ export async function POST(req: Request): Promise<Response> {
       );
     }
 
-    // Atomic Get-and-Delete Verification logic
-    const uniqueSessionKey = email.trim().toLowerCase(); 
-    const actualCaptchaValue = globalCaptchaStore.get(uniqueSessionKey);
-    globalCaptchaStore.delete(uniqueSessionKey);
+    const cookies = req.headers.get("cookie") || "";
+    const cookieMap = Object.fromEntries(
+      cookies.split(";").map((c) => {
+        const [key, ...val] = c.trim().split("=");
+        return [key, val.join("=")];
+      })
+    );
+    const expectedCaptchaHash = cookieMap["expected_captcha"];
 
-    if (!captchaInput || !actualCaptchaValue || captchaInput.trim().toLowerCase() !== actualCaptchaValue.toLowerCase()) {
+    const inputCaptchaHash = await hashString(captchaInput || "");
+
+    if (!captchaInput || !expectedCaptchaHash || inputCaptchaHash !== expectedCaptchaHash) {
       return new Response(
         JSON.stringify({ error: "Security CAPTCHA expired or invalid." }),
         { status: 400, headers: { "Content-Type": "application/json" } }
@@ -81,6 +78,8 @@ export async function POST(req: Request): Promise<Response> {
     await revokeOtherSessions(email, data.access_token);
 
     const secureServerSessionNonce = crypto.randomUUID();
+    
+    setActiveSession(email, secureServerSessionNonce);
 
     headers.append(
       "Set-Cookie",
@@ -99,7 +98,8 @@ export async function POST(req: Request): Promise<Response> {
       JSON.stringify({
         ok: true,
         sessionNonce: secureServerSessionNonce,
-        access_token: data.access_token
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
       }),
       { status: 200, headers }
     );
@@ -108,8 +108,4 @@ export async function POST(req: Request): Promise<Response> {
     const message = err instanceof Error ? err.message : "Unknown error";
     return new Response(JSON.stringify({ error: "System processing error: " + message }), { status: 500 });
   }
-}
-
-export function saveCaptchaToStore(email: string, actualCode: string) {
-  globalCaptchaStore.set(email.trim().toLowerCase(), actualCode);
 }
