@@ -12,7 +12,6 @@ export async function POST(req: Request): Promise<Response> {
   try {
     const { email, password, captchaInput } = await req.json();
 
-    console.log("[LOGIN API] email:", email, "password length:", password?.length, "isHex:", /^[a-fA-F0-9]{64}$/.test(password || ""));
 
     // Whitelist input sanitation parameters
     const emailTest = /[^a-zA-Z0-9@.]/.test(email || "");
