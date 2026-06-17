@@ -49,9 +49,8 @@ export async function exportReport({
 
   const ext = FORMAT_EXTENSION[format] ?? "xlsx";
   const blob = new Blob([axiosResponse.data], {
-    type: axiosResponse.headers["content-type"] || "application/octet-stream",
+    type: `${axiosResponse.headers["content-type"] || "application/octet-stream"}`,
   });
-
   const downloadUrl = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = downloadUrl;
